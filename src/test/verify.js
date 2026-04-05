@@ -94,6 +94,13 @@ function main() {
   );
   console.log("");
 
+  runExpectationStep(
+    "[verify] Proposal layer: mixed-flat-small",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/mixed-flat-small"],
+    path.join(repoRoot, "sandbox", "expectations", "mixed-flat-small-propose.md")
+  );
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"]);
   console.log("");
 
