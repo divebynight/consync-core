@@ -4,32 +4,28 @@
 - PASS
 
 ## Summary
-- Added a small read-only `system-summary` command that prints the current implemented command, fixture, expectation, and verify surface in a compact human-readable form.
-- Kept it strictly hardcoded and reporting-only, with no dynamic discovery, no git inspection, and no behavior changes outside this new summary surface.
+- Created `artifacts/trust-boundaries.md` as a small static artifact describing the current trust boundaries of the system.
+- Kept the packet documentation-only: no enforcement, no validation logic, no command changes, and no behavior changes outside the handoff update.
 
 ## Files Created
-- `src/commands/system-summary.js`
-  - Added the new reporting command that prints the required `CONSYN C SYSTEM SUMMARY`, `COMMANDS`, `FIXTURES`, `EXPECTATIONS`, and `VERIFY` sections in a fixed order.
+- `artifacts/trust-boundaries.md`
+  - Added the current-state trust boundaries document covering operational surfaces, observational surfaces, current rule, what is not implemented, and the read-only deterministic boundary.
 
 ## Files Modified
-- `src/index.js`
-  - Registered the new `system-summary` command in the CLI entrypoint.
-- `src/test/verify.js`
-  - Added a lightweight verify step that runs `system-summary` so the reporting surface is included in the visible verification flow.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
-- `node src/index.js system-summary`
 - `npm run verify`
+- Open `artifacts/trust-boundaries.md`
 
 ## Human Verification
-- Run `node src/index.js system-summary` and confirm the output is compact, readable, and uses the required section order.
-- Confirm the `COMMANDS`, `FIXTURES`, `EXPECTATIONS`, and `VERIFY` lists match the current implemented surface exactly.
-- Run `npm run verify` and confirm the verification flow now includes a visible `Surface summary` step and still ends in `PASS`.
-- Failure case: if `system-summary` starts discovering values dynamically, diverges from the current implemented surface, or changes behavior beyond fixed reporting, treat the packet as failed.
+- Open `artifacts/trust-boundaries.md` and confirm it describes current trust boundaries only.
+- Confirm it does not introduce a roadmap, future architecture sections, or implementation plans.
+- Run `npm run verify` and confirm the repo still passes cleanly.
+- Failure case: if the file introduces new behavior, enforcement ideas, or future-plan framing, treat the packet as failed.
 
 ## Verification Notes
-- Verified `node src/index.js system-summary` prints the required compact summary with the expected hardcoded current surface.
-- Verified `npm run verify` now includes the `Surface summary` step and still passes cleanly.
-- No mutation, git inspection, or additional reporting behavior was introduced beyond the requested summary command.
+- Confirmed `artifacts/trust-boundaries.md` was created and follows the required current-state-only structure.
+- Confirmed the file distinguishes operational versus observational surfaces and states that observed content must not become instruction automatically.
+- Ran `npm run verify`; the full verification flow passed, including core CLI behavior, fixture verification, descriptive layer, proposal layer, surface summary, and system-check.
