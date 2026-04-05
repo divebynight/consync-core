@@ -1,6 +1,7 @@
 const { runNewGuidCommand } = require("./commands/new-guid");
 const { runListGuidCommand } = require("./commands/list-guid");
 const { runShowGuidCommand } = require("./commands/show-guid");
+const { runSandboxScanCommand } = require("./commands/sandbox-scan");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -27,6 +28,11 @@ async function main() {
 
   if (command === "show-guid") {
     runShowGuidCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "sandbox-scan") {
+    runSandboxScanCommand(process.argv[3]);
     return;
   }
 
