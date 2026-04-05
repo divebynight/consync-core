@@ -10,4 +10,6 @@ This runs both the unit and integration checks for `new-guid`.
 
 Expected result: both tests should pass cleanly.
 
-You can run `node src/index.js new-guid --note "some text"` to create an artifact without the interactive note prompt.
+Artifacts are written to `sandbox/current/` by default.
+
+You can run `node src/index.js new-guid --note "some text"` to create an artifact in `sandbox/current/` without the interactive note prompt.

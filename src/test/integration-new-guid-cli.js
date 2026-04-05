@@ -3,6 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
+const { SANDBOX_CURRENT_DIR } = require("../lib/fs");
 
 const TEST_NAME = "integration-new-guid-cli";
 
@@ -37,19 +38,27 @@ function runScenario(args, note, expectsPrompt) {
       assert.doesNotMatch(result.stdout, /note: /);
     }
 
+    const sandboxDir = path.join(tempDir, SANDBOX_CURRENT_DIR);
+    assert.ok(fs.existsSync(sandboxDir), "Expected sandbox/current directory to be created");
+    assert.deepStrictEqual(
+      fs.readdirSync(tempDir).filter(entry => entry.endsWith(".json")),
+      [],
+      "Expected temp directory root to remain free of JSON artifacts"
+    );
+
     const createdFiles = fs
-      .readdirSync(tempDir)
+      .readdirSync(sandboxDir)
       .filter(entry => entry.endsWith(".json"));
 
-    assert.strictEqual(createdFiles.length, 1, "Expected one JSON artifact in temp directory");
+    assert.strictEqual(createdFiles.length, 1, "Expected one JSON artifact in sandbox/current");
 
-    const artifactPath = path.join(tempDir, createdFiles[0]);
+    const artifactPath = path.join(sandboxDir, createdFiles[0]);
     const payload = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
     assert.strictEqual(payload.note, note);
     assert.match(payload.guid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 
-    const expectedFilePath = `./${createdFiles[0]}`;
+    const expectedFilePath = `./sandbox/current/${createdFiles[0]}`;
     const logPath = path.join(tempDir, "state", "events.log");
     assert.ok(fs.existsSync(logPath), "Expected event log to be created");
 

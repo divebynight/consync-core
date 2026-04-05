@@ -94,3 +94,68 @@ Notes:
 - avoid the word “feature” if the completed unit is smaller than a feature
 - the closeout prompt should reduce loose ends, not create ceremony
 - this should probably be validated through a few more cycles before becoming a formal rule
+
+## Output Path & Execution Model
+
+Status: emerging  
+Confidence: high  
+Origin: sandbox + path discussion during V1
+
+Consync is a local-first tool.
+
+- It runs inside a project directory
+- The working directory defines the active context
+
+Current default output location:
+
+sandbox/current/
+
+This keeps runtime artifacts separate from source files and prevents root-level clutter.
+
+Important principle:
+
+The output path is conceptually configurable, but configuration is not implemented in V1.
+
+Future direction (not implemented):
+
+1. CLI flag  
+   --out /path
+
+2. Environment variable  
+   CONSYNC_ROOT=/path
+
+3. Default fallback  
+   ./sandbox/current/
+
+Constraint:
+
+Do not introduce configuration until there is real pressure.
+
+All path logic should remain centralized so future changes are low-cost.
+
+## Validation Work Packets
+
+Status: emerging  
+Confidence: high  
+Origin: sandbox/output-path verification packet
+
+Not all Work Packets should produce code changes.
+
+A valid Work Packet can:
+- validate an architectural assumption
+- confirm an invariant is already satisfied
+- prevent unnecessary implementation
+- reduce future risk
+
+If a packet results in:
+
+- no files changed
+- no new code added
+
+but successfully confirms the system behaves as intended:
+
+It is still considered complete.
+
+Principle:
+
+Prefer validation over unnecessary implementation when the system already satisfies the design.

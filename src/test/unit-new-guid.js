@@ -3,6 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { newGuidTool } = require("../lib/newGuidTool");
+const { SANDBOX_CURRENT_DIR } = require("../lib/fs");
 
 const TEST_NAME = "unit-new-guid";
 
@@ -27,11 +28,17 @@ async function main() {
 
     assert.match(result.guid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
     assert.match(result.created_at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-    assert.match(result.filePath, /^\.\/\d{8}T\d{9}Z\.json$/);
+    assert.match(result.filePath, /^\.\/sandbox\/current\/\d{8}T\d{9}Z\.json$/);
     assert.strictEqual(typeof result.json, "string");
 
     const artifactPath = path.join(tempDir, result.filePath.slice(2));
     assert.ok(fs.existsSync(artifactPath), "Expected JSON artifact to be created");
+    assert.ok(fs.existsSync(path.join(tempDir, SANDBOX_CURRENT_DIR)), "Expected sandbox/current directory to be created");
+    assert.deepStrictEqual(
+      fs.readdirSync(tempDir).filter(entry => entry.endsWith(".json")),
+      [],
+      "Expected temp directory root to remain free of JSON artifacts"
+    );
 
     const fileContent = fs.readFileSync(artifactPath, "utf8");
     assert.strictEqual(fileContent, `${result.json}\n`);

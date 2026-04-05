@@ -1,10 +1,15 @@
 const fs = require("fs");
 const path = require("path");
 
+const SANDBOX_CURRENT_DIR = path.join("sandbox", "current");
+
 function writeJsonArtifact(cwd, fileName, json) {
-  const absolutePath = path.join(cwd, fileName);
+  const artifactDir = path.join(cwd, SANDBOX_CURRENT_DIR);
+  const absolutePath = path.join(artifactDir, fileName);
+
+  fs.mkdirSync(artifactDir, { recursive: true });
   fs.writeFileSync(absolutePath, json + "\n");
-  return `./${fileName}`;
+  return `./${path.join(SANDBOX_CURRENT_DIR, fileName)}`;
 }
 
 function appendEventLog(cwd, line) {
@@ -16,6 +21,7 @@ function appendEventLog(cwd, line) {
 }
 
 module.exports = {
+  SANDBOX_CURRENT_DIR,
   writeJsonArtifact,
   appendEventLog,
 };
