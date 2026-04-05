@@ -159,3 +159,27 @@ It is still considered complete.
 Principle:
 
 Prefer validation over unnecessary implementation when the system already satisfies the design.
+
+## Verification Status Distinction
+
+Status: emerging  
+Confidence: high  
+Origin: repeated closeout behavior during V1
+
+Consync should distinguish between machine verification and human verification.
+
+Current practical workflow:
+
+- Machine verification is usually run via `npm run verify`
+- Human verification is often not run unless the packet specifically benefits from it
+
+This is a valid workflow state as long as it is represented honestly in handoff and closeout.
+
+Preferred reporting shape:
+
+- Machine: PASS | FAIL | NOT RUN
+- Human: PASS | FAIL | NOT RUN
+
+Principle:
+
+The system should surface verification state clearly without forcing unnecessary ceremony.
