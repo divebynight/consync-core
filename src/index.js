@@ -1,5 +1,6 @@
 const { runNewGuidCommand } = require("./commands/new-guid");
 const { runListGuidCommand } = require("./commands/list-guid");
+const { runShowGuidCommand } = require("./commands/show-guid");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -21,6 +22,11 @@ async function main() {
 
   if (command === "list-guid") {
     runListGuidCommand();
+    return;
+  }
+
+  if (command === "show-guid") {
+    runShowGuidCommand(process.argv[3]);
     return;
   }
 
