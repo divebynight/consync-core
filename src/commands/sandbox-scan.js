@@ -13,19 +13,14 @@ function compareText(left, right) {
   return 0;
 }
 
-function runSandboxScanCommand(targetPath) {
-  if (!targetPath) {
-    console.log("Path is required");
-    process.exitCode = 1;
-    return;
-  }
-
+function buildSandboxScanOutput(targetPath) {
   const absolutePath = path.resolve(process.cwd(), targetPath);
 
   if (!fs.existsSync(absolutePath)) {
-    console.log("Path not found");
-    process.exitCode = 1;
-    return;
+    return {
+      ok: false,
+      output: "Path not found",
+    };
   }
 
   const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
@@ -41,22 +36,47 @@ function runSandboxScanCommand(targetPath) {
     typeCounts[extension] = (typeCounts[extension] || 0) + 1;
   }
 
-  console.log(`total files: ${fileNames.length}`);
-  console.log("");
-  console.log("types:");
+  const lines = [];
+  lines.push(`total files: ${fileNames.length}`);
+  lines.push("");
+  lines.push("types:");
 
   for (const extension of Object.keys(typeCounts).sort(compareText)) {
-    console.log(`- ${extension}: ${typeCounts[extension]}`);
+    lines.push(`- ${extension}: ${typeCounts[extension]}`);
   }
 
-  console.log("");
-  console.log("files:");
+  lines.push("");
+  lines.push("files:");
 
   for (const fileName of fileNames) {
-    console.log(`- ${fileName}`);
+    lines.push(`- ${fileName}`);
   }
+
+  return {
+    ok: true,
+    output: lines.join("\n"),
+  };
+}
+
+function runSandboxScanCommand(targetPath) {
+  if (!targetPath) {
+    console.log("Path is required");
+    process.exitCode = 1;
+    return;
+  }
+
+  const result = buildSandboxScanOutput(targetPath);
+
+  if (!result.ok) {
+    console.log(result.output);
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(result.output);
 }
 
 module.exports = {
+  buildSandboxScanOutput,
   runSandboxScanCommand,
 };

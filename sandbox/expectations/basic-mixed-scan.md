@@ -1,17 +1,13 @@
-# Basic Mixed Scan Expectation
+total files: 6
 
-This file defines the expected read-only scan result for the `sandbox/fixtures/basic-mixed/` fixture.
-
-- total files: 6
-
-## Types
-- png: 2
-- jpg: 1
-- wav: 1
+types:
 - blend: 1
+- jpg: 1
+- png: 2
 - txt: 1
+- wav: 1
 
-## Files
+files:
 - FINAL__v2!!.png
 - ambience-loop.wav
 - character-study.blend
