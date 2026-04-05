@@ -101,6 +101,9 @@ function main() {
   );
   console.log("");
 
+  runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"]);
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"]);
   console.log("");
 

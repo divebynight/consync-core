@@ -4,38 +4,32 @@
 - PASS
 
 ## Summary
-- Added a new flat mixed fixture to strengthen coverage of the existing proposal behavior for mixed directories without changing any heuristics.
-- Added an exact expectation file for that fixture and extended the verify flow so the mixed flat proposal result is now enforced automatically.
+- Added a small read-only `system-summary` command that prints the current implemented command, fixture, expectation, and verify surface in a compact human-readable form.
+- Kept it strictly hardcoded and reporting-only, with no dynamic discovery, no git inspection, and no behavior changes outside this new summary surface.
 
 ## Files Created
-- `sandbox/fixtures/mixed-flat-small/photo1.png`
-  - Added a simple image fixture file for the new flat mixed directory.
-- `sandbox/fixtures/mixed-flat-small/photo2.jpg`
-  - Added a second image fixture file with a different extension.
-- `sandbox/fixtures/mixed-flat-small/loop1.wav`
-  - Added a simple audio fixture file so the directory is clearly mixed media.
-- `sandbox/fixtures/mixed-flat-small/notes.txt`
-  - Added a text fixture file to preserve the current mixed flat grouping pattern.
-- `sandbox/expectations/mixed-flat-small-propose.md`
-  - Added the exact expected proposal output showing media-based grouping is recommended for this flat mixed directory.
+- `src/commands/system-summary.js`
+  - Added the new reporting command that prints the required `CONSYN C SYSTEM SUMMARY`, `COMMANDS`, `FIXTURES`, `EXPECTATIONS`, and `VERIFY` sections in a fixed order.
 
 ## Files Modified
+- `src/index.js`
+  - Registered the new `system-summary` command in the CLI entrypoint.
 - `src/test/verify.js`
-  - Added expectation-backed proposal verification for `sandbox/fixtures/mixed-flat-small`.
+  - Added a lightweight verify step that runs `system-summary` so the reporting surface is included in the visible verification flow.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
-- `node src/index.js sandbox-propose sandbox/fixtures/mixed-flat-small`
+- `node src/index.js system-summary`
 - `npm run verify`
 
 ## Human Verification
-- Run `node src/index.js sandbox-propose sandbox/fixtures/mixed-flat-small` and confirm it recommends simple media-based grouping.
-- Confirm the output notes include `group by media type if you want a cleaner working directory` and `mixed media directory`.
-- Run `npm run verify` and confirm the proposal layer includes `mixed-flat-small` and it passes.
-- Failure case: if the new fixture produces different proposal behavior without any heuristic change, treat the packet as failed.
+- Run `node src/index.js system-summary` and confirm the output is compact, readable, and uses the required section order.
+- Confirm the `COMMANDS`, `FIXTURES`, `EXPECTATIONS`, and `VERIFY` lists match the current implemented surface exactly.
+- Run `npm run verify` and confirm the verification flow now includes a visible `Surface summary` step and still ends in `PASS`.
+- Failure case: if `system-summary` starts discovering values dynamically, diverges from the current implemented surface, or changes behavior beyond fixed reporting, treat the packet as failed.
 
 ## Verification Notes
-- Verified `node src/index.js sandbox-propose sandbox/fixtures/mixed-flat-small` prints the expected media-based grouping output.
-- Verified `npm run verify` now includes `Proposal layer: mixed-flat-small` and it returns `PASS`.
-- No proposal heuristics, command behavior, or existing fixtures were changed in this packet.
+- Verified `node src/index.js system-summary` prints the required compact summary with the expected hardcoded current surface.
+- Verified `npm run verify` now includes the `Surface summary` step and still passes cleanly.
+- No mutation, git inspection, or additional reporting behavior was introduced beyond the requested summary command.

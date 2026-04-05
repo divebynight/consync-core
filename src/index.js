@@ -6,6 +6,7 @@ const { runSandboxVerifyCommand } = require("./commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("./commands/sandbox-describe");
 const { runSandboxProposeCommand } = require("./commands/sandbox-propose");
 const { runSystemCheckCommand } = require("./commands/system-check");
+const { runSystemSummaryCommand } = require("./commands/system-summary");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -57,6 +58,11 @@ async function main() {
 
   if (command === "system-check") {
     runSystemCheckCommand();
+    return;
+  }
+
+  if (command === "system-summary") {
+    runSystemSummaryCommand();
     return;
   }
 
