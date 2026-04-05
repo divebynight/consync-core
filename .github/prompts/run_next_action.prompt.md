@@ -17,11 +17,30 @@ Wrote full handoff to state/handoff.md
 
 ## Handoff Output Rules
 
+Every handoff MUST include these sections:
+- Status
+- Summary
+- Files Created
+- Files Modified
+- Commands to Run
+- Human Verification
+- Verification Notes
+
 Do NOT include full file contents.
 
 Instead:
 - list created files
 - list modified files
 - summarize each change in 1–2 lines
+
+Human Verification requirements:
+- include step-by-step manual checks
+- include real commands the user can run
+- cover both success and failure cases when relevant
+
+Verification Notes requirements:
+- state what was actually tested
+- state the observed outcomes
+- mention important edge cases that were validated
 
 Keep output concise and readable.
