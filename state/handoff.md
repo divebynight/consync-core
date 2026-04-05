@@ -4,28 +4,36 @@
 - PASS
 
 ## Summary
-- Created `artifacts/layered-system.md` with the exact checkpoint wording requested, describing the current observe → verify → describe → propose layering as implemented.
-- Kept the packet strictly scoped to the required checkpoint artifact and a handoff update, with no behavior changes.
+- Added a new single-type flat fixture to expand proposal coverage without changing any proposal heuristics.
+- Added an exact expectation file for that fixture and extended the verify flow so the proposal layer now enforces the expected “no grouping recommended” result automatically.
 
 ## Files Created
-- `artifacts/layered-system.md`
-  - Added the exact current-state layered system checkpoint document with no extra sections or wording changes.
+- `sandbox/fixtures/single-type-flat/image1.png`
+  - Added a simple image fixture file for the single-type flat directory.
+- `sandbox/fixtures/single-type-flat/image2.jpg`
+  - Added a second image fixture file with a different image extension.
+- `sandbox/fixtures/single-type-flat/image3.png`
+  - Added a third image fixture file to keep the directory clearly single-type.
+- `sandbox/expectations/single-type-flat-propose.md`
+  - Added the exact expected proposal output showing no grouping recommended and no notes.
 
 ## Files Modified
+- `src/test/verify.js`
+  - Added expectation-backed proposal verification for `sandbox/fixtures/single-type-flat`.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
+- `node src/index.js sandbox-propose sandbox/fixtures/single-type-flat`
 - `npm run verify`
-- Open `artifacts/layered-system.md`
 
 ## Human Verification
-- Open `artifacts/layered-system.md` and confirm the wording matches the requested checkpoint content exactly.
-- Confirm the file contains no extra sections, explanations, or future ideas.
-- Run `npm run verify` and confirm the repo still passes cleanly.
-- Failure case: if `artifacts/layered-system.md` diverges from the requested structure or introduces additional interpretation, treat the packet as failed.
+- Run `node src/index.js sandbox-propose sandbox/fixtures/single-type-flat` and confirm it prints `no additional grouping recommended`.
+- Confirm the output notes section prints `- none`.
+- Run `npm run verify` and confirm the proposal layer includes `single-type-flat` and it passes.
+- Failure case: if the single-type flat fixture triggers a new grouping suggestion or additional notes, treat the packet as failed.
 
 ## Verification Notes
-- Confirmed `artifacts/layered-system.md` was created and contains the requested current-state layered system checkpoint content.
-- Ran `npm run verify`; the full verification flow passed, including core CLI behavior, fixture verification, descriptive layer, proposal layer, and system-check.
-- No runtime or command behavior was changed in this packet.
+- Verified `node src/index.js sandbox-propose sandbox/fixtures/single-type-flat` prints the expected no-grouping proposal with no notes.
+- Verified `npm run verify` now includes `Proposal layer: single-type-flat` and it returns `PASS`.
+- No proposal heuristics or existing fixtures were changed in this packet.

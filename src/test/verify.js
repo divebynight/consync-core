@@ -87,6 +87,13 @@ function main() {
   );
   console.log("");
 
+  runExpectationStep(
+    "[verify] Proposal layer: single-type-flat",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/single-type-flat"],
+    path.join(repoRoot, "sandbox", "expectations", "single-type-flat-propose.md")
+  );
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"]);
   console.log("");
 
