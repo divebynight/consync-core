@@ -4,32 +4,28 @@
 - PASS
 
 ## Summary
-- Added a small read-only `sandbox-catalog` command that prints the current hardcoded sandbox fixture and expectation surface in a compact human-readable form.
-- Kept it strictly reporting-only: no dynamic discovery, no behavior changes to scan or verify commands, and no mutation.
+- Created `artifacts/manual-test-protocol.md` as a small durable document for running repeatable manual tests against real folders.
+- Kept the packet documentation-only and aligned it with the current command surface, fixture promotion loop, and evaluation discipline.
 
 ## Files Created
-- `src/commands/sandbox-catalog.js`
-  - Added the new reporting command that prints the required `SANDBOX CATALOG`, `FIXTURES`, `SCAN EXPECTATIONS`, and `PROPOSE EXPECTATIONS` sections in a fixed order.
+- `artifacts/manual-test-protocol.md`
+  - Added the manual testing loop, evaluation rubric, outcome classification, and fixture promotion rule as a plain markdown protocol artifact.
 
 ## Files Modified
-- `src/index.js`
-  - Registered the new `sandbox-catalog` command in the CLI entrypoint.
-- `src/test/verify.js`
-  - Added a lightweight verify step that runs `sandbox-catalog` so the sandbox reporting surface is included in the visible verification flow.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
-- `node src/index.js sandbox-catalog`
 - `npm run verify`
+- Open `artifacts/manual-test-protocol.md`
 
 ## Human Verification
-- Run `node src/index.js sandbox-catalog` and confirm the output is compact, readable, and uses the required section order.
-- Confirm the `FIXTURES`, `SCAN EXPECTATIONS`, and `PROPOSE EXPECTATIONS` lists match the current hardcoded sandbox surface exactly.
-- Run `npm run verify` and confirm the verification flow now includes a visible `Sandbox catalog` step and still ends in `PASS`.
-- Failure case: if `sandbox-catalog` starts discovering values dynamically, diverges from the current sandbox surface, or changes behavior beyond fixed reporting, treat the packet as failed.
+- Open `artifacts/manual-test-protocol.md` and confirm it reads as a simple repeatable manual testing loop.
+- Confirm it stays within manual testing scope and does not introduce automation or command changes.
+- Run `npm run verify` and confirm the repo still passes cleanly.
+- Failure case: if the artifact introduces automation, expands beyond manual testing, or drifts away from the current command surface, treat the packet as failed.
 
 ## Verification Notes
-- Verified `node src/index.js sandbox-catalog` prints the required compact sandbox catalog with the expected hardcoded current fixture and expectation surface.
-- Verified `npm run verify` now includes the `Sandbox catalog` step and still passes cleanly.
-- No mutation, dynamic discovery, or changes to `sandbox-scan` or `sandbox-verify` were introduced in this packet.
+- Confirmed `artifacts/manual-test-protocol.md` was created as a plain markdown artifact under `artifacts/`.
+- Confirmed the document covers setup, command order, evaluation rubric, classification, promotion to fixture, and loop constraints in a current-state form.
+- Ran `npm run verify`; the full verification flow passed, including core CLI behavior, fixture verification, descriptive layer, proposal layer, sandbox catalog, surface summary, and system-check.
