@@ -1,5 +1,8 @@
-*.json
+# Generated sandbox artifacts
+sandbox/current/*.json
+
+# Generated runtime log
 state/events.log
 
-# Consync runtime / transient state
-state/
+# Local working scratch
+state/next-action.md

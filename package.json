@@ -1,0 +1,11 @@
+{
+  "name": "consync-core",
+  "private": true,
+  "scripts": {
+    "verify": "node src/test/verify.js",
+    "test:unit": "node src/test/unit-new-guid.js",
+    "test:integration": "node src/test/integration-new-guid-cli.js",
+    "test": "npm run test:unit && npm run test:integration"
+  },
+  "version": "0.0.1"
+}
