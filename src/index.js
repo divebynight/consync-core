@@ -5,6 +5,7 @@ const { runSandboxScanCommand } = require("./commands/sandbox-scan");
 const { runSandboxVerifyCommand } = require("./commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("./commands/sandbox-describe");
 const { runSandboxProposeCommand } = require("./commands/sandbox-propose");
+const { runSandboxCatalogCommand } = require("./commands/sandbox-catalog");
 const { runSystemCheckCommand } = require("./commands/system-check");
 const { runSystemSummaryCommand } = require("./commands/system-summary");
 
@@ -53,6 +54,11 @@ async function main() {
 
   if (command === "sandbox-propose") {
     runSandboxProposeCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "sandbox-catalog") {
+    runSandboxCatalogCommand();
     return;
   }
 

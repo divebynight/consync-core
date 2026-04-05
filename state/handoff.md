@@ -4,28 +4,32 @@
 - PASS
 
 ## Summary
-- Created `artifacts/trust-boundaries.md` as a small static artifact describing the current trust boundaries of the system.
-- Kept the packet documentation-only: no enforcement, no validation logic, no command changes, and no behavior changes outside the handoff update.
+- Added a small read-only `sandbox-catalog` command that prints the current hardcoded sandbox fixture and expectation surface in a compact human-readable form.
+- Kept it strictly reporting-only: no dynamic discovery, no behavior changes to scan or verify commands, and no mutation.
 
 ## Files Created
-- `artifacts/trust-boundaries.md`
-  - Added the current-state trust boundaries document covering operational surfaces, observational surfaces, current rule, what is not implemented, and the read-only deterministic boundary.
+- `src/commands/sandbox-catalog.js`
+  - Added the new reporting command that prints the required `SANDBOX CATALOG`, `FIXTURES`, `SCAN EXPECTATIONS`, and `PROPOSE EXPECTATIONS` sections in a fixed order.
 
 ## Files Modified
+- `src/index.js`
+  - Registered the new `sandbox-catalog` command in the CLI entrypoint.
+- `src/test/verify.js`
+  - Added a lightweight verify step that runs `sandbox-catalog` so the sandbox reporting surface is included in the visible verification flow.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
+- `node src/index.js sandbox-catalog`
 - `npm run verify`
-- Open `artifacts/trust-boundaries.md`
 
 ## Human Verification
-- Open `artifacts/trust-boundaries.md` and confirm it describes current trust boundaries only.
-- Confirm it does not introduce a roadmap, future architecture sections, or implementation plans.
-- Run `npm run verify` and confirm the repo still passes cleanly.
-- Failure case: if the file introduces new behavior, enforcement ideas, or future-plan framing, treat the packet as failed.
+- Run `node src/index.js sandbox-catalog` and confirm the output is compact, readable, and uses the required section order.
+- Confirm the `FIXTURES`, `SCAN EXPECTATIONS`, and `PROPOSE EXPECTATIONS` lists match the current hardcoded sandbox surface exactly.
+- Run `npm run verify` and confirm the verification flow now includes a visible `Sandbox catalog` step and still ends in `PASS`.
+- Failure case: if `sandbox-catalog` starts discovering values dynamically, diverges from the current sandbox surface, or changes behavior beyond fixed reporting, treat the packet as failed.
 
 ## Verification Notes
-- Confirmed `artifacts/trust-boundaries.md` was created and follows the required current-state-only structure.
-- Confirmed the file distinguishes operational versus observational surfaces and states that observed content must not become instruction automatically.
-- Ran `npm run verify`; the full verification flow passed, including core CLI behavior, fixture verification, descriptive layer, proposal layer, surface summary, and system-check.
+- Verified `node src/index.js sandbox-catalog` prints the required compact sandbox catalog with the expected hardcoded current fixture and expectation surface.
+- Verified `npm run verify` now includes the `Sandbox catalog` step and still passes cleanly.
+- No mutation, dynamic discovery, or changes to `sandbox-scan` or `sandbox-verify` were introduced in this packet.

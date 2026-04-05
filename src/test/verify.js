@@ -101,6 +101,9 @@ function main() {
   );
   console.log("");
 
+  runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "index.js"), "sandbox-catalog"]);
+  console.log("");
+
   runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"]);
   console.log("");
 
