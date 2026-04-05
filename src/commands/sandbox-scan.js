@@ -30,7 +30,7 @@ function collectFilePaths(rootPath, currentPath, results) {
   }
 }
 
-function buildSandboxScanOutput(targetPath) {
+function buildSandboxScanSummary(targetPath) {
   const absolutePath = path.resolve(process.cwd(), targetPath);
 
   if (!fs.existsSync(absolutePath)) {
@@ -51,19 +51,34 @@ function buildSandboxScanOutput(targetPath) {
     typeCounts[extension] = (typeCounts[extension] || 0) + 1;
   }
 
+  return {
+    ok: true,
+    absolutePath,
+    fileNames,
+    typeCounts,
+  };
+}
+
+function buildSandboxScanOutput(targetPath) {
+  const summary = buildSandboxScanSummary(targetPath);
+
+  if (!summary.ok) {
+    return summary;
+  }
+
   const lines = [];
-  lines.push(`total files: ${fileNames.length}`);
+  lines.push(`total files: ${summary.fileNames.length}`);
   lines.push("");
   lines.push("types:");
 
-  for (const extension of Object.keys(typeCounts).sort(compareText)) {
-    lines.push(`- ${extension}: ${typeCounts[extension]}`);
+  for (const extension of Object.keys(summary.typeCounts).sort(compareText)) {
+    lines.push(`- ${extension}: ${summary.typeCounts[extension]}`);
   }
 
   lines.push("");
   lines.push("files:");
 
-  for (const fileName of fileNames) {
+  for (const fileName of summary.fileNames) {
     lines.push(`- ${fileName}`);
   }
 
@@ -92,6 +107,8 @@ function runSandboxScanCommand(targetPath) {
 }
 
 module.exports = {
+  buildSandboxScanSummary,
   buildSandboxScanOutput,
+  compareText,
   runSandboxScanCommand,
 };

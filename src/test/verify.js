@@ -45,6 +45,12 @@ function main() {
   runNodeStep("[verify] Fixture verification: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/nested-mixed"]);
   console.log("");
 
+  runNodeStep("[verify] Descriptive layer: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/basic-mixed"]);
+  console.log("");
+
+  runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"]);
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"]);
   console.log("");
 

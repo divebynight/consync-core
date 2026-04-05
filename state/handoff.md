@@ -4,35 +4,39 @@
 - PASS
 
 ## Summary
-- Updated `npm run verify` to use a small orchestrator script that prints clear named verification steps instead of feeling like a black box.
-- The verify flow now explicitly shows core CLI checks, fixture verification for both current fixtures, and the system and process surface check, while keeping the existing scope lightweight.
+- Added a read-only `sandbox-describe` command that builds on the existing scan summary and prints a small deterministic directory description with broad file-type categories and simple notes.
+- Kept the heuristics explicit and narrow: category counts come from file extensions, and notes only appear for mixed media directories and obvious non-standard filename patterns.
 
 ## Files Created
-- `src/test/verify.js`
-  - Added a small verification orchestrator that runs the existing checks in a stable, human-readable sequence and prints a final `[verify] PASS` summary.
+- `src/commands/sandbox-describe.js`
+  - Added the new descriptive command that reuses the current scan summary and prints `PATH`, `TOTAL FILES`, categorized file counts, and a small `NOTES` section.
 
 ## Files Modified
-- `package.json`
-  - Updated the `verify` script to run the new orchestrator instead of delegating directly to `npm test`.
+- `src/commands/sandbox-scan.js`
+  - Refactored the scan command to expose a reusable summary builder so the new descriptive layer can build on existing traversal logic without duplicating it.
+- `src/index.js`
+  - Registered the new `sandbox-describe` command in the CLI entrypoint.
+- `src/test/verify.js`
+  - Added lightweight verify steps that run `sandbox-describe` for both current fixtures so the new surface is visible in the structured verify output.
 - `state/handoff.md`
   - Updated the handoff to record the current packet outcome.
 
 ## Commands to Run
+- `node src/index.js sandbox-describe sandbox/fixtures/basic-mixed`
+- `node src/index.js sandbox-describe sandbox/fixtures/nested-mixed`
 - `npm run verify`
-- `node src/index.js sandbox-verify sandbox/fixtures/basic-mixed`
-- `node src/index.js system-check`
 
 ## Human Verification
-- Run `npm run verify` and confirm the output now shows clear named sections for unit new-guid, integration new-guid, fixture verification for `basic-mixed` and `nested-mixed`, and the system and process surface.
-- Confirm the verify output is stable and readable rather than a black box.
-- Confirm the fixture verification steps still print `PASS` and the system check still reports `STATUS: ON_TRACK`.
-- Run `node src/index.js sandbox-verify sandbox/fixtures/basic-mixed` and `node src/index.js system-check` directly if you want to compare the individual surfaces to the grouped verify output.
-- Failure case: if `npm run verify` becomes noisy, hides what it is checking, or stops reflecting the current scan, fixture, and process surface, treat the packet as failed.
+- Run `node src/index.js sandbox-describe sandbox/fixtures/basic-mixed` and confirm it prints stable category counts for `audio`, `design`, `image`, and `text`, plus notes for `mixed media directory` and `contains non-standard filename patterns`.
+- Run `node src/index.js sandbox-describe sandbox/fixtures/nested-mixed` and confirm it prints stable category counts and only the `mixed media directory` note.
+- Confirm the command stays read-only and does not mutate fixtures or expectations.
+- Run `npm run verify` and confirm the descriptive layer appears as named steps in the verification output and the overall run still passes.
+- Failure case: if the command starts making speculative interpretations, duplicates scan traversal logic, or produces unstable output across repeated runs, treat the packet as failed.
 
 ## Verification Notes
-- Ran `npm run verify` and confirmed the output now prints explicit sections for core CLI behavior, fixture verification, and system and process surface.
-- Observed successful verification of unit new-guid, integration new-guid, `sandbox-verify` for both fixtures, and `system-check`, followed by a final `[verify] PASS`.
-- No new framework, diff engine, or coverage tooling was introduced; this packet only improved visibility and trust in the existing verify path.
+- Verified `sandbox-describe` against both current fixtures and observed deterministic category counts with note behavior matching the explicit rules.
+- Observed the non-standard filename note only on `basic-mixed`, triggered by the existing odd filename fixture, while `nested-mixed` reported only `mixed media directory`.
+- Ran `npm run verify`; the updated verify flow passed and now includes explicit descriptive-layer checks for both fixtures alongside the existing unit, integration, fixture-verification, and system-check steps.
 
 ## Open Questions
 - None.

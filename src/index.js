@@ -3,6 +3,7 @@ const { runListGuidCommand } = require("./commands/list-guid");
 const { runShowGuidCommand } = require("./commands/show-guid");
 const { runSandboxScanCommand } = require("./commands/sandbox-scan");
 const { runSandboxVerifyCommand } = require("./commands/sandbox-verify");
+const { runSandboxDescribeCommand } = require("./commands/sandbox-describe");
 const { runSystemCheckCommand } = require("./commands/system-check");
 
 function parseNewGuidOptions(argv) {
@@ -40,6 +41,11 @@ async function main() {
 
   if (command === "sandbox-verify") {
     runSandboxVerifyCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "sandbox-describe") {
+    runSandboxDescribeCommand(process.argv[3]);
     return;
   }
 
