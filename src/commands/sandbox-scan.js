@@ -13,6 +13,23 @@ function compareText(left, right) {
   return 0;
 }
 
+function collectFilePaths(rootPath, currentPath, results) {
+  const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const entryPath = path.join(currentPath, entry.name);
+
+    if (entry.isDirectory()) {
+      collectFilePaths(rootPath, entryPath, results);
+      continue;
+    }
+
+    if (entry.isFile()) {
+      results.push(path.relative(rootPath, entryPath));
+    }
+  }
+}
+
 function buildSandboxScanOutput(targetPath) {
   const absolutePath = path.resolve(process.cwd(), targetPath);
 
@@ -23,11 +40,9 @@ function buildSandboxScanOutput(targetPath) {
     };
   }
 
-  const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
-  const fileNames = entries
-    .filter(entry => entry.isFile())
-    .map(entry => entry.name)
-    .sort(compareText);
+  const fileNames = [];
+  collectFilePaths(absolutePath, absolutePath, fileNames);
+  fileNames.sort(compareText);
 
   const typeCounts = {};
 
