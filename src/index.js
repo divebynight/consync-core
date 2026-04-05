@@ -1,4 +1,5 @@
 const { runNewGuidCommand } = require("./commands/new-guid");
+const { runListGuidCommand } = require("./commands/list-guid");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -13,13 +14,18 @@ function parseNewGuidOptions(argv) {
 async function main() {
   const command = process.argv[2];
 
-  if (command !== "new-guid") {
-    console.error("Unknown command");
-    process.exitCode = 1;
+  if (command === "new-guid") {
+    await runNewGuidCommand(parseNewGuidOptions(process.argv.slice(3)));
     return;
   }
 
-  await runNewGuidCommand(parseNewGuidOptions(process.argv.slice(3)));
+  if (command === "list-guid") {
+    runListGuidCommand();
+    return;
+  }
+
+  console.error("Unknown command");
+  process.exitCode = 1;
 }
 
 main().catch(error => {
