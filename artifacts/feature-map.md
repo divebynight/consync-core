@@ -30,3 +30,8 @@ It is a lightweight map of what is implemented, what is next, and what is deferr
 - deferred: broader session structure decisions
 - deferred: stronger state summary conventions
 - deferred: additional artifact commands beyond current inspection flow
+
+## Guardrail
+- Curated fixtures are a development tool, not the target environment.
+- The longer-term goal is to work against existing, unstructured creative directories.
+- Consync should infer structure from chaotic data while keeping user input to a few high-value questions.
