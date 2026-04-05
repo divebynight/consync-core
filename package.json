@@ -7,5 +7,5 @@
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test": "npm run test:unit && npm run test:integration"
   },
-  "version": "0.0.3"
+  "version": "0.0.4"
 }
