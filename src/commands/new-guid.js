@@ -15,8 +15,10 @@ function ask(question) {
   });
 }
 
-async function runNewGuidCommand() {
-  const note = await ask("note: ");
+async function runNewGuidCommand(options = {}) {
+  const note = typeof options.note === "string"
+    ? options.note
+    : await ask("note: ");
   const result = await newGuidTool({ note });
 
   console.log(result.filePath);

@@ -1,5 +1,15 @@
 const { runNewGuidCommand } = require("./commands/new-guid");
 
+function parseNewGuidOptions(argv) {
+  if (argv[0] === "--note") {
+    return {
+      note: argv[1] || "",
+    };
+  }
+
+  return {};
+}
+
 async function main() {
   const command = process.argv[2];
 
@@ -9,7 +19,7 @@ async function main() {
     return;
   }
 
-  await runNewGuidCommand();
+  await runNewGuidCommand(parseNewGuidOptions(process.argv.slice(3)));
 }
 
 main().catch(error => {

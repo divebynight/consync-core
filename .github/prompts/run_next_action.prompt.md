@@ -14,3 +14,14 @@ Do NOT print the full response in chat.
 
 Only reply with:
 Wrote full handoff to state/handoff-up.md
+
+## Handoff Output Rules
+
+Do NOT include full file contents.
+
+Instead:
+- list created files
+- list modified files
+- summarize each change in 1–2 lines
+
+Keep output concise and readable.

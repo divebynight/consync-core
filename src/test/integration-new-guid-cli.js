@@ -12,26 +12,30 @@ function fail(error) {
   process.exit(1);
 }
 
-function main() {
+function runScenario(args, note, expectsPrompt) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-integration-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
   const cliPath = path.join(repoRoot, "src", "index.js");
-  const note = "integration test note";
-
-  console.log(`[${TEST_NAME}] Running`);
 
   try {
-    const result = spawnSync(process.execPath, [cliPath, "new-guid"], {
+    const result = spawnSync(process.execPath, [cliPath, "new-guid", ...args], {
       cwd: tempDir,
       env: {
         ...process.env,
         CONSYNC_DISABLE_CLIPBOARD: "1",
       },
-      input: `${note}\n`,
+      input: expectsPrompt ? `${note}\n` : undefined,
       encoding: "utf8",
     });
 
     assert.strictEqual(result.status, 0, result.stderr || "CLI exited with non-zero status");
+    assert.strictEqual(result.stderr, "");
+
+    if (expectsPrompt) {
+      assert.match(result.stdout, /note: /);
+    } else {
+      assert.doesNotMatch(result.stdout, /note: /);
+    }
 
     const createdFiles = fs
       .readdirSync(tempDir)
@@ -51,11 +55,19 @@ function main() {
 
     const logContent = fs.readFileSync(logPath, "utf8");
     assert.strictEqual(logContent, `${payload.created_at} new-guid ${payload.guid} ${expectedFilePath}\n`);
-
-    console.log(`[${TEST_NAME}] PASS`);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+}
+
+function main() {
+  console.log(`[${TEST_NAME}] Running interactive mode`);
+  runScenario([], "interactive integration note", true);
+
+  console.log(`[${TEST_NAME}] Running --note mode`);
+  runScenario(["--note", "non-interactive integration note"], "non-interactive integration note", false);
+
+  console.log(`[${TEST_NAME}] PASS`);
 }
 
 try {
