@@ -1,2 +1,5 @@
 *.json
 state/events.log
+
+# Consync runtime / transient state
+state/

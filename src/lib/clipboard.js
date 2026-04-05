@@ -2,6 +2,11 @@ const { spawn } = require("child_process");
 
 function copyToClipboard(text) {
   return new Promise(resolve => {
+    if (process.env.CONSYNC_DISABLE_CLIPBOARD === "1") {
+      resolve(null);
+      return;
+    }
+
     const processHandle = spawn("pbcopy");
 
     processHandle.on("error", error => {
