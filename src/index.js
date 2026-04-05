@@ -4,6 +4,7 @@ const { runShowGuidCommand } = require("./commands/show-guid");
 const { runSandboxScanCommand } = require("./commands/sandbox-scan");
 const { runSandboxVerifyCommand } = require("./commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("./commands/sandbox-describe");
+const { runSandboxProposeCommand } = require("./commands/sandbox-propose");
 const { runSystemCheckCommand } = require("./commands/system-check");
 
 function parseNewGuidOptions(argv) {
@@ -46,6 +47,11 @@ async function main() {
 
   if (command === "sandbox-describe") {
     runSandboxDescribeCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "sandbox-propose") {
+    runSandboxProposeCommand(process.argv[3]);
     return;
   }
 

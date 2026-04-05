@@ -38,19 +38,11 @@ function hasNonStandardPattern(fileName) {
   return uppercaseCount >= 4;
 }
 
-function runSandboxDescribeCommand(targetPath) {
-  if (!targetPath) {
-    console.log("Path is required");
-    process.exitCode = 1;
-    return;
-  }
-
+function buildSandboxDescribeSummary(targetPath) {
   const summary = buildSandboxScanSummary(targetPath);
 
   if (!summary.ok) {
-    console.log(summary.output);
-    process.exitCode = 1;
-    return;
+    return summary;
   }
 
   const categoryCounts = {};
@@ -71,26 +63,53 @@ function runSandboxDescribeCommand(targetPath) {
     notes.push("contains non-standard filename patterns");
   }
 
+  return {
+    ok: true,
+    fileNames: summary.fileNames,
+    totalFiles: summary.fileNames.length,
+    categoryCounts,
+    notes,
+  };
+}
+
+function runSandboxDescribeCommand(targetPath) {
+  if (!targetPath) {
+    console.log("Path is required");
+    process.exitCode = 1;
+    return;
+  }
+
+  const summary = buildSandboxDescribeSummary(targetPath);
+
+  if (!summary.ok) {
+    console.log(summary.output);
+    process.exitCode = 1;
+    return;
+  }
+
   console.log(`PATH: ${targetPath}`);
-  console.log(`TOTAL FILES: ${summary.fileNames.length}`);
+  console.log(`TOTAL FILES: ${summary.totalFiles}`);
   console.log("FILE TYPES:");
 
-  for (const category of Object.keys(categoryCounts).sort(compareText)) {
-    console.log(`- ${category}: ${categoryCounts[category]}`);
+  for (const category of Object.keys(summary.categoryCounts).sort(compareText)) {
+    console.log(`- ${category}: ${summary.categoryCounts[category]}`);
   }
 
   console.log("NOTES:");
 
-  if (notes.length === 0) {
+  if (summary.notes.length === 0) {
     console.log("- none");
     return;
   }
 
-  for (const note of notes) {
+  for (const note of summary.notes) {
     console.log(`- ${note}`);
   }
 }
 
 module.exports = {
+  buildSandboxDescribeSummary,
+  compareText,
+  hasNonStandardPattern,
   runSandboxDescribeCommand,
 };

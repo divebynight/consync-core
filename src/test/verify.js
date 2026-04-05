@@ -1,4 +1,5 @@
 const { spawnSync } = require("child_process");
+const fs = require("fs");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
@@ -17,6 +18,27 @@ function runNodeStep(title, args) {
   if (result.status !== 0) {
     process.exit(result.status || 1);
   }
+}
+
+function runExpectationStep(title, args, expectationPath) {
+  console.log(title);
+
+  const result = spawnSync(process.execPath, args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  const actualOutput = result.stdout.trimEnd();
+  const expectedOutput = fs.readFileSync(expectationPath, "utf8").trimEnd();
+
+  if (result.status !== 0 || actualOutput !== expectedOutput) {
+    printOutput(result.stdout);
+    printOutput(result.stderr);
+    console.log("FAIL");
+    process.exit(1);
+  }
+
+  console.log("PASS");
 }
 
 function printOutput(output) {
@@ -49,6 +71,20 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"]);
+  console.log("");
+
+  runExpectationStep(
+    "[verify] Proposal layer: basic-mixed",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
+    path.join(repoRoot, "sandbox", "expectations", "basic-mixed-propose.md")
+  );
+  console.log("");
+
+  runExpectationStep(
+    "[verify] Proposal layer: nested-mixed",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/nested-mixed"],
+    path.join(repoRoot, "sandbox", "expectations", "nested-mixed-propose.md")
+  );
   console.log("");
 
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"]);
