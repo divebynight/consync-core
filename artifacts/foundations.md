@@ -183,3 +183,16 @@ Preferred reporting shape:
 Principle:
 
 The system should surface verification state clearly without forcing unnecessary ceremony.
+
+## Artifact Read/Write Loop
+
+A minimal system loop should exist where artifacts can be:
+- created
+- read
+- verified
+
+This establishes a baseline "memory system" before adding interpretation or automation layers.
+
+Example:
+- new-guid → write
+- list-guid → read
