@@ -9,8 +9,8 @@ Consync is currently a read-only, deterministic system, but it still distinguish
 - `src/index.js` command registration — defines which command surfaces are executable.
 - `src/commands/*` — contains the explicit command behavior the system is allowed to run.
 - `src/test/verify.js` — defines the current verification flow used to check the implemented surface.
-- `state/handoff.md` — carries the current workflow state used in the active packet loop.
-- `artifacts/layered-system.md` — records the current implemented layer model used as a stable checkpoint.
+- `.consync/state/handoff.md` — carries the current workflow state used in the active packet loop.
+- `.consync/artifacts/archive/conceptual/layered-system.md` — records the current implemented layer model used as a stable checkpoint.
 
 ## Observational Surfaces
 

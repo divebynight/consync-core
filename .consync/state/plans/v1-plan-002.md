@@ -82,11 +82,11 @@ This function performs all core logic:
 
 4. Determine file paths using `process.cwd()`:
    - Artifact: `./<timestamp>.json`
-   - Log: `./state/events.log`
+  - Log: `./.consync/state/events.log`
 
-5. Ensure `state/` directory exists
+5. Ensure `.consync/state/` directory exists
 6. Write JSON file
-7. Append to `state/events.log` (one line per event)
+7. Append to `.consync/state/events.log` (one line per event)
 8. Copy JSON to clipboard via `pbcopy` (non-blocking)
 
 9. Return:
@@ -122,7 +122,7 @@ No abstraction beyond what is necessary.
 
 ```
 ./20260405T123456789Z.json
-./state/events.log
+./.consync/state/events.log
 ```
 
 - Log entry format (single line):
@@ -159,7 +159,7 @@ Verify:
 - JSON structure matches spec
 - Clipboard contains JSON (if available)
 - Console prints GUID + file path
-- `state/events.log` appends (no overwrite)
+- `.consync/state/events.log` appends (no overwrite)
 
 ---
 

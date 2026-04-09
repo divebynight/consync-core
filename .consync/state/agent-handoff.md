@@ -37,7 +37,7 @@ Also:
 
 * Copy JSON to clipboard
 * Print file path and guid to console
-* Append event to state/events.log
+* Append event to .consync/state/events.log
 
 ## STRUCTURE
 

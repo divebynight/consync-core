@@ -65,7 +65,7 @@ Add small, focused helpers under `lib`:
 ./timestamp.json
 ```
 
-- `state/events.log` created if missing
+- `.consync/state/events.log` created if missing
 - No repo-root assumptions
 
 ---
@@ -95,7 +95,7 @@ Run the command twice and verify:
 - Timestamp is ISO format
 - Clipboard contains JSON
 - Console output shows file path + GUID
-- `state/events.log` appends correctly (no overwrite)
+- `.consync/state/events.log` appends correctly (no overwrite)
 
 ---
 

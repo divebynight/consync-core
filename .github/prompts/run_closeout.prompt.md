@@ -2,7 +2,7 @@
 
 Read the current handoff state:
 
-state/handoff.md
+.consync/state/handoff.md
 
 Execute the closeout process defined in:
 
@@ -30,11 +30,11 @@ Finalize the most recent Work Packet using the existing handoff.
 
 Write full result to:
 
-state/handoff.md
+.consync/state/handoff.md
 
 Overwrite the file completely.
 
-The final handoff in `state/handoff.md` must include these sections:
+The final handoff in `.consync/state/handoff.md` must include these sections:
 - Status
 - Summary
 - Files Created
@@ -51,7 +51,7 @@ Do NOT print the full response in chat.
 
 Only reply with:
 
-Wrote closeout to state/handoff.md
+Wrote closeout to .consync/state/handoff.md
 
 ---
 

@@ -79,11 +79,11 @@ Prefer:
 - preserve foundational or historical artifacts
 
 Likely transient files:
-- `state/handoff-up.md`
-- `state/next-action.md`
+- `.consync/state/handoff-up.md`
+- `.consync/state/next-action.md`
 
 Likely preserved files:
-- `artifacts/foundations.md`
+- `.consync/artifacts/archive/conceptual/foundations.md`
 - `README.md`
 - specs
 - prompt files

@@ -128,7 +128,7 @@ Example contents:
 Append a log entry to:
 
 ```
-state/events.log
+.consync/state/events.log
 ```
 
 Example entry:
@@ -144,7 +144,7 @@ Example entry:
 
 #### Notes
 
-* If `state/` does not exist → create it
+* If `.consync/state/` does not exist → create it
 * Append-only log
 * No parsing required yet
 
@@ -155,7 +155,7 @@ Example entry:
 * Run `new-guid`
 * Confirm:
 
-  * `state/events.log` exists
+  * `.consync/state/events.log` exists
   * Entry appended correctly
   * Multiple runs append cleanly
 
@@ -247,8 +247,9 @@ consync/
     guid.js
     time.js
     fs.js
-  state/
-    events.log
+  .consync/
+    state/
+      events.log
 ```
 
 ---

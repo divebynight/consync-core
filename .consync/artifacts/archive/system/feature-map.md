@@ -11,19 +11,19 @@ It is a lightweight map of what is implemented, what is next, and what is deferr
 - deferred: `delete-guid`
 
 ## Workflow / Handoff
-- implemented: unified `state/handoff.md`
+- implemented: unified `.consync/state/handoff.md`
 - implemented: standardized handoff verification format
-- next: keep `state/handoff.md` updated through each packet
+- next: keep `.consync/state/handoff.md` updated through each packet
 - deferred: possible future snapshot or state summary view
 
 ## System Docs
-- implemented: `artifacts/state-hierarchy.md`
-- implemented: `artifacts/guid-rules.md`
-- implemented: `artifacts/work-log.md`
-- next: `artifacts/feature-map.md` maintenance rhythm
+- implemented: `.consync/artifacts/archive/conceptual/state-hierarchy.md`
+- implemented: `.consync/artifacts/archive/system/guid-rules.md`
+- implemented: `.consync/artifacts/03_work-log.md`
+- next: `.consync/artifacts/archive/system/feature-map.md` maintenance rhythm
 
 ## History / Traceability
-- implemented: append-only `artifacts/work-log.md`
+- implemented: append-only `.consync/artifacts/03_work-log.md`
 - next: continue recording meaningful completed packets
 
 ## Deferred / Future Areas

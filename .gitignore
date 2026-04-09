@@ -2,7 +2,7 @@
 sandbox/current/*.json
 
 # Generated runtime log
-state/events.log
+.consync/state/events.log
 
 # Local working scratch
-state/next-action.md
+.consync/state/next-action.md
