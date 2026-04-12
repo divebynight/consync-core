@@ -8,6 +8,7 @@ const { runSandboxProposeCommand } = require("./commands/sandbox-propose");
 const { runSandboxCatalogCommand } = require("./commands/sandbox-catalog");
 const { runSystemCheckCommand } = require("./commands/system-check");
 const { runSystemSummaryCommand } = require("./commands/system-summary");
+const { runPortableCommand } = require("./commands/portable");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -17,6 +18,33 @@ function parseNewGuidOptions(argv) {
   }
 
   return {};
+}
+
+function parsePortableOptions(argv) {
+  let targetPath;
+  let force = false;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+
+    if (argument === "--target") {
+      targetPath = argv[index + 1];
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--force") {
+      force = true;
+      continue;
+    }
+
+    throw new Error(`Unknown option: ${argument}`);
+  }
+
+  return {
+    force,
+    targetPath,
+  };
 }
 
 async function main() {
@@ -69,6 +97,11 @@ async function main() {
 
   if (command === "system-summary") {
     runSystemSummaryCommand();
+    return;
+  }
+
+  if (command === "portable") {
+    runPortableCommand(parsePortableOptions(process.argv.slice(3)));
     return;
   }
 

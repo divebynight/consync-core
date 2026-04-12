@@ -1,8 +1,9 @@
+# OS / editor noise
+.DS_Store
+node_modules/
+
 # Generated sandbox artifacts
 sandbox/current/*.json
 
 # Generated runtime log
 .consync/state/events.log
-
-# Local working scratch
-.consync/state/next-action.md

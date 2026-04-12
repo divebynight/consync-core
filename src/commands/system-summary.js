@@ -10,6 +10,7 @@ function runSystemSummaryCommand() {
   console.log("- sandbox-propose");
   console.log("- system-check");
   console.log("- system-summary");
+  console.log("- portable");
   console.log("FIXTURES");
   console.log("- basic-mixed");
   console.log("- nested-mixed");

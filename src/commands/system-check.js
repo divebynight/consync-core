@@ -50,6 +50,7 @@ function runSystemCheckCommand() {
   const requiredCommands = [
     "new-guid.js",
     "list-guid.js",
+    "portable.js",
     "show-guid.js",
     "sandbox-scan.js",
     "sandbox-verify.js",
