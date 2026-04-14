@@ -131,12 +131,17 @@ async function testPreloadBridge() {
     return Promise.resolve({ ok: true, args });
   });
 
+  const backendSummary = await bridge.getBackendSummary();
   const bridgeStatus = await bridge.getBridgeStatus();
   const shellInfo = await bridge.getShellInfo();
   const sessionState = await bridge.getSessionState();
   const bookmarkState = await bridge.createBookmark("renderer bookmark");
   const pingResponse = await bridge.ping("renderer-ready");
 
+  assert.deepStrictEqual(backendSummary, {
+    cwd: process.cwd(),
+    platform: process.platform,
+  });
   assert.deepStrictEqual(bridgeStatus, {
     status: "ready",
     surface: "preload",

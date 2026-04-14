@@ -14,6 +14,7 @@ function getDesktopBridge() {
 
   if (
     !desktopBridge ||
+    typeof desktopBridge.getBackendSummary !== "function" ||
     typeof desktopBridge.getBridgeStatus !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function"
@@ -25,6 +26,7 @@ function getDesktopBridge() {
 }
 
 export function App() {
+  const [backendSummary, setBackendSummary] = useState(null);
   const [bridgeStatus, setBridgeStatus] = useState(null);
   const [note, setNote] = useState("");
   const [sessionState, setSessionState] = useState(null);
@@ -35,7 +37,8 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const [nextBridgeStatus, nextSessionState] = await Promise.all([
+      const [nextBackendSummary, nextBridgeStatus, nextSessionState] = await Promise.all([
+        desktopBridge.getBackendSummary(),
         desktopBridge.getBridgeStatus(),
         desktopBridge.getSessionState(),
       ]);
@@ -44,6 +47,7 @@ export function App() {
         return;
       }
 
+      setBackendSummary(nextBackendSummary);
       setBridgeStatus(nextBridgeStatus);
       setSessionState(nextSessionState);
       setErrorMessage(null);
@@ -82,10 +86,10 @@ export function App() {
     <main className="shell">
       <section className="hero">
         <p className="eyebrow">Consync Desktop Capture</p>
-        <h1>Preload bridge proof, kept intentionally small.</h1>
+        <h1>Bridge proof with one real backend signal.</h1>
         <p className="lead">
-          This step exposes one deterministic preload-backed value and renders it clearly so the
-          Electron shell has a visible bridge proof before broader UI work continues.
+          This step carries one small real backend value through preload into the renderer so the
+          desktop shell proves end-to-end data flow before broader UI work continues.
         </p>
       </section>
 
@@ -102,6 +106,12 @@ export function App() {
           <StatusRow label="Status" value={bridgeStatus ? bridgeStatus.status : "loading"} />
           <StatusRow label="Surface" value={bridgeStatus ? bridgeStatus.surface : "loading"} />
           <StatusRow label="Version" value={bridgeStatus ? bridgeStatus.version : "loading"} />
+        </article>
+
+        <article className="panel">
+          <h2>Backend Summary</h2>
+          <StatusRow label="Platform" value={backendSummary ? backendSummary.platform : "loading"} />
+          <StatusRow label="Current dir" value={backendSummary ? backendSummary.cwd : "loading"} />
         </article>
 
         <article className="panel">

@@ -5,6 +5,12 @@ function createDesktopBridge(invoke) {
     createBookmark(note) {
       return invoke(IPC_CHANNELS.createBookmark, note);
     },
+    getBackendSummary() {
+      return Promise.resolve({
+        cwd: process.cwd(),
+        platform: process.platform,
+      });
+    },
     getShellInfo() {
       return invoke(IPC_CHANNELS.getShellInfo);
     },
