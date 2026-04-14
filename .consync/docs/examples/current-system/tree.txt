@@ -1,0 +1,35 @@
+.consync/
+  docs/
+    examples/
+      current-system/
+        README.md
+        tree.txt
+        snapshot.md
+        next-action.md
+        handoff.md
+        decisions.md
+  state/
+    snapshot.md
+    next-action.md
+    handoff.md
+    decisions.md
+    history/
+      agent-handoff.md
+      consync_v1_spec.md
+      events.log
+      plans/
+  artifacts/
+  templates/
+
+src/
+  core/
+  cli/
+  electron/
+  commands/
+  lib/
+  test/
+
+sandbox/
+  fixtures/
+  expectations/
+  current/

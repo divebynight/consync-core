@@ -131,11 +131,17 @@ async function testPreloadBridge() {
     return Promise.resolve({ ok: true, args });
   });
 
+  const bridgeStatus = await bridge.getBridgeStatus();
   const shellInfo = await bridge.getShellInfo();
   const sessionState = await bridge.getSessionState();
   const bookmarkState = await bridge.createBookmark("renderer bookmark");
   const pingResponse = await bridge.ping("renderer-ready");
 
+  assert.deepStrictEqual(bridgeStatus, {
+    status: "ready",
+    surface: "preload",
+    version: "bridge-v1",
+  });
   assert.deepStrictEqual(shellInfo, { bridge: true });
   assert.deepStrictEqual(sessionState, { currentFile: "placeholder-audio-file.mp3" });
   assert.deepStrictEqual(bookmarkState, {

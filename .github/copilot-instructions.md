@@ -37,9 +37,9 @@ Do not build for hypothetical future features unless explicitly asked.
 
 ## How to Approach Work
 
-Implement only the task described in `.consync/state/agent-handoff.md`.
+Implement only the task described in `.consync/state/history/agent-handoff.md`.
 
-Use `.consync/state/consync_v1_spec.md` as the higher-level source of truth.
+Use `.consync/state/history/consync_v1_spec.md` as the higher-level source of truth.
 
 When working:
 1. keep scope narrow

@@ -3,7 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { CONSYNC_STATE_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { CONSYNC_STATE_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs");
 
 const TEST_NAME = "integration-new-guid-cli";
 
@@ -59,7 +59,7 @@ function runScenario(args, note, expectsPrompt) {
     assert.match(payload.guid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 
     const expectedFilePath = `./sandbox/current/${createdFiles[0]}`;
-    const logPath = path.join(tempDir, CONSYNC_STATE_DIR, "events.log");
+    const logPath = path.join(tempDir, CONSYNC_STATE_HISTORY_DIR, "events.log");
     assert.ok(fs.existsSync(logPath), "Expected event log to be created");
 
     const logContent = fs.readFileSync(logPath, "utf8");

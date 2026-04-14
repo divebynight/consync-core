@@ -14,6 +14,13 @@ function createDesktopBridge(invoke) {
     ping(message) {
       return invoke(IPC_CHANNELS.ping, message);
     },
+    getBridgeStatus() {
+      return Promise.resolve({
+        status: "ready",
+        surface: "preload",
+        version: "bridge-v1",
+      });
+    },
   };
 }
 

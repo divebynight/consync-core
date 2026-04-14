@@ -14,6 +14,7 @@ function getDesktopBridge() {
 
   if (
     !desktopBridge ||
+    typeof desktopBridge.getBridgeStatus !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function"
   ) {
@@ -24,6 +25,7 @@ function getDesktopBridge() {
 }
 
 export function App() {
+  const [bridgeStatus, setBridgeStatus] = useState(null);
   const [note, setNote] = useState("");
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -33,12 +35,16 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const nextSessionState = await desktopBridge.getSessionState();
+      const [nextBridgeStatus, nextSessionState] = await Promise.all([
+        desktopBridge.getBridgeStatus(),
+        desktopBridge.getSessionState(),
+      ]);
 
       if (cancelled) {
         return;
       }
 
+      setBridgeStatus(nextBridgeStatus);
       setSessionState(nextSessionState);
       setErrorMessage(null);
     }
@@ -76,10 +82,10 @@ export function App() {
     <main className="shell">
       <section className="hero">
         <p className="eyebrow">Consync Desktop Capture</p>
-        <h1>First session loop, still in memory only.</h1>
+        <h1>Preload bridge proof, kept intentionally small.</h1>
         <p className="lead">
-          This scaffold step proves the renderer can read shared session state and drop bookmarks
-          through preload and IPC without moving session logic into React.
+          This step exposes one deterministic preload-backed value and renders it clearly so the
+          Electron shell has a visible bridge proof before broader UI work continues.
         </p>
       </section>
 
@@ -91,6 +97,13 @@ export function App() {
       ) : null}
 
       <section className="panel-grid">
+        <article className="panel">
+          <h2>Bridge Status</h2>
+          <StatusRow label="Status" value={bridgeStatus ? bridgeStatus.status : "loading"} />
+          <StatusRow label="Surface" value={bridgeStatus ? bridgeStatus.surface : "loading"} />
+          <StatusRow label="Version" value={bridgeStatus ? bridgeStatus.version : "loading"} />
+        </article>
+
         <article className="panel">
           <h2>Session</h2>
           <StatusRow

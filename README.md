@@ -14,7 +14,8 @@ It does not require network access, servers, or external services.
 
 ## Repository Structure
 
-- `.consync/` — internal workflow state, durable artifacts, plans, and system docs
+- `.consync/state/` — active workflow state: `snapshot.md`, `next-action.md`, `handoff.md`, and `decisions.md`
+- `.consync/state/history/` — historical/reference state such as plans, specs, handoff source material, and event logs
 - `.github/prompts/` — Copilot adapter layer for running the next-action and closeout workflow
 - `src/core/` — shared app logic that can be reused by CLI, Electron, and later MCP surfaces
 - `src/cli/` — CLI entry layer that keeps command parsing out of the desktop UI
@@ -22,15 +23,26 @@ It does not require network access, servers, or external services.
 - `src/commands/`, `src/lib/`, `src/test/` — existing CLI commands, helpers, and verification code
 - `sandbox/` — fixtures, expectations, and current runtime artifacts used for manual and automated verification
 
-## Workflow Loop
+## SDC Loop
 
-The working loop is:
+SDCs are the primary write interface for this repo.
 
-1. update `.consync/state/next-action.md`
-2. execute the packet and write `.consync/state/handoff.md`
-3. run verification, usually with `npm run verify`
+Each SDC must declare `TYPE: PROCESS` or `TYPE: FEATURE`.
 
-This keeps the active workflow state explicit and local to the repo.
+- `PROCESS` packages change workflow, structure, prompts, docs, scaffolding, or guardrails.
+- `FEATURE` packages change product behavior or user-facing/system functionality.
+
+The normal loop is:
+
+1. start in `.consync/state/snapshot.md`
+2. point `.consync/state/next-action.md` at the current SDC
+3. execute that package and overwrite `.consync/state/handoff.md` with what actually happened
+4. run `npm run verify`
+5. only begin new feature work after verification passes
+
+Keep process restructuring and feature development in separate packages unless there is a specific reason to combine them.
+
+For a concrete reference of the expected current layout and state-file formats, see `.consync/docs/examples/current-system/`.
 
 ## Desktop Scaffold
 
@@ -51,7 +63,7 @@ The earlier terminal capture exploration remains under `sandbox/probes/audio-ses
 
 ## Portable Boundary
 
-`.consync/` is the portable system boundary for Consync's internal process. It holds the workflow state and supporting artifacts that let the repo travel without depending on external coordination.
+`.consync/` is the portable system boundary for Consync's internal process. It holds the active state, supporting artifacts, and historical references that let the repo travel without depending on external coordination.
 
 To scaffold the minimal workflow starter into another repo, run `node src/index.js portable --target /path/to/other-repo`.
 
@@ -63,4 +75,4 @@ Expected result: the suite ends with `[verify] PASS`.
 
 For the desktop scaffold only, run `npm run test:desktop-scaffold` to verify the shared core metadata, session state, bookmark creation, and preload bridge wiring without launching a real Electron window.
 
-For a quick CLI check, run `node src/index.js new-guid --note "some text"` to create an artifact in `sandbox/current/` and append an event to `.consync/state/events.log`.
+For a quick CLI check, run `node src/index.js new-guid --note "some text"` to create an artifact in `sandbox/current/` and append an event to `.consync/state/history/events.log`.

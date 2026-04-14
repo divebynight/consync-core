@@ -1,101 +1,57 @@
-You are fixing the current Electron preload exposure failure in the Consync desktop app.
+TYPE: FEATURE
 
-Context:
-- The Electron app launches.
-- The renderer window is visible.
-- The session/bookmark UI renders.
-- The UI currently shows a visible error:
-  - `Consync desktop bridge is unavailable.`
-- That means the renderer cannot access the expected preload bridge.
-- This is a boundary/integration issue between renderer and preload, not a new feature request.
-- The shared architecture must be preserved:
-  - `src/core/`
-  - `src/cli/`
-  - `src/electron/main/`
-  - `src/electron/preload/`
-  - `src/electron/renderer/`
-- The current goal is to make the existing UI talk to the existing preload/API/core layers.
-- Do not add new product features in this step.
+PACKAGE: expose_one_backend_summary_value_in_renderer
 
-Goal:
-Make the preload bridge actually available to the renderer so the existing session/bookmark UI can read session state and create bookmarks.
+GOAL:
+Expose one small real backend or system summary value in the Electron renderer so the shell moves from preload proof to the first useful Consync-facing display.
 
-What to inspect first:
-1. `src/electron/preload/bridge.js`
-2. `src/electron/preload/preload.js`
-3. `src/electron/main/window.js`
-4. `src/electron/renderer/App.jsx`
+CONTEXT:
+The shell now proves preload -> renderer wiring with a deterministic bridge value. The next step should stay narrow while moving one layer closer to meaningful product-facing information.
 
-What to determine:
-1. What global name is being exposed by `contextBridge.exposeInMainWorld(...)`
-2. What global name and shape the renderer is expecting
-3. Whether the preload file is actually being loaded by the BrowserWindow config
-4. Whether `contextIsolation`, `sandbox`, and preload wiring are preventing the renderer from seeing the bridge
-5. Whether the renderer is validating the bridge correctly but the preload object shape does not match
+REQUIREMENTS:
+1. Keep the package narrow and inspectable.
+2. Use shared core and the existing preload/IPC pattern.
+3. Expose only one small real backend or system summary value.
+4. Render it clearly without turning this into a UI design pass.
+5. Do not start file scanning, persistence, or larger workflow behavior yet.
 
-Scope for this step:
-1. Inspect the current preload exposure and renderer expectation.
-2. Align the renderer and preload contract so the renderer can access the exposed bridge.
-3. Confirm the preload file is actually wired in `BrowserWindow`.
-4. Make the smallest coherent fix needed to ensure:
-   - session state loads on startup
-   - current file shows real in-memory value
-   - current position shows real in-memory value
-   - bookmarks count shows real in-memory value
-   - creating a bookmark updates the UI
-5. Keep the session/bookmark logic in shared core and IPC.
-6. Keep the preload bridge narrow.
-7. Keep the renderer UI-only.
+CHANGES:
 
-Important constraints:
-- Do not add playback.
-- Do not add persistence.
-- Do not add hotkeys.
-- Do not redesign the UI.
-- Do not move business logic into React components.
-- Do not give the renderer direct Node or filesystem access.
-- Do not refactor unrelated areas.
-- Preserve future MCP compatibility.
+1. Choose one simple real value already available from the backend or easy to surface safely.
+2. Expose that value through the existing preload/IPC path.
+3. Render it clearly in the renderer.
+4. Update only the smallest test surface needed.
 
-Expected outcome:
-1. The Electron app launches.
-2. The renderer no longer shows `Consync desktop bridge is unavailable.`
-3. The Session panel shows real values instead of `loading`.
-4. Typing a note and pressing `Drop Bookmark` updates the bookmark list using the existing preload -> IPC -> core path.
+SUCCESS CRITERIA:
 
-Verification requirements:
-1. Run the smallest set of checks needed for this fix:
-   - any focused test updates if needed
-   - `npm run test:desktop-scaffold`
-   - `npm run verify`
-   - `npm run start:desktop`
-2. Confirm the Electron window opens.
-3. Confirm the bridge error disappears.
-4. Confirm session values load.
-5. Confirm bookmark creation works.
-6. If anything still fails, report the exact remaining issue instead of claiming PASS.
+* the Electron app launches
+* the renderer shows one real backend/system value
+* existing verification passes
+* the desktop shell remains simple and stable
 
-Documentation requirements:
-1. Update docs only if the documented desktop behavior needs to be corrected.
-2. Keep documentation lightweight.
-3. Do not create bulky new docs.
+VERIFY:
 
-Before making changes:
-1. Inspect the preload exposure and renderer expectation carefully.
-2. Confirm whether the issue is:
-   - wrong global name
-   - wrong bridge shape
-   - preload not loading
-   - BrowserWindow config mismatch
-3. Make the smallest coherent fix that gets the current loop talking.
+* Run `npm run test:desktop-scaffold`
+* Run `npm run verify`
+* Run `npm run start:desktop`
 
-Required handoff format:
-Return a concise handoff that includes:
-- Status
-- Summary
-- Files Created
-- Files Modified
-- Commands to Run
-- Human Verification
-- Verification Notes
-- Any known limitations intentionally deferred
+HANDOFF FORMAT:
+TYPE: FEATURE
+PACKAGE: expose_one_backend_summary_value_in_renderer
+
+STATUS: PASS | FAIL
+
+CHANGES:
+
+* list files created
+* list files modified
+* summarize the backend/system value exposed
+
+VERIFY RESULT:
+
+* include the verification results actually run
+* note any warnings or follow-up concerns
+
+NOTES:
+
+* brief only
