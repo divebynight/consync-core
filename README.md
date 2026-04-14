@@ -5,7 +5,7 @@ Consync is a small local-first workspace for creating and inspecting structured 
 Today the repo provides:
 
 - CLI commands for artifact creation and inspection
-- a minimal Electron desktop scaffold with a React renderer and preload bridge
+- a minimal Electron desktop scaffold with a React renderer, preload bridge, and first in-memory session bookmark loop
 - a deterministic sandbox verification loop
 - a portable scaffold command for installing a minimal Consync workflow starter into another repo
 - a portable `.consync/` boundary for workflow state and durable internal docs
@@ -45,6 +45,8 @@ The architectural boundary is intentional:
 
 To start the desktop scaffold locally, run `npm run start:desktop`.
 
+The current desktop step supports a simple in-memory capture loop: the renderer can read placeholder session state and drop bookmarks through preload and IPC into shared core state. Real playback, persistence, and media control are still paused.
+
 The earlier terminal capture exploration remains under `sandbox/probes/audio-session-capture/`. It is still useful as a probe, but audio playback and richer media behavior remain paused while the desktop shell is being established.
 
 ## Portable Boundary
@@ -59,6 +61,6 @@ Run `npm run verify` to execute the current verification pass.
 
 Expected result: the suite ends with `[verify] PASS`.
 
-For the desktop scaffold only, run `npm run test:desktop-scaffold` to verify the shared core metadata and the preload bridge wiring without launching a real Electron window.
+For the desktop scaffold only, run `npm run test:desktop-scaffold` to verify the shared core metadata, session state, bookmark creation, and preload bridge wiring without launching a real Electron window.
 
 For a quick CLI check, run `node src/index.js new-guid --note "some text"` to create an artifact in `sandbox/current/` and append an event to `.consync/state/events.log`.

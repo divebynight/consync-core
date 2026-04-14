@@ -3,6 +3,11 @@ const {
   createDesktopPingResponse,
   getDesktopShellInfo,
 } = require("../core/desktop-shell");
+const {
+  createBookmark,
+  getSessionState,
+  resetSessionState,
+} = require("../core/session");
 const { IPC_CHANNELS, registerDesktopIpcHandlers } = require("../electron/main/ipc");
 const { createDesktopBridge } = require("../electron/preload/bridge");
 
@@ -24,6 +29,7 @@ function testCoreSurface() {
 }
 
 function testIpcRegistration() {
+  resetSessionState();
   const handlers = new Map();
 
   registerDesktopIpcHandlers({
@@ -33,19 +39,57 @@ function testIpcRegistration() {
   });
 
   assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
+  assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
+  assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
   assert.ok(handlers.has(IPC_CHANNELS.ping));
 
   const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
+  const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
+  const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
   const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
 
   assert.strictEqual(shellInfo.layer, "desktop-scaffold");
+  assert.strictEqual(sessionState.currentFile, "placeholder-audio-file.mp3");
+  assert.strictEqual(sessionState.currentPositionSeconds, 84);
+  assert.deepStrictEqual(updatedSessionState.bookmarks, [
+    {
+      id: "bookmark-1",
+      note: "Bridge bookmark",
+      timeSeconds: 84,
+    },
+  ]);
   assert.deepStrictEqual(pingResponse, {
     ok: true,
     message: "pong:from-renderer",
   });
 }
 
+function testSessionCoreSurface() {
+  resetSessionState();
+
+  const sessionState = getSessionState();
+  const updatedSessionState = createBookmark("First bookmark");
+
+  assert.deepStrictEqual(sessionState, {
+    currentFile: "placeholder-audio-file.mp3",
+    currentPositionSeconds: 84,
+    bookmarks: [],
+  });
+  assert.deepStrictEqual(updatedSessionState, {
+    currentFile: "placeholder-audio-file.mp3",
+    currentPositionSeconds: 84,
+    bookmarks: [
+      {
+        id: "bookmark-1",
+        note: "First bookmark",
+        timeSeconds: 84,
+      },
+    ],
+  });
+}
+
 async function testPreloadBridge() {
+  resetSessionState();
   const invokedChannels = [];
   const bridge = createDesktopBridge((channel, ...args) => {
     invokedChannels.push({ channel, args });
@@ -54,22 +98,53 @@ async function testPreloadBridge() {
       return Promise.resolve({ bridge: true });
     }
 
+    if (channel === IPC_CHANNELS.getSessionState) {
+      return Promise.resolve({ currentFile: "placeholder-audio-file.mp3" });
+    }
+
+    if (channel === IPC_CHANNELS.createBookmark) {
+      return Promise.resolve({
+        bookmarks: [
+          {
+            id: "bookmark-1",
+            note: args[0],
+            timeSeconds: 84,
+          },
+        ],
+      });
+    }
+
     return Promise.resolve({ ok: true, args });
   });
 
   const shellInfo = await bridge.getShellInfo();
+  const sessionState = await bridge.getSessionState();
+  const bookmarkState = await bridge.createBookmark("renderer bookmark");
   const pingResponse = await bridge.ping("renderer-ready");
 
   assert.deepStrictEqual(shellInfo, { bridge: true });
+  assert.deepStrictEqual(sessionState, { currentFile: "placeholder-audio-file.mp3" });
+  assert.deepStrictEqual(bookmarkState, {
+    bookmarks: [
+      {
+        id: "bookmark-1",
+        note: "renderer bookmark",
+        timeSeconds: 84,
+      },
+    ],
+  });
   assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
   assert.deepStrictEqual(invokedChannels, [
     { channel: IPC_CHANNELS.getShellInfo, args: [] },
+    { channel: IPC_CHANNELS.getSessionState, args: [] },
+    { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
     { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
   ]);
 }
 
 async function main() {
   testCoreSurface();
+  testSessionCoreSurface();
   testIpcRegistration();
   await testPreloadBridge();
   console.log("PASS");

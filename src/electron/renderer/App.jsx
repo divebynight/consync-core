@@ -12,14 +12,17 @@ function StatusRow({ label, value }) {
 export function App() {
   const [shellInfo, setShellInfo] = useState(null);
   const [pingResult, setPingResult] = useState(null);
+  const [note, setNote] = useState("");
+  const [sessionState, setSessionState] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadDesktopState() {
-      const [nextShellInfo, nextPingResult] = await Promise.all([
+      const [nextShellInfo, nextPingResult, nextSessionState] = await Promise.all([
         window.consyncDesktop.getShellInfo(),
         window.consyncDesktop.ping("desktop-ui"),
+        window.consyncDesktop.getSessionState(),
       ]);
 
       if (cancelled) {
@@ -28,6 +31,7 @@ export function App() {
 
       setShellInfo(nextShellInfo);
       setPingResult(nextPingResult);
+      setSessionState(nextSessionState);
     }
 
     loadDesktopState().catch(error => {
@@ -44,23 +48,78 @@ export function App() {
     };
   }, []);
 
+  async function handleCreateBookmark(event) {
+    event.preventDefault();
+
+    if (!note.trim()) {
+      return;
+    }
+
+    const nextSessionState = await window.consyncDesktop.createBookmark(note.trim());
+    setSessionState(nextSessionState);
+    setNote("");
+  }
+
   return (
     <main className="shell">
       <section className="hero">
-        <p className="eyebrow">Consync Desktop Scaffold</p>
-        <h1>Desktop shell first, app logic second.</h1>
+        <p className="eyebrow">Consync Desktop Capture</p>
+        <h1>First session loop, still in memory only.</h1>
         <p className="lead">
-          This placeholder UI proves the Electron main process, preload bridge, and React renderer
-          launch cleanly without moving filesystem logic into the renderer.
+          This scaffold step proves the renderer can read shared session state and drop bookmarks
+          through preload and IPC without moving session logic into React.
         </p>
       </section>
 
       <section className="panel-grid">
         <article className="panel">
-          <h2>Bridge Check</h2>
+          <h2>Session</h2>
+          <StatusRow
+            label="Current file"
+            value={sessionState ? sessionState.currentFile : "loading"}
+          />
+          <StatusRow
+            label="Position"
+            value={sessionState ? `${sessionState.currentPositionSeconds}s` : "loading"}
+          />
           <StatusRow label="IPC ping" value={pingResult ? pingResult.message : "loading"} />
           <StatusRow label="Shared core" value={shellInfo ? shellInfo.sharedCorePath : "loading"} />
-          <StatusRow label="Renderer" value={shellInfo ? shellInfo.renderer : "loading"} />
+        </article>
+
+        <article className="panel">
+          <h2>Drop Bookmark</h2>
+          <form className="bookmark-form" onSubmit={handleCreateBookmark}>
+            <label className="bookmark-label" htmlFor="bookmark-note">
+              Bookmark note
+            </label>
+            <input
+              id="bookmark-note"
+              className="bookmark-input"
+              value={note}
+              onChange={event => setNote(event.target.value)}
+              placeholder="Describe what matters at this moment"
+              type="text"
+            />
+            <button className="bookmark-button" disabled={!note.trim()} type="submit">
+              Drop Bookmark
+            </button>
+          </form>
+        </article>
+
+        <article className="panel panel-wide">
+          <h2>Bookmarks</h2>
+          {sessionState && sessionState.bookmarks.length > 0 ? (
+            <ul className="bookmark-list">
+              {sessionState.bookmarks.map(bookmark => (
+                <li className="bookmark-item" key={bookmark.id}>
+                  <span className="bookmark-time">{bookmark.timeSeconds}s</span>
+                  <span className="bookmark-note">{bookmark.note}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty-state">No bookmarks yet. Drop one to prove the loop.</p>
+          )}
         </article>
 
         <article className="panel">

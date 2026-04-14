@@ -9,6 +9,7 @@ It currently:
 - creates GUID-backed JSON artifacts
 - reads and lists existing artifact metadata
 - includes a first Electron main/preload/renderer scaffold with a React renderer
+- supports an in-memory desktop session state and bookmark creation loop through preload + IPC
 - installs a curated portable workflow scaffold into another repo
 - runs deterministic sandbox inspection and proposal commands
 - keeps workflow state and durable internal reference docs inside `.consync/`
@@ -46,6 +47,8 @@ Those prompt files tell the agent where to read the next action, where to write 
 
 The earlier terminal capture probe remains in `sandbox/probes/audio-session-capture/` as an exploratory reference. Audio playback, timeline sync, and richer capture behaviors are paused while the shared desktop shell is established.
 
+The active desktop direction now proves one real interaction loop: the renderer can read session state and create bookmarks, but persistence and playback remain intentionally deferred.
+
 ## Command Surface
 
 Current command surface includes:
@@ -66,7 +69,7 @@ Current command surface includes:
 
 Use `npm run verify` as the default repo-level verification pass.
 
-Use `npm run test:desktop-scaffold` as the focused check for the Electron scaffold boundary and preload bridge behavior.
+Use `npm run test:desktop-scaffold` as the focused check for the Electron scaffold boundary, shared session state, bookmark creation, and preload bridge behavior.
 
 That suite checks:
 
