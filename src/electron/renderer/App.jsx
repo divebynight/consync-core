@@ -9,37 +9,43 @@ function StatusRow({ label, value }) {
   );
 }
 
+function getDesktopBridge() {
+  const desktopBridge = window.consyncDesktop;
+
+  if (
+    !desktopBridge ||
+    typeof desktopBridge.getSessionState !== "function" ||
+    typeof desktopBridge.createBookmark !== "function"
+  ) {
+    throw new Error("Consync desktop bridge is unavailable.");
+  }
+
+  return desktopBridge;
+}
+
 export function App() {
-  const [shellInfo, setShellInfo] = useState(null);
-  const [pingResult, setPingResult] = useState(null);
   const [note, setNote] = useState("");
   const [sessionState, setSessionState] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadDesktopState() {
-      const [nextShellInfo, nextPingResult, nextSessionState] = await Promise.all([
-        window.consyncDesktop.getShellInfo(),
-        window.consyncDesktop.ping("desktop-ui"),
-        window.consyncDesktop.getSessionState(),
-      ]);
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await desktopBridge.getSessionState();
 
       if (cancelled) {
         return;
       }
 
-      setShellInfo(nextShellInfo);
-      setPingResult(nextPingResult);
       setSessionState(nextSessionState);
+      setErrorMessage(null);
     }
 
     loadDesktopState().catch(error => {
       if (!cancelled) {
-        setPingResult({
-          ok: false,
-          message: error.message,
-        });
+        setErrorMessage(error.message);
       }
     });
 
@@ -55,9 +61,15 @@ export function App() {
       return;
     }
 
-    const nextSessionState = await window.consyncDesktop.createBookmark(note.trim());
-    setSessionState(nextSessionState);
-    setNote("");
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await desktopBridge.createBookmark(note.trim());
+      setSessionState(nextSessionState);
+      setErrorMessage(null);
+      setNote("");
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
   }
 
   return (
@@ -71,6 +83,13 @@ export function App() {
         </p>
       </section>
 
+      {errorMessage ? (
+        <section className="panel">
+          <h2>Session Error</h2>
+          <p className="empty-state">{errorMessage}</p>
+        </section>
+      ) : null}
+
       <section className="panel-grid">
         <article className="panel">
           <h2>Session</h2>
@@ -82,8 +101,7 @@ export function App() {
             label="Position"
             value={sessionState ? `${sessionState.currentPositionSeconds}s` : "loading"}
           />
-          <StatusRow label="IPC ping" value={pingResult ? pingResult.message : "loading"} />
-          <StatusRow label="Shared core" value={shellInfo ? shellInfo.sharedCorePath : "loading"} />
+          <StatusRow label="Bookmarks" value={sessionState ? sessionState.bookmarks.length : "loading"} />
         </article>
 
         <article className="panel">
@@ -120,15 +138,6 @@ export function App() {
           ) : (
             <p className="empty-state">No bookmarks yet. Drop one to prove the loop.</p>
           )}
-        </article>
-
-        <article className="panel">
-          <h2>Paused For Now</h2>
-          <ul className="paused-list">
-            {(shellInfo?.pausedWork || ["loading", "loading", "loading"]).map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
         </article>
       </section>
     </main>
