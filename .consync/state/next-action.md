@@ -1,76 +1,93 @@
-You are fixing the current renderer ↔ preload contract mismatch in the Consync Electron desktop scaffold.
+You are fixing the current Electron preload exposure failure in the Consync desktop app.
 
 Context:
-- The Electron app now launches successfully.
-- The renderer window appears and the session/bookmark UI is visible.
+- The Electron app launches.
+- The renderer window is visible.
+- The session/bookmark UI renders.
+- The UI currently shows a visible error:
+  - `Consync desktop bridge is unavailable.`
+- That means the renderer cannot access the expected preload bridge.
+- This is a boundary/integration issue between renderer and preload, not a new feature request.
 - The shared architecture must be preserved:
   - `src/core/`
   - `src/cli/`
   - `src/electron/main/`
   - `src/electron/preload/`
   - `src/electron/renderer/`
-- The current goal is not to add new features.
-- The current goal is to make the existing UI correctly talk to the existing preload/API/core layers.
-- The session/bookmark loop already exists in shared core and IPC, but the renderer is still showing broken or placeholder values.
-- A visible error in the UI indicates a preload/API mismatch, for example:
-  - `Cannot read properties of undefined (reading 'getShellInfo')`
-- This suggests the renderer is calling an API shape that the preload bridge is not currently exposing, or is still using an outdated contract from the earlier shell placeholder step.
+- The current goal is to make the existing UI talk to the existing preload/API/core layers.
+- Do not add new product features in this step.
 
 Goal:
-Make the current renderer successfully read session state through the preload bridge and create bookmarks through the existing IPC/core path.
+Make the preload bridge actually available to the renderer so the existing session/bookmark UI can read session state and create bookmarks.
+
+What to inspect first:
+1. `src/electron/preload/bridge.js`
+2. `src/electron/preload/preload.js`
+3. `src/electron/main/window.js`
+4. `src/electron/renderer/App.jsx`
+
+What to determine:
+1. What global name is being exposed by `contextBridge.exposeInMainWorld(...)`
+2. What global name and shape the renderer is expecting
+3. Whether the preload file is actually being loaded by the BrowserWindow config
+4. Whether `contextIsolation`, `sandbox`, and preload wiring are preventing the renderer from seeing the bridge
+5. Whether the renderer is validating the bridge correctly but the preload object shape does not match
 
 Scope for this step:
-1. Inspect the current renderer, preload bridge, and IPC contract.
-2. Identify any outdated renderer calls such as `getShellInfo()` or any mismatched API object names.
-3. Align the renderer with the currently exposed preload API.
-4. Ensure the renderer can:
-   - load session state on startup
-   - display:
-     - current file
-     - current position
-     - bookmarks
-   - create a bookmark when the user enters a note and clicks `Drop Bookmark`
-   - re-render with updated session state
-5. Remove or replace placeholder shell-era UI calls that are no longer valid.
-6. Keep this step narrow and stabilization-focused.
+1. Inspect the current preload exposure and renderer expectation.
+2. Align the renderer and preload contract so the renderer can access the exposed bridge.
+3. Confirm the preload file is actually wired in `BrowserWindow`.
+4. Make the smallest coherent fix needed to ensure:
+   - session state loads on startup
+   - current file shows real in-memory value
+   - current position shows real in-memory value
+   - bookmarks count shows real in-memory value
+   - creating a bookmark updates the UI
+5. Keep the session/bookmark logic in shared core and IPC.
+6. Keep the preload bridge narrow.
+7. Keep the renderer UI-only.
 
 Important constraints:
 - Do not add playback.
 - Do not add persistence.
 - Do not add hotkeys.
-- Do not add new product features.
+- Do not redesign the UI.
 - Do not move business logic into React components.
 - Do not give the renderer direct Node or filesystem access.
-- Keep the preload bridge narrow.
+- Do not refactor unrelated areas.
 - Preserve future MCP compatibility.
-- Preserve the existing shared session/bookmark logic unless a tiny fix is required to make the current loop function.
 
 Expected outcome:
 1. The Electron app launches.
-2. The session panel shows real in-memory values instead of only `loading`.
-3. The renderer no longer throws the old preload/API mismatch error.
-4. Typing a note and pressing `Drop Bookmark` adds a bookmark to the list using the existing shared in-memory session flow.
+2. The renderer no longer shows `Consync desktop bridge is unavailable.`
+3. The Session panel shows real values instead of `loading`.
+4. Typing a note and pressing `Drop Bookmark` updates the bookmark list using the existing preload -> IPC -> core path.
 
 Verification requirements:
-1. Run only the checks needed for this stabilization step:
-   - focused tests if relevant
+1. Run the smallest set of checks needed for this fix:
+   - any focused test updates if needed
    - `npm run test:desktop-scaffold`
    - `npm run verify`
    - `npm run start:desktop`
-2. Confirm the desktop UI renders without the old API mismatch error.
-3. Confirm current session values appear.
-4. Confirm bookmark creation updates the list.
-5. If something is still broken, report the exact remaining issue instead of claiming PASS.
+2. Confirm the Electron window opens.
+3. Confirm the bridge error disappears.
+4. Confirm session values load.
+5. Confirm bookmark creation works.
+6. If anything still fails, report the exact remaining issue instead of claiming PASS.
 
 Documentation requirements:
-1. Update docs only if the current documented desktop behavior needs to be corrected from “placeholder shell” to “working session/bookmark loop”.
+1. Update docs only if the documented desktop behavior needs to be corrected.
 2. Keep documentation lightweight.
-3. Do not create new bulky docs.
+3. Do not create bulky new docs.
 
 Before making changes:
-1. Inspect the current renderer component and the preload bridge carefully.
-2. Compare what the renderer expects with what preload actually exposes.
-3. Make the smallest coherent fix that gets the current loop talking cleanly.
+1. Inspect the preload exposure and renderer expectation carefully.
+2. Confirm whether the issue is:
+   - wrong global name
+   - wrong bridge shape
+   - preload not loading
+   - BrowserWindow config mismatch
+3. Make the smallest coherent fix that gets the current loop talking.
 
 Required handoff format:
 Return a concise handoff that includes:

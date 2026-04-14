@@ -1,4 +1,5 @@
 const assert = require("node:assert");
+const path = require("node:path");
 const {
   createDesktopPingResponse,
   getDesktopShellInfo,
@@ -9,6 +10,7 @@ const {
   resetSessionState,
 } = require("../core/session");
 const { IPC_CHANNELS, registerDesktopIpcHandlers } = require("../electron/main/ipc");
+const { createMainWindowOptions } = require("../electron/main/window");
 const { createDesktopBridge } = require("../electron/preload/bridge");
 
 function testCoreSurface() {
@@ -26,6 +28,18 @@ function testCoreSurface() {
     ok: true,
     message: "pong:desktop-test",
   });
+}
+
+function testMainWindowOptions() {
+  const fakeBuildDir = path.join("/tmp", ".vite", "build");
+  const windowOptions = createMainWindowOptions(fakeBuildDir);
+
+  assert.strictEqual(windowOptions.width, 1200);
+  assert.strictEqual(windowOptions.height, 820);
+  assert.strictEqual(windowOptions.webPreferences.preload, path.join(fakeBuildDir, "preload.js"));
+  assert.strictEqual(windowOptions.webPreferences.contextIsolation, true);
+  assert.strictEqual(windowOptions.webPreferences.nodeIntegration, false);
+  assert.strictEqual(windowOptions.webPreferences.sandbox, true);
 }
 
 function testIpcRegistration() {
@@ -144,6 +158,7 @@ async function testPreloadBridge() {
 
 async function main() {
   testCoreSurface();
+  testMainWindowOptions();
   testSessionCoreSurface();
   testIpcRegistration();
   await testPreloadBridge();

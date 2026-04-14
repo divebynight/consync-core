@@ -4,9 +4,9 @@ PASS
 
 ## Summary
 
-Removed the renderer's leftover shell-era dependency on `getShellInfo()` and `ping()` and aligned it with the current preload contract by using only `getSessionState()` and `createBookmark()` from the exposed desktop bridge.
+Fixed the preload exposure failure by correcting the BrowserWindow preload path to point at the actual Vite-emitted preload bundle, which lives beside the main bundle in `.vite/build/preload.js` during desktop startup.
 
-The renderer now loads session state on startup, updates from the existing bookmark IPC/core path, and surfaces a clear bridge error message instead of crashing on an undefined preload API shape.
+The renderer-side session/bookmark loop was left intact. This step only repaired the boundary so the existing preload bridge can become visible to the renderer.
 
 ## Files Created
 
@@ -14,9 +14,10 @@ The renderer now loads session state on startup, updates from the existing bookm
 
 ## Files Modified
 
-- `src/electron/renderer/App.jsx`
-  - Replaced obsolete shell-info calls with a narrow bridge accessor that validates the preload API and uses only the current session methods.
-  - Added renderer-side error handling so a missing or incomplete bridge shows a visible session error instead of throwing the old `getShellInfo` mismatch.
+- `src/electron/main/window.js`
+  - Replaced the source-style preload path with a build-output-aware preload path and extracted the window options into a small helper so the wiring can be tested directly.
+- `src/test/desktop-scaffold.js`
+  - Added a focused regression check that asserts BrowserWindow options point preload at the emitted `preload.js` bundle and preserve the sandboxed renderer settings.
 
 ## Commands to Run
 
@@ -27,24 +28,25 @@ The renderer now loads session state on startup, updates from the existing bookm
 ## Human Verification
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Confirm the Electron window opens without the old preload/API mismatch error such as `Cannot read properties of undefined (reading 'getShellInfo')`.
-3. Confirm the Session panel shows a real current file and position instead of staying on `loading`.
-4. Confirm the Bookmarks count initially shows `0`.
-5. Type a note into the bookmark input and click `Drop Bookmark`.
-6. Confirm the bookmark appears in the list and the Bookmarks count increments to `1`.
-7. If the UI shows `Consync desktop bridge is unavailable.`, treat that as a failure case indicating the preload global did not expose the expected session methods.
+2. Confirm the Electron window opens.
+3. Confirm the visible error `Consync desktop bridge is unavailable.` no longer appears.
+4. Confirm the Session panel shows a real current file, real position, and a bookmarks count instead of only `loading`.
+5. Enter a note and click `Drop Bookmark`.
+6. Confirm a bookmark appears in the list and the bookmarks count increments.
+7. Failure case: if the bridge error is still visible, the preload script is still not reaching the renderer.
+8. Failure case: if the window opens but the Session values remain `loading`, the bridge may exist but `getSessionState()` is still not resolving.
 
 ## Verification Notes
 
-- Inspected the renderer, preload bridge, IPC handlers, and shared session module before changing anything.
-- Confirmed the current preload bridge already exposes `getSessionState()` and `createBookmark()` while the renderer was still calling shell-era methods.
+- Inspected the preload bridge, preload entry, BrowserWindow config, and renderer expectation before changing anything.
+- Confirmed the bridge global name and shape already matched the renderer expectation; the actual mismatch was that BrowserWindow was still pointing preload at `../preload/preload.js` while the Vite build emits `.vite/build/preload.js`.
 - Ran `cd /Users/markhughes/Projects/consync-core && npm run test:desktop-scaffold`; observed `PASS`.
 - Ran `cd /Users/markhughes/Projects/consync-core && npm run verify`; observed `[verify] PASS` and `STATUS: ON_TRACK`.
-- Ran `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`; Forge built the main, preload, and renderer targets and reported `Launched Electron app` with no startup error in the terminal.
-- Validated the renderer-side edge case of a missing or incomplete bridge by replacing the previous hard crash path with an explicit visible error message.
-- I could verify clean desktop process launch from terminal output, but I could not directly inspect the Electron window contents from the tool environment.
+- Ran `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`; Forge built the main and preload targets and reported `Launched Electron app` with no startup error.
+- Added and exercised a focused regression check for the emitted preload bundle path and retained `contextIsolation: true`, `nodeIntegration: false`, and `sandbox: true`.
+- I could verify the process-level desktop launch and the corrected preload path, but I could not directly inspect the live Electron window contents from the tool environment.
 
 ## Any known limitations intentionally deferred
 
-- The session loop remains in-memory only.
-- No playback, persistence, hotkeys, or additional desktop features were added in this step.
+- The session/bookmark loop remains in-memory only.
+- No playback, persistence, hotkeys, or other product features were added in this step.
