@@ -7,3 +7,5 @@ sandbox/current/*.json
 
 # Generated runtime log
 .consync/state/events.log
+
+sandbox/probes/audio-session-capture/workdir/*

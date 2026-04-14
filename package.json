@@ -2,6 +2,8 @@
   "name": "consync-core",
   "private": true,
   "scripts": {
+    "probe:audio-session": "cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js",
+    "test:probe:audio-session": "node sandbox/probes/audio-session-capture/test-capture-session.js",
     "verify": "node src/test/verify.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",

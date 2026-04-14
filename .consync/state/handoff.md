@@ -1,66 +1,52 @@
-# Copilot Handoff
+# Status
 
-## Status
-- PASS
+PASS
 
 ## Summary
-- Added a curated portable scaffold source under `.consync/templates/portable/` containing only the minimal workflow starter: two state files, one orientation doc, and two prompt adapters.
-- Added a new `portable` CLI command that copies that curated template into an existing target directory, skips existing files by default, supports `--force`, and reports created, skipped, and overwritten files clearly.
-- Updated light discovery surfaces so the new command is visible in `README.md`, `.consync/docs/current-system.md`, `system-summary`, and `system-check`.
+
+Added a minimal `/at <timestamp>` command and a concise `/help` command to the experimental audio-session probe. `/at` now sets a one-shot pending media timestamp for the next normal note only, while `/help` prints a compact command list for the current probe surface.
+
+Timestamp input supports `ss`, `m:ss`, and `mm:ss`, normalizes valid values to `mm:ss`, and stores the result on the next note as `mediaTimestamp.raw` and `mediaTimestamp.seconds`. The pending timestamp clears automatically after the next note and does not change the current-file model.
+
+`/at` requires a current file, works independently of preview state, and prints short readable messages for both success and invalid usage. Intentionally deferred: timestamp ranges, waveform support, playback syncing, player-position detection, auto-filled timestamps from preview, and any broader media-aware behavior.
 
 ## Files Created
-- `.consync/templates/portable/.consync/state/handoff.md`
-  - Added a curated starter handoff file with the expected handoff sections as placeholders.
-- `.consync/templates/portable/.consync/state/next-action.md`
-  - Added a minimal starter packet file for defining the next small unit of work in a target repo.
-- `.consync/templates/portable/.consync/docs/current-system.md`
-  - Added a scaffold-specific orientation doc explaining what the portable starter provides and what it intentionally does not provide.
-- `.consync/templates/portable/.github/prompts/run_next_action.prompt.md`
-  - Added a self-contained portable next-action prompt adapter that writes to `.consync/state/handoff.md`.
-- `.consync/templates/portable/.github/prompts/run_closeout.prompt.md`
-  - Added a self-contained portable closeout prompt adapter that does not depend on extra prompt files outside the scaffold subset.
-- `src/lib/portableScaffold.js`
-  - Added the small recursive copy helper that copies only the curated portable template tree into a target repo.
-- `src/commands/portable.js`
-  - Added the conservative CLI command that validates the target, performs the copy, and prints the result summary.
+
+- `sandbox/probes/audio-session-capture/workdir/.consync/sessions/20260412T200755Z.json`
+  - Created during verification to confirm `/help`, `/preview`, and one-shot `/at` timestamping work together in a single session and that only the next note receives the timestamp.
 
 ## Files Modified
-- `src/index.js`
-  - Registered the new `portable` command and added minimal `--target` and `--force` option parsing.
-- `src/commands/system-summary.js`
-  - Added `portable` to the reported command surface so the summary matches the implemented CLI.
-- `src/commands/system-check.js`
-  - Added `portable.js` to the required command checks so `STATUS: ON_TRACK` includes the new command surface.
-- `README.md`
-  - Added a brief portable-scaffold mention and a concrete `portable --target` example so the feature is discoverable.
-- `.consync/docs/current-system.md`
-  - Added the portable scaffold capability to the current behavior summary and command surface list.
-- `.consync/state/handoff.md`
-  - Replaced the previous handoff with this portable scaffold packet summary.
+
+- `sandbox/probes/audio-session-capture/capture-session.js`
+  - Added timestamp parsing, one-shot pending media timestamp behavior, `/help`, and startup/unknown-command text updates.
+- `sandbox/probes/audio-session-capture/test-capture-session.js`
+  - Expanded probe-local coverage for valid and invalid `/at` input, one-shot timestamp clearing, `/at` after `/preview`, and `/help` output.
+- `sandbox/probes/audio-session-capture/README.md`
+  - Documented `/at`, `/help`, supported timestamp formats, and the optional `mediaTimestamp` entry shape.
 
 ## Commands to Run
-- `find .consync/templates/portable -type f | sort`
-- `mkdir -p /tmp/consync-portable-scratch`
-- `node src/index.js portable --target /tmp/consync-portable-scratch`
-- `node src/index.js portable --target /tmp/consync-portable-scratch`
-- `node src/index.js portable --target /tmp/consync-portable-scratch --force`
-- `node src/index.js portable`
-- `node src/index.js portable --target /tmp/consync-portable-does-not-exist`
-- `npm run verify`
-- `git status --short`
+
+- `npm run test:probe:audio-session`
+- `cd sandbox/probes/audio-session-capture/workdir && touch "media/clip.wav"`
+- `cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js`
+- `cat sandbox/probes/audio-session-capture/workdir/.consync/sessions/<session-file>.json`
 
 ## Human Verification
-1. Run `find .consync/templates/portable -type f | sort` and confirm the template contains only the five scaffold files under `.consync/` and `.github/prompts/`. Failure case: if the template includes artifacts, plans, logs, sandbox files, or other repo state, the scaffold is not curated enough.
-2. Create a scratch target with `mkdir -p /tmp/consync-portable-scratch`, then run `node src/index.js portable --target /tmp/consync-portable-scratch`. Confirm the target now contains `.consync/state/handoff.md`, `.consync/state/next-action.md`, `.consync/docs/current-system.md`, `.github/prompts/run_next_action.prompt.md`, and `.github/prompts/run_closeout.prompt.md`. Failure case: if any file is missing or placed elsewhere, treat the scaffold as failed.
-3. Run the same command again without `--force` and confirm it reports the scaffold files under `Skipped:` instead of overwriting them. Failure case: if existing scaffold files are overwritten without force, the command is too aggressive.
-4. Change one scaffolded file in the scratch target, then run `node src/index.js portable --target /tmp/consync-portable-scratch --force` and confirm only the scaffolded files are reported under `Overwritten:`. Failure case: if unrelated files are touched or deleted, the command is unsafe.
-5. Run `node src/index.js portable` and `node src/index.js portable --target /tmp/consync-portable-does-not-exist` and confirm both fail with clear messages for missing and invalid targets. Failure case: if either call succeeds or fails ambiguously, error handling is incomplete.
-6. Run `npm run verify` and confirm the suite ends with `[verify] PASS`, then run `git status --short` and confirm the diff is limited to the new portable scaffold files, related command wiring, and light doc updates. Failure case: if verification fails or unrelated surfaces changed, review before closing the packet.
+
+1. Run `npm run test:probe:audio-session`. Confirm it prints `PASS`. Failure case: if it fails, either the new timestamp/help behavior or an earlier probe behavior regressed.
+2. Run `cd sandbox/probes/audio-session-capture/workdir && touch "media/clip.wav" && node ../capture-session.js`. Confirm startup now shows `/at <timestamp>` and `/help` in the short command list. Failure case: if those commands are missing from startup output, the usability update is incomplete.
+3. In the probe session, run `/help`. Confirm it prints a short block listing `/file`, `/preview`, `/at <timestamp>`, `/clear-file`, `/end`, and `/help`. Failure case: if the help output is missing commands or is unreadable, the command surface is not self-explanatory enough.
+4. Drag `media/clip.wav` into the terminal or run `/file media/clip.wav`, then run `/at 8:22`, then type `first timed note`, then `second plain note`, then `/end`. Confirm the probe prints `Pending media timestamp set to 08:22`, saves both notes, and only the first note carries `mediaTimestamp` in the session JSON. Failure case: if the second note inherits the same timestamp, the pending timestamp is not clearing correctly.
+5. Start another session, set a current file, then run `/at 08` and add one note. Confirm the saved note contains `mediaTimestamp.raw` as `00:08` and `mediaTimestamp.seconds` as `8`. Failure case: if `ss` input is not normalized to `mm:ss`, timestamp normalization is wrong.
+6. Start another session, run `/at 1:05` after setting a current file, add one note, and confirm the saved note uses `01:05` and `65`. Failure case: if `m:ss` is not normalized to `mm:ss`, the parser is wrong.
+7. Start another session and run `/at 8:99` after setting a current file. Confirm it prints `Usage: /at <ss|m:ss|mm:ss>` and does not attach a timestamp to the next note unless a valid `/at` is entered later. Failure case: if invalid input still stamps a note, validation is too weak.
+8. Start another session and run `/at 8:22` before selecting any file. Confirm it prints `No current file set for timestamped notes` and does nothing. Failure case: if it accepts a timestamp without a current file, the file requirement is not enforced.
+9. In one session, set a current file, run `/preview`, then `/at 8:22`, then add a note and `/end`. Confirm preview still returns immediately and the note is saved with the timestamp. Failure case: if `/at` stops working after preview, the timestamp feature is coupled too tightly to preview state.
 
 ## Verification Notes
-- Verified the curated template tree exists under `.consync/templates/portable/` and contains only the intended minimal scaffold subset.
-- Ran `node src/index.js portable --target /tmp/consync-portable-OfPSDS`; observed all five scaffold files created in the scratch target and an unrelated `unrelated.txt` file left untouched.
-- Ran the command again without `--force`; observed all scaffold files reported under `Skipped:` and confirmed a manual change to the scratch `handoff.md` remained in place.
-- Ran the command with `--force`; observed all scaffold files reported under `Overwritten:` and confirmed the scratch `handoff.md` reverted from `USER CHANGE` back to `# Copilot Handoff`.
-- Ran failure-path checks for `node src/index.js portable` and `node src/index.js portable --target /tmp/consync-portable-does-not-exist`; observed clear exit-code `1` errors for missing and invalid targets.
-- Ran `npm run verify`; the suite passed and `system-check` reported `STATUS: ON_TRACK`, including `portable command present` with no warnings.
+
+- Ran `npm run test:probe:audio-session`; observed `PASS`. The expanded probe-local suite covers valid `ss` and `m:ss` input, normalization to `mm:ss`, invalid timestamp input, `/at` with no current file, one-shot timestamp application, timestamp clearing on the following note, `/at` after `/preview`, and `/help` output.
+- Ran a scripted combined session with `/help`, `/file media/clip.wav`, `/preview`, `/at 8:22`, `first timed note`, `second plain note`, and `/end`; observed help text printed cleanly, preview stayed non-blocking, `/at` confirmed `08:22`, and the session saved successfully.
+- Read `sandbox/probes/audio-session-capture/workdir/.consync/sessions/20260412T200755Z.json`; confirmed the first note contains `mediaTimestamp: { raw: "08:22", seconds: 502 }` and the following note has no `mediaTimestamp` field.
+- Validated these edge cases: one-shot timestamp clearing after the next normal note, timestamp use after preview in the same session, invalid timestamp rejection, and no-file rejection for `/at`.
+- Did not add timestamp ranges, playback-state integration, or automatic timestamp capture from Quick Look, because those were explicitly deferred.
