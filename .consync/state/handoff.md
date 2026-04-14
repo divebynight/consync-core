@@ -4,49 +4,90 @@ PASS
 
 ## Summary
 
-Added a minimal `/at <timestamp>` command and a concise `/help` command to the experimental audio-session probe. `/at` now sets a one-shot pending media timestamp for the next normal note only, while `/help` prints a compact command list for the current probe surface.
+Added the first desktop UI scaffold for Consync with Electron Forge, a React-capable renderer, and a narrow preload bridge. The new layout separates shared logic into `src/core/`, keeps the CLI entry in `src/cli/`, and splits the desktop shell into `src/electron/main/`, `src/electron/preload/`, and `src/electron/renderer/`.
 
-Timestamp input supports `ss`, `m:ss`, and `mm:ss`, normalizes valid values to `mm:ss`, and stores the result on the next note as `mediaTimestamp.raw` and `mediaTimestamp.seconds`. The pending timestamp clears automatically after the next note and does not change the current-file model.
+The renderer remains UI-only and talks to the main process through a minimal preload API. The first IPC example exposes `getShellInfo()` and `ping()`, both backed by a small shared core module instead of putting app logic directly into React components.
 
-`/at` requires a current file, works independently of preview state, and prints short readable messages for both success and invalid usage. Intentionally deferred: timestamp ranges, waveform support, playback syncing, player-position detection, auto-filled timestamps from preview, and any broader media-aware behavior.
+Docs now explain why the desktop layer is being added, how the process boundaries are separated, and that the earlier terminal capture exploration remains paused as a probe rather than the primary product direction. Real audio playback, media control, and renderer-side filesystem access remain intentionally deferred.
 
 ## Files Created
 
-- `sandbox/probes/audio-session-capture/workdir/.consync/sessions/20260412T200755Z.json`
-  - Created during verification to confirm `/help`, `/preview`, and one-shot `/at` timestamping work together in a single session and that only the next note receives the timestamp.
+- `forge.config.js`
+  - Added the Electron Forge configuration using the Vite plugin and a macOS zip maker for local desktop development.
+- `vite.main.config.mjs`
+  - Added the main-process Vite config placeholder needed by the Forge Vite plugin.
+- `vite.preload.config.mjs`
+  - Added the preload-process Vite config placeholder needed by the Forge Vite plugin.
+- `vite.renderer.config.mjs`
+  - Added the React-capable renderer Vite config rooted in `src/electron/renderer/`.
+- `package-lock.json`
+  - Added the lockfile generated from installing the Electron Forge, Vite, React, and related scaffold dependencies.
+- `src/cli/index.js`
+  - Added a thin CLI entry layer so the existing command surface remains separate from the desktop scaffold.
+- `src/core/desktop-shell.js`
+  - Added a small shared core module that supplies desktop shell metadata and a simple ping response for IPC.
+- `src/electron/main/index.js`
+  - Added the Electron main-process bootstrap that waits for readiness, registers IPC, and creates the main window.
+- `src/electron/main/ipc.js`
+  - Added the minimal IPC example that serves shared core data to the preload bridge.
+- `src/electron/main/window.js`
+  - Added BrowserWindow creation with `contextIsolation`, `sandbox`, and preload wiring.
+- `src/electron/preload/bridge.js`
+  - Added a narrow bridge factory that maps renderer calls onto specific IPC channels.
+- `src/electron/preload/preload.js`
+  - Added the `contextBridge` exposure for the renderer-facing desktop API.
+- `src/electron/renderer/index.html`
+  - Added the renderer entry HTML for the desktop shell.
+- `src/electron/renderer/renderer.jsx`
+  - Added the React renderer entry that mounts the placeholder app.
+- `src/electron/renderer/App.jsx`
+  - Added a small placeholder UI that proves the app launches and can read data through the preload bridge.
+- `src/electron/renderer/styles.css`
+  - Added the initial desktop shell styling for the placeholder renderer.
+- `src/test/desktop-scaffold.js`
+  - Added a small scaffold-stage verification script for shared core behavior, IPC registration, and preload bridge calls.
 
 ## Files Modified
 
-- `sandbox/probes/audio-session-capture/capture-session.js`
-  - Added timestamp parsing, one-shot pending media timestamp behavior, `/help`, and startup/unknown-command text updates.
-- `sandbox/probes/audio-session-capture/test-capture-session.js`
-  - Expanded probe-local coverage for valid and invalid `/at` input, one-shot timestamp clearing, `/at` after `/preview`, and `/help` output.
-- `sandbox/probes/audio-session-capture/README.md`
-  - Documented `/at`, `/help`, supported timestamp formats, and the optional `mediaTimestamp` entry shape.
+- `package.json`
+  - Added the Electron Forge entry point, desktop scripts, and the React/Electron/Vite dependencies needed for the scaffold.
+- `.gitignore`
+  - Ignored Forge and Vite build outputs so local desktop artifacts do not pollute the repo.
+- `src/index.js`
+  - Reduced the root CLI file to a thin delegation layer into the new `src/cli` entry.
+- `src/test/verify.js`
+  - Added the desktop scaffold boundary test to the repo-level verification pass.
+- `src/commands/system-summary.js`
+  - Added the desktop start and scaffold-test commands to the surfaced system summary.
+- `src/commands/system-check.js`
+  - Added desktop scaffold file checks so the new architecture appears in the on-track signals.
+- `README.md`
+  - Documented the new desktop layer, the source split, and that the terminal audio probe is paused as an exploratory path.
+- `.consync/docs/current-system.md`
+  - Updated the current-system doc to describe the CLI-first plus desktop-scaffold architecture and the paused media work.
 
 ## Commands to Run
 
-- `npm run test:probe:audio-session`
-- `cd sandbox/probes/audio-session-capture/workdir && touch "media/clip.wav"`
-- `cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js`
-- `cat sandbox/probes/audio-session-capture/workdir/.consync/sessions/<session-file>.json`
+- `npm install`
+- `npm run test:desktop-scaffold`
+- `npm run verify`
+- `npm run start:desktop`
+- `npm run package:desktop`
 
 ## Human Verification
 
-1. Run `npm run test:probe:audio-session`. Confirm it prints `PASS`. Failure case: if it fails, either the new timestamp/help behavior or an earlier probe behavior regressed.
-2. Run `cd sandbox/probes/audio-session-capture/workdir && touch "media/clip.wav" && node ../capture-session.js`. Confirm startup now shows `/at <timestamp>` and `/help` in the short command list. Failure case: if those commands are missing from startup output, the usability update is incomplete.
-3. In the probe session, run `/help`. Confirm it prints a short block listing `/file`, `/preview`, `/at <timestamp>`, `/clear-file`, `/end`, and `/help`. Failure case: if the help output is missing commands or is unreadable, the command surface is not self-explanatory enough.
-4. Drag `media/clip.wav` into the terminal or run `/file media/clip.wav`, then run `/at 8:22`, then type `first timed note`, then `second plain note`, then `/end`. Confirm the probe prints `Pending media timestamp set to 08:22`, saves both notes, and only the first note carries `mediaTimestamp` in the session JSON. Failure case: if the second note inherits the same timestamp, the pending timestamp is not clearing correctly.
-5. Start another session, set a current file, then run `/at 08` and add one note. Confirm the saved note contains `mediaTimestamp.raw` as `00:08` and `mediaTimestamp.seconds` as `8`. Failure case: if `ss` input is not normalized to `mm:ss`, timestamp normalization is wrong.
-6. Start another session, run `/at 1:05` after setting a current file, add one note, and confirm the saved note uses `01:05` and `65`. Failure case: if `m:ss` is not normalized to `mm:ss`, the parser is wrong.
-7. Start another session and run `/at 8:99` after setting a current file. Confirm it prints `Usage: /at <ss|m:ss|mm:ss>` and does not attach a timestamp to the next note unless a valid `/at` is entered later. Failure case: if invalid input still stamps a note, validation is too weak.
-8. Start another session and run `/at 8:22` before selecting any file. Confirm it prints `No current file set for timestamped notes` and does nothing. Failure case: if it accepts a timestamp without a current file, the file requirement is not enforced.
-9. In one session, set a current file, run `/preview`, then `/at 8:22`, then add a note and `/end`. Confirm preview still returns immediately and the note is saved with the timestamp. Failure case: if `/at` stops working after preview, the timestamp feature is coupled too tightly to preview state.
+1. Run `npm install` from the repo root. Confirm dependencies install and `package-lock.json` is present. Failure case: if install fails, the scaffold cannot be launched locally.
+2. Run `npm run test:desktop-scaffold`. Confirm it prints `PASS`. Failure case: if it fails, the shared core module, IPC handler registration, or preload bridge contract is broken.
+3. Run `npm run verify`. Confirm the suite ends with `[verify] PASS` and `system-check` reports the new desktop scaffold signals. Failure case: if the existing CLI verification regresses, the scaffold was not isolated cleanly enough.
+4. Run `npm run start:desktop`. Confirm Forge starts, Vite serves the renderer, and an Electron window opens showing the placeholder desktop shell. Failure case: if Forge starts but the window is blank or the app crashes, the main/preload/renderer wiring is incomplete.
+5. In the launched desktop window, confirm the placeholder UI shows the scaffold messaging plus bridge-derived values such as the shared core path and ping result. Failure case: if the UI renders but those values stay empty or error, the preload bridge or IPC example is not working.
+6. Close the window and rerun `npm run start:desktop`. Confirm the app launches again without requiring file cleanup. Failure case: if stale build output or cached state blocks relaunch, the development scaffold is not stable enough for iteration.
+7. Optionally run `npm run package:desktop` on macOS. Confirm Forge produces a packaged app under `out/`. Failure case: if packaging fails while `start:desktop` succeeds, the dev scaffold exists but the packaging path still needs work.
 
 ## Verification Notes
 
-- Ran `npm run test:probe:audio-session`; observed `PASS`. The expanded probe-local suite covers valid `ss` and `m:ss` input, normalization to `mm:ss`, invalid timestamp input, `/at` with no current file, one-shot timestamp application, timestamp clearing on the following note, `/at` after `/preview`, and `/help` output.
-- Ran a scripted combined session with `/help`, `/file media/clip.wav`, `/preview`, `/at 8:22`, `first timed note`, `second plain note`, and `/end`; observed help text printed cleanly, preview stayed non-blocking, `/at` confirmed `08:22`, and the session saved successfully.
-- Read `sandbox/probes/audio-session-capture/workdir/.consync/sessions/20260412T200755Z.json`; confirmed the first note contains `mediaTimestamp: { raw: "08:22", seconds: 502 }` and the following note has no `mediaTimestamp` field.
-- Validated these edge cases: one-shot timestamp clearing after the next normal note, timestamp use after preview in the same session, invalid timestamp rejection, and no-file rejection for `/at`.
-- Did not add timestamp ranges, playback-state integration, or automatic timestamp capture from Quick Look, because those were explicitly deferred.
+- Ran `npm install`; dependencies installed successfully and generated `package-lock.json`. npm reported 26 known vulnerabilities in the upstream dependency tree. Those were not addressed in this scaffold step.
+- Ran `npm run test:desktop-scaffold`; observed `PASS`. The scaffold-stage check validated the shared core metadata, IPC channel registration, and preload bridge invocation without launching a real Electron window.
+- Ran `npm run verify`; observed `[verify] PASS`. The existing CLI and sandbox verification still passed, and `system-check` reported the new desktop scaffold files as present with no warnings.
+- Ran `npm run start:desktop`; Electron Forge completed system checks, launched the Vite renderer dev server at `http://localhost:5173/`, built the main and preload targets, and reported `Launched Electron app`.
+- Did not automate deep renderer assertions inside the actual Electron window or test real audio playback, filesystem mutation from the desktop shell, packaging output from `npm run package:desktop`, or future MCP integration, because those remain outside this first scaffold stage.

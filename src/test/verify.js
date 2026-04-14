@@ -61,6 +61,9 @@ function main() {
   runNodeStep("[verify] Core CLI behavior: integration new-guid", [path.join(repoRoot, "src", "test", "integration-new-guid-cli.js")]);
   console.log("");
 
+  runNodeStep("[verify] Desktop scaffold boundary", [path.join(repoRoot, "src", "test", "desktop-scaffold.js")]);
+  console.log("");
+
   runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"]);
   console.log("");
 

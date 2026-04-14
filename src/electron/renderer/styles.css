@@ -1,0 +1,112 @@
+:root {
+  color: #1f2933;
+  background:
+    radial-gradient(circle at top left, rgba(214, 121, 52, 0.22), transparent 34%),
+    linear-gradient(135deg, #f4efe6 0%, #e8dfcf 100%);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: 56px 48px;
+}
+
+.hero {
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8c4c1f;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 4vw, 4.4rem);
+  line-height: 0.96;
+  color: #2b221c;
+}
+
+.lead {
+  max-width: 640px;
+  margin-top: 16px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #52453b;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.panel {
+  padding: 24px;
+  border: 1px solid rgba(60, 44, 30, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 252, 246, 0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 32px rgba(51, 36, 23, 0.08);
+}
+
+.panel h2 {
+  margin: 0 0 18px;
+  font-size: 1.15rem;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(60, 44, 30, 0.08);
+}
+
+.status-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.status-label {
+  color: #6b5a4a;
+}
+
+.status-value {
+  font-weight: 600;
+  color: #2b221c;
+}
+
+.paused-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #52453b;
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 32px 20px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+}

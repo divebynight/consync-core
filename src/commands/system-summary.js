@@ -11,6 +11,9 @@ function runSystemSummaryCommand() {
   console.log("- system-check");
   console.log("- system-summary");
   console.log("- portable");
+  console.log("DESKTOP");
+  console.log("- npm run start:desktop");
+  console.log("- npm run test:desktop-scaffold");
   console.log("FIXTURES");
   console.log("- basic-mixed");
   console.log("- nested-mixed");

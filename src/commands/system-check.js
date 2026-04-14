@@ -66,6 +66,22 @@ function runSystemCheckCommand() {
     }
   }
 
+  const desktopFiles = [
+    ["forge config present", "forge.config.js"],
+    ["desktop main scaffold present", "src/electron/main/index.js"],
+    ["desktop preload scaffold present", "src/electron/preload/preload.js"],
+    ["desktop renderer scaffold present", "src/electron/renderer/App.jsx"],
+    ["shared core scaffold present", "src/core/desktop-shell.js"],
+  ];
+
+  for (const [label, relativePath] of desktopFiles) {
+    if (existsFromRoot(rootPath, relativePath)) {
+      signals.push(label);
+    } else {
+      warnings.push(`missing ${relativePath}`);
+    }
+  }
+
   console.log(`STATUS: ${warnings.length === 0 ? "ON_TRACK" : "CHECK_WARNINGS"}`);
   console.log("Signals:");
 

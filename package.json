@@ -1,13 +1,30 @@
 {
   "name": "consync-core",
+  "main": ".vite/build/main.js",
   "private": true,
   "scripts": {
     "probe:audio-session": "cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js",
+    "start:desktop": "electron-forge start",
+    "package:desktop": "electron-forge package",
+    "make:desktop": "electron-forge make",
     "test:probe:audio-session": "node sandbox/probes/audio-session-capture/test-capture-session.js",
+    "test:desktop-scaffold": "node src/test/desktop-scaffold.js",
     "verify": "node src/test/verify.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test": "npm run test:unit && npm run test:integration"
   },
-  "version": "0.0.11"
+  "version": "0.0.11",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "@electron-forge/plugin-vite": "^7.8.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^35.1.5",
+    "vite": "^6.3.3"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
 }

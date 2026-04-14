@@ -1,6 +1,8 @@
 # OS / editor noise
 .DS_Store
 node_modules/
+.vite/
+out/
 
 # Generated sandbox artifacts
 sandbox/current/*.json
