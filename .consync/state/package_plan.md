@@ -6,15 +6,15 @@ Define the remaining small process artifacts needed to run sequential multi-pack
 
 SEQUENCE STATUS:
 
-ACTIVE
+PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-4
+5
 
 NEXT PACKAGE:
 
-`validate_resume_state_checklist_against_interrupted_examples`
+`define_repair_entry_and_return_checklist`
 
 DEFAULT RUN WINDOW:
 
@@ -72,11 +72,18 @@ PLANNED PACKAGES:
    - Notes: resume-state classification checklist is now captured in the active process docs.
 
 4. `validate_resume_state_checklist_against_interrupted_examples`
-   - Status: READY
+   - Status: PASS
    - Depends on: `define_resume_state_determination_checklist`
    - Stop gate: pause after this package to review the checklist against concrete interrupted-state examples.
+   - Human verification: complete before cursor advances
+   - Notes: worked examples now validate how each resume-state label is chosen from repo files and repo status.
+
+5. `define_repair_entry_and_return_checklist`
+   - Status: READY
+   - Depends on: `validate_resume_state_checklist_against_interrupted_examples`
+   - Stop gate: pause after this package to review repair entry and return flow before more sequencing work.
    - Human verification: required
-   - Notes: should test the checklist against a few explicit repo-state examples so each label stays practical.
+   - Notes: should define the smallest operator checklist for entering a repair package and returning to the blocked planned package.
 
 REPAIR HANDLING:
 
@@ -115,6 +122,13 @@ RESUME-STATE DETERMINATION CHECKLIST:
 8. Classify `DIRTY_NEXT_PACKAGE_STARTED` if planning files advanced to a new package before the prior package was durably closed.
 9. Classify `DIRTY_UNKNOWN` if the signals conflict or do not support a confident label.
 10. If the result is not `CLEAN`, stop and repair before using the manual advancement checklist.
+
+RESUME-STATE VALIDATION EXAMPLES:
+
+- `CLEAN`: `handoff.md` closes the latest package as `PASS`, history contains the executed instruction, `package_plan.md` marks that package `PASS`, `next-action.md` points to the next package, and repo status is clean.
+- `DIRTY_CLOSEOUT_PENDING`: repo status shows state-file work for the latest package but `handoff.md`, history preservation, or reconciliation is incomplete.
+- `DIRTY_NEXT_PACKAGE_STARTED`: planning files already point at a new package while the previous package is not durably closed in `handoff.md` and history.
+- `DIRTY_UNKNOWN`: the active files and repo status conflict so no confident label can be assigned without manual inspection.
 
 FORMAT RULE:
 
