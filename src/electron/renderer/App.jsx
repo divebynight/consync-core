@@ -97,10 +97,10 @@ export function App() {
     <main className="shell">
       <section className="hero">
         <p className="eyebrow">Consync Desktop Capture</p>
-        <h1>Bridge proof with one real backend signal.</h1>
+        <h1>Bridge proof with incremental real session values.</h1>
         <p className="lead">
-          This step carries one small real backend value through preload into the renderer so the
-          desktop shell proves end-to-end data flow before broader UI work continues.
+          This shell now surfaces a small set of real session details carried through preload into
+          the renderer so each narrow UI step stays easy to verify before broader work continues.
         </p>
       </section>
 

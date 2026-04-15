@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-13
+14
 
 NEXT PACKAGE:
 
-`stabilize_session_panel_copy_after_incremental_real_values`
+`stabilize_bookmark_panel_empty_state_copy`
 
 DEFAULT RUN WINDOW:
 
@@ -135,11 +135,18 @@ PLANNED PACKAGES:
    - Notes: now renders the latest bookmark time from existing session state in the Session panel without changing the backend or preload path.
 
 13. `stabilize_session_panel_copy_after_incremental_real_values`
-   - Status: READY
+   - Status: PASS
    - Depends on: `render_latest_bookmark_time_in_session_panel`
    - Stop gate: pause after this package to review whether the Session panel wording still matches the now-expanded real values.
    - Human verification: optional
-   - Notes: should tighten Session panel copy only where needed so the labels and surrounding text still read clearly after the incremental real-value additions.
+   - Notes: tightened hero copy so the renderer text now matches the accumulated real session values shown in the Session panel.
+
+14. `stabilize_bookmark_panel_empty_state_copy`
+   - Status: READY
+   - Depends on: `stabilize_session_panel_copy_after_incremental_real_values`
+   - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the Session panel exposes more real values.
+   - Human verification: optional
+   - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.
 
 REPAIR HANDLING:
 

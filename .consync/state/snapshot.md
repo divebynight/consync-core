@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package rendered the latest bookmark time in the existing Session panel using existing session state.
+The last completed package tightened the renderer copy so the hero text now matches the set of real session values shown in the Session panel.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -27,9 +27,10 @@ CURRENT REALITY:
 - The Session panel now visibly renders that artifact count alongside the existing real session fields.
 - The Session panel now also shows the latest bookmark note already present in renderer-readable session state.
 - The Session panel now also shows the latest bookmark time already present in renderer-readable session state.
+- The renderer hero copy now describes incremental real session values instead of a single real backend signal.
 
 ACTIVE FOCUS:
-Carry one more narrow UI slice by tightening the Session panel wording after the recent incremental real-value additions.
+Carry one more narrow UI slice by tightening nearby copy only where it still reads awkwardly after the recent incremental real-value additions.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should stabilize Session panel copy after the recent incremental real-value additions.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should tighten the Bookmarks panel empty-state copy if it still reads awkwardly after the recent incremental real-value additions.
