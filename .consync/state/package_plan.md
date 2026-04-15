@@ -2,7 +2,7 @@
 
 SEQUENCE GOAL:
 
-Define the remaining small process artifacts needed to run sequential multi-package work from repo files alone.
+Complete the remaining process guardrails, then prove the protocol can carry a small real feature package safely.
 
 SEQUENCE STATUS:
 
@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-8
+9
 
 NEXT PACKAGE:
 
-`validate_repair_entry_and_return_checklist_against_examples`
+`expose_one_more_real_session_facing_value`
 
 DEFAULT RUN WINDOW:
 
@@ -100,11 +100,18 @@ PLANNED PACKAGES:
    - Notes: was prepared before the verification-gate refinement, then temporarily superseded; now defines the minimal repair-entry and return checklist.
 
 8. `validate_repair_entry_and_return_checklist_against_examples`
-   - Status: READY
+   - Status: PASS
    - Depends on: `define_repair_entry_and_return_checklist`
    - Stop gate: pause after this package to review the repair checklist against concrete examples.
    - Human verification: optional
-   - Notes: should validate the repair-entry checklist against a few explicit blocked-package and return scenarios.
+   - Notes: worked examples now validate when repair starts, when return is allowed, and when the operator must stop instead.
+
+9. `expose_one_more_real_session_facing_value`
+   - Status: READY
+   - Depends on: `validate_repair_entry_and_return_checklist_against_examples`
+   - Stop gate: pause after this package to review the first real feature slice carried by the process.
+   - Human verification: optional
+   - Notes: first narrow FEATURE package after the process foundation; should expose exactly one additional real session-facing value.
 
 REPAIR HANDLING:
 
@@ -161,6 +168,12 @@ REPAIR ENTRY AND RETURN CHECKLIST:
 6. Re-run resume-state determination before returning to planned work.
 7. Return to the previously blocked planned package only if it remains clearly identified and no new stop gate or ambiguity blocks it.
 8. Stop and inspect manually instead of returning if repair leaves repo state dirty, creates a new contradiction, or makes the blocked package unclear.
+
+REPAIR VALIDATION EXAMPLES:
+
+- Repair required: the blocked package ended `FAIL` or resume state is not `CLEAN`, so the operator records repair entry and pauses the sequence.
+- Return allowed: the repair package closes `PASS`, repo status is clean, and the blocked package remains clearly identified.
+- Stop instead of return: repo state stays dirty, a new contradiction appears, or the blocked package is no longer clear.
 
 FORMAT RULE:
 

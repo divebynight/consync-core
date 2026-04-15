@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package defined the repair-entry and return checklist, including how repair is entered, how blocked work is preserved, and what must be true before planned work resumes.
+The last completed package validated the repair-entry and return checklist with concrete examples for repair entry, successful return, and stop-before-return.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -22,9 +22,10 @@ CURRENT REALITY:
 - Verification is now standardized as automated checks, manual checks, closeout validation, and an explicit advancement classification.
 - Verification now also distinguishes manual verification instructions from the blocking human-gate mode that controls whether advancement must wait.
 - Repair handling is now documented as an explicit operator checklist that preserves the blocked package, requires a `CLEAN` return, and stops on new ambiguity.
+- The repair rules are now backed by small worked examples so return decisions can be applied without relying on chat history.
 
 ACTIVE FOCUS:
-Validate the repair-entry and return checklist against concrete examples so the return rules stay practical and unambiguous.
+Use the now-stabilized process to carry the first narrow real feature slice through the existing desktop bridge.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should validate the repair-entry and return checklist against concrete examples.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should expose one more real session-facing value through the existing bridge path.
