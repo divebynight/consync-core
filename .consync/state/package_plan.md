@@ -10,7 +10,7 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-5
+6
 
 NEXT PACKAGE:
 
@@ -78,9 +78,16 @@ PLANNED PACKAGES:
    - Human verification: complete before cursor advances
    - Notes: worked examples now validate how each resume-state label is chosen from repo files and repo status.
 
-5. `define_repair_entry_and_return_checklist`
-   - Status: READY
+5. `define_minimal_verification_contract_for_package_execution`
+   - Status: PASS
    - Depends on: `validate_resume_state_checklist_against_interrupted_examples`
+   - Stop gate: none
+   - Human verification: required
+   - Notes: standardizes automated verification, manual verification, closeout validation, and advancement classification.
+
+6. `define_repair_entry_and_return_checklist`
+   - Status: READY
+   - Depends on: `define_minimal_verification_contract_for_package_execution`
    - Stop gate: pause after this package to review repair entry and return flow before more sequencing work.
    - Human verification: required
    - Notes: should define the smallest operator checklist for entering a repair package and returning to the blocked planned package.

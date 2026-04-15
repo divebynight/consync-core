@@ -52,3 +52,11 @@
 - Worked `DIRTY_CLOSEOUT_PENDING` example: repo status shows state-file edits from package N, `handoff.md` is missing or stale for package N, or the executed instruction was not yet archived; result = `DIRTY_CLOSEOUT_PENDING`, so stop and finish closeout before any advancement.
 - Worked `DIRTY_NEXT_PACKAGE_STARTED` example: `package_plan.md` and `next-action.md` already point to package N+1, but `handoff.md` still reflects package N-1 or repo status shows package N was never durably closed; result = `DIRTY_NEXT_PACKAGE_STARTED`, so stop and repair the baseline before continuing.
 - Worked `DIRTY_UNKNOWN` example: `handoff.md`, `package_plan.md`, preserved history, and repo status disagree about which package last ran or whether closeout finished; result = `DIRTY_UNKNOWN`, so stop and inspect manually instead of advancing.
+- Automated verification is a small set of deterministic, terminating commands such as `npm run verify` or a targeted test script already present in the repo.
+- Automated verification output is interpreted only as pass/fail; any failure blocks advancement.
+- Manual verification must be a short numbered list of explicit, observable checks tied to a command, file, or UI state.
+- Manual verification steps must avoid vague phrasing and must not depend on remembering prior chat context.
+- Closeout validation is complete only when automated verification passed, required manual checks are completed or explicitly awaiting human confirmation, repo state is reconciled or explicitly acknowledged, and expected results do not contradict observed results.
+- Every package resolves to one advancement classification: `VERIFIED_ADVANCEABLE`, `VERIFIED_AWAITING_HUMAN`, `FAILED_BLOCKED`, or `AMBIGUOUS_REVIEW_REQUIRED`.
+- Only `VERIFIED_ADVANCEABLE` may proceed automatically; all other advancement classifications pause the sequence.
+- `handoff.md` must record automated verification outcome, manual verification outcome, final advancement classification, and any notable discrepancies within its closeout summary or verification notes.

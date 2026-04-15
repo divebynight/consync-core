@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package validated the resume-state checklist with concrete examples for `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, and `DIRTY_UNKNOWN`.
+The last completed package defined the minimal verification contract, including automated verification rules, manual verification structure, closeout validation, and advancement classifications.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -19,9 +19,10 @@ CURRENT REALITY:
 - The package plan format now includes a compact manual advancement checklist for reading `handoff.md`, checking gates, recording the next cursor, and replacing `next-action.md` in the correct order.
 - The package plan format now also includes a compact resume-state checklist for determining whether advancement is allowed or repair is required.
 - The resume-state rules are now backed by small worked examples so state labels can be applied without relying on chat history.
+- Verification is now standardized as automated checks, manual checks, closeout validation, and an explicit advancement classification.
 
 ACTIVE FOCUS:
-Define the smallest repair-entry and return checklist so interruptions can rejoin the planned sequence safely.
+Define the smallest repair-entry and return checklist so interruptions can rejoin the planned sequence safely under the new verification contract.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should define the repair-entry and return checklist from this validated baseline.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should define the repair-entry and return checklist from this verified baseline.
