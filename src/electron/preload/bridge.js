@@ -1,15 +1,15 @@
-const { IPC_CHANNELS } = require("../main/ipc");
+const { IPC_CHANNELS } = require("../shared/ipc-channels");
 
 function createDesktopBridge(invoke) {
   return {
     createBookmark(note) {
       return invoke(IPC_CHANNELS.createBookmark, note);
     },
+    getConsyncSummary() {
+      return invoke(IPC_CHANNELS.getConsyncSummary);
+    },
     getBackendSummary() {
-      return Promise.resolve({
-        cwd: process.cwd(),
-        platform: process.platform,
-      });
+      return invoke(IPC_CHANNELS.getBackendSummary);
     },
     getShellInfo() {
       return invoke(IPC_CHANNELS.getShellInfo);

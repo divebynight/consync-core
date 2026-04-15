@@ -7,16 +7,16 @@ CURRENT DIRECTION:
 Use Electron as a thin UI shell over reusable Consync core logic while keeping each desktop step narrow and verifiable.
 
 LAST COMPLETED WORK:
-The last completed package exposed one real backend summary value in the renderer and kept the shell launch path stable.
+The last completed package repaired the runtime renderer/preload contract by moving real runtime reads behind main-process IPC while preserving the existing bridge shape.
 
 CURRENT REALITY:
 - Electron boots.
-- Real backend/system data is visible in the renderer.
+- The live bridge repair has been applied and visually confirmed in the Electron window.
 - Active workflow state now lives in `.consync/state/` and background material lives in `.consync/state/history/`.
-- The bridge now carries real signals, but the renderer is still intentionally minimal and has not started useful Consync-facing behavior yet.
+- Bridge Status, Backend Summary, Consync Summary, and Session panels now populate through the repaired runtime bridge.
 
 ACTIVE FOCUS:
-Move from backend summary proof toward the first meaningful Consync-facing renderer value without broadening the desktop shell prematurely.
+Return to the next narrow session-facing renderer feature without broadening the desktop shell prematurely.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should expose one simple Consync-relevant value or scan stub in the Electron renderer.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should expose one small session-facing value in the Electron renderer.

@@ -16,6 +16,7 @@ function getDesktopBridge() {
     !desktopBridge ||
     typeof desktopBridge.getBackendSummary !== "function" ||
     typeof desktopBridge.getBridgeStatus !== "function" ||
+    typeof desktopBridge.getConsyncSummary !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function"
   ) {
@@ -28,6 +29,7 @@ function getDesktopBridge() {
 export function App() {
   const [backendSummary, setBackendSummary] = useState(null);
   const [bridgeStatus, setBridgeStatus] = useState(null);
+  const [consyncSummary, setConsyncSummary] = useState(null);
   const [note, setNote] = useState("");
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -37,9 +39,10 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const [nextBackendSummary, nextBridgeStatus, nextSessionState] = await Promise.all([
+      const [nextBackendSummary, nextBridgeStatus, nextConsyncSummary, nextSessionState] = await Promise.all([
         desktopBridge.getBackendSummary(),
         desktopBridge.getBridgeStatus(),
+        desktopBridge.getConsyncSummary(),
         desktopBridge.getSessionState(),
       ]);
 
@@ -49,6 +52,7 @@ export function App() {
 
       setBackendSummary(nextBackendSummary);
       setBridgeStatus(nextBridgeStatus);
+      setConsyncSummary(nextConsyncSummary);
       setSessionState(nextSessionState);
       setErrorMessage(null);
     }
@@ -112,6 +116,18 @@ export function App() {
           <h2>Backend Summary</h2>
           <StatusRow label="Platform" value={backendSummary ? backendSummary.platform : "loading"} />
           <StatusRow label="Current dir" value={backendSummary ? backendSummary.cwd : "loading"} />
+        </article>
+
+        <article className="panel">
+          <h2>Consync Summary</h2>
+          <StatusRow
+            label="Session dir"
+            value={consyncSummary ? (consyncSummary.sessionDirectoryExists ? "present" : "missing") : "loading"}
+          />
+          <StatusRow
+            label="Session count"
+            value={consyncSummary ? consyncSummary.sessionCount : "loading"}
+          />
         </article>
 
         <article className="panel">

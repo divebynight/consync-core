@@ -1,3 +1,6 @@
+const fs = require("node:fs");
+const path = require("node:path");
+
 function getDesktopShellInfo() {
   return {
     appName: "Consync Desktop",
@@ -20,7 +23,29 @@ function createDesktopPingResponse(message = "renderer-ready") {
   };
 }
 
+function getDesktopBackendSummary() {
+  return {
+    cwd: process.cwd(),
+    platform: process.platform,
+  };
+}
+
+function getDesktopConsyncSummary() {
+  const sessionDir = path.join(process.cwd(), "sandbox", "current");
+  const sessionDirectoryExists = fs.existsSync(sessionDir);
+  const sessionCount = sessionDirectoryExists
+    ? fs.readdirSync(sessionDir).filter(entry => entry.endsWith(".json")).length
+    : 0;
+
+  return {
+    sessionCount,
+    sessionDirectoryExists,
+  };
+}
+
 module.exports = {
   createDesktopPingResponse,
+  getDesktopBackendSummary,
+  getDesktopConsyncSummary,
   getDesktopShellInfo,
 };
