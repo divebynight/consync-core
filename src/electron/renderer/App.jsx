@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
   return (
@@ -86,12 +87,7 @@ export function App() {
     }
   }
 
-  const latestBookmarkNote = sessionState && sessionState.bookmarks.length > 0
-    ? sessionState.bookmarks[sessionState.bookmarks.length - 1].note
-    : "none";
-  const latestBookmarkTime = sessionState && sessionState.bookmarks.length > 0
-    ? `${sessionState.bookmarks[sessionState.bookmarks.length - 1].timeSeconds}s`
-    : "none";
+  const sessionRows = getSessionPanelRows(sessionState);
 
   return (
     <main className="shell">
@@ -139,27 +135,9 @@ export function App() {
 
         <article className="panel">
           <h2>Session</h2>
-          <StatusRow
-            label="Artifacts"
-            value={sessionState ? sessionState.artifactCount : "loading"}
-          />
-          <StatusRow
-            label="Current file"
-            value={sessionState ? sessionState.currentFile : "loading"}
-          />
-          <StatusRow
-            label="Position"
-            value={sessionState ? `${sessionState.currentPositionSeconds}s` : "loading"}
-          />
-          <StatusRow label="Bookmarks" value={sessionState ? sessionState.bookmarks.length : "loading"} />
-          <StatusRow
-            label="Latest note"
-            value={sessionState ? latestBookmarkNote : "loading"}
-          />
-          <StatusRow
-            label="Latest time"
-            value={sessionState ? latestBookmarkTime : "loading"}
-          />
+          {sessionRows.map(row => (
+            <StatusRow key={row.label} label={row.label} value={row.value} />
+          ))}
         </article>
 
         <article className="panel">

@@ -10,7 +10,7 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-14
+15
 
 NEXT PACKAGE:
 
@@ -141,9 +141,16 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: tightened hero copy so the renderer text now matches the accumulated real session values shown in the Session panel.
 
-14. `stabilize_bookmark_panel_empty_state_copy`
-   - Status: READY
+14. `add_minimal_renderer_verification_slice_for_session_panel`
+   - Status: PASS
    - Depends on: `stabilize_session_panel_copy_after_incremental_real_values`
+   - Stop gate: pause after this package to review whether the renderer now has one stable machine-checkable verification foothold.
+   - Human verification: optional
+   - Notes: added a small deterministic Session panel verification slice without introducing a heavier UI automation framework.
+
+15. `stabilize_bookmark_panel_empty_state_copy`
+   - Status: READY
+   - Depends on: `add_minimal_renderer_verification_slice_for_session_panel`
    - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the Session panel exposes more real values.
    - Human verification: optional
    - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.

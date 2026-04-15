@@ -1,5 +1,5 @@
-TYPE: FEATURE
-PACKAGE: stabilize_session_panel_copy_after_incremental_real_values
+TYPE: PROCESS
+PACKAGE: add_minimal_renderer_verification_slice_for_session_panel
 
 STATUS
 
@@ -7,21 +7,24 @@ PASS
 
 SUMMARY
 
-Tightened the renderer copy so the hero text now accurately describes the current Session panel, which surfaces several incremental real session values instead of a single real backend signal.
+Added one minimal renderer verification slice for the Session panel by extracting a deterministic row-model helper, testing it directly, and wiring that focused check into `npm run verify` without introducing a heavier UI automation framework.
 
-Automated verification outcome: PASS via `cd /Users/markhughes/Projects/consync-core && npm run verify`. Manual verification outcome: optional review checks available and not required to unblock this feature package. Final advancement classification: `VERIFIED_ADVANCEABLE`. Notable discrepancies: no renderer-specific automated test surface exists yet, so verification remained at the repo suite plus file review.
+Automated verification outcome: PASS via `cd /Users/markhughes/Projects/consync-core && npm run verify`. Manual verification outcome: optional review checks available and not required to unblock this process package. Final advancement classification: `VERIFIED_ADVANCEABLE`. Notable discrepancies: the new renderer verification slice is intentionally narrow and model-based rather than a full DOM or Electron interaction test.
 
 FILES CREATED
 
-- `.consync/state/history/plans/feature-20260415-stabilize-session-panel-copy-after-incremental-real-values.md` — preserved the executed feature instruction before replacing the live `next-action.md` slot.
+- `.consync/state/history/plans/process-20260415-add-minimal-renderer-verification-slice-for-session-panel.md` — preserved the executed process instruction before replacing the live `next-action.md` slot.
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — tightened the hero heading and lead text so the renderer copy matches the now-expanded set of real session values already shown below.
-- `.consync/state/package_plan.md` — recorded the completed copy-tightening package and advanced the next package pointer to the Bookmarks empty-state copy check.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the renderer copy now better matches the visible Session values.
-- `.consync/state/next-action.md` — advanced the live execution slot to the next FEATURE package for tightening the Bookmarks panel empty-state copy if needed.
-- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this FEATURE package using the current verification contract.
+- `src/electron/renderer/session-panel.mjs` — added a small deterministic Session panel row-model helper that the renderer and a focused test can share.
+- `src/electron/renderer/App.jsx` — switched the Session panel rows to use the shared renderer helper instead of inline row construction.
+- `src/test/renderer-session-panel.js` — added a focused machine-checkable test that asserts the Session panel row model for loading, populated, and empty-bookmark cases.
+- `src/test/verify.js` — extended the repo verification flow with the new renderer Session panel slice.
+- `.consync/state/package_plan.md` — recorded the completed verification-improvement package and restored the next package pointer to the pending Bookmarks empty-state copy check.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that Session panel verification is now less dependent on manual inspection.
+- `.consync/state/next-action.md` — advanced the live execution slot back to the next narrow FEATURE package after the verification slice.
+- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this PROCESS package using the current verification contract.
 
 COMMANDS TO RUN
 
@@ -31,15 +34,15 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Review the changed files and confirm the package only tightens renderer wording so it matches the current Session panel state.
-3. Confirm no new session values, backend logic, or preload changes were introduced.
-4. Confirm no unrelated layout or styling refactor was introduced.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer and state files.
-6. Failure case: if the package adds new data or new display rows, the change is too broad.
-7. Failure case: if the package changes layout or styling substantially instead of only tightening copy, the package is incomplete.
+2. Review the changed files and confirm exactly one minimal renderer verification slice was added for the Session panel.
+3. Confirm the package improves machine-checkable verification without introducing a heavy UI automation framework.
+4. Confirm no unrelated renderer refactor or feature expansion was introduced.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer, test, and state files.
+6. Failure case: if the package turns into a broad UI testing framework decision, the change is too broad.
+7. Failure case: if no meaningful machine-checkable renderer verification was added, the package is incomplete.
 
 VERIFICATION NOTES
 
-- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify` and `cd /Users/markhughes/Projects/consync-core && git status --short` after the renderer and state updates.
-- Observed outcome: `npm run verify` passed, and the observed repo changes were limited to the expected renderer and state-doc updates for this package.
-- Validated the important edge cases that the UI change only adjusts wording, introduces no new session-state fields or display rows, and leaves the existing Session and Bookmarks panel structure intact.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify`, `cd /Users/markhughes/Projects/consync-core && node src/test/renderer-session-panel.js`, and `cd /Users/markhughes/Projects/consync-core && git status --short` after adding the renderer verification slice and updating state docs.
+- Observed outcome: `npm run verify` passed with the new renderer Session panel step included, the focused renderer slice passed directly, and the observed repo changes were limited to the expected renderer, test, and state-doc updates for this package.
+- Validated the important edge cases that the new verification slice checks loading rows, populated rows, and empty-bookmark fallback rows deterministically, while introducing no heavy UI automation framework.
