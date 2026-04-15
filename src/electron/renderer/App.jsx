@@ -89,6 +89,9 @@ export function App() {
   const latestBookmarkNote = sessionState && sessionState.bookmarks.length > 0
     ? sessionState.bookmarks[sessionState.bookmarks.length - 1].note
     : "none";
+  const latestBookmarkTime = sessionState && sessionState.bookmarks.length > 0
+    ? `${sessionState.bookmarks[sessionState.bookmarks.length - 1].timeSeconds}s`
+    : "none";
 
   return (
     <main className="shell">
@@ -152,6 +155,10 @@ export function App() {
           <StatusRow
             label="Latest note"
             value={sessionState ? latestBookmarkNote : "loading"}
+          />
+          <StatusRow
+            label="Latest time"
+            value={sessionState ? latestBookmarkTime : "loading"}
           />
         </article>
 
