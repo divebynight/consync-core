@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-3
+4
 
 NEXT PACKAGE:
 
-`define_resume_state_determination_checklist`
+`validate_resume_state_checklist_against_interrupted_examples`
 
 DEFAULT RUN WINDOW:
 
@@ -65,11 +65,18 @@ PLANNED PACKAGES:
    - Notes: manual go/no-go advancement procedure is now captured in the active process docs.
 
 3. `define_resume_state_determination_checklist`
-   - Status: READY
+   - Status: PASS
    - Depends on: `define_manual_sequence_advancement_procedure`
-   - Stop gate: pause after this package to review the resume-state checklist against real interrupted states.
+   - Stop gate: none
+   - Human verification: complete before cursor advances
+   - Notes: resume-state classification checklist is now captured in the active process docs.
+
+4. `validate_resume_state_checklist_against_interrupted_examples`
+   - Status: READY
+   - Depends on: `define_resume_state_determination_checklist`
+   - Stop gate: pause after this package to review the checklist against concrete interrupted-state examples.
    - Human verification: required
-   - Notes: should define a small operator checklist for classifying `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, and `DIRTY_UNKNOWN` from repo files alone.
+   - Notes: should test the checklist against a few explicit repo-state examples so each label stays practical.
 
 REPAIR HANDLING:
 
@@ -95,6 +102,19 @@ MANUAL ADVANCEMENT CHECKLIST:
 6. Archive the executed `next-action.md` instruction under `.consync/state/history/`.
 7. Update this file for the completed package result, next cursor position, and next package pointer.
 8. Replace `next-action.md` only after the previous steps are complete.
+
+RESUME-STATE DETERMINATION CHECKLIST:
+
+1. Read `handoff.md` and identify the latest completed package and its closing status.
+2. Read `package_plan.md` and compare the current cursor and `NEXT PACKAGE` pointer against that latest completed package.
+3. Read `next-action.md` and check whether the live slot still matches the unresolved state or has already advanced.
+4. Inspect preserved instructions under `.consync/state/history/` if closeout sequencing is unclear.
+5. Check current repo status to see whether state files or related work remain unreconciled.
+6. Classify `CLEAN` only if these signals agree that the last package is durably closed and the repo is ready to advance.
+7. Classify `DIRTY_CLOSEOUT_PENDING` if work exists but closeout, history preservation, or reconciliation is incomplete.
+8. Classify `DIRTY_NEXT_PACKAGE_STARTED` if planning files advanced to a new package before the prior package was durably closed.
+9. Classify `DIRTY_UNKNOWN` if the signals conflict or do not support a confident label.
+10. If the result is not `CLEAN`, stop and repair before using the manual advancement checklist.
 
 FORMAT RULE:
 

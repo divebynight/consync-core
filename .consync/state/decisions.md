@@ -42,3 +42,9 @@
 - Manual advancement uses repo files in this order: confirm the current package is closed in `handoff.md`, confirm repo state is reconciled to `CLEAN`, confirm the current cursor and gates in `package_plan.md`, then prepare the next `next-action.md` only if all gates pass.
 - The operator must pause instead of advancing whenever `handoff.md` is not `PASS`, required human verification is incomplete, repo state is not `CLEAN`, a declared stop gate is reached, no eligible next package is recorded, or a repair package is active.
 - During manual advancement, archive the just-executed instruction under `.consync/state/history/`, update `package_plan.md` to reflect the result and next cursor state, then replace `next-action.md` with the next eligible package only after those closeout steps are complete.
+- Resume-state determination reads these signals first: `handoff.md`, `package_plan.md`, `next-action.md`, relevant preserved instructions under `.consync/state/history/`, and current repo status.
+- Classify state as `CLEAN` only when the latest package is durably represented, `handoff.md` is coherent with `package_plan.md`, the repo is reconciled, and `next-action.md` has not advanced past unresolved prior work.
+- Classify state as `DIRTY_CLOSEOUT_PENDING` when the current package appears to have run or changed files but closeout artifacts, history preservation, or repo reconciliation are incomplete.
+- Classify state as `DIRTY_NEXT_PACKAGE_STARTED` when `next-action.md` or `package_plan.md` already points at a new package while signals from `handoff.md`, repo status, or preserved history show the previous package is not yet durably closed.
+- Classify state as `DIRTY_UNKNOWN` when the available files and repo status conflict, are missing, or do not support a confident classification.
+- If classification is anything other than `CLEAN`, stop and repair the baseline before using the manual advancement procedure.
