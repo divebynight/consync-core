@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package rendered the already-exposed artifact count in the existing Session panel.
+The last completed package rendered the latest bookmark note in the existing Session panel using existing session state.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -25,9 +25,10 @@ CURRENT REALITY:
 - The repair rules are now backed by small worked examples so return decisions can be applied without relying on chat history.
 - Session state now includes one more real value alongside the latest artifact file: artifact count derived from `sandbox/current`.
 - The Session panel now visibly renders that artifact count alongside the existing real session fields.
+- The Session panel now also shows the latest bookmark note already present in renderer-readable session state.
 
 ACTIVE FOCUS:
-Carry one more narrow UI slice by rendering an existing session value without changing the backend or preload path.
+Carry one more narrow UI slice by rendering an existing bookmark detail without changing the backend or preload path.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should render the latest bookmark note in the Session panel using existing session state.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should render the latest bookmark time in the Session panel using existing session state.

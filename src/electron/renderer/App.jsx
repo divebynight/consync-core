@@ -86,6 +86,10 @@ export function App() {
     }
   }
 
+  const latestBookmarkNote = sessionState && sessionState.bookmarks.length > 0
+    ? sessionState.bookmarks[sessionState.bookmarks.length - 1].note
+    : "none";
+
   return (
     <main className="shell">
       <section className="hero">
@@ -145,6 +149,10 @@ export function App() {
             value={sessionState ? `${sessionState.currentPositionSeconds}s` : "loading"}
           />
           <StatusRow label="Bookmarks" value={sessionState ? sessionState.bookmarks.length : "loading"} />
+          <StatusRow
+            label="Latest note"
+            value={sessionState ? latestBookmarkNote : "loading"}
+          />
         </article>
 
         <article className="panel">

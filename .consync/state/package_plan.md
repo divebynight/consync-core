@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-11
+12
 
 NEXT PACKAGE:
 
-`render_latest_bookmark_note_in_session_panel`
+`render_latest_bookmark_time_in_session_panel`
 
 DEFAULT RUN WINDOW:
 
@@ -121,11 +121,18 @@ PLANNED PACKAGES:
    - Notes: now renders the already-exposed artifact count in the existing Session panel without broadening the session model.
 
 11. `render_latest_bookmark_note_in_session_panel`
-   - Status: READY
+   - Status: PASS
    - Depends on: `render_new_session_value_in_session_panel`
    - Stop gate: pause after this package to review whether the Session panel can absorb one more existing session value without layout churn.
    - Human verification: optional
-   - Notes: should render the latest bookmark note from existing session state in the Session panel without changing the backend or preload path.
+   - Notes: now renders the latest bookmark note from existing session state in the Session panel without changing the backend or preload path.
+
+12. `render_latest_bookmark_time_in_session_panel`
+   - Status: READY
+   - Depends on: `render_latest_bookmark_note_in_session_panel`
+   - Stop gate: pause after this package to review whether one more existing bookmark detail still fits the current Session panel.
+   - Human verification: optional
+   - Notes: should render the latest bookmark time from existing session state in the Session panel without changing the backend or preload path.
 
 REPAIR HANDLING:
 

@@ -1,9 +1,9 @@
 TYPE: FEATURE
-PACKAGE: render_latest_bookmark_time_in_session_panel
+PACKAGE: render_latest_bookmark_note_in_session_panel
 
 GOAL:
 
-Render the latest bookmark time in the Session panel so the UI shows one more existing bookmark detail without adding new backend work.
+Render the latest bookmark note in the Session panel so the UI shows one more existing real session value without adding new backend work.
 
 This should stay narrow:
 the value already exists in renderer-readable session state,
@@ -11,10 +11,10 @@ and this package should only surface it clearly in the existing Session panel.
 
 CONTEXT:
 
-- The Session panel now renders artifact count and the latest bookmark note alongside the existing real file-backed value.
-- Bookmark time data is already available in renderer-readable session state.
+- The Session panel now renders the real artifact count alongside the existing real file-backed value.
+- Bookmark data is already available in renderer-readable session state.
 - The bridge and preload path do not need to be broadened for this step.
-- This package should prove the Session panel can absorb one more existing bookmark detail without widening the session model.
+- This package should prove the Session panel can absorb one more existing session value without widening the session model.
 
 REQUIREMENTS:
 
@@ -28,7 +28,7 @@ REQUIREMENTS:
 
 TASK:
 
-1. Read the current renderer/session path and confirm the latest bookmark time is already available.
+1. Read the current renderer/session path and confirm the latest bookmark note is already available.
 2. Render that value in the existing Session panel with minimal UI change.
 3. Keep styling and wording consistent with the current panel structure.
 4. Update only the minimum focused test/assertion surface needed.
@@ -63,7 +63,7 @@ MANUAL VERIFICATION:
 
 PASS CRITERIA:
 
-- the latest bookmark time is rendered in the Session panel
+- the latest bookmark note is rendered in the Session panel
 - `npm run verify` passes
 - the UI change remains narrow
 - no unrelated runtime or UI changes were introduced
@@ -79,7 +79,7 @@ FAIL CRITERIA:
 STATE UPDATES:
 
 - `package_plan.md` -> record the completed display step and current next package status
-- `snapshot.md` -> reflect that the latest bookmark time should be the next visible session value if the package passes
+- `snapshot.md` -> reflect that the latest bookmark note should be the next visible session value if the package passes
 - `next-action.md` -> point to the next narrow feature package after this display step
 - `handoff.md` -> record the completed result of this FEATURE package
 
