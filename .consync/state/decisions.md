@@ -70,3 +70,9 @@
 - If automated verification passes and `HUMAN_GATE: NONE`, the package may resolve to `VERIFIED_ADVANCEABLE`.
 - Only `VERIFIED_ADVANCEABLE` may proceed automatically; all other advancement classifications pause the sequence.
 - `handoff.md` must record automated verification outcome, manual verification outcome, final advancement classification, and any notable discrepancies within its closeout summary or verification notes.
+- A repair package is required when a package ends `FAIL`, when advancement is blocked by `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, or `DIRTY_UNKNOWN`, or when contradictions in verification or closeout cannot be resolved inside the current planned package.
+- On repair entry, record the repair package in `package_plan.md`, mark sequence status as `PAUSED_REPAIR`, and keep the blocked planned package explicitly identified rather than replacing it silently.
+- The blocked planned package is the first planned package that cannot advance because of failure, unresolved dirty state, ambiguous verification, or an explicit repair note in `package_plan.md`.
+- A repair package may close `PASS` only when its own automated verification passes, its required human gate is satisfied, repo state returns to `CLEAN`, and the blocked planned package remains clearly identified.
+- Return from repair only after the repair package closes `PASS`, resume-state classification is `CLEAN`, and no new stop gate or contradiction blocks the previously identified planned package.
+- Stop instead of returning to planned work when repo state is not `CLEAN`, the blocked package cannot be identified confidently, repair verification is incomplete, or repair reveals a new ambiguity that requires manual review.

@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-7
+8
 
 NEXT PACKAGE:
 
-`define_repair_entry_and_return_checklist`
+`validate_repair_entry_and_return_checklist_against_examples`
 
 DEFAULT RUN WINDOW:
 
@@ -93,11 +93,18 @@ PLANNED PACKAGES:
    - Notes: steering refinement that separates manual verification instructions from blocking human-gate requirements and temporarily superseded the prepared repair-entry package.
 
 7. `define_repair_entry_and_return_checklist`
-   - Status: READY
+   - Status: PASS
    - Depends on: `refine_verification_contract_with_optional_vs_required_human_gates`
    - Stop gate: pause after this package to review repair entry and return flow before more sequencing work.
    - Human verification: required
-   - Notes: was prepared before the verification-gate refinement, then temporarily superseded; remains the next intended package after this steering correction.
+   - Notes: was prepared before the verification-gate refinement, then temporarily superseded; now defines the minimal repair-entry and return checklist.
+
+8. `validate_repair_entry_and_return_checklist_against_examples`
+   - Status: READY
+   - Depends on: `define_repair_entry_and_return_checklist`
+   - Stop gate: pause after this package to review the repair checklist against concrete examples.
+   - Human verification: optional
+   - Notes: should validate the repair-entry checklist against a few explicit blocked-package and return scenarios.
 
 REPAIR HANDLING:
 
@@ -143,6 +150,17 @@ RESUME-STATE VALIDATION EXAMPLES:
 - `DIRTY_CLOSEOUT_PENDING`: repo status shows state-file work for the latest package but `handoff.md`, history preservation, or reconciliation is incomplete.
 - `DIRTY_NEXT_PACKAGE_STARTED`: planning files already point at a new package while the previous package is not durably closed in `handoff.md` and history.
 - `DIRTY_UNKNOWN`: the active files and repo status conflict so no confident label can be assigned without manual inspection.
+
+REPAIR ENTRY AND RETURN CHECKLIST:
+
+1. Confirm a repair package is required because the blocked package ended `FAIL`, resume state is not `CLEAN`, or verification/closeout contradictions cannot be resolved inside the blocked package.
+2. Record the repair package in `package_plan.md` and keep the blocked planned package explicitly named.
+3. Set sequence status to `PAUSED_REPAIR` while repair is active.
+4. Run the repair package as its own single-package loop with its own handoff and archived instruction.
+5. Close the repair package `PASS` only after its verification passes and repo state returns to `CLEAN`.
+6. Re-run resume-state determination before returning to planned work.
+7. Return to the previously blocked planned package only if it remains clearly identified and no new stop gate or ambiguity blocks it.
+8. Stop and inspect manually instead of returning if repair leaves repo state dirty, creates a new contradiction, or makes the blocked package unclear.
 
 FORMAT RULE:
 

@@ -1,26 +1,26 @@
 TYPE: PROCESS
-PACKAGE: define_repair_entry_and_return_checklist
+PACKAGE: validate_repair_entry_and_return_checklist_against_examples
 
 GOAL:
 
-Define the smallest operator checklist for entering a repair package and returning to the blocked planned package safely.
+Validate the repair-entry and return checklist against a few concrete blocked-package examples so the return rules stay practical.
 
-This package should turn the current repair rules into a concise operator procedure for when repair interrupts the planned sequence and how the sequence resumes afterward.
+This package should turn the new repair checklist into a small set of worked examples showing when repair starts, when return is allowed, and when the operator must stop instead.
 
 CONTEXT:
 
-- `.consync/state/decisions.md` now defines repair interruption at a rule level, validated resume-state examples, a minimal verification contract, and explicit human-gate modes.
-- `.consync/state/package_plan.md` now records that the repair-entry package was prepared, then temporarily superseded by the verification-gate refinement.
-- The remaining gap is a small operator checklist for entering repair and returning to the blocked planned package without ambiguity.
-- The checklist must stay grounded in repo files and repo status, not chat memory.
+- `.consync/state/decisions.md` now defines repair entry and return rules at a checklist level.
+- `.consync/state/package_plan.md` now records the repair-entry checklist alongside manual advancement, resume-state determination, and verification rules.
+- The remaining gap is validating the repair checklist against explicit blocked-package scenarios.
+- The examples must stay grounded in repo files and repo status, not chat memory.
 
 REQUIREMENTS:
 
 1. Keep this as a PROCESS package only.
 2. Do not change runtime/product code.
 3. Preserve the single-package loop as the core execution unit.
-4. Define repair entry and return in terms of repo files and repo status, not chat memory.
-5. Make the operator steps and go/no-go conditions explicit.
+4. Define each example in terms of repo files and repo status, not chat memory.
+5. Make the operator reasoning from signals to repair/return decision explicit.
 6. Do not overbuild this into a general policy framework.
 
 TASK:
@@ -33,15 +33,14 @@ TASK:
    - `.consync/state/handoff.md`
    - `.consync/state/history/README.md`
 
-2. Define the smallest repair-entry and return checklist.
+2. Add a small validation/example section for the repair-entry and return checklist.
    At minimum, specify:
-   - when a repair package is required
-   - how the operator records repair entry in `package_plan.md`
-   - how the blocked planned package is identified
-   - what must be true before repair can close `PASS`
-   - how the operator confirms the repo has returned to `CLEAN`
-   - how and when the sequence returns to the blocked planned package
-   - when the operator must stop instead of returning to planned work
+   - one concrete example where repair is required
+   - one concrete example where return to the blocked package is allowed
+   - one concrete example where the operator must stop instead of returning
+   - which signals identify the blocked planned package
+   - which signals show repair closed cleanly
+   - how the result feeds the manual advancement procedure
 
 3. Keep the model grounded in the current artifacts:
    - `package_plan.md` as orchestration truth
@@ -73,39 +72,39 @@ HUMAN VERIFICATION:
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
 2. Open `.consync/state/decisions.md` and confirm the repair checklist still treats one package as the atomic execution unit.
-3. Confirm the updated docs define a compact repair-entry and return checklist.
-4. Confirm the checklist uses repo files and repo status rather than conversation memory.
-5. Confirm the checklist makes it clear when repair may return to the blocked planned package and when the operator must stop.
-6. Confirm the checklist remains a small operator aid rather than automation design or workflow-engine overbuild.
+3. Confirm the updated docs define a small set of concrete examples for repair entry, successful return, and stop-before-return.
+4. Confirm each example uses repo files and repo status rather than conversation memory.
+5. Confirm the examples make it easier to tell when repair may return to the blocked planned package and when the operator must stop.
+6. Confirm the example set remains a small operator aid rather than automation design or workflow-engine overbuild.
 7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm only `.consync/state/` process docs are changed.
-8. Failure case: if the repair checklist still depends on conversation memory to decide where to return, the package is incomplete.
-9. Failure case: if the checklist allows return to planned work before the repo is back to `CLEAN`, the package is incomplete.
+8. Failure case: if the examples still depend on conversation memory to decide where to return, the package is incomplete.
+9. Failure case: if the examples allow return to planned work before the repo is back to `CLEAN`, the package is incomplete.
 
 PASS CRITERIA:
 
 - `npm run verify` passes.
-- active docs define a minimal repair-entry and return checklist clearly enough to apply it from docs alone.
-- the checklist fits the existing manual advancement, resume-state, verification, and human-gate rules without widening scope.
+- active docs validate the repair-entry and return checklist clearly enough to apply it from docs alone.
+- the examples fit the existing manual advancement, resume-state, verification, and human-gate rules without widening scope.
 - no runtime/product code changed.
 
 FAIL CRITERIA:
 
 - repair entry and return remain ambiguous or informal
 - return rules become more ambiguous
-- the checklist introduces unnecessary complexity
+- the example set introduces unnecessary complexity
 - the paused next action becomes unclear or lost
 - unrelated files change
 
 STATE UPDATES:
 
-- `decisions.md` -> refine the repair entry and return rules
-- `package_plan.md` -> record this steering package and keep the repair-entry package legible as the next intended step after refinement
-- `snapshot.md` -> reflect that repair entry and return is standardized and note what is prepared next
-- `next-action.md` -> after completion, point to the next narrow step after repair entry and return
+- `decisions.md` -> add repair-entry validation examples
+- `package_plan.md` -> record the completed repair-entry checklist and the next planned validation step
+- `snapshot.md` -> reflect that repair entry/return is defined and that validation examples are prepared next
+- `next-action.md` -> after completion, point to the next narrow step after repair validation
 - `handoff.md` -> record the completed result of this PROCESS package
 
 NOTES:
 
 - Keep this refinement small.
-- This package should now execute the paused repair-entry work directly.
-- Do not silently erase the previously prepared next step; account for it explicitly in the state docs.
+- Prefer boring worked examples over a generalized orchestration framework.
+- The goal is to make repair handling reliable without widening scope.
