@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-9
+10
 
 NEXT PACKAGE:
 
-`expose_one_more_real_session_facing_value`
+`render_new_session_value_in_session_panel`
 
 DEFAULT RUN WINDOW:
 
@@ -107,11 +107,18 @@ PLANNED PACKAGES:
    - Notes: worked examples now validate when repair starts, when return is allowed, and when the operator must stop instead.
 
 9. `expose_one_more_real_session_facing_value`
-   - Status: READY
+   - Status: PASS
    - Depends on: `validate_repair_entry_and_return_checklist_against_examples`
    - Stop gate: pause after this package to review the first real feature slice carried by the process.
    - Human verification: optional
-   - Notes: first narrow FEATURE package after the process foundation; should expose exactly one additional real session-facing value.
+   - Notes: first narrow FEATURE package after the process foundation; now exposes artifact count from `sandbox/current` in renderer-readable session state.
+
+10. `render_new_session_value_in_session_panel`
+   - Status: READY
+   - Depends on: `expose_one_more_real_session_facing_value`
+   - Stop gate: pause after this package to review the visible Session panel update.
+   - Human verification: optional
+   - Notes: should render the newly exposed artifact count in the existing Session panel without broadening the session model.
 
 REPAIR HANDLING:
 

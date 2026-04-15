@@ -1,6 +1,8 @@
 const assert = require("node:assert");
 const {
   createBookmark,
+  getSessionArtifactCount,
+  getLatestSessionFileName,
   getSessionState,
   resetSessionState,
 } = require("../core/session");
@@ -9,13 +11,17 @@ function main() {
   resetSessionState();
 
   assert.deepStrictEqual(getSessionState(), {
-    currentFile: "placeholder-audio-file.mp3",
+    artifactCount: getSessionArtifactCount(),
+    currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [],
   });
 
   const firstState = createBookmark("First note");
   const secondState = createBookmark("Second note");
+
+  assert.strictEqual(firstState.artifactCount, getSessionArtifactCount());
+  assert.strictEqual(secondState.artifactCount, getSessionArtifactCount());
 
   assert.deepStrictEqual(firstState.bookmarks, [
     {

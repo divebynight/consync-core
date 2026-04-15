@@ -9,6 +9,7 @@ const {
 } = require("../core/desktop-shell");
 const {
   createBookmark,
+  getSessionArtifactCount,
   getLatestSessionFileName,
   getSessionState,
   resetSessionState,
@@ -99,8 +100,10 @@ function testIpcRegistration() {
   assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
   assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
   assert.strictEqual(shellInfo.layer, "desktop-scaffold");
+  assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
   assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
   assert.strictEqual(sessionState.currentPositionSeconds, 84);
+  assert.strictEqual(updatedSessionState.artifactCount, getSessionArtifactCount());
   assert.deepStrictEqual(updatedSessionState.bookmarks, [
     {
       id: "bookmark-1",
@@ -121,11 +124,13 @@ function testSessionCoreSurface() {
   const updatedSessionState = createBookmark("First bookmark");
 
   assert.deepStrictEqual(sessionState, {
+    artifactCount: getSessionArtifactCount(),
     currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [],
   });
   assert.deepStrictEqual(updatedSessionState, {
+    artifactCount: getSessionArtifactCount(),
     currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [
@@ -158,6 +163,7 @@ async function testPreloadBridge() {
 
     if (channel === IPC_CHANNELS.getSessionState) {
       return Promise.resolve({
+        artifactCount: getSessionArtifactCount(),
         bookmarks: [],
         currentFile: getLatestSessionFileName(),
         currentPositionSeconds: 84,
@@ -196,6 +202,7 @@ async function testPreloadBridge() {
   });
   assert.deepStrictEqual(shellInfo, { bridge: true });
   assert.deepStrictEqual(sessionState, {
+    artifactCount: getSessionArtifactCount(),
     bookmarks: [],
     currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,

@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package validated the repair-entry and return checklist with concrete examples for repair entry, successful return, and stop-before-return.
+The last completed package exposed one additional real session-facing value by adding artifact count from `sandbox/current` to renderer-readable session state.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -23,9 +23,10 @@ CURRENT REALITY:
 - Verification now also distinguishes manual verification instructions from the blocking human-gate mode that controls whether advancement must wait.
 - Repair handling is now documented as an explicit operator checklist that preserves the blocked package, requires a `CLEAN` return, and stops on new ambiguity.
 - The repair rules are now backed by small worked examples so return decisions can be applied without relying on chat history.
+- Session state now includes one more real value alongside the latest artifact file: artifact count derived from `sandbox/current`.
 
 ACTIVE FOCUS:
-Use the now-stabilized process to carry the first narrow real feature slice through the existing desktop bridge.
+Render the newly exposed artifact count in the existing Session panel with the smallest possible UI change.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should expose one more real session-facing value through the existing bridge path.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should render the newly exposed artifact count in the Session panel.

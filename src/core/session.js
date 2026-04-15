@@ -1,16 +1,20 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-function getLatestSessionFileName() {
+function getSessionArtifactFiles() {
   const sessionDir = path.join(process.cwd(), "sandbox", "current");
 
   if (!fs.existsSync(sessionDir)) {
-    return "no-session-artifacts";
+    return [];
   }
 
-  const sessionFiles = fs.readdirSync(sessionDir)
+  return fs.readdirSync(sessionDir)
     .filter(entry => entry.endsWith(".json"))
     .sort();
+}
+
+function getLatestSessionFileName() {
+  const sessionFiles = getSessionArtifactFiles();
 
   if (sessionFiles.length === 0) {
     return "no-session-artifacts";
@@ -19,15 +23,21 @@ function getLatestSessionFileName() {
   return sessionFiles[sessionFiles.length - 1];
 }
 
+function getSessionArtifactCount() {
+  return getSessionArtifactFiles().length;
+}
+
 function syncSessionState() {
   sessionState = {
     ...sessionState,
+    artifactCount: getSessionArtifactCount(),
     currentFile: getLatestSessionFileName(),
   };
 }
 
 function createInitialSessionState() {
   return {
+    artifactCount: getSessionArtifactCount(),
     currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [],
@@ -38,6 +48,7 @@ let sessionState = createInitialSessionState();
 
 function cloneSessionState() {
   return {
+    artifactCount: sessionState.artifactCount,
     currentFile: sessionState.currentFile,
     currentPositionSeconds: sessionState.currentPositionSeconds,
     bookmarks: sessionState.bookmarks.map(bookmark => ({ ...bookmark })),
@@ -73,6 +84,7 @@ function resetSessionState() {
 module.exports = {
   createBookmark,
   createInitialSessionState,
+  getSessionArtifactCount,
   getLatestSessionFileName,
   getSessionState,
   resetSessionState,
