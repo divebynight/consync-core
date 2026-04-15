@@ -133,6 +133,10 @@ export function App() {
         <article className="panel">
           <h2>Session</h2>
           <StatusRow
+            label="Artifacts"
+            value={sessionState ? sessionState.artifactCount : "loading"}
+          />
+          <StatusRow
             label="Current file"
             value={sessionState ? sessionState.currentFile : "loading"}
           />

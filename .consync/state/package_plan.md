@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-10
+11
 
 NEXT PACKAGE:
 
-`render_new_session_value_in_session_panel`
+`render_latest_bookmark_note_in_session_panel`
 
 DEFAULT RUN WINDOW:
 
@@ -114,11 +114,18 @@ PLANNED PACKAGES:
    - Notes: first narrow FEATURE package after the process foundation; now exposes artifact count from `sandbox/current` in renderer-readable session state.
 
 10. `render_new_session_value_in_session_panel`
-   - Status: READY
+   - Status: PASS
    - Depends on: `expose_one_more_real_session_facing_value`
    - Stop gate: pause after this package to review the visible Session panel update.
    - Human verification: optional
-   - Notes: should render the newly exposed artifact count in the existing Session panel without broadening the session model.
+   - Notes: now renders the already-exposed artifact count in the existing Session panel without broadening the session model.
+
+11. `render_latest_bookmark_note_in_session_panel`
+   - Status: READY
+   - Depends on: `render_new_session_value_in_session_panel`
+   - Stop gate: pause after this package to review whether the Session panel can absorb one more existing session value without layout churn.
+   - Human verification: optional
+   - Notes: should render the latest bookmark note from existing session state in the Session panel without changing the backend or preload path.
 
 REPAIR HANDLING:
 
