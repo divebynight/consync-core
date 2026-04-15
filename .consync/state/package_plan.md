@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-2
+3
 
 NEXT PACKAGE:
 
-`define_manual_sequence_advancement_procedure`
+`define_resume_state_determination_checklist`
 
 DEFAULT RUN WINDOW:
 
@@ -58,11 +58,18 @@ PLANNED PACKAGES:
    - Notes: package plan format is now defined in this file.
 
 2. `define_manual_sequence_advancement_procedure`
-   - Status: READY
+   - Status: PASS
    - Depends on: `define_minimal_package_plan_format`
-   - Stop gate: pause after this package to review the manual advancement checklist.
+   - Stop gate: none
+   - Human verification: complete before cursor advances
+   - Notes: manual go/no-go advancement procedure is now captured in the active process docs.
+
+3. `define_resume_state_determination_checklist`
+   - Status: READY
+   - Depends on: `define_manual_sequence_advancement_procedure`
+   - Stop gate: pause after this package to review the resume-state checklist against real interrupted states.
    - Human verification: required
-   - Notes: should define how the operator selects, runs, and advances the next package from repo files alone.
+   - Notes: should define a small operator checklist for classifying `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, and `DIRTY_UNKNOWN` from repo files alone.
 
 REPAIR HANDLING:
 
@@ -77,6 +84,17 @@ FAIL UPDATE RULE:
 PASS UPDATE RULE:
 
 - If a planned package closes `PASS`, mark it `PASS`, move the cursor to the next eligible package, and update `NEXT PACKAGE` only if all advance gates are satisfied.
+
+MANUAL ADVANCEMENT CHECKLIST:
+
+1. Read `handoff.md` and confirm the current package closed `PASS`.
+2. Confirm required human verification is complete.
+3. Confirm repo state is reconciled to `CLEAN`.
+4. Read `package_plan.md` and confirm the current cursor, dependencies, and stop gates for the next planned package.
+5. If any gate fails, pause and record the blocker here instead of advancing.
+6. Archive the executed `next-action.md` instruction under `.consync/state/history/`.
+7. Update this file for the completed package result, next cursor position, and next package pointer.
+8. Replace `next-action.md` only after the previous steps are complete.
 
 FORMAT RULE:
 
