@@ -1,148 +1,82 @@
 TYPE: FEATURE
-
-PACKAGE: expose_one_session_facing_value_in_renderer
+PACKAGE: expose_one_more_session_facing_value_in_renderer
 
 GOAL:
-Expose one small session-facing value through the existing backend -> preload -> renderer bridge and display it clearly in the UI.
+
+Expose one additional real session-facing value through the existing bridge and render it clearly in the Electron UI.
+
+This should continue moving the Session panel away from static/mock values toward real session state without introducing full session management complexity.
 
 CONTEXT:
-The system now proves:
 
-* preload -> renderer bridge works
-* backend/system -> preload -> renderer works
-* simple Consync summary data is visible in the UI
-
-This next step should stay narrow while moving one layer closer to session-facing interaction.
+- Bridge, backend summary, and Consync summary are working end-to-end.
+- Session panel now shows one real value for the current session file.
+- Position and bookmark timing are still tied to static/mock session data.
 
 REQUIREMENTS:
 
-1. Keep this package narrow and inspectable.
-2. Reuse the existing preload bridge pattern.
-3. Expose only ONE small session-facing value.
-4. Render it clearly in the UI.
-5. Do not introduce full session management or scanning systems.
-6. Update state files at the end.
+1. Keep the change narrow and observable.
+2. Do not introduce full session lifecycle or playback system.
+3. Use the existing bridge + IPC pattern (main -> preload -> renderer).
+4. Expose exactly one additional real session-facing value.
+5. Render it clearly in the Session panel.
+6. Update tests only where needed to support the new value.
+7. Update state files at the end.
 
-VISUAL VERIFY:
-REQUIRED
+ACCEPTABLE NEXT VALUES (pick one):
 
-CHANGES:
+- last session timestamp
+- derived session id
+- latest artifact path
+- another small real value already available from the current artifact set
 
-1. Choose ONE small session-facing value:
-   Examples:
+DO NOT:
 
-   * latest session file name
-   * latest session timestamp
-   * one small list of session file names
-   * latest artifact path
-
-2. In backend/preload:
-
-   * Add a method like `getSessionSummary()`
-   * Source data from existing session directory or simple file read
-   * Return a small object, for example:
-     `{ latestSession: "20260405T154039301Z.json" }`
-
-3. In renderer:
-
-   * Call the new method on startup
-   * Add a simple panel:
-     Title: `Session Summary`
-     Display the value clearly
-
-4. Keep UI minimal and readable.
-   This is still a proof step.
-
-5. Add or extend a minimal test if there is a natural place:
-
-   * assert method exists
-   * assert returned structure
-
-6. Update `.consync/state/snapshot.md`:
-
-   * reflect that session-facing data is now visible
-   * update current reality and active focus
-
-7. Update `.consync/state/next-action.md`:
-
-   * point to the next small feature after this one
-
-8. Update `.consync/state/handoff.md`:
-
-   * record result of this package
-   * include visual verify section
-
-CONSTRAINTS:
-
-* Do not build full session system
-* Do not introduce heavy filesystem logic
-* Do not expand UI beyond a simple panel
-* Prefer clarity over abstraction
-
-SUCCESS CRITERIA:
-
-* Electron app launches
-* Renderer shows:
-
-  * Bridge Status
-  * Backend Summary
-  * Session Summary (new)
-* Session Summary reflects real data
-* No console errors
-* Verification passes
-* Snapshot and next-action updated
-
-VERIFY:
-
-* Run `npm run verify`
-* Run `npm run start:desktop`
-
-VISUAL VERIFY:
-
-* Open the Electron app
-* Confirm Session Summary panel is visible
-* Confirm value is not `loading`
-* Confirm value reflects real session data
-
-HANDOFF FORMAT:
-TYPE: FEATURE
-PACKAGE: expose_one_session_facing_value_in_renderer
-
-STATUS: PASS | FAIL
+- implement playback
+- introduce timers or streaming updates
+- refactor session model broadly
+- touch unrelated UI
 
 CHANGES:
 
-* list files created
-* list files modified
-* summarize session-facing value flow
+1. Extend the existing session call or add one narrow session helper if needed.
+2. Source exactly one additional real value from backend (main process or artifact layer).
+3. Pass through IPC -> preload -> renderer.
+4. Update Session panel to display the value.
+5. Keep UI minimal and consistent with existing panels.
+6. Update focused test to assert value shape.
 
-VERIFY RESULT:
+COMMANDS TO RUN:
 
-* include verify result
-* include desktop launch result
+- node src/test/desktop-scaffold.js
+- npm run verify
+
+OPTIONAL (manual):
+
+- npm run start:desktop
 
 HUMAN VERIFICATION:
 
-* include step-by-step manual checks
-* include success and failure cases where relevant
+1. Start the desktop app.
+2. Confirm Session panel still shows the real current session file.
+3. Confirm the new value appears alongside it.
+4. Confirm the new value is real (not hardcoded or static mock).
+5. Confirm existing bookmark functionality still works.
 
-VERIFICATION NOTES:
+FAILURE CASES:
 
-* state what was actually tested
-* state observed outcomes
-* mention important edge cases validated
+- Session panel shows placeholder-only values for the new field
+- bridge errors reappear
+- new value is static or hardcoded
+- unrelated UI behavior breaks
 
-VISUAL VERIFY:
-REQUIRED
+STATE UPDATES:
 
-CHECK:
-
-* Session Summary panel visible
-* value is real (not loading or placeholder)
-
-RESULT:
-PENDING HUMAN CHECK | CONFIRMED
+- snapshot.md -> reflect the additional real session-facing value now visible
+- next-action.md -> next small session-related step
+- handoff.md -> record results
 
 NOTES:
 
-* brief only
+- The current session file is already real.
+- Prefer simplest real signal over completeness.

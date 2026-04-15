@@ -1,6 +1,34 @@
+const fs = require("node:fs");
+const path = require("node:path");
+
+function getLatestSessionFileName() {
+  const sessionDir = path.join(process.cwd(), "sandbox", "current");
+
+  if (!fs.existsSync(sessionDir)) {
+    return "no-session-artifacts";
+  }
+
+  const sessionFiles = fs.readdirSync(sessionDir)
+    .filter(entry => entry.endsWith(".json"))
+    .sort();
+
+  if (sessionFiles.length === 0) {
+    return "no-session-artifacts";
+  }
+
+  return sessionFiles[sessionFiles.length - 1];
+}
+
+function syncSessionState() {
+  sessionState = {
+    ...sessionState,
+    currentFile: getLatestSessionFileName(),
+  };
+}
+
 function createInitialSessionState() {
   return {
-    currentFile: "placeholder-audio-file.mp3",
+    currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [],
   };
@@ -17,10 +45,13 @@ function cloneSessionState() {
 }
 
 function getSessionState() {
+  syncSessionState();
   return cloneSessionState();
 }
 
 function createBookmark(note) {
+  syncSessionState();
+
   const bookmark = {
     id: `bookmark-${sessionState.bookmarks.length + 1}`,
     timeSeconds: sessionState.currentPositionSeconds,
@@ -42,6 +73,7 @@ function resetSessionState() {
 module.exports = {
   createBookmark,
   createInitialSessionState,
+  getLatestSessionFileName,
   getSessionState,
   resetSessionState,
 };

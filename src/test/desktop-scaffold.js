@@ -9,6 +9,7 @@ const {
 } = require("../core/desktop-shell");
 const {
   createBookmark,
+  getLatestSessionFileName,
   getSessionState,
   resetSessionState,
 } = require("../core/session");
@@ -98,7 +99,7 @@ function testIpcRegistration() {
   assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
   assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
   assert.strictEqual(shellInfo.layer, "desktop-scaffold");
-  assert.strictEqual(sessionState.currentFile, "placeholder-audio-file.mp3");
+  assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
   assert.strictEqual(sessionState.currentPositionSeconds, 84);
   assert.deepStrictEqual(updatedSessionState.bookmarks, [
     {
@@ -120,12 +121,12 @@ function testSessionCoreSurface() {
   const updatedSessionState = createBookmark("First bookmark");
 
   assert.deepStrictEqual(sessionState, {
-    currentFile: "placeholder-audio-file.mp3",
+    currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [],
   });
   assert.deepStrictEqual(updatedSessionState, {
-    currentFile: "placeholder-audio-file.mp3",
+    currentFile: getLatestSessionFileName(),
     currentPositionSeconds: 84,
     bookmarks: [
       {
@@ -156,7 +157,11 @@ async function testPreloadBridge() {
     }
 
     if (channel === IPC_CHANNELS.getSessionState) {
-      return Promise.resolve({ currentFile: "placeholder-audio-file.mp3" });
+      return Promise.resolve({
+        bookmarks: [],
+        currentFile: getLatestSessionFileName(),
+        currentPositionSeconds: 84,
+      });
     }
 
     if (channel === IPC_CHANNELS.createBookmark) {
@@ -190,7 +195,11 @@ async function testPreloadBridge() {
     version: "bridge-v1",
   });
   assert.deepStrictEqual(shellInfo, { bridge: true });
-  assert.deepStrictEqual(sessionState, { currentFile: "placeholder-audio-file.mp3" });
+  assert.deepStrictEqual(sessionState, {
+    bookmarks: [],
+    currentFile: getLatestSessionFileName(),
+    currentPositionSeconds: 84,
+  });
   assert.deepStrictEqual(bookmarkState, {
     bookmarks: [
       {
