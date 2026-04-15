@@ -30,9 +30,12 @@
 - A sequence is an ordered list of package steps recorded in `.consync/state/package_plan.md`; it organizes package order but does not replace per-package execution.
 - A sequence starts only when `.consync/state/package_plan.md` declares the sequence goal, ordered package list, dependency or gate notes, and the current package cursor.
 - Inputs for choosing the next package are `.consync/state/package_plan.md`, the latest `handoff.md`, the current resume-state classification, and any relevant preserved instructions under `.consync/state/history/`.
+- `.consync/state/package_plan.md` is the operator-maintained orchestration truth for an active sequence and must stay minimal, current, and readable without chat context.
 - The next package is eligible only when repo state is `CLEAN`, the latest `handoff.md` closes the previous package as `PASS`, required human verification is complete, no unresolved repair or failure blocker remains, and package-specific gates in `package_plan.md` are satisfied.
 - Default run window is 3 packages maximum before pausing for review, even if all packages pass.
 - A sequence must pause when a package ends `FAIL`, required human verification is incomplete, repo state is not reconciled, a repair package is required, the run window limit is reached, or a declared stop gate in `package_plan.md` is reached.
 - `FAIL` stops advancement immediately; the sequence does not choose another normal package until the failure is closed by an explicit repair or human decision.
 - Required human verification blocks advancement until the requested checks are completed and the repo returns to reconciled `CLEAN` state.
 - Repair packages may interrupt the planned order, but after repair the sequence returns to the first blocked planned package only after the repair package closes `PASS` and the repo is reconciled again.
+- `package_plan.md` must record, at minimum, the sequence goal, sequence status, current cursor, default run window, per-package status, dependency or gate notes, declared pause gates, and any active repair interruption.
+- The operator updates `package_plan.md` during closeout whenever sequence order, cursor position, per-package status, dependency gates, pause gates, or repair state changes.

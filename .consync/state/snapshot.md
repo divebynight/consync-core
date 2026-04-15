@@ -4,10 +4,10 @@ SYSTEM STATE:
 PASS
 
 CURRENT DIRECTION:
-Keep the single-package loop atomic while defining the smallest doc-driven protocol for safe sequential multi-package work.
+Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package defined the minimal sequential multi-package protocol, including sequence start inputs, advance eligibility, pause conditions, repair return rules, and a conservative default run window.
+The last completed package defined the minimal `package_plan.md` format, including required fields, package-level status entries, pause gates, and update rules for `PASS`, `FAIL`, and repair interruption.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -15,11 +15,11 @@ CURRENT REALITY:
 - `.consync/state/history/` is the durable area for executed package instructions and superseded process material.
 - Closeout now requires repo reconciliation and resume-state classification before a new package is prepared.
 - Resume state is classified as `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, or `DIRTY_UNKNOWN`.
-- `.consync/state/package_plan.md` now exists as the long-lived orchestration truth for ordered package sequences.
-- The sequential protocol now defines start, advance, pause, `FAIL`, repair, and the default 3-package run window from repo files alone.
+- `.consync/state/package_plan.md` now defines the minimal durable orchestration format, including cursor, next package, gates, pause conditions, and repair notes.
+- The package plan format now explains how it changes after `PASS`, `FAIL`, and repair without depending on conversation memory.
 
 ACTIVE FOCUS:
-Define the smallest durable `package_plan.md` format so the new sequence protocol has a stable orchestration artifact.
+Define the smallest manual procedure for advancing a sequence from one package to the next using the current repo files.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should formalize the minimal `package_plan.md` structure and update rules.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should define the manual sequence advancement procedure from this package-plan baseline.
