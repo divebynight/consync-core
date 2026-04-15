@@ -56,7 +56,17 @@
 - Automated verification output is interpreted only as pass/fail; any failure blocks advancement.
 - Manual verification must be a short numbered list of explicit, observable checks tied to a command, file, or UI state.
 - Manual verification steps must avoid vague phrasing and must not depend on remembering prior chat context.
+- Manual verification instructions describe how a human may inspect the work; they are separate from whether a blocking human gate is required before advancement.
+- Every package may declare `HUMAN_GATE: REQUIRED`, `HUMAN_GATE: OPTIONAL`, or `HUMAN_GATE: NONE`.
+- `HUMAN_GATE: REQUIRED` means incomplete required human verification resolves to `VERIFIED_AWAITING_HUMAN`.
+- `HUMAN_GATE: OPTIONAL` means manual verification instructions may remain available without blocking a `VERIFIED_ADVANCEABLE` result when other checks pass.
+- `HUMAN_GATE: NONE` means no human gate blocks advancement for that package.
 - Closeout validation is complete only when automated verification passed, required manual checks are completed or explicitly awaiting human confirmation, repo state is reconciled or explicitly acknowledged, and expected results do not contradict observed results.
 - Every package resolves to one advancement classification: `VERIFIED_ADVANCEABLE`, `VERIFIED_AWAITING_HUMAN`, `FAILED_BLOCKED`, or `AMBIGUOUS_REVIEW_REQUIRED`.
+- Automated verification failure always resolves to `FAILED_BLOCKED`.
+- Contradictory or unclear results always resolve to `AMBIGUOUS_REVIEW_REQUIRED`.
+- If automated verification passes and `HUMAN_GATE: REQUIRED` is incomplete, resolve to `VERIFIED_AWAITING_HUMAN`.
+- If automated verification passes and `HUMAN_GATE: OPTIONAL` is incomplete, the package may still resolve to `VERIFIED_ADVANCEABLE`.
+- If automated verification passes and `HUMAN_GATE: NONE`, the package may resolve to `VERIFIED_ADVANCEABLE`.
 - Only `VERIFIED_ADVANCEABLE` may proceed automatically; all other advancement classifications pause the sequence.
 - `handoff.md` must record automated verification outcome, manual verification outcome, final advancement classification, and any notable discrepancies within its closeout summary or verification notes.

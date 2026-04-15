@@ -9,19 +9,19 @@ This package should turn the current repair rules into a concise operator proced
 
 CONTEXT:
 
-- `.consync/state/decisions.md` now defines repair interruption at a rule level, validated resume-state examples, and a minimal verification contract.
-- `.consync/state/package_plan.md` now records manual advancement, resume-state determination, worked state examples, and verification expectations.
+- `.consync/state/decisions.md` now defines repair interruption at a rule level, validated resume-state examples, a minimal verification contract, and explicit human-gate modes.
+- `.consync/state/package_plan.md` now records that the repair-entry package was prepared, then temporarily superseded by the verification-gate refinement.
 - The remaining gap is a small operator checklist for entering repair and returning to the blocked planned package without ambiguity.
 - The checklist must stay grounded in repo files and repo status, not chat memory.
 
 REQUIREMENTS:
 
-1. Preserve the single-package loop as the core execution unit.
-2. Do not implement a runner, scheduler, daemon, or queue.
-3. Do not modify runtime/product code.
+1. Keep this as a PROCESS package only.
+2. Do not change runtime/product code.
+3. Preserve the single-package loop as the core execution unit.
 4. Define repair entry and return in terms of repo files and repo status, not chat memory.
 5. Make the operator steps and go/no-go conditions explicit.
-6. Keep all changes in process/state docs only.
+6. Do not overbuild this into a general policy framework.
 
 TASK:
 
@@ -55,14 +55,19 @@ TASK:
 FILES TO MODIFY:
 
 - `.consync/state/decisions.md`
+- `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
 - `.consync/state/handoff.md`
-- `.consync/state/package_plan.md`
+
+OPTIONAL FILES TO CREATE (only if genuinely useful and minimal):
+
+- `.consync/state/history/plans/process-20260415-refine-verification-contract-with-optional-vs-required-human-gates.md` (if your current closeout/archive pattern expects it during completion)
 
 COMMANDS TO RUN:
 
 - `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION:
 
@@ -72,7 +77,7 @@ HUMAN VERIFICATION:
 4. Confirm the checklist uses repo files and repo status rather than conversation memory.
 5. Confirm the checklist makes it clear when repair may return to the blocked planned package and when the operator must stop.
 6. Confirm the checklist remains a small operator aid rather than automation design or workflow-engine overbuild.
-7. Confirm no runtime/product code changed.
+7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm only `.consync/state/` process docs are changed.
 8. Failure case: if the repair checklist still depends on conversation memory to decide where to return, the package is incomplete.
 9. Failure case: if the checklist allows return to planned work before the repo is back to `CLEAN`, the package is incomplete.
 
@@ -80,26 +85,27 @@ PASS CRITERIA:
 
 - `npm run verify` passes.
 - active docs define a minimal repair-entry and return checklist clearly enough to apply it from docs alone.
-- the checklist fits the existing manual advancement, resume-state, and verification rules without widening scope.
+- the checklist fits the existing manual advancement, resume-state, verification, and human-gate rules without widening scope.
 - no runtime/product code changed.
 
 FAIL CRITERIA:
 
 - repair entry and return remain ambiguous or informal
-- return rules are unclear or bypassable
+- return rules become more ambiguous
 - the checklist introduces unnecessary complexity
+- the paused next action becomes unclear or lost
 - unrelated files change
 
 STATE UPDATES:
 
 - `decisions.md` -> refine the repair entry and return rules
-- `snapshot.md` -> reflect that repair entry and return is now standardized and note the next gap
-- `next-action.md` -> point to the next narrow process step after repair entry/return
+- `package_plan.md` -> record this steering package and keep the repair-entry package legible as the next intended step after refinement
+- `snapshot.md` -> reflect that repair entry and return is standardized and note what is prepared next
+- `next-action.md` -> after completion, point to the next narrow step after repair entry and return
 - `handoff.md` -> record the completed result of this PROCESS package
-- `package_plan.md` -> update the plan cursor and next planned package for consistency
 
 NOTES:
 
-- Keep this small and strict.
-- This is not about adding workflow machinery; it is about making repair handling reliable.
-- Prefer clarity and repeatability over completeness.
+- Keep this refinement small.
+- This package should now execute the paused repair-entry work directly.
+- Do not silently erase the previously prepared next step; account for it explicitly in the state docs.

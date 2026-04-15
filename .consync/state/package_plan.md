@@ -10,7 +10,7 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-6
+7
 
 NEXT PACKAGE:
 
@@ -85,12 +85,19 @@ PLANNED PACKAGES:
    - Human verification: required
    - Notes: standardizes automated verification, manual verification, closeout validation, and advancement classification.
 
-6. `define_repair_entry_and_return_checklist`
-   - Status: READY
+6. `refine_verification_contract_with_optional_vs_required_human_gates`
+   - Status: PASS
    - Depends on: `define_minimal_verification_contract_for_package_execution`
+   - Stop gate: none
+   - Human verification: optional
+   - Notes: steering refinement that separates manual verification instructions from blocking human-gate requirements and temporarily superseded the prepared repair-entry package.
+
+7. `define_repair_entry_and_return_checklist`
+   - Status: READY
+   - Depends on: `refine_verification_contract_with_optional_vs_required_human_gates`
    - Stop gate: pause after this package to review repair entry and return flow before more sequencing work.
    - Human verification: required
-   - Notes: should define the smallest operator checklist for entering a repair package and returning to the blocked planned package.
+   - Notes: was prepared before the verification-gate refinement, then temporarily superseded; remains the next intended package after this steering correction.
 
 REPAIR HANDLING:
 

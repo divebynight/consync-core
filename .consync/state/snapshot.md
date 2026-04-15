@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package defined the minimal verification contract, including automated verification rules, manual verification structure, closeout validation, and advancement classifications.
+The last completed package refined the verification contract so manual verification instructions are distinct from blocking human-gate modes (`REQUIRED`, `OPTIONAL`, `NONE`).
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -20,9 +20,10 @@ CURRENT REALITY:
 - The package plan format now also includes a compact resume-state checklist for determining whether advancement is allowed or repair is required.
 - The resume-state rules are now backed by small worked examples so state labels can be applied without relying on chat history.
 - Verification is now standardized as automated checks, manual checks, closeout validation, and an explicit advancement classification.
+- Verification now also distinguishes manual verification instructions from the blocking human-gate mode that controls whether advancement must wait.
 
 ACTIVE FOCUS:
-Define the smallest repair-entry and return checklist so interruptions can rejoin the planned sequence safely under the new verification contract.
+Define the smallest repair-entry and return checklist so interruptions can rejoin the planned sequence safely under the refined human-gate contract.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should define the repair-entry and return checklist from this verified baseline.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should return to the paused repair-entry and return checklist from this refined verification baseline.
