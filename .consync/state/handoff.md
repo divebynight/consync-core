@@ -1,55 +1,47 @@
-TYPE: FEATURE
-PACKAGE: expose_one_session_facing_value_in_renderer
+TYPE: PROCESS
+PACKAGE: formalize_live_vs_history_state_and_reconcile_closeout
 
-STATUS: PASS
+STATUS
 
-SUMMARY:
+PASS
 
-Replaced the placeholder session file in the Session panel with the latest real artifact filename from `sandbox/current/` while preserving the existing bridge, IPC, and bookmark flow.
+SUMMARY
 
-The change stays narrow: one real file-backed session value now flows through the existing session state path without introducing broader session lifecycle behavior.
+Separated live state from durable history in the active process docs, added a reconcile-before-advance gate, and preserved the executed package instruction in `.consync/state/history/` before advancing `next-action.md`.
 
-FILES CREATED:
+The repo state is now legible after interruption: `handoff.md` states what just finished, `next-action.md` states what is prepared next, and resume classification is documented before any advance.
 
-* None.
+FILES CREATED
 
-FILES MODIFIED:
+- `.consync/state/history/README.md` — defined the minimal archive convention for live state files versus durable executed package history.
+- `.consync/state/history/plans/process-20260415-live-vs-history-state-and-reconcile-closeout.md` — preserved the executed package instruction before replacing the live `next-action.md` slot.
 
-* `src/core/session.js` — replaced the placeholder session file with the latest real `.json` artifact name from `sandbox/current/` and kept bookmark behavior unchanged.
-* `src/test/desktop-scaffold.js` — updated session-focused assertions so the scaffold test now expects the real file-backed session value instead of a placeholder.
-* `.consync/state/snapshot.md` — updated current reality to note that one real session-facing value is now visible.
-* `.consync/state/next-action.md` — pointed to the next small session-facing step after the real file-name proof.
-* `.consync/state/handoff.md` — updated to record the completed result of this FEATURE package.
+FILES MODIFIED
 
-COMMANDS TO RUN:
+- `.consync/state/decisions.md` — added durable rules for live execution state, required history preservation, repo reconciliation, and resume-state classification.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect the reconciled baseline and the next design focus.
+- `.consync/state/next-action.md` — replaced the live execution slot with the next narrow PROCESS package for defining the minimal sequential multi-package protocol.
+- `.consync/state/handoff.md` — recorded the completed result of this PROCESS package in the required closeout format.
 
-* `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`
-* `cd /Users/markhughes/Projects/consync-core && npm run verify`
-* `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
+COMMANDS TO RUN
 
-HUMAN VERIFICATION:
+- `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && git status --short`
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Confirm the Electron window opens without a `Session Error` banner.
-3. Confirm the `Session` panel `Current file` value is a real artifact filename such as `20260405T154039301Z.json`, not `placeholder-audio-file.mp3`.
-4. Confirm the value matches the latest `.json` filename in `sandbox/current`.
-5. Confirm the `Position` value and bookmark flow still behave as before.
-6. Failure case: if `Current file` still shows `placeholder-audio-file.mp3`, the session value is still mocked.
-7. Failure case: if bridge errors reappear or the Session panel returns to `loading`, the existing runtime bridge was regressed.
+HUMAN VERIFICATION
 
-VERIFICATION NOTES:
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
+2. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm only `.consync/state/` files plus `last_changes.txt` are listed.
+3. Open `.consync/state/decisions.md` and confirm it now defines `next-action.md` as a live execution slot, `handoff.md` as the live result contract, and a required archive step before `next-action.md` is replaced.
+4. Open `.consync/state/decisions.md` and confirm it defines `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, and `DIRTY_UNKNOWN`, and says advancement only happens from `CLEAN`.
+5. Open `.consync/state/history/README.md` and `.consync/state/history/plans/process-20260415-live-vs-history-state-and-reconcile-closeout.md` and confirm the just-executed package instruction is preserved outside the live `next-action.md` file.
+6. Open `.consync/state/snapshot.md` and confirm it now explains what just finished, what the current baseline is, and what package is prepared next.
+7. Open `.consync/state/next-action.md` and confirm the next package returns to defining the minimal sequential multi-package protocol from this stable baseline.
+8. Failure case: if `next-action.md` is still the only durable record of the completed package instruction, the package is incomplete.
+9. Failure case: if the decisions allow advancing from any dirty resume state, the package is incomplete.
 
-* Actually tested `node src/test/desktop-scaffold.js` and `npm run verify` after replacing the placeholder session file with a real artifact-backed value.
-* Observed outcome: both verification commands passed and the session state contract now resolves the latest real file name from `sandbox/current`.
-* Validated the edge case where bookmark creation still returns the same timing and bookmark structure while preserving the real current file value.
+VERIFICATION NOTES
 
-VISUAL VERIFY:
-CONFIRMED
-
-* Session panel shows a real artifact filename instead of `placeholder-audio-file.mp3`.
-* Existing bridge-backed panels and bookmark interaction still work.
-
-NOTES:
-
-* The real session-facing value exposed in this package is the latest session artifact filename.
-* The next package should expose one more small real session-facing value without broadening the session model.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify` and `cd /Users/markhughes/Projects/consync-core && git status --short` after the state-only updates.
+- Observed outcome: `npm run verify` passed, and `git status --short` showed only `.consync/state/` doc changes, the new history files, and the pre-existing `last_changes.txt` file.
+- Validated the important edge cases that the executed package instruction now survives `next-action.md` replacement and that dirty resume states are explicitly blocked from automatic advancement.

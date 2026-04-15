@@ -1,82 +1,90 @@
-TYPE: FEATURE
-PACKAGE: expose_one_more_session_facing_value_in_renderer
+TYPE: PROCESS
+PACKAGE: define_minimal_sequential_multi_package_protocol
 
 GOAL:
 
-Expose one additional real session-facing value through the existing bridge and render it clearly in the Electron UI.
+Define the smallest durable protocol for running more than one package in sequence while keeping the single-package loop, live state files, and reconcile gate intact.
 
-This should continue moving the Session panel away from static/mock values toward real session state without introducing full session management complexity.
+This remains a process-only design step. Do not implement automation.
 
 CONTEXT:
 
-- Bridge, backend summary, and Consync summary are working end-to-end.
-- Session panel now shows one real value for the current session file.
-- Position and bookmark timing are still tied to static/mock session data.
+- `.consync/state/decisions.md` now separates live state from durable history.
+- `next-action.md` is a live execution slot and executed package instructions must be archived before replacement.
+- `handoff.md` is the live result contract for the last completed package.
+- Resume state must be reconciled to `CLEAN` before advancing.
+- The next gap is the exact sequence protocol for package 1 -> package 2 -> stop conditions.
 
 REQUIREMENTS:
 
-1. Keep the change narrow and observable.
-2. Do not introduce full session lifecycle or playback system.
-3. Use the existing bridge + IPC pattern (main -> preload -> renderer).
-4. Expose exactly one additional real session-facing value.
-5. Render it clearly in the Session panel.
-6. Update tests only where needed to support the new value.
+1. Keep this as a PROCESS package only.
+2. Do not change Electron, session, preload, IPC, renderer, or core runtime code.
+3. Define the minimal sequential multi-package protocol using the current state files only.
+4. Preserve the single-package loop as the atomic unit.
+5. Make pause and stop rules explicit for normal progress, `FAIL`, and required human verification.
+6. Keep the protocol narrow enough to verify manually.
 7. Update state files at the end.
 
-ACCEPTABLE NEXT VALUES (pick one):
+TASK:
 
-- last session timestamp
-- derived session id
-- latest artifact path
-- another small real value already available from the current artifact set
+1. Read `.consync/state/decisions.md`, `.consync/state/snapshot.md`, `.consync/state/next-action.md`, and `.consync/state/handoff.md`.
+2. Add the smallest durable protocol description needed to explain:
+   - how a sequence starts
+   - what state is written after each package
+   - when the sequence must stop
+   - how the operator decides whether to continue to the next package
+3. Keep the protocol procedural, not automated.
+4. Make sure it composes with the live-slot, history, and reconcile rules.
+5. Update `.consync/state/decisions.md`, `.consync/state/snapshot.md`, `.consync/state/handoff.md`, and `.consync/state/next-action.md` at the end.
 
-DO NOT:
+FILES TO MODIFY:
 
-- implement playback
-- introduce timers or streaming updates
-- refactor session model broadly
-- touch unrelated UI
+- `.consync/state/decisions.md`
+- `.consync/state/snapshot.md`
+- `.consync/state/handoff.md`
+- `.consync/state/next-action.md`
 
-CHANGES:
+OPTIONAL FILES TO CREATE (only if genuinely useful and kept minimal):
 
-1. Extend the existing session call or add one narrow session helper if needed.
-2. Source exactly one additional real value from backend (main process or artifact layer).
-3. Pass through IPC -> preload -> renderer.
-4. Update Session panel to display the value.
-5. Keep UI minimal and consistent with existing panels.
-6. Update focused test to assert value shape.
+- `.consync/state/history/README.md`
 
 COMMANDS TO RUN:
 
-- node src/test/desktop-scaffold.js
-- npm run verify
-
-OPTIONAL (manual):
-
-- npm run start:desktop
+- `cd /Users/markhughes/Projects/consync-core && npm run verify`
 
 HUMAN VERIFICATION:
 
-1. Start the desktop app.
-2. Confirm Session panel still shows the real current session file.
-3. Confirm the new value appears alongside it.
-4. Confirm the new value is real (not hardcoded or static mock).
-5. Confirm existing bookmark functionality still works.
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify`.
+2. Confirm the updated docs define how a multi-package sequence starts and pauses.
+3. Confirm the protocol still requires `CLEAN` before advancing and stops on `FAIL` or required human verification.
+4. Confirm the protocol still treats one package as the atomic execution unit.
+5. Confirm no product/runtime code changed.
+6. Failure case: if the protocol implies uninterrupted automation, the package is incomplete.
+7. Failure case: if the protocol bypasses package-level `handoff.md` or `snapshot.md` updates, the package is incomplete.
 
-FAILURE CASES:
+PASS CRITERIA:
 
-- Session panel shows placeholder-only values for the new field
-- bridge errors reappear
-- new value is static or hardcoded
-- unrelated UI behavior breaks
+- `npm run verify` passes.
+- process/state docs define a compact sequential multi-package protocol on top of the reconciled baseline.
+- the protocol preserves package-level stop conditions and manual gates.
+- no runtime/product code changed.
+
+FAIL CRITERIA:
+
+- the package changes app/runtime behavior
+- the sequential protocol bypasses the single-package loop
+- the current state is still ambiguous about when to continue or stop
+- the next package after this one is unclear
 
 STATE UPDATES:
 
-- snapshot.md -> reflect the additional real session-facing value now visible
-- next-action.md -> next small session-related step
-- handoff.md -> record results
+- `snapshot.md` -> reflect the new sequential protocol and current focus after the package closes
+- `next-action.md` -> point to the next narrow package after the sequential protocol is defined
+- `handoff.md` -> record the completed result of this PROCESS package
+- `decisions.md` -> add the durable minimal sequential multi-package protocol
 
 NOTES:
 
-- The current session file is already real.
-- Prefer simplest real signal over completeness.
+- Keep this procedural and minimal.
+- Prefer a small, explicit operator protocol over a generalized workflow design.
+- Build directly on the new live-vs-history and reconcile rules rather than redefining them.

@@ -4,20 +4,21 @@ SYSTEM STATE:
 PASS
 
 CURRENT DIRECTION:
-Use Electron as a thin UI shell over reusable Consync core logic while keeping each desktop step narrow and verifiable.
+Keep the single-package loop atomic while making interruption, closeout, and resume state legible for future sequential multi-package work.
 
 LAST COMPLETED WORK:
-The last completed package exposed one real session-facing value by replacing the placeholder session file with the latest real artifact filename from `sandbox/current/`.
+The last completed package formalized live-vs-history state rules, added a reconcile-before-advance gate, and preserved the executed package instruction in durable history before `next-action.md` advanced.
 
 CURRENT REALITY:
-- Electron boots.
-- The live bridge repair remains intact and visually confirmed in the Electron window.
-- Active workflow state now lives in `.consync/state/` and background material lives in `.consync/state/history/`.
-- Bridge Status, Backend Summary, Consync Summary, and Session panels populate through the repaired runtime bridge.
-- The Session panel now shows one real file-backed value instead of only placeholder session data.
+- `next-action.md` is now treated as the live execution slot rather than the durable historical record.
+- `handoff.md` is the live result contract for the most recently completed package.
+- `.consync/state/history/` is the durable area for executed package instructions and superseded process material.
+- Closeout now requires repo reconciliation and resume-state classification before a new package is prepared.
+- Resume state is classified as `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, or `DIRTY_UNKNOWN`.
+- The state docs now form a coherent closeout baseline that is ready for a commit of this process package.
 
 ACTIVE FOCUS:
-Keep moving the Session panel from placeholder data toward small real values without broadening the desktop shell prematurely.
+Define the smallest sequential multi-package protocol that builds on the reconciled live-state rules without introducing automation.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should expose one more small real session-facing value in the Electron renderer.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should define the minimal sequential multi-package protocol from this stable baseline.

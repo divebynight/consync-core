@@ -2,7 +2,28 @@
 
 - Electron is currently being used as a UI shell over Consync core.
 - `snapshot.md` is the main re-entry file.
+- `next-action.md` is the live execution slot for the package being prepared or currently being run.
+- `handoff.md` is the live result contract for the most recently completed package.
 - Active state is separated from history/reference.
+- `.consync/state/history/` is the durable archive area for executed package instructions and superseded process artifacts.
+- Before replacing `next-action.md`, preserve the executed package instruction under `.consync/state/history/` so prior execution state is reconstructible without chat memory.
 - SDCs are the primary write interface.
 - Every SDC must declare `TYPE: PROCESS` or `TYPE: FEATURE`.
 - Process and feature packages should usually be committed separately.
+- The single-package loop remains the core execution unit.
+- Every active package must terminate explicitly as `PASS` or `FAIL` before another package begins.
+- An active package cannot be replaced, merged, or reinterpreted mid-run.
+- Verification commands must terminate cleanly; long-running commands are observation-only.
+- Required human verification is a valid stop gate in the flow.
+- Repair packages are first-class and may interrupt the planned flow before returning to it.
+- Multi-package iteration means a sequence of small packages, not larger combined packages.
+- Every package in a sequence must still produce its own `handoff.md` and `snapshot.md` update.
+- `.consync/state/*` remains authoritative over conversation memory.
+- Package closeout must reconcile repo state before advancing to a new package.
+- Resume state must be classified as `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, or `DIRTY_UNKNOWN`.
+- `CLEAN` means the last package is durably represented and the repo is ready for the next package.
+- `DIRTY_CLOSEOUT_PENDING` means work exists but closeout artifacts or repo reconciliation are incomplete; do not advance.
+- `DIRTY_NEXT_PACKAGE_STARTED` means active files already point at new work before the prior package is durably reconciled; stop and repair the baseline first.
+- `DIRTY_UNKNOWN` means the repo cannot be safely interpreted from current state files and git state alone; stop and inspect manually.
+- Do not advance automatically unless the state is reconciled to `CLEAN`.
+- Minimal safe multi-package model: run one package, verify, stop on `FAIL` or required human confirmation, preserve the executed instruction in history, update `handoff.md` and `snapshot.md`, reconcile repo state, then prepare the next `next-action.md`.
