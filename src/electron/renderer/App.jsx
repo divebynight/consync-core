@@ -173,7 +173,7 @@ export function App() {
               ))}
             </ul>
           ) : (
-            <p className="empty-state">No bookmarks yet. Drop one to prove the loop.</p>
+            <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
           )}
         </article>
       </section>

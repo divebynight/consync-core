@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: stabilize_bookmark_write_read_render_loop_verification
+TYPE: FEATURE
+PACKAGE: stabilize_bookmark_panel_empty_state_copy
 
 STATUS
 
@@ -7,22 +7,21 @@ PASS
 
 SUMMARY
 
-Stabilized the full bookmark write/read/render loop with one narrow machine-checkable verification slice that asserts persisted artifact contents, derived session state, derived Session rows, and reload consistency.
+Tightened the Bookmarks panel empty-state copy so it now describes the absence of saved session bookmarks directly instead of referring to proving the loop.
 
-Automated verification outcome: PASS via `cd /Users/markhughes/Projects/consync-core && npm run verify`. Manual verification outcome: optional review checks available and not required to unblock this process package. Final advancement classification: `VERIFIED_ADVANCEABLE`. Notable discrepancies: the new verification slice is intentionally model-based and narrow rather than DOM- or Electron-automation based.
+Automated verification outcome: PASS via `cd /Users/markhughes/Projects/consync-core && npm run verify`. Manual verification outcome: optional review checks available and not required to unblock this feature package. Final advancement classification: `VERIFIED_ADVANCEABLE`. Notable discrepancies: none observed.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-20260415-stabilize-bookmark-write-read-render-loop-verification.md` — preserved the executed process instruction before replacing the live `next-action.md` slot.
+- `.consync/state/history/plans/feature-20260415-stabilize-bookmark-panel-empty-state-copy.md` — preserved the executed feature instruction before replacing the live `next-action.md` slot.
 
 FILES MODIFIED
 
-- `src/test/bookmark-write-read-render-loop.js` — added one focused verification slice that performs a real bookmark write, asserts persisted artifact contents, derives session state and Session rows, and re-asserts the same result after reload.
-- `src/test/verify.js` — extended repo verification with the new bookmark write/read/render loop slice.
-- `.consync/state/package_plan.md` — recorded the completed stabilization package and restored the next package pointer to the pending Bookmarks empty-state copy check.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the bookmark loop is now both working and machine-verified.
-- `.consync/state/next-action.md` — advanced the live execution slot back to the next narrow FEATURE package after stabilization.
-- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this PROCESS package using the current verification contract.
+- `src/electron/renderer/App.jsx` — tightened the Bookmarks empty-state sentence so it refers directly to saved bookmarks in the current session.
+- `.consync/state/package_plan.md` — recorded the completed empty-state copy package and advanced the next package pointer to a narrow Drop Bookmark panel copy pass.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the Bookmarks empty state now better matches the real bookmark loop.
+- `.consync/state/next-action.md` — advanced the live execution slot to the next FEATURE package for tightening the Drop Bookmark panel wording if needed.
+- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this FEATURE package using the current verification contract.
 
 COMMANDS TO RUN
 
@@ -32,16 +31,15 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Confirm exactly one new or extended narrow verification slice exists for the bookmark loop.
-3. Confirm the verification asserts both persisted artifact contents and derived session state from persisted data.
-4. Confirm reload-from-disk consistency is asserted.
-5. Confirm no unrelated feature work was introduced.
-6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm repo changes are limited to the expected verification and state files.
-7. Failure case: if verification depends on manual UI inspection, the package is incomplete.
-8. Failure case: if persisted artifact state, derived session state, or reload consistency is not asserted, the package is incomplete.
+2. Review the changed files and confirm the package only tightens the Bookmarks empty-state wording.
+3. Confirm no new session values, backend logic, or preload changes were introduced.
+4. Confirm no unrelated layout or styling refactor was introduced.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer and state files.
+6. Failure case: if the package adds new data or new display rows, the change is too broad.
+7. Failure case: if the package changes layout/styling substantially instead of only tightening copy, the package is incomplete.
 
 VERIFICATION NOTES
 
-- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/bookmark-write-read-render-loop.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, and `cd /Users/markhughes/Projects/consync-core && git status --short` after adding the bookmark loop verification slice and updating state docs.
-- Observed outcome: the focused bookmark loop verification passed, `npm run verify` passed with the new slice included, and the observed repo changes matched the expected verification and state-doc updates.
-- Validated the important edge cases that a real bookmark write updates the persisted artifact, derived session state reflects bookmark count/latest note/latest time, derived Session rows match the persisted data, and reset-plus-reload reproduces the same derived result.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify` and `cd /Users/markhughes/Projects/consync-core && git status --short` after tightening the Bookmarks empty-state copy and updating state docs.
+- Observed outcome: `npm run verify` passed, and the observed repo changes matched the expected renderer and state-doc updates for this package.
+- Validated the important edge case that the empty state now reads accurately when no bookmarks are saved for the current session, while introducing no new data or behavior.

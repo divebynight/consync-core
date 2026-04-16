@@ -1,20 +1,21 @@
 TYPE: FEATURE
-PACKAGE: stabilize_drop_bookmark_panel_copy
+PACKAGE: stabilize_bookmark_panel_empty_state_copy
 
 GOAL:
 
-Tighten the Drop Bookmark panel copy so it still reads clearly now that the bookmark write-and-read loop is real.
+Tighten the Bookmarks panel empty-state copy so it still reads clearly now that the bookmark write-and-read loop is real.
 
 This should stay narrow:
 do not add new data,
 do not change the backend or preload path,
-and only adjust wording that now reads awkwardly or underspecified in the Drop Bookmark panel.
+and only adjust wording that now reads awkwardly or underspecified in the empty Bookmarks state.
 
 CONTEXT:
 
 - The desktop bookmark flow now performs a real write and then re-reads persisted session state.
 - The bookmark loop is machine-verified at the model level.
-- The Drop Bookmark panel still uses generic wording that was introduced before the write loop became real.
+- The Bookmarks panel still uses the empty-state line `No bookmarks yet. Drop one to prove the loop.`
+- That wording may now read slightly off relative to the more concrete state of the desktop shell.
 - This package should remain display-only and should not broaden the session model.
 
 REQUIREMENTS:
@@ -22,14 +23,14 @@ REQUIREMENTS:
 1. Keep the change narrow and observable.
 2. Do not add new backend or preload architecture.
 3. Do not introduce new session values.
-4. Adjust only Drop Bookmark panel wording if it improves accuracy or readability.
+4. Adjust only the empty-state wording if it improves accuracy or readability.
 5. Do not refactor unrelated layout or styling.
 6. Update focused tests only where needed.
 7. Update state files at the end.
 
 TASK:
 
-1. Read the current Drop Bookmark panel copy in the renderer.
+1. Read the current Bookmarks panel empty-state copy in the renderer.
 2. Decide whether a wording-only adjustment is needed to better match the current real bookmark loop.
 3. Make the smallest wording adjustment needed, if any.
 4. Update only the minimum focused test/assertion surface needed.
@@ -55,7 +56,7 @@ OPTIONAL
 MANUAL VERIFICATION:
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Review the changed files and confirm the package only tightens the Drop Bookmark panel wording if needed.
+2. Review the changed files and confirm the package only tightens the Bookmarks empty-state wording if needed.
 3. Confirm no new session values, backend logic, or preload changes were introduced.
 4. Confirm no unrelated layout or styling refactor was introduced.
 5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer/test/state files.
@@ -64,7 +65,7 @@ MANUAL VERIFICATION:
 
 PASS CRITERIA:
 
-- Drop Bookmark panel wording is now accurate and readable for the current UI
+- Bookmarks empty-state wording is now accurate and readable for the current UI
 - `npm run verify` passes
 - the UI change remains narrow
 - no unrelated runtime or UI changes were introduced

@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package added a narrow machine-checkable verification slice for the full bookmark write/read/render loop.
+The last completed package tightened the Bookmarks empty-state copy so it now describes the real saved-session behavior more directly.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -32,9 +32,10 @@ CURRENT REALITY:
 - The desktop bookmark action now persists bookmarks into the current real session artifact instead of stopping in in-memory session state.
 - The running renderer bookmark flow now re-reads real session state after the write, keeping displayed state anchored to the persisted artifact path.
 - The bookmark loop is now also machine-verified end-to-end at the model level: persisted artifact contents, derived session state, derived Session rows, and reload consistency.
+- The Bookmarks empty state now describes the absence of saved bookmarks directly instead of referring to proving the loop.
 
 ACTIVE FOCUS:
 Carry the next narrow UI wording slice now that the bookmark write-and-read loop is both real and machine-verified.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should tighten the Bookmarks panel empty-state copy if it still reads awkwardly after the recent real bookmark loop work.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should tighten the Drop Bookmark panel copy if it still reads awkwardly after the recent real bookmark loop work.

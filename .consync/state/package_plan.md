@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-18
+19
 
 NEXT PACKAGE:
 
-`stabilize_bookmark_panel_empty_state_copy`
+`stabilize_drop_bookmark_panel_copy`
 
 DEFAULT RUN WINDOW:
 
@@ -170,11 +170,18 @@ PLANNED PACKAGES:
    - Notes: added one narrow deterministic verification slice that asserts persisted artifact contents, derived session state, derived renderer rows, and reload consistency.
 
 18. `stabilize_bookmark_panel_empty_state_copy`
-   - Status: READY
+   - Status: PASS
    - Depends on: `stabilize_bookmark_write_read_render_loop_verification`
    - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the write and read loop is real.
    - Human verification: optional
-   - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.
+   - Notes: tightened the Bookmarks empty-state wording so it refers directly to saved session bookmarks instead of proving the loop.
+
+19. `stabilize_drop_bookmark_panel_copy`
+   - Status: READY
+   - Depends on: `stabilize_bookmark_panel_empty_state_copy`
+   - Stop gate: pause after this package to review whether the Drop Bookmark panel wording still matches the now-real bookmark flow.
+   - Human verification: optional
+   - Notes: should tighten Drop Bookmark panel copy only if needed, without changing layout, styling, or data flow.
 
 REPAIR HANDLING:
 
