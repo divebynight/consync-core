@@ -70,6 +70,9 @@ function main() {
   runNodeStep("[verify] Renderer bookmark read-after-write slice", [path.join(repoRoot, "src", "test", "renderer-bookmark-flow.js")]);
   console.log("");
 
+  runNodeStep("[verify] Bookmark write/read/render loop slice", [path.join(repoRoot, "src", "test", "bookmark-write-read-render-loop.js")]);
+  console.log("");
+
   runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"]);
   console.log("");
 

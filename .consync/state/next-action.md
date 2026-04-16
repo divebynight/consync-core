@@ -13,6 +13,7 @@ and only adjust wording that now reads awkwardly or underspecified in the empty 
 CONTEXT:
 
 - The desktop bookmark flow now performs a real write and then re-reads persisted session state.
+- The bookmark loop is machine-verified at the model level.
 - The Bookmarks panel still uses the empty-state line `No bookmarks yet. Drop one to prove the loop.`
 - That wording may now read slightly off relative to the more concrete state of the desktop shell.
 - This package should remain display-only and should not broaden the session model.

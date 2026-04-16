@@ -10,7 +10,7 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-17
+18
 
 NEXT PACKAGE:
 
@@ -162,9 +162,16 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: the running desktop bookmark flow now re-reads session state after the persisted write so renderer state stays anchored to the real read path.
 
-17. `stabilize_bookmark_panel_empty_state_copy`
-   - Status: READY
+17. `stabilize_bookmark_write_read_render_loop_verification`
+   - Status: PASS
    - Depends on: `reflect_persisted_bookmark_in_running_desktop_state`
+   - Stop gate: pause after this package to review whether the full bookmark write/read/render loop now has one stable machine-checkable proof.
+   - Human verification: optional
+   - Notes: added one narrow deterministic verification slice that asserts persisted artifact contents, derived session state, derived renderer rows, and reload consistency.
+
+18. `stabilize_bookmark_panel_empty_state_copy`
+   - Status: READY
+   - Depends on: `stabilize_bookmark_write_read_render_loop_verification`
    - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the write and read loop is real.
    - Human verification: optional
    - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.
