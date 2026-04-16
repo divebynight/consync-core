@@ -1,5 +1,5 @@
 TYPE: FEATURE
-PACKAGE: stabilize_bookmark_panel_empty_state_copy
+PACKAGE: stabilize_drop_bookmark_panel_copy
 
 STATUS
 
@@ -7,20 +7,20 @@ PASS
 
 SUMMARY
 
-Tightened the Bookmarks panel empty-state copy so it now describes the absence of saved session bookmarks directly instead of referring to proving the loop.
+Tightened the Drop Bookmark panel wording so it now describes saving a bookmark into the current session more directly and avoids the earlier generic phrasing.
 
 Automated verification outcome: PASS via `cd /Users/markhughes/Projects/consync-core && npm run verify`. Manual verification outcome: optional review checks available and not required to unblock this feature package. Final advancement classification: `VERIFIED_ADVANCEABLE`. Notable discrepancies: none observed.
 
 FILES CREATED
 
-- `.consync/state/history/plans/feature-20260415-stabilize-bookmark-panel-empty-state-copy.md` — preserved the executed feature instruction before replacing the live `next-action.md` slot.
+- `.consync/state/history/plans/feature-20260415-stabilize-drop-bookmark-panel-copy.md` — preserved the executed feature instruction before replacing the live `next-action.md` slot.
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — tightened the Bookmarks empty-state sentence so it refers directly to saved bookmarks in the current session.
-- `.consync/state/package_plan.md` — recorded the completed empty-state copy package and advanced the next package pointer to a narrow Drop Bookmark panel copy pass.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the Bookmarks empty state now better matches the real bookmark loop.
-- `.consync/state/next-action.md` — advanced the live execution slot to the next FEATURE package for tightening the Drop Bookmark panel wording if needed.
+- `src/electron/renderer/App.jsx` — tightened the bookmark-entry panel wording so the action now refers directly to saving a bookmark into the current session.
+- `.consync/state/package_plan.md` — recorded the completed Drop Bookmark copy package and advanced the next package pointer to a mock-session trial step.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the bookmark-entry panel wording now matches the verified bookmark flow.
+- `.consync/state/next-action.md` — advanced the live execution slot to the next PROCESS package for a short mock-session desktop trial.
 - `.consync/state/handoff.md` — overwrote the handoff with the completed result of this FEATURE package using the current verification contract.
 
 COMMANDS TO RUN
@@ -31,7 +31,7 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Review the changed files and confirm the package only tightens the Bookmarks empty-state wording.
+2. Review the changed files and confirm the package only tightens the Drop Bookmark panel wording.
 3. Confirm no new session values, backend logic, or preload changes were introduced.
 4. Confirm no unrelated layout or styling refactor was introduced.
 5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer and state files.
@@ -40,6 +40,6 @@ HUMAN VERIFICATION
 
 VERIFICATION NOTES
 
-- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify` and `cd /Users/markhughes/Projects/consync-core && git status --short` after tightening the Bookmarks empty-state copy and updating state docs.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && npm run verify` and `cd /Users/markhughes/Projects/consync-core && git status --short` after tightening the Drop Bookmark panel copy and updating state docs.
 - Observed outcome: `npm run verify` passed, and the observed repo changes matched the expected renderer and state-doc updates for this package.
-- Validated the important edge case that the empty state now reads accurately when no bookmarks are saved for the current session, while introducing no new data or behavior.
+- Validated the important edge case that the bookmark-entry panel now describes the saved-session action more accurately without introducing new data or behavior.

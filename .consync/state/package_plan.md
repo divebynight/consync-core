@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-19
+20
 
 NEXT PACKAGE:
 
-`stabilize_drop_bookmark_panel_copy`
+`run_mock_session_desktop_trial`
 
 DEFAULT RUN WINDOW:
 
@@ -177,11 +177,18 @@ PLANNED PACKAGES:
    - Notes: tightened the Bookmarks empty-state wording so it refers directly to saved session bookmarks instead of proving the loop.
 
 19. `stabilize_drop_bookmark_panel_copy`
-   - Status: READY
+   - Status: PASS
    - Depends on: `stabilize_bookmark_panel_empty_state_copy`
    - Stop gate: pause after this package to review whether the Drop Bookmark panel wording still matches the now-real bookmark flow.
    - Human verification: optional
-   - Notes: should tighten Drop Bookmark panel copy only if needed, without changing layout, styling, or data flow.
+   - Notes: tightened the panel wording so the action now refers directly to saving a bookmark into the current session.
+
+20. `run_mock_session_desktop_trial`
+   - Status: READY
+   - Depends on: `stabilize_drop_bookmark_panel_copy`
+   - Stop gate: pause after this package to review the first concrete trial blocker or confirm that the current desktop shell is usable for a short mock session.
+   - Human verification: optional
+   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, if any, without broadening implementation scope prematurely.
 
 REPAIR HANDLING:
 

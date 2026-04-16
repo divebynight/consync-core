@@ -1,91 +1,97 @@
-TYPE: FEATURE
-PACKAGE: stabilize_drop_bookmark_panel_copy
+TYPE: PROCESS
+PACKAGE: run_mock_session_desktop_trial
 
-GOAL:
+STATUS
 
-Tighten the Drop Bookmark panel copy so it still reads clearly now that the bookmark write-and-read loop is real.
+READY
 
-This should stay narrow:
-do not add new data,
-do not change the backend or preload path,
-and only adjust wording that now reads awkwardly or underspecified in the Drop Bookmark panel.
+SUMMARY
 
-CONTEXT:
+Run one short mock-session trial against the current desktop shell and capture the first concrete blocker, or confirm that the current flow is usable for a basic trial without adding new implementation work yet.
 
-- The desktop bookmark flow now performs a real write and then re-reads persisted session state.
-- The bookmark loop is machine-verified at the model level.
-- The Drop Bookmark panel still uses generic wording that was introduced before the write loop became real.
-- This package should remain display-only and should not broaden the session model.
+The recent packages made the bookmark write/read/render loop real and tightened the nearby copy. The next step should stop polishing and check whether the current shell is actually usable for a short mock session.
 
-REQUIREMENTS:
+FILES CREATED
 
-1. Keep the change narrow and observable.
-2. Do not add new backend or preload architecture.
-3. Do not introduce new session values.
-4. Adjust only Drop Bookmark panel wording if it improves accuracy or readability.
-5. Do not refactor unrelated layout or styling.
-6. Update focused tests only where needed.
-7. Update state files at the end.
+- `.consync/state/history/plans/process-<timestamp>-run-mock-session-desktop-trial.md` — preserve this instruction before replacing the live `next-action.md` slot
 
-TASK:
+FILES MODIFIED
 
-1. Read the current Drop Bookmark panel copy in the renderer.
-2. Decide whether a wording-only adjustment is needed to better match the current real bookmark loop.
-3. Make the smallest wording adjustment needed, if any.
-4. Update only the minimum focused test/assertion surface needed.
-5. Update state files at the end.
-
-FILES TO MODIFY:
-
-- renderer/session-facing files only as needed for the narrow copy change
-- focused test files only as needed
+- minimal state or notes files only as needed to record the trial outcome
 - `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
 - `.consync/state/handoff.md`
 
-COMMANDS TO RUN:
+GOAL
+
+Determine whether the current desktop shell is ready for a short mock-session trial by:
+
+1. exercising the visible desktop flow with the current real bookmark behavior in mind
+2. identifying the first concrete blocker that makes the shell awkward for a short trial, if one appears
+3. avoiding speculative fixes until that blocker is named clearly
+
+CONSTRAINTS
+
+- Keep this package narrow and observational first
+- Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
+- Do not change preload, backend, or session logic unless a tiny unblocker is clearly required and still fits the package scope
+- Prefer recording the blocker over partially fixing several things at once
+
+TASK
+
+1. Use the current desktop shell and repo context to define a very short mock-session trial flow.
+2. Identify the smallest realistic trial path a human could attempt right now using the current desktop UI and artifact-backed bookmark behavior.
+3. Record the first concrete blocker or friction point that would likely matter in that trial.
+4. If no blocker appears at this scale, record that the shell appears ready for a short mock trial and name the next most useful feature target.
+5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
+6. Run repo verification.
+7. Update state files at the end.
+
+DO NOT
+
+- start a broad usability push
+- redesign the desktop shell
+- add multiple new blockers or a long backlog
+- change bookmark behavior without first proving the blocker requires it
+- expand the package beyond one concrete trial outcome
+
+COMMANDS TO RUN
 
 - `cd /Users/markhughes/Projects/consync-core && npm run verify`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
-HUMAN GATE:
-OPTIONAL
+HUMAN VERIFICATION
 
-MANUAL VERIFICATION:
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success
+2. Review the trial notes and confirm the package names one concrete mock-session blocker or explicitly records that no blocker appeared at this scale.
+3. Confirm the package does not sprawl into multiple speculative fixes.
+4. If a tiny unblocker was implemented, confirm it is tightly tied to the named blocker and does not broaden the architecture.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected narrow files.
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Review the changed files and confirm the package only tightens the Drop Bookmark panel wording if needed.
-3. Confirm no new session values, backend logic, or preload changes were introduced.
-4. Confirm no unrelated layout or styling refactor was introduced.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changes are limited to the expected renderer/test/state files.
-6. Failure case: if the package adds new data or new display rows, the change is too broad.
-7. Failure case: if the package changes layout/styling substantially instead of only tightening copy, the package is incomplete.
+PASS CRITERIA
 
-PASS CRITERIA:
-
-- Drop Bookmark panel wording is now accurate and readable for the current UI
+- One concrete trial outcome is recorded clearly
+- Scope remains narrow and grounded in actual trial use
 - `npm run verify` passes
-- the UI change remains narrow
-- no unrelated runtime or UI changes were introduced
+- No unnecessary implementation sprawl was introduced
 
-FAIL CRITERIA:
+FAIL CRITERIA
 
-- the updated wording still reads awkwardly or misleadingly for the current UI
-- new data or display rows are introduced
-- the renderer path is broadened unnecessarily
-- unrelated files or behaviors are changed
+- Package produces only vague usability commentary
+- Package tries to fix several possible future issues at once
+- The recorded blocker does not map to a plausible short mock-session trial
 - `npm run verify` fails
 
-STATE UPDATES:
+STATE UPDATES
 
-- `package_plan.md` -> record the completed copy-tightening step and current next package status
-- `snapshot.md` -> reflect that the nearby renderer copy now better matches the visible values if the package passes
-- `next-action.md` -> point to the next narrow feature package after this copy step
-- `handoff.md` -> record the completed result of this FEATURE package
+- `package_plan.md` → record completion of the mock-session trial package and set up the next narrow package from the trial outcome
+- `snapshot.md` → reflect the observed trial readiness or blocker
+- `next-action.md` → point to the next logical package after the trial outcome is recorded
+- `handoff.md` → record the result of this PROCESS package
 
-NOTES:
+NOTES
 
-- Keep this boring on purpose.
-- The goal is not polish for its own sake; it is keeping the UI accurate as small real values accumulate.
-- Prefer the fewest wording changes needed.
+- This package should convert recent implementation progress into one real trial-readiness signal.
+- Prefer a crisp blocker statement over a half-solution.
+- Keep it boring, precise, and grounded in the current shell.

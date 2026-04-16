@@ -142,21 +142,21 @@ export function App() {
         </article>
 
         <article className="panel">
-          <h2>Drop Bookmark</h2>
+          <h2>Save Bookmark</h2>
           <form className="bookmark-form" onSubmit={handleCreateBookmark}>
             <label className="bookmark-label" htmlFor="bookmark-note">
-              Bookmark note
+              Bookmark note for this session
             </label>
             <input
               id="bookmark-note"
               className="bookmark-input"
               value={note}
               onChange={event => setNote(event.target.value)}
-              placeholder="Describe what matters at this moment"
+              placeholder="Add a short note to save in this session"
               type="text"
             />
             <button className="bookmark-button" disabled={!note.trim()} type="submit">
-              Drop Bookmark
+              Save Bookmark
             </button>
           </form>
         </article>
