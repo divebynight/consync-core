@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-16
+17
 
 NEXT PACKAGE:
 
-`reflect_persisted_bookmark_in_running_desktop_state`
+`stabilize_bookmark_panel_empty_state_copy`
 
 DEFAULT RUN WINDOW:
 
@@ -156,11 +156,18 @@ PLANNED PACKAGES:
    - Notes: Drop Bookmark now persists a real bookmark write to the current session artifact through the existing renderer -> preload -> backend path.
 
 16. `reflect_persisted_bookmark_in_running_desktop_state`
-   - Status: READY
+   - Status: PASS
    - Depends on: `wire_drop_bookmark_to_real_session_write`
    - Stop gate: pause after this package to review whether the running desktop state reflects the persisted bookmark through the real session read path.
    - Human verification: optional
-   - Notes: should keep the renderer state aligned with the persisted bookmark write without broadening into edit/delete/history flows.
+   - Notes: the running desktop bookmark flow now re-reads session state after the persisted write so renderer state stays anchored to the real read path.
+
+17. `stabilize_bookmark_panel_empty_state_copy`
+   - Status: READY
+   - Depends on: `reflect_persisted_bookmark_in_running_desktop_state`
+   - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the write and read loop is real.
+   - Human verification: optional
+   - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.
 
 REPAIR HANDLING:
 

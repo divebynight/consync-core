@@ -67,6 +67,9 @@ function main() {
   runNodeStep("[verify] Renderer session panel slice", [path.join(repoRoot, "src", "test", "renderer-session-panel.js")]);
   console.log("");
 
+  runNodeStep("[verify] Renderer bookmark read-after-write slice", [path.join(repoRoot, "src", "test", "renderer-bookmark-flow.js")]);
+  console.log("");
+
   runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"]);
   console.log("");
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
@@ -78,7 +79,7 @@ export function App() {
 
     try {
       const desktopBridge = getDesktopBridge();
-      const nextSessionState = await desktopBridge.createBookmark(note.trim());
+      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, note.trim());
       setSessionState(nextSessionState);
       setErrorMessage(null);
       setNote("");

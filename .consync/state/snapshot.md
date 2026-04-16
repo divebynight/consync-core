@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package wired Drop Bookmark to a real bookmark write against the current session artifact through the existing desktop path.
+The last completed package made the running desktop bookmark flow re-read persisted session state after writes instead of relying on the mutation response alone.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -30,9 +30,10 @@ CURRENT REALITY:
 - The renderer hero copy now describes incremental real session values instead of a single real backend signal.
 - `npm run verify` now includes one deterministic renderer-oriented Session panel check, reducing reliance on file review alone for recent renderer changes.
 - The desktop bookmark action now persists bookmarks into the current real session artifact instead of stopping in in-memory session state.
+- The running renderer bookmark flow now re-reads real session state after the write, keeping displayed state anchored to the persisted artifact path.
 
 ACTIVE FOCUS:
-Carry the next narrow desktop-state slice while keeping the new real bookmark write path narrow and artifact-backed.
+Carry the next narrow UI wording slice now that the bookmark write-and-read loop is real.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should reflect the persisted bookmark in the running desktop state through the real session read path.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should tighten the Bookmarks panel empty-state copy if it still reads awkwardly after the recent real bookmark loop work.
