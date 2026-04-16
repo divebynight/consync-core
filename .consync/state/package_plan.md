@@ -10,11 +10,11 @@ PAUSED_STOP_GATE
 
 CURRENT CURSOR:
 
-15
+16
 
 NEXT PACKAGE:
 
-`stabilize_bookmark_panel_empty_state_copy`
+`reflect_persisted_bookmark_in_running_desktop_state`
 
 DEFAULT RUN WINDOW:
 
@@ -148,12 +148,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: added a small deterministic Session panel verification slice without introducing a heavier UI automation framework.
 
-15. `stabilize_bookmark_panel_empty_state_copy`
-   - Status: READY
+15. `wire_drop_bookmark_to_real_session_write`
+   - Status: PASS
    - Depends on: `add_minimal_renderer_verification_slice_for_session_panel`
-   - Stop gate: pause after this package to review whether the bookmark empty state still reads clearly now that the Session panel exposes more real values.
+   - Stop gate: pause after this package to review whether the first real desktop mutation path stays narrow and artifact-backed.
    - Human verification: optional
-   - Notes: should tighten the Bookmarks panel empty-state wording only if needed, without changing layout, styling, or data flow.
+   - Notes: Drop Bookmark now persists a real bookmark write to the current session artifact through the existing renderer -> preload -> backend path.
+
+16. `reflect_persisted_bookmark_in_running_desktop_state`
+   - Status: READY
+   - Depends on: `wire_drop_bookmark_to_real_session_write`
+   - Stop gate: pause after this package to review whether the running desktop state reflects the persisted bookmark through the real session read path.
+   - Human verification: optional
+   - Notes: should keep the renderer state aligned with the persisted bookmark write without broadening into edit/delete/history flows.
 
 REPAIR HANDLING:
 

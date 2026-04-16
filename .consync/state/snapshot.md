@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package added a minimal machine-checkable renderer verification slice for the Session panel without introducing a heavier UI automation framework.
+The last completed package wired Drop Bookmark to a real bookmark write against the current session artifact through the existing desktop path.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -29,9 +29,10 @@ CURRENT REALITY:
 - The Session panel now also shows the latest bookmark time already present in renderer-readable session state.
 - The renderer hero copy now describes incremental real session values instead of a single real backend signal.
 - `npm run verify` now includes one deterministic renderer-oriented Session panel check, reducing reliance on file review alone for recent renderer changes.
+- The desktop bookmark action now persists bookmarks into the current real session artifact instead of stopping in in-memory session state.
 
 ACTIVE FOCUS:
-Carry the next narrow UI slice while keeping the new lightweight renderer verification foothold intact.
+Carry the next narrow desktop-state slice while keeping the new real bookmark write path narrow and artifact-backed.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should tighten the Bookmarks panel empty-state copy if it still reads awkwardly after the recent incremental real-value additions.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should reflect the persisted bookmark in the running desktop state through the real session read path.

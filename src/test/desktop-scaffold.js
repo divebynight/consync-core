@@ -1,5 +1,6 @@
 const assert = require("node:assert");
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const {
   createDesktopPingResponse,
@@ -18,6 +19,35 @@ const { IPC_CHANNELS } = require("../electron/shared/ipc-channels");
 const { registerDesktopIpcHandlers } = require("../electron/main/ipc");
 const { createMainWindowOptions } = require("../electron/main/window");
 const { createDesktopBridge } = require("../electron/preload/bridge");
+
+function withTemporarySessionDir(run) {
+  const temporarySessionDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-session-"));
+  const originalSessionDir = process.env.CONSYNC_SESSION_DIR;
+  const artifactPath = path.join(temporarySessionDir, "20260405T154039301Z.json");
+
+  fs.writeFileSync(
+    artifactPath,
+    JSON.stringify({
+      created_at: "2026-04-05T15:40:39.301Z",
+      guid: "44bfa0e1-e2be-426c-9bf2-1966718a58b2",
+      note: "sanity check",
+    }, null, 2) + "\n"
+  );
+
+  process.env.CONSYNC_SESSION_DIR = temporarySessionDir;
+
+  try {
+    run({ artifactPath });
+  } finally {
+    if (originalSessionDir === undefined) {
+      delete process.env.CONSYNC_SESSION_DIR;
+    } else {
+      process.env.CONSYNC_SESSION_DIR = originalSessionDir;
+    }
+
+    fs.rmSync(temporarySessionDir, { force: true, recursive: true });
+  }
+}
 
 function testPreloadBridgeIsolation() {
   const mainIpcPath = require.resolve("../electron/main/ipc");
@@ -74,157 +104,185 @@ function testMainWindowOptions() {
 }
 
 function testIpcRegistration() {
-  resetSessionState();
-  const handlers = new Map();
+  withTemporarySessionDir(({ artifactPath }) => {
+    resetSessionState();
+    const handlers = new Map();
 
-  registerDesktopIpcHandlers({
-    handle(channel, handler) {
-      handlers.set(channel, handler);
-    },
-  });
+    registerDesktopIpcHandlers({
+      handle(channel, handler) {
+        handlers.set(channel, handler);
+      },
+    });
 
-  assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
-  assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
-  assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
-  assert.ok(handlers.has(IPC_CHANNELS.ping));
-  assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
-  assert.ok(handlers.has(IPC_CHANNELS.getConsyncSummary));
+    assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
+    assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
+    assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
+    assert.ok(handlers.has(IPC_CHANNELS.ping));
+    assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
+    assert.ok(handlers.has(IPC_CHANNELS.getConsyncSummary));
 
-  const backendSummary = handlers.get(IPC_CHANNELS.getBackendSummary)();
-  const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
-  const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
-  const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
-  const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
-  const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
+    const backendSummary = handlers.get(IPC_CHANNELS.getBackendSummary)();
+    const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
+    const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
+    const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
+    const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
+    const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
+    const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
-  assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
-  assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
-  assert.strictEqual(shellInfo.layer, "desktop-scaffold");
-  assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
-  assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
-  assert.strictEqual(sessionState.currentPositionSeconds, 84);
-  assert.strictEqual(updatedSessionState.artifactCount, getSessionArtifactCount());
-  assert.deepStrictEqual(updatedSessionState.bookmarks, [
-    {
-      id: "bookmark-1",
-      note: "Bridge bookmark",
-      timeSeconds: 84,
-    },
-  ]);
-  assert.deepStrictEqual(pingResponse, {
-    ok: true,
-    message: "pong:from-renderer",
+    assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
+    assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
+    assert.strictEqual(shellInfo.layer, "desktop-scaffold");
+    assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
+    assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
+    assert.strictEqual(sessionState.currentPositionSeconds, 84);
+    assert.strictEqual(updatedSessionState.artifactCount, getSessionArtifactCount());
+    assert.deepStrictEqual(updatedSessionState.bookmarks, [
+      {
+        id: "bookmark-1",
+        note: "Bridge bookmark",
+        timeSeconds: 84,
+      },
+    ]);
+    assert.deepStrictEqual(persistedArtifact.bookmarks, [
+      {
+        id: "bookmark-1",
+        note: "Bridge bookmark",
+        timeSeconds: 84,
+      },
+    ]);
+    assert.deepStrictEqual(pingResponse, {
+      ok: true,
+      message: "pong:from-renderer",
+    });
   });
 }
 
 function testSessionCoreSurface() {
-  resetSessionState();
+  withTemporarySessionDir(({ artifactPath }) => {
+    resetSessionState();
 
-  const sessionState = getSessionState();
-  const updatedSessionState = createBookmark("First bookmark");
+    const sessionState = getSessionState();
+    const updatedSessionState = createBookmark("First bookmark");
+    const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
-  assert.deepStrictEqual(sessionState, {
-    artifactCount: getSessionArtifactCount(),
-    currentFile: getLatestSessionFileName(),
-    currentPositionSeconds: 84,
-    bookmarks: [],
-  });
-  assert.deepStrictEqual(updatedSessionState, {
-    artifactCount: getSessionArtifactCount(),
-    currentFile: getLatestSessionFileName(),
-    currentPositionSeconds: 84,
-    bookmarks: [
+    assert.deepStrictEqual(sessionState, {
+      artifactCount: getSessionArtifactCount(),
+      currentFile: getLatestSessionFileName(),
+      currentPositionSeconds: 84,
+      bookmarks: [],
+    });
+    assert.deepStrictEqual(updatedSessionState, {
+      artifactCount: getSessionArtifactCount(),
+      currentFile: getLatestSessionFileName(),
+      currentPositionSeconds: 84,
+      bookmarks: [
+        {
+          id: "bookmark-1",
+          note: "First bookmark",
+          timeSeconds: 84,
+        },
+      ],
+    });
+    assert.deepStrictEqual(persistedArtifact.bookmarks, [
       {
         id: "bookmark-1",
         note: "First bookmark",
         timeSeconds: 84,
       },
-    ],
+    ]);
   });
 }
 
 async function testPreloadBridge() {
-  resetSessionState();
-  const invokedChannels = [];
-  const bridge = createDesktopBridge((channel, ...args) => {
-    invokedChannels.push({ channel, args });
+  withTemporarySessionDir(async () => {
+    resetSessionState();
+    const invokedChannels = [];
+    const bridge = createDesktopBridge((channel, ...args) => {
+      invokedChannels.push({ channel, args });
 
-    if (channel === IPC_CHANNELS.getBackendSummary) {
-      return Promise.resolve(getDesktopBackendSummary());
-    }
+      if (channel === IPC_CHANNELS.getBackendSummary) {
+        return Promise.resolve(getDesktopBackendSummary());
+      }
 
-    if (channel === IPC_CHANNELS.getConsyncSummary) {
-      return Promise.resolve(getDesktopConsyncSummary());
-    }
+      if (channel === IPC_CHANNELS.getConsyncSummary) {
+        return Promise.resolve(getDesktopConsyncSummary());
+      }
 
-    if (channel === IPC_CHANNELS.getShellInfo) {
-      return Promise.resolve({ bridge: true });
-    }
+      if (channel === IPC_CHANNELS.getShellInfo) {
+        return Promise.resolve({ bridge: true });
+      }
 
-    if (channel === IPC_CHANNELS.getSessionState) {
-      return Promise.resolve({
-        artifactCount: getSessionArtifactCount(),
-        bookmarks: [],
-        currentFile: getLatestSessionFileName(),
-        currentPositionSeconds: 84,
-      });
-    }
+      if (channel === IPC_CHANNELS.getSessionState) {
+        return Promise.resolve({
+          artifactCount: getSessionArtifactCount(),
+          bookmarks: [],
+          currentFile: getLatestSessionFileName(),
+          currentPositionSeconds: 84,
+        });
+      }
 
-    if (channel === IPC_CHANNELS.createBookmark) {
-      return Promise.resolve({
-        bookmarks: [
-          {
-            id: "bookmark-1",
-            note: args[0],
-            timeSeconds: 84,
-          },
-        ],
-      });
-    }
+      if (channel === IPC_CHANNELS.createBookmark) {
+        return Promise.resolve({
+          artifactCount: getSessionArtifactCount(),
+          bookmarks: [
+            {
+              id: "bookmark-1",
+              note: args[0],
+              timeSeconds: 84,
+            },
+          ],
+          currentFile: getLatestSessionFileName(),
+          currentPositionSeconds: 84,
+        });
+      }
 
-    return Promise.resolve({ ok: true, args });
+      return Promise.resolve({ ok: true, args });
+    });
+
+    const backendSummary = await bridge.getBackendSummary();
+    const bridgeStatus = await bridge.getBridgeStatus();
+    const consyncSummary = await bridge.getConsyncSummary();
+    const shellInfo = await bridge.getShellInfo();
+    const sessionState = await bridge.getSessionState();
+    const bookmarkState = await bridge.createBookmark("renderer bookmark");
+    const pingResponse = await bridge.ping("renderer-ready");
+
+    assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
+    assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
+    assert.deepStrictEqual(bridgeStatus, {
+      status: "ready",
+      surface: "preload",
+      version: "bridge-v1",
+    });
+    assert.deepStrictEqual(shellInfo, { bridge: true });
+    assert.deepStrictEqual(sessionState, {
+      artifactCount: getSessionArtifactCount(),
+      bookmarks: [],
+      currentFile: getLatestSessionFileName(),
+      currentPositionSeconds: 84,
+    });
+    assert.deepStrictEqual(bookmarkState, {
+      artifactCount: getSessionArtifactCount(),
+      bookmarks: [
+        {
+          id: "bookmark-1",
+          note: "renderer bookmark",
+          timeSeconds: 84,
+        },
+      ],
+      currentFile: getLatestSessionFileName(),
+      currentPositionSeconds: 84,
+    });
+    assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
+    assert.deepStrictEqual(invokedChannels, [
+      { channel: IPC_CHANNELS.getBackendSummary, args: [] },
+      { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
+      { channel: IPC_CHANNELS.getShellInfo, args: [] },
+      { channel: IPC_CHANNELS.getSessionState, args: [] },
+      { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
+      { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
+    ]);
   });
-
-  const backendSummary = await bridge.getBackendSummary();
-  const bridgeStatus = await bridge.getBridgeStatus();
-  const consyncSummary = await bridge.getConsyncSummary();
-  const shellInfo = await bridge.getShellInfo();
-  const sessionState = await bridge.getSessionState();
-  const bookmarkState = await bridge.createBookmark("renderer bookmark");
-  const pingResponse = await bridge.ping("renderer-ready");
-
-  assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
-  assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
-  assert.deepStrictEqual(bridgeStatus, {
-    status: "ready",
-    surface: "preload",
-    version: "bridge-v1",
-  });
-  assert.deepStrictEqual(shellInfo, { bridge: true });
-  assert.deepStrictEqual(sessionState, {
-    artifactCount: getSessionArtifactCount(),
-    bookmarks: [],
-    currentFile: getLatestSessionFileName(),
-    currentPositionSeconds: 84,
-  });
-  assert.deepStrictEqual(bookmarkState, {
-    bookmarks: [
-      {
-        id: "bookmark-1",
-        note: "renderer bookmark",
-        timeSeconds: 84,
-      },
-    ],
-  });
-  assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
-  assert.deepStrictEqual(invokedChannels, [
-    { channel: IPC_CHANNELS.getBackendSummary, args: [] },
-    { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
-    { channel: IPC_CHANNELS.getShellInfo, args: [] },
-    { channel: IPC_CHANNELS.getSessionState, args: [] },
-    { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
-    { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
-  ]);
 }
 
 async function main() {
