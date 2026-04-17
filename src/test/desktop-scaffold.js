@@ -7,6 +7,7 @@ const {
   getDesktopBackendSummary,
   getDesktopConsyncSummary,
   getDesktopShellInfo,
+  revealDesktopPath,
   runDesktopMockSearch,
 } = require("../core/desktop-shell");
 const {
@@ -70,6 +71,11 @@ function testCoreSurface() {
   const backendSummary = getDesktopBackendSummary();
   const consyncSummary = getDesktopConsyncSummary();
   const mockSearchResult = runDesktopMockSearch("sandbox/fixtures/nested-anchor-trial", "moss");
+  const revealedPath = revealDesktopPath("sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg", {
+    shellLike: {
+      showItemInFolder() {},
+    },
+  });
   const pingResponse = createDesktopPingResponse("desktop-test");
 
   assert.strictEqual(shellInfo.appName, "Consync Desktop");
@@ -92,6 +98,11 @@ function testCoreSurface() {
   assert.strictEqual(mockSearchResult.query, "moss");
   assert.strictEqual(mockSearchResult.sessionCount, 2);
   assert.strictEqual(mockSearchResult.matchCount, 2);
+  assert.deepStrictEqual(revealedPath, {
+    ok: true,
+    requestedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg",
+    revealedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg",
+  });
   assert.deepStrictEqual(mockSearchResult.groups[0], {
     anchorPath: "2026/april/balcony-zine",
     sessionTitle: "Balcony Zine Session",
@@ -129,15 +140,23 @@ function testIpcRegistration() {
   withTemporarySessionDir(({ artifactPath }) => {
     resetSessionState();
     const handlers = new Map();
+    const revealedPaths = [];
 
     registerDesktopIpcHandlers({
       handle(channel, handler) {
         handlers.set(channel, handler);
       },
+    }, {
+      shellLike: {
+        showItemInFolder(targetPath) {
+          revealedPaths.push(targetPath);
+        },
+      },
     });
 
     assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
     assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
+    assert.ok(handlers.has(IPC_CHANNELS.revealSearchResult));
     assert.ok(handlers.has(IPC_CHANNELS.runMockSearch));
     assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
     assert.ok(handlers.has(IPC_CHANNELS.ping));
@@ -148,6 +167,7 @@ function testIpcRegistration() {
     const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
     const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
     const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
+    const revealResult = handlers.get(IPC_CHANNELS.revealSearchResult)(null, "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md");
     const mockSearch = handlers.get(IPC_CHANNELS.runMockSearch)(null, "sandbox/fixtures/nested-anchor-trial", "moss");
     const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
@@ -159,6 +179,14 @@ function testIpcRegistration() {
     assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
     assert.strictEqual(sessionState.currentPositionSeconds, 84);
+    assert.deepStrictEqual(revealResult, {
+      ok: true,
+      requestedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md",
+      revealedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md",
+    });
+    assert.deepStrictEqual(revealedPaths, [
+      path.join(process.cwd(), "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md"),
+    ]);
     assert.strictEqual(mockSearch.ok, true);
     assert.strictEqual(mockSearch.sessionCount, 2);
     assert.strictEqual(mockSearch.matchCount, 2);
@@ -250,6 +278,14 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.revealSearchResult) {
+        return Promise.resolve({
+          ok: true,
+          requestedPath: args[0],
+          revealedPath: args[0],
+        });
+      }
+
       if (channel === IPC_CHANNELS.runMockSearch) {
         return Promise.resolve(runDesktopMockSearch(args[0], args[1]));
       }
@@ -277,6 +313,7 @@ async function testPreloadBridge() {
     const consyncSummary = await bridge.getConsyncSummary();
     const shellInfo = await bridge.getShellInfo();
     const sessionState = await bridge.getSessionState();
+    const revealResult = await bridge.revealSearchResult("sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg");
     const mockSearch = await bridge.runMockSearch("sandbox/fixtures/nested-anchor-trial", "moss");
     const bookmarkState = await bridge.createBookmark("renderer bookmark");
     const pingResponse = await bridge.ping("renderer-ready");
@@ -294,6 +331,11 @@ async function testPreloadBridge() {
       bookmarks: [],
       currentFile: getLatestSessionFileName(),
       currentPositionSeconds: 84,
+    });
+    assert.deepStrictEqual(revealResult, {
+      ok: true,
+      requestedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg",
+      revealedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg",
     });
     assert.strictEqual(mockSearch.ok, true);
     assert.strictEqual(mockSearch.groups[0].matches[0].artifactPath, "exports/cover-notes.md");
@@ -316,6 +358,7 @@ async function testPreloadBridge() {
       { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
       { channel: IPC_CHANNELS.getShellInfo, args: [] },
       { channel: IPC_CHANNELS.getSessionState, args: [] },
+      { channel: IPC_CHANNELS.revealSearchResult, args: ["sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"] },
       { channel: IPC_CHANNELS.runMockSearch, args: ["sandbox/fixtures/nested-anchor-trial", "moss"] },
       { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
       { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },

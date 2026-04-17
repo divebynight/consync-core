@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-29
+30
 
 NEXT PACKAGE:
 
-`rerun_mock_session_desktop_trial_with_selected_match_detail_panel`
+`rerun_mock_session_desktop_trial_with_reveal_in_finder`
 
 DEFAULT RUN WINDOW:
 
@@ -246,12 +246,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: added one narrow renderer-only selected-match detail surface so a result row can be inspected more deliberately without introducing navigation, writes, or new IPC behavior.
 
-29. `rerun_mock_session_desktop_trial_with_selected_match_detail_panel`
-   - Status: READY
+29. `add_reveal_in_finder_for_search_results`
+   - Status: PASS
    - Depends on: `add_selected_match_detail_panel`
-   - Stop gate: pause after this package to review whether the selected-match detail view is enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Stop gate: pause after this package to review whether the first read-only action surface adds useful depth without broadening the shell into navigation or mutation.
    - Human verification: optional
-   - Notes: should rerun the short desktop mock-session trial against the selected-match detail view and record the next concrete blocker or confirm the shell is still usable at this scale.
+   - Notes: added one minimal reveal action for result rows through preload, IPC, and main so a selected search result can be revealed in Finder or its parent folder without changing search truth or session state.
+
+30. `rerun_mock_session_desktop_trial_with_reveal_in_finder`
+   - Status: READY
+   - Depends on: `add_reveal_in_finder_for_search_results`
+   - Stop gate: pause after this package to review whether the reveal action is enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Human verification: optional
+   - Notes: should rerun the short desktop mock-session trial against the reveal-enabled search view and record the next concrete blocker or confirm the shell is still usable at this scale.
 
 REPAIR HANDLING:
 

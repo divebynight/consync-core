@@ -48,10 +48,71 @@ function runDesktopMockSearch(rootPath, query) {
   return buildSandboxDesktopSearchResult(rootPath, query);
 }
 
+function normalizeRelativePath(filePath) {
+  return filePath.split(path.sep).join("/");
+}
+
+function revealDesktopPath(targetPath, options = {}) {
+  const fsModule = options.fsModule || fs;
+  const pathModule = options.pathModule || path;
+  const shellLike = options.shellLike;
+
+  if (!targetPath || typeof targetPath !== "string") {
+    return {
+      ok: false,
+      output: "Target path is required",
+    };
+  }
+
+  if (!shellLike || typeof shellLike.showItemInFolder !== "function") {
+    return {
+      ok: false,
+      output: "Desktop reveal is unavailable",
+    };
+  }
+
+  const absoluteTargetPath = pathModule.resolve(process.cwd(), targetPath);
+  const parentPath = pathModule.dirname(absoluteTargetPath);
+  const preferredRevealPath = fsModule.existsSync(absoluteTargetPath) ? absoluteTargetPath : parentPath;
+
+  try {
+    shellLike.showItemInFolder(preferredRevealPath);
+
+    return {
+      ok: true,
+      requestedPath: normalizeRelativePath(targetPath),
+      revealedPath: normalizeRelativePath(pathModule.relative(process.cwd(), preferredRevealPath)),
+    };
+  } catch (error) {
+    if (preferredRevealPath === parentPath) {
+      return {
+        ok: false,
+        output: error.message,
+      };
+    }
+
+    try {
+      shellLike.showItemInFolder(parentPath);
+
+      return {
+        ok: true,
+        requestedPath: normalizeRelativePath(targetPath),
+        revealedPath: normalizeRelativePath(pathModule.relative(process.cwd(), parentPath)),
+      };
+    } catch (fallbackError) {
+      return {
+        ok: false,
+        output: fallbackError.message,
+      };
+    }
+  }
+}
+
 module.exports = {
   createDesktopPingResponse,
   getDesktopBackendSummary,
   getDesktopConsyncSummary,
   getDesktopShellInfo,
+  revealDesktopPath,
   runDesktopMockSearch,
 };

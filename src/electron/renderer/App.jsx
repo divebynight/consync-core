@@ -27,6 +27,7 @@ function getDesktopBridge() {
     typeof desktopBridge.getConsyncSummary !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
+    typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function"
   ) {
     throw new Error("Consync desktop bridge is unavailable.");
@@ -66,7 +67,7 @@ function MockSearchResult({ searchResult, selectedMatchKey, onSelectMatch }) {
                     <li className="mock-search-match-shell" key={`${group.anchorPath}:${match.artifactPath}`}>
                       <button
                         className={`mock-search-match${isSelected ? " mock-search-match-selected" : ""}`}
-                        onClick={() => onSelectMatch(matchKey)}
+                        onClick={() => onSelectMatch(group, match)}
                         type="button"
                       >
                         <p className="mock-search-artifact">{match.artifactPath}</p>
@@ -190,6 +191,31 @@ export function App() {
     }
   }
 
+  async function handleSelectMockSearchMatch(group, match) {
+    const nextSelectedMatchKey = getMockSearchSelectionKey(group, match);
+
+    setSelectedMatchKey(nextSelectedMatchKey);
+
+    try {
+      const nextSelectedDetail = getSelectedMockSearchDetail(searchResult, nextSelectedMatchKey);
+
+      if (!nextSelectedDetail) {
+        throw new Error("Search result detail is unavailable.");
+      }
+
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.revealSearchResult(nextSelectedDetail.fullPath);
+
+      if (!result.ok) {
+        throw new Error(result.output);
+      }
+
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  }
+
   const sessionRows = getSessionPanelRows(sessionState);
 
   return (
@@ -295,7 +321,7 @@ export function App() {
 
           {searchResult ? (
             <MockSearchResult
-              onSelectMatch={setSelectedMatchKey}
+              onSelectMatch={handleSelectMockSearchMatch}
               searchResult={searchResult}
               selectedMatchKey={selectedMatchKey}
             />
