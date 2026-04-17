@@ -100,6 +100,13 @@ function main() {
   console.log("");
 
   runExpectationStep(
+    "[verify] Desktop mock search flow",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-desktop-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-desktop-search-moss.md")
+  );
+  console.log("");
+
+  runExpectationStep(
     "[verify] Proposal layer: basic-mixed",
     [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "basic-mixed-propose.md")

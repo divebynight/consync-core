@@ -10,7 +10,7 @@ ACTIVE
 
 CURRENT CURSOR:
 
-22
+23
 
 NEXT PACKAGE:
 
@@ -197,12 +197,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: added a read-only nested-anchor sandbox fixture plus deterministic discovery and bookmark-search commands that prove selective context capture without durable linking.
 
-22. `run_mock_session_desktop_trial`
-   - Status: READY
+22. `expose_nested_anchor_search_as_desktop_mock_flow`
+   - Status: PASS
    - Depends on: `build_nested_anchor_mock_session_trial`
+   - Stop gate: none
+   - Human verification: optional
+   - Notes: added a grouped desktop-style read-only search command that wraps nested anchor discovery and bookmark search into a more user-facing mock flow without adding UI or new durable relationships.
+
+23. `run_mock_session_desktop_trial`
+   - Status: READY
+   - Depends on: `expose_nested_anchor_search_as_desktop_mock_flow`
    - Stop gate: pause after this package to review the first concrete trial blocker or confirm that the current desktop shell is usable for a short mock session.
    - Human verification: optional
-   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, using the nested-anchor trial as the new realistic context baseline.
+   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, using the new desktop-style grouped search flow as the more realistic context baseline.
 
 REPAIR HANDLING:
 

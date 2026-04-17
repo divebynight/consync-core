@@ -9,7 +9,7 @@ SUMMARY
 
 Use the current desktop shell for one short mock-session trial and name the first concrete blocker, or confirm that the shell is usable at that scale without adding new implementation work yet.
 
-The nested-anchor sandbox trial now provides a more realistic context baseline than the earlier flat sandbox fixtures. This package should use that new baseline to judge whether the current desktop shell is ready for a short trial or still missing one concrete workflow-critical step.
+The nested-anchor sandbox trial now has a grouped desktop-style search preview, which gives this package a more realistic comparison point than raw CLI output alone. This package should use that baseline to judge whether the current desktop shell is ready for a short trial or still missing one concrete workflow-critical step.
 
 FILES CREATED
 
@@ -28,7 +28,7 @@ GOAL
 Determine whether the current desktop shell is ready for a short mock-session trial by:
 
 1. exercising the visible desktop flow with the current real bookmark behavior in mind
-2. using the nested-anchor trial as the more realistic comparison baseline for captured context
+2. using the grouped desktop-style nested-anchor mock flow as the more realistic comparison baseline for captured context
 3. identifying the first concrete blocker that makes the shell awkward for a short trial, if one appears
 4. avoiding speculative fixes until that blocker is named clearly
 
@@ -42,7 +42,7 @@ CONSTRAINTS
 
 TASK
 
-1. Define a very short mock-session trial flow that uses the current desktop UI and the new nested-anchor trial as the realism baseline.
+1. Define a very short mock-session trial flow that uses the current desktop UI and the grouped nested-anchor mock flow as the realism baseline.
 2. Identify the smallest realistic path a human could attempt right now in the desktop shell.
 3. Record the first concrete blocker or friction point that would likely matter in that trial.
 4. If no blocker appears at this scale, record that the shell appears ready for a short mock trial and name the next most useful feature target.

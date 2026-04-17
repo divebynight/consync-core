@@ -13,6 +13,8 @@ function runSandboxCatalogCommand() {
   console.log("- nested-anchor-trial -> nested-anchor-trial-discover");
   console.log("SEARCH EXPECTATIONS");
   console.log("- nested-anchor-trial + moss -> nested-anchor-trial-search-moss");
+  console.log("DESKTOP SEARCH EXPECTATIONS");
+  console.log("- nested-anchor-trial + moss -> nested-anchor-trial-desktop-search-moss");
   console.log("PROPOSE EXPECTATIONS");
   console.log("- basic-mixed -> basic-mixed-propose");
   console.log("- nested-mixed -> nested-mixed-propose");

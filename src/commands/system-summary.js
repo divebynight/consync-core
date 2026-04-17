@@ -10,6 +10,7 @@ function runSystemSummaryCommand() {
   console.log("- sandbox-propose");
   console.log("- sandbox-discover");
   console.log("- sandbox-search");
+  console.log("- sandbox-desktop-search");
   console.log("- system-check");
   console.log("- system-summary");
   console.log("- portable");
@@ -27,6 +28,7 @@ function runSystemSummaryCommand() {
   console.log("- nested-mixed-scan");
   console.log("- nested-anchor-trial-discover");
   console.log("- nested-anchor-trial-search-moss");
+  console.log("- nested-anchor-trial-desktop-search-moss");
   console.log("- basic-mixed-propose");
   console.log("- nested-mixed-propose");
   console.log("- single-type-flat-propose");

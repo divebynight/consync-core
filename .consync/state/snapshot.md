@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package built a read-only nested-anchor mock-session trial that proves anchor discovery and bookmark metadata search across local `.consync` anchors.
+The last completed package exposed nested-anchor search through a single grouped desktop-style mock flow.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -43,9 +43,11 @@ CURRENT REALITY:
 - `sandbox-discover` now finds nested local anchors beneath a chosen root without treating every folder as captured context.
 - `sandbox-search` now searches bookmarked artifact metadata across discovered anchors while ignoring ambient non-bookmarked files.
 - The nested-anchor trial is deterministic enough for expectation-based verification and remains read-only.
+- `sandbox-desktop-search` now wraps nested anchor discovery and bookmark search into a grouped user-facing preview that feels closer to what a desktop result view would show.
+- The grouped mock flow still uses the same read-only anchor truth and does not add new linking, ranking, or persistent state.
 
 ACTIVE FOCUS:
-Use the nested-anchor trial as the new reality check while exercising the current desktop shell in a short mock session.
+Use the grouped desktop-style mock search flow as the new reality check while exercising the current desktop shell in a short mock session.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness against the new nested-anchor baseline.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness against the new grouped mock-flow baseline.

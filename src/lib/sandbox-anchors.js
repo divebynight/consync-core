@@ -123,7 +123,7 @@ function bookmarkMatchesQuery(bookmark, normalizedQuery) {
   return haystack.includes(normalizedQuery);
 }
 
-function buildSandboxSearchOutput(targetPath, query) {
+function searchNestedAnchors(targetPath, query) {
   if (!query || !query.trim()) {
     return {
       ok: false,
@@ -169,13 +169,27 @@ function buildSandboxSearchOutput(targetPath, query) {
     return compareText(left.artifactPath, right.artifactPath);
   });
 
+  return {
+    ok: true,
+    query: query.trim(),
+    matches,
+  };
+}
+
+function buildSandboxSearchOutput(targetPath, query) {
+  const result = searchNestedAnchors(targetPath, query);
+
+  if (!result.ok) {
+    return result;
+  }
+
   const lines = [];
   lines.push(`ROOT: ${targetPath}`);
-  lines.push(`QUERY: ${query.trim()}`);
-  lines.push(`MATCHES: ${matches.length}`);
+  lines.push(`QUERY: ${result.query}`);
+  lines.push(`MATCHES: ${result.matches.length}`);
   lines.push("");
 
-  for (const match of matches) {
+  for (const match of result.matches) {
     lines.push(`- anchor: ${match.anchorPath}`);
     lines.push(`  session: ${match.sessionTitle}`);
     lines.push(`  artifact: ${match.artifactPath}`);
@@ -189,9 +203,72 @@ function buildSandboxSearchOutput(targetPath, query) {
   };
 }
 
+function buildSandboxDesktopSearchOutput(targetPath, query) {
+  const result = searchNestedAnchors(targetPath, query);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  const groupedMatches = new Map();
+
+  for (const match of result.matches) {
+    const groupKey = `${match.anchorPath}::${match.sessionTitle}`;
+
+    if (!groupedMatches.has(groupKey)) {
+      groupedMatches.set(groupKey, {
+        anchorPath: match.anchorPath,
+        sessionTitle: match.sessionTitle,
+        matches: [],
+      });
+    }
+
+    groupedMatches.get(groupKey).matches.push(match);
+  }
+
+  const groups = Array.from(groupedMatches.values()).sort((left, right) => compareText(left.anchorPath, right.anchorPath));
+
+  const lines = [];
+  lines.push("DESKTOP SEARCH PREVIEW");
+  lines.push(`root: ${targetPath}`);
+  lines.push(`query: ${result.query}`);
+  lines.push(`sessions: ${groups.length}`);
+  lines.push(`matches: ${result.matches.length}`);
+  lines.push("");
+
+  if (groups.length === 0) {
+    lines.push("No bookmarked matches found.");
+
+    return {
+      ok: true,
+      output: lines.join("\n"),
+    };
+  }
+
+  for (const group of groups) {
+    lines.push(`SESSION: ${group.sessionTitle}`);
+    lines.push(`ANCHOR: ${group.anchorPath}`);
+
+    for (const match of group.matches) {
+      lines.push(`- ${match.artifactPath}`);
+      lines.push(`  note: ${match.note}`);
+      lines.push(`  tags: ${match.tags.length > 0 ? match.tags.join(", ") : "none"}`);
+    }
+
+    lines.push("");
+  }
+
+  return {
+    ok: true,
+    output: lines.join("\n").trimEnd(),
+  };
+}
+
 module.exports = {
+  buildSandboxDesktopSearchOutput,
   buildSandboxDiscoverOutput,
   buildSandboxSearchOutput,
   compareText,
   discoverNestedAnchors,
+  searchNestedAnchors,
 };

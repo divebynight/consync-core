@@ -8,6 +8,7 @@ const { runSandboxProposeCommand } = require("../commands/sandbox-propose");
 const { runSandboxCatalogCommand } = require("../commands/sandbox-catalog");
 const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover");
 const { runSandboxSearchCommand } = require("../commands/sandbox-search");
+const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search");
 const { runSystemCheckCommand } = require("../commands/system-check");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
 const { runPortableCommand } = require("../commands/portable");
@@ -99,6 +100,11 @@ async function main() {
 
   if (command === "sandbox-search") {
     runSandboxSearchCommand(process.argv[3], process.argv.slice(4).join(" "));
+    return;
+  }
+
+  if (command === "sandbox-desktop-search") {
+    runSandboxDesktopSearchCommand(process.argv[3], process.argv.slice(4).join(" "));
     return;
   }
 
