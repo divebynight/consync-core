@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-27
+28
 
 NEXT PACKAGE:
 
-`rerun_mock_session_desktop_trial_with_structured_results`
+`add_read_only_mock_search_match_detail_panel`
 
 DEFAULT RUN WINDOW:
 
@@ -233,11 +233,18 @@ PLANNED PACKAGES:
    - Notes: the desktop renderer now presents grouped mock-search results as structured sections and rows backed by shared grouped search data, while preserving the same read-only grouped truth and CLI output.
 
 27. `rerun_mock_session_desktop_trial_with_structured_results`
-   - Status: READY
+   - Status: PASS
    - Depends on: `render_structured_grouped_search_results_in_desktop_shell`
    - Stop gate: pause after this package to review whether the structured renderer presentation is now enough for one short search-oriented desktop trial without exposing a new blocker.
    - Human verification: optional
-   - Notes: should rerun the short desktop mock-session trial against the structured grouped-result renderer and record the next concrete blocker or confirm the presentation is now usable at this scale.
+   - Notes: reran the short desktop mock-session trial against the structured grouped-result renderer and found no new blocker at this scale; the shell is now usable for one narrow search-oriented mock session with structured results.
+
+28. `add_read_only_mock_search_match_detail_panel`
+   - Status: READY
+   - Depends on: `rerun_mock_session_desktop_trial_with_structured_results`
+   - Stop gate: pause after this package to review whether one selected-match detail view adds useful depth without broadening the shell into navigation or write behavior.
+   - Human verification: optional
+   - Notes: should add one narrow read-only detail surface for the currently selected mock-search result so a short desktop search trial can inspect a match more deliberately without leaving the shell.
 
 REPAIR HANDLING:
 

@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package replaced the desktop shell's preformatted grouped mock-search block with a structured renderer-owned grouped result view.
+The last completed package reran the short desktop mock-session trial against the structured grouped-result renderer and confirmed that no new blocker appears at this scale.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -52,9 +52,11 @@ CURRENT REALITY:
 - The desktop search path now returns structured grouped result data alongside the stable formatted CLI output so renderer presentation can stay data-driven.
 - The renderer now presents grouped search results as labeled sections and match rows instead of a single preformatted text block.
 - Deterministic verification still covers the desktop scaffold path and the CLI desktop-search expectation remains stable.
+- A short desktop trial can now complete one root-and-query grouped search with structured results end to end without exposing a new blocker at this scale.
+- The next most useful feature target is a narrow read-only detail panel for one selected search match, not broader navigation or write behavior.
 
 ACTIVE FOCUS:
-Rerun the short desktop mock-session trial now that the grouped result presentation is renderer-owned and structured.
+Move from structured grouped results to one narrow read-only selected-match detail view.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the structured result view is usable at this scale.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should add one read-only detail surface for the currently selected mock-search result while preserving the same grouped search truth.
