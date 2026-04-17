@@ -180,15 +180,85 @@ body {
   color: #6b5a4a;
 }
 
-.search-result {
+.mock-search-results {
   margin: 18px 0 0;
-  padding: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.mock-search-summary {
   border-radius: 16px;
   border: 1px solid rgba(60, 44, 30, 0.08);
   background: rgba(255, 255, 255, 0.72);
+  padding: 16px;
+}
+
+.mock-search-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.mock-search-group {
+  border-radius: 18px;
+  border: 1px solid rgba(60, 44, 30, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 16px;
+}
+
+.mock-search-group-header {
+  margin-bottom: 12px;
+}
+
+.mock-search-group-label,
+.mock-search-group-anchor,
+.mock-search-artifact,
+.mock-search-note,
+.mock-search-tags {
+  margin: 0;
+}
+
+.mock-search-group-label {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8c4c1f;
+}
+
+.mock-search-group-anchor {
+  margin-top: 4px;
+  color: #52453b;
+}
+
+.mock-search-match-list {
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  padding: 0;
+}
+
+.mock-search-match {
+  border-radius: 16px;
+  border: 1px solid rgba(60, 44, 30, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.mock-search-artifact {
   color: #2b221c;
-  font: 0.92rem/1.5 "SFMono-Regular", "Menlo", monospace;
-  white-space: pre-wrap;
+  font-weight: 600;
+}
+
+.mock-search-note {
+  color: #3d3128;
+}
+
+.mock-search-tags {
+  font-size: 0.88rem;
+  color: #6b5a4a;
 }
 
 @media (max-width: 720px) {

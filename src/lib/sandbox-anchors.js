@@ -203,7 +203,38 @@ function buildSandboxSearchOutput(targetPath, query) {
   };
 }
 
-function buildSandboxDesktopSearchOutput(targetPath, query) {
+function formatSandboxDesktopSearchOutput(searchResult) {
+  const lines = [];
+  lines.push("DESKTOP SEARCH PREVIEW");
+  lines.push(`root: ${searchResult.rootPath}`);
+  lines.push(`query: ${searchResult.query}`);
+  lines.push(`sessions: ${searchResult.sessionCount}`);
+  lines.push(`matches: ${searchResult.matchCount}`);
+  lines.push("");
+
+  if (searchResult.groups.length === 0) {
+    lines.push("No bookmarked matches found.");
+
+    return lines.join("\n");
+  }
+
+  for (const group of searchResult.groups) {
+    lines.push(`SESSION: ${group.sessionTitle}`);
+    lines.push(`ANCHOR: ${group.anchorPath}`);
+
+    for (const match of group.matches) {
+      lines.push(`- ${match.artifactPath}`);
+      lines.push(`  note: ${match.note}`);
+      lines.push(`  tags: ${match.tags.length > 0 ? match.tags.join(", ") : "none"}`);
+    }
+
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
+}
+
+function buildSandboxDesktopSearchResult(targetPath, query) {
   const result = searchNestedAnchors(targetPath, query);
 
   if (!result.ok) {
@@ -228,43 +259,38 @@ function buildSandboxDesktopSearchOutput(targetPath, query) {
 
   const groups = Array.from(groupedMatches.values()).sort((left, right) => compareText(left.anchorPath, right.anchorPath));
 
-  const lines = [];
-  lines.push("DESKTOP SEARCH PREVIEW");
-  lines.push(`root: ${targetPath}`);
-  lines.push(`query: ${result.query}`);
-  lines.push(`sessions: ${groups.length}`);
-  lines.push(`matches: ${result.matches.length}`);
-  lines.push("");
+  return {
+    ok: true,
+    rootPath: targetPath,
+    query: result.query,
+    sessionCount: groups.length,
+    matchCount: result.matches.length,
+    groups,
+    output: formatSandboxDesktopSearchOutput({
+      groups,
+      matchCount: result.matches.length,
+      query: result.query,
+      rootPath: targetPath,
+      sessionCount: groups.length,
+    }),
+  };
+}
 
-  if (groups.length === 0) {
-    lines.push("No bookmarked matches found.");
+function buildSandboxDesktopSearchOutput(targetPath, query) {
+  const result = buildSandboxDesktopSearchResult(targetPath, query);
 
-    return {
-      ok: true,
-      output: lines.join("\n"),
-    };
-  }
-
-  for (const group of groups) {
-    lines.push(`SESSION: ${group.sessionTitle}`);
-    lines.push(`ANCHOR: ${group.anchorPath}`);
-
-    for (const match of group.matches) {
-      lines.push(`- ${match.artifactPath}`);
-      lines.push(`  note: ${match.note}`);
-      lines.push(`  tags: ${match.tags.length > 0 ? match.tags.join(", ") : "none"}`);
-    }
-
-    lines.push("");
+  if (!result.ok) {
+    return result;
   }
 
   return {
     ok: true,
-    output: lines.join("\n").trimEnd(),
+    output: result.output,
   };
 }
 
 module.exports = {
+  buildSandboxDesktopSearchResult,
   buildSandboxDesktopSearchOutput,
   buildSandboxDiscoverOutput,
   buildSandboxSearchOutput,

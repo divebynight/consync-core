@@ -88,6 +88,23 @@ function testCoreSurface() {
     sessionDirectoryExists: true,
   });
   assert.strictEqual(mockSearchResult.ok, true);
+  assert.strictEqual(mockSearchResult.rootPath, "sandbox/fixtures/nested-anchor-trial");
+  assert.strictEqual(mockSearchResult.query, "moss");
+  assert.strictEqual(mockSearchResult.sessionCount, 2);
+  assert.strictEqual(mockSearchResult.matchCount, 2);
+  assert.deepStrictEqual(mockSearchResult.groups[0], {
+    anchorPath: "2026/april/balcony-zine",
+    sessionTitle: "Balcony Zine Session",
+    matches: [
+      {
+        anchorPath: "2026/april/balcony-zine",
+        artifactPath: "exports/cover-notes.md",
+        note: "Moss motif for cover transition",
+        sessionTitle: "Balcony Zine Session",
+        tags: ["cover", "moss", "print"],
+      },
+    ],
+  });
   assert.ok(mockSearchResult.output.includes("DESKTOP SEARCH PREVIEW"));
   assert.ok(mockSearchResult.output.includes("SESSION: Balcony Zine Session"));
   assert.deepStrictEqual(pingResponse, {
@@ -143,6 +160,9 @@ function testIpcRegistration() {
     assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
     assert.strictEqual(sessionState.currentPositionSeconds, 84);
     assert.strictEqual(mockSearch.ok, true);
+    assert.strictEqual(mockSearch.sessionCount, 2);
+    assert.strictEqual(mockSearch.matchCount, 2);
+    assert.strictEqual(mockSearch.groups[1].sessionTitle, "Greenhouse Poster Session");
     assert.ok(mockSearch.output.includes("ANCHOR: 2026/april/greenhouse-poster"));
     assert.strictEqual(updatedSessionState.artifactCount, getSessionArtifactCount());
     assert.deepStrictEqual(updatedSessionState.bookmarks, [
@@ -276,6 +296,7 @@ async function testPreloadBridge() {
       currentPositionSeconds: 84,
     });
     assert.strictEqual(mockSearch.ok, true);
+    assert.strictEqual(mockSearch.groups[0].matches[0].artifactPath, "exports/cover-notes.md");
     assert.ok(mockSearch.output.includes("SESSION: Greenhouse Poster Session"));
     assert.deepStrictEqual(bookmarkState, {
       artifactCount: getSessionArtifactCount(),

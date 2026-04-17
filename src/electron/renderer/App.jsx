@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
+import { getMockSearchSummaryRows } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
@@ -29,6 +30,47 @@ function getDesktopBridge() {
   return desktopBridge;
 }
 
+function MockSearchResult({ searchResult }) {
+  const summaryRows = getMockSearchSummaryRows(searchResult);
+
+  return (
+    <div className="mock-search-results">
+      <div className="mock-search-summary">
+        {summaryRows.map(row => (
+          <StatusRow key={row.label} label={row.label} value={row.value} />
+        ))}
+      </div>
+
+      {searchResult.groups.length > 0 ? (
+        <div className="mock-search-groups">
+          {searchResult.groups.map(group => (
+            <section className="mock-search-group" key={`${group.anchorPath}:${group.sessionTitle}`}>
+              <header className="mock-search-group-header">
+                <p className="mock-search-group-label">{group.sessionTitle}</p>
+                <p className="mock-search-group-anchor">{group.anchorPath}</p>
+              </header>
+
+              <ul className="mock-search-match-list">
+                {group.matches.map(match => (
+                  <li className="mock-search-match" key={`${group.anchorPath}:${match.artifactPath}`}>
+                    <p className="mock-search-artifact">{match.artifactPath}</p>
+                    <p className="mock-search-note">{match.note || "No note"}</p>
+                    <p className="mock-search-tags">
+                      {match.tags.length > 0 ? match.tags.join(" / ") : "No tags"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">No bookmarked matches found for this root and query.</p>
+      )}
+    </div>
+  );
+}
+
 export function App() {
   const [backendSummary, setBackendSummary] = useState(null);
   const [bridgeStatus, setBridgeStatus] = useState(null);
@@ -36,7 +78,7 @@ export function App() {
   const [note, setNote] = useState("");
   const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
   const [searchQuery, setSearchQuery] = useState("moss");
-  const [searchOutput, setSearchOutput] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -107,11 +149,11 @@ export function App() {
         throw new Error(result.output);
       }
 
-      setSearchOutput(result.output);
+      setSearchResult(result);
       setErrorMessage(null);
     } catch (error) {
       setErrorMessage(error.message);
-      setSearchOutput("");
+      setSearchResult(null);
     }
   }
 
@@ -218,8 +260,8 @@ export function App() {
             </button>
           </form>
 
-          {searchOutput ? (
-            <pre className="search-result">{searchOutput}</pre>
+          {searchResult ? (
+            <MockSearchResult searchResult={searchResult} />
           ) : (
             <p className="empty-state">Enter a root and query to preview the grouped mock search flow in the desktop shell.</p>
           )}

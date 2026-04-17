@@ -67,6 +67,9 @@ function main() {
   runNodeStep("[verify] Renderer session panel slice", [path.join(repoRoot, "src", "test", "renderer-session-panel.js")]);
   console.log("");
 
+  runNodeStep("[verify] Renderer mock search panel slice", [path.join(repoRoot, "src", "test", "renderer-mock-search-panel.js")]);
+  console.log("");
+
   runNodeStep("[verify] Renderer bookmark read-after-write slice", [path.join(repoRoot, "src", "test", "renderer-bookmark-flow.js")]);
   console.log("");
 

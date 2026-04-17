@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package reran the short desktop mock-session trial and confirmed that the shell is usable for one narrow search-oriented mock session at this scale.
+The last completed package replaced the desktop shell's preformatted grouped mock-search block with a structured renderer-owned grouped result view.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -49,10 +49,12 @@ CURRENT REALITY:
 - The renderer can now display the same grouped mock-search truth already returned by `sandbox-desktop-search`.
 - The new desktop search path remains read-only and adds no query persistence, linking, or ranking behavior.
 - A short desktop trial can now complete one root-and-query grouped mock search end to end without exposing a new workflow blocker at that scale.
-- The most useful next improvement is presentation-level: the grouped result still renders as preformatted text rather than structured renderer-owned rows.
+- The desktop search path now returns structured grouped result data alongside the stable formatted CLI output so renderer presentation can stay data-driven.
+- The renderer now presents grouped search results as labeled sections and match rows instead of a single preformatted text block.
+- Deterministic verification still covers the desktop scaffold path and the CLI desktop-search expectation remains stable.
 
 ACTIVE FOCUS:
-Move from baseline trial readiness to a small renderer-side presentation improvement for grouped mock-search results.
+Rerun the short desktop mock-session trial now that the grouped result presentation is renderer-owned and structured.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should render the grouped mock-search result as structured desktop rows while preserving the same read-only search truth.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the structured result view is usable at this scale.

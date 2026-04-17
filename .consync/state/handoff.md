@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: rerun_mock_session_desktop_trial_with_search_path
+TYPE: FEATURE
+PACKAGE: render_structured_grouped_search_results_in_desktop_shell
 
 STATUS
 
@@ -7,30 +7,42 @@ PASS
 
 SUMMARY
 
-Reran the short desktop mock-session trial after exposing the grouped mock-search path and found no new blocker at this scale.
+Replaced the desktop shell's raw preformatted grouped mock-search block with a renderer-owned structured result view while keeping the grouped search truth, read-only behavior, and CLI expectation stable.
 
-The updated shell now supports a minimal but complete search-oriented trial loop: enter a root, enter a query, run the grouped mock search, and see the same read-only grouped truth already verified outside the shell. At this scale, that is enough to count as one usable short mock session path.
+The shared desktop/core search path now returns structured grouped data alongside the existing formatted output, so the renderer can present labeled session groups, anchor paths, and individual match rows without parsing a text blob. The visible search panel stays narrow and read-only: no linking, ranking, persistence, or session behavior changed.
 
-No new code changes were required for this observational rerun. The package stayed narrow, verified the current shell behavior, and recorded the next most useful improvement as presentation-level rather than blocker-level: structured renderer-owned search result rows instead of a preformatted block.
+Focused verification now checks both the structured data shape flowing through the desktop path and the small renderer-owned summary helper, while full repo verification still passes and the CLI desktop-search expectation remains unchanged.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-20260417-rerun-mock-session-desktop-trial-with-search-path.md` — preserved the executed process instruction before restoring the live `next-action.md` slot to the next planned package.
-- `src/commands/sandbox-desktop-search.js` — added the read-only grouped command that simulates a desktop-style search result view over nested anchors.
-- `sandbox/expectations/nested-anchor-trial-desktop-search-moss.md` — added the deterministic expected output for the grouped desktop-style mock flow.
+- `.consync/state/history/plans/feature-20260417-render-structured-grouped-search-results-in-desktop-shell.md` — preserved the executed feature instruction before restoring the live `next-action.md` slot to the next planned package.
+- `src/electron/renderer/mock-search-panel.mjs` — added a small renderer helper that turns structured desktop search results into summary rows the renderer owns.
+- `src/test/renderer-mock-search-panel.js` — added a focused renderer-side verification slice for the structured grouped search summary.
 
 FILES MODIFIED
 
-- `.consync/state/package_plan.md` — recorded the completed rerun trial package and pointed the next package at the narrowest useful follow-up.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that the shell is now usable for one short search-oriented mock session.
-- `.consync/state/next-action.md` — replaced the live slot with the next feature package for structured renderer-owned search results.
-- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this process package.
+- `src/lib/sandbox-anchors.js` — refactored desktop-search assembly so structured grouped data and the stable formatted CLI output both come from the same underlying truth.
+- `src/core/desktop-shell.js` — changed the desktop shell search surface to return structured grouped result data for the renderer.
+- `src/electron/renderer/App.jsx` — replaced the preformatted search block with structured grouped sections, rows, and a small summary panel.
+- `src/electron/renderer/styles.css` — added minimal layout and typography rules for the grouped search sections and match rows.
+- `src/test/desktop-scaffold.js` — extended the desktop scaffold checks to assert structured grouped search data as well as the stable formatted output.
+- `src/test/verify.js` — added the renderer mock-search helper slice to the standard verification run.
+- `.consync/state/package_plan.md` — recorded the completed feature package and queued a narrow follow-up process rerun.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect the new structured desktop search presentation.
+- `.consync/state/next-action.md` — replaced the live slot with the next process package.
+- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this feature package.
 
-TRIAL OUTCOME
+BEHAVIOR ADDED
 
-- The desktop shell now supports one complete minimal search-oriented mock session path end to end.
-- No new blocker appeared at this scale after the grouped mock-search path was exposed.
-- The next most useful improvement is presentation quality: render grouped results as structured desktop-owned rows or sections instead of a preformatted text block.
+- The desktop search panel now shows grouped results as labeled session sections with anchor paths and individual match rows.
+- Search metadata now appears as renderer-owned summary rows for root, query, session count, and match count.
+- Empty search results now stay inside the same structured panel instead of falling back to a raw text response.
+
+BEHAVIOR PRESERVED
+
+- The grouped desktop search still returns the same underlying matches and formatted output used by `sandbox-desktop-search`.
+- The entire desktop search path remains read-only and does not add query persistence, linking, ranking, or new IPC breadth.
+- Existing deterministic nested-anchor expectations and full repo verification remain stable.
 
 COMMANDS RUN
 
@@ -47,15 +59,15 @@ HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
 2. Start the desktop shell and run one grouped mock search using `sandbox/fixtures/nested-anchor-trial` and `moss`.
-3. Confirm the grouped result appears and matches the same underlying truth already returned by `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
-4. Confirm that no new blocker prevents completing that short search-oriented path end to end.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm that this package only adds the expected state-file changes, plus the unrelated pre-existing template edit if it is still present.
-6. Failure case: if the shell still cannot complete one root-and-query grouped search path end to end, the readiness conclusion is wrong.
-7. Failure case: if the package records extra speculative blockers despite the short path working, the package is too broad.
+3. Confirm the result now renders as structured session/anchor sections with individual match rows instead of one raw preformatted block.
+4. Run `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss` and confirm the groups, anchors, and match counts still align with the desktop shell.
+5. Confirm the flow is still read-only: no saved queries, link actions, ranking, or new session writes appear.
+6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected renderer, verification, and state files.
+7. Failure case: if the desktop shell shows different groups or match counts than the CLI expectation, the structured renderer view diverged from the shared truth.
+8. Failure case: if the search panel adds new write behavior or product surface beyond structured presentation, the package is too broad.
 
 VERIFICATION NOTES
 
-- Reviewed the updated renderer and core search path against the grouped mock-search baseline and reran the focused desktop scaffold test plus full repo verification.
-- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, and `cd /Users/markhughes/Projects/consync-core && git status --short` during this observational rerun.
-- Observed outcome: the desktop scaffold test passed, `npm run verify` passed, and the only repo change present before closeout was an unrelated pre-existing modification to `.consync/templates/portable/.consync/state/next-action.md`.
-- Validated the important edge cases that the search path remains read-only, the shell can now complete one full root/query grouped search loop, and no new blocker appeared at that scale beyond presentation quality.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, and `cd /Users/markhughes/Projects/consync-core && git status --short` after the structured-result refactor.
+- Observed outcome: the desktop scaffold test passed, full repo verification passed, and the working tree contained only the expected renderer, shared-search, verification, and state-file edits for this package.
+- Validated the important edge cases that the desktop path now carries structured grouped data for the renderer, the CLI desktop-search text output stayed stable under expectation-based verification, and the search flow remained read-only.

@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-26
+27
 
 NEXT PACKAGE:
 
-`render_mock_search_results_as_structured_desktop_rows`
+`rerun_mock_session_desktop_trial_with_structured_results`
 
 DEFAULT RUN WINDOW:
 
@@ -225,12 +225,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: reran the short desktop mock-session trial and found no new blocker at this scale; the shell is now usable for one narrow search-oriented mock session through the grouped read-only search path.
 
-26. `render_mock_search_results_as_structured_desktop_rows`
-   - Status: READY
+26. `render_structured_grouped_search_results_in_desktop_shell`
+   - Status: PASS
    - Depends on: `rerun_mock_session_desktop_trial_with_search_path`
    - Stop gate: pause after this package to review whether the grouped mock-search result now feels like renderer-owned output rather than a preformatted bridge dump.
    - Human verification: optional
-   - Notes: should replace the current preformatted grouped search block with a small structured renderer presentation while preserving the same read-only search truth.
+   - Notes: the desktop renderer now presents grouped mock-search results as structured sections and rows backed by shared grouped search data, while preserving the same read-only grouped truth and CLI output.
+
+27. `rerun_mock_session_desktop_trial_with_structured_results`
+   - Status: READY
+   - Depends on: `render_structured_grouped_search_results_in_desktop_shell`
+   - Stop gate: pause after this package to review whether the structured renderer presentation is now enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Human verification: optional
+   - Notes: should rerun the short desktop mock-session trial against the structured grouped-result renderer and record the next concrete blocker or confirm the presentation is now usable at this scale.
 
 REPAIR HANDLING:
 
