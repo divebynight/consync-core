@@ -1,0 +1,16 @@
+{
+  "sessionId": "balcony-zine-april",
+  "sessionTitle": "Balcony Zine Session",
+  "bookmarks": [
+    {
+      "path": "exports/cover-notes.md",
+      "note": "Moss motif for cover transition",
+      "tags": ["cover", "moss", "print"]
+    },
+    {
+      "path": "exports/page-sequence.txt",
+      "note": "Sequence notes for plant-to-window spread",
+      "tags": ["print", "sequence"]
+    }
+  ]
+}

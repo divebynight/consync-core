@@ -8,6 +8,8 @@ function runSystemSummaryCommand() {
   console.log("- sandbox-verify");
   console.log("- sandbox-describe");
   console.log("- sandbox-propose");
+  console.log("- sandbox-discover");
+  console.log("- sandbox-search");
   console.log("- system-check");
   console.log("- system-summary");
   console.log("- portable");
@@ -17,11 +19,14 @@ function runSystemSummaryCommand() {
   console.log("FIXTURES");
   console.log("- basic-mixed");
   console.log("- nested-mixed");
+  console.log("- nested-anchor-trial");
   console.log("- single-type-flat");
   console.log("- mixed-flat-small");
   console.log("EXPECTATIONS");
   console.log("- basic-mixed-scan");
   console.log("- nested-mixed-scan");
+  console.log("- nested-anchor-trial-discover");
+  console.log("- nested-anchor-trial-search-moss");
   console.log("- basic-mixed-propose");
   console.log("- nested-mixed-propose");
   console.log("- single-type-flat-propose");

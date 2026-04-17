@@ -86,6 +86,20 @@ function main() {
   console.log("");
 
   runExpectationStep(
+    "[verify] Nested anchor discovery trial",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-discover", "sandbox/fixtures/nested-anchor-trial"],
+    path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-discover.md")
+  );
+  console.log("");
+
+  runExpectationStep(
+    "[verify] Nested anchor search trial",
+    [path.join(repoRoot, "src", "index.js"), "sandbox-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-search-moss.md")
+  );
+  console.log("");
+
+  runExpectationStep(
     "[verify] Proposal layer: basic-mixed",
     [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "basic-mixed-propose.md")

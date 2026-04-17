@@ -10,7 +10,7 @@ ACTIVE
 
 CURRENT CURSOR:
 
-21
+22
 
 NEXT PACKAGE:
 
@@ -190,12 +190,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: updated the active orientation docs so they describe Consync as a sparse local context-anchor system rather than a full filesystem mirror, and clarified that `sandbox/current` is only a development harness.
 
-21. `run_mock_session_desktop_trial`
-   - Status: READY
+21. `build_nested_anchor_mock_session_trial`
+   - Status: PASS
    - Depends on: `formalize_context_anchor_architecture`
+   - Stop gate: none
+   - Human verification: optional
+   - Notes: added a read-only nested-anchor sandbox fixture plus deterministic discovery and bookmark-search commands that prove selective context capture without durable linking.
+
+22. `run_mock_session_desktop_trial`
+   - Status: READY
+   - Depends on: `build_nested_anchor_mock_session_trial`
    - Stop gate: pause after this package to review the first concrete trial blocker or confirm that the current desktop shell is usable for a short mock session.
    - Human verification: optional
-   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, if any, without broadening implementation scope prematurely.
+   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, using the nested-anchor trial as the new realistic context baseline.
 
 REPAIR HANDLING:
 

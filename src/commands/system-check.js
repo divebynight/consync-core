@@ -54,6 +54,8 @@ function runSystemCheckCommand() {
     "show-guid.js",
     "sandbox-scan.js",
     "sandbox-verify.js",
+    "sandbox-discover.js",
+    "sandbox-search.js",
   ];
 
   const commandsDir = path.join(rootPath, "src", "commands");

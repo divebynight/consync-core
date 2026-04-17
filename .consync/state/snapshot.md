@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package updated the active docs so they now describe Consync as a sparse local context-anchor system rather than a filesystem mirror.
+The last completed package built a read-only nested-anchor mock-session trial that proves anchor discovery and bookmark metadata search across local `.consync` anchors.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -39,9 +39,13 @@ CURRENT REALITY:
 - Session is now explicitly documented as the primary captured unit, with folder context treated as supportive rather than equivalent.
 - Search/discovery is now documented as downward scanning of nested anchors under a chosen root, with discovered associations kept provisional until linked deliberately.
 - `sandbox/current` is now explicitly framed as a development harness rather than the long-term ontology.
+- A nested sandbox fixture now models a higher-level root with two local `.consync` anchors and one unanchored sibling.
+- `sandbox-discover` now finds nested local anchors beneath a chosen root without treating every folder as captured context.
+- `sandbox-search` now searches bookmarked artifact metadata across discovered anchors while ignoring ambient non-bookmarked files.
+- The nested-anchor trial is deterministic enough for expectation-based verification and remains read-only.
 
 ACTIVE FOCUS:
-Use the clarified anchor/session architecture as the baseline for a short mock-session trial so the next package can expose the first concrete usability blocker, if one remains.
+Use the nested-anchor trial as the new reality check while exercising the current desktop shell in a short mock session.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness against the new nested-anchor baseline.

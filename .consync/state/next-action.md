@@ -7,9 +7,9 @@ READY
 
 SUMMARY
 
-Run one short mock-session trial against the current desktop shell and capture the first concrete blocker, or confirm that the current flow is usable for a basic trial without adding new implementation work yet.
+Use the current desktop shell for one short mock-session trial and name the first concrete blocker, or confirm that the shell is usable at that scale without adding new implementation work yet.
 
-The recent packages made the bookmark write/read/render loop real and tightened the nearby copy. The next step should stop polishing and check whether the current shell is actually usable for a short mock session.
+The nested-anchor sandbox trial now provides a more realistic context baseline than the earlier flat sandbox fixtures. This package should use that new baseline to judge whether the current desktop shell is ready for a short trial or still missing one concrete workflow-critical step.
 
 FILES CREATED
 
@@ -28,8 +28,9 @@ GOAL
 Determine whether the current desktop shell is ready for a short mock-session trial by:
 
 1. exercising the visible desktop flow with the current real bookmark behavior in mind
-2. identifying the first concrete blocker that makes the shell awkward for a short trial, if one appears
-3. avoiding speculative fixes until that blocker is named clearly
+2. using the nested-anchor trial as the more realistic comparison baseline for captured context
+3. identifying the first concrete blocker that makes the shell awkward for a short trial, if one appears
+4. avoiding speculative fixes until that blocker is named clearly
 
 CONSTRAINTS
 
@@ -37,11 +38,12 @@ CONSTRAINTS
 - Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
 - Do not change preload, backend, or session logic unless a tiny unblocker is clearly required and still fits the package scope
 - Prefer recording the blocker over partially fixing several things at once
+- Do not broaden the desktop shell just to imitate future nested-anchor behavior prematurely
 
 TASK
 
-1. Use the current desktop shell and repo context to define a very short mock-session trial flow.
-2. Identify the smallest realistic trial path a human could attempt right now using the current desktop UI and artifact-backed bookmark behavior.
+1. Define a very short mock-session trial flow that uses the current desktop UI and the new nested-anchor trial as the realism baseline.
+2. Identify the smallest realistic path a human could attempt right now in the desktop shell.
 3. Record the first concrete blocker or friction point that would likely matter in that trial.
 4. If no blocker appears at this scale, record that the shell appears ready for a short mock trial and name the next most useful feature target.
 5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
@@ -63,7 +65,7 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success.
 2. Review the trial notes and confirm the package names one concrete mock-session blocker or explicitly records that no blocker appeared at this scale.
 3. Confirm the package does not sprawl into multiple speculative fixes.
 4. If a tiny unblocker was implemented, confirm it is tightly tied to the named blocker and does not broaden the architecture.

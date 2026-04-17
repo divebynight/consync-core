@@ -1,0 +1,16 @@
+{
+  "sessionId": "greenhouse-poster-april",
+  "sessionTitle": "Greenhouse Poster Session",
+  "bookmarks": [
+    {
+      "path": "captures/moss-study.jpg",
+      "note": "Moss texture reference for poster lighting",
+      "tags": ["moss", "poster", "texture"]
+    },
+    {
+      "path": "notes/light-pass.txt",
+      "note": "Window light timing for greenhouse lettering",
+      "tags": ["light", "poster"]
+    }
+  ]
+}

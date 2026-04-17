@@ -6,6 +6,8 @@ const { runSandboxVerifyCommand } = require("../commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("../commands/sandbox-describe");
 const { runSandboxProposeCommand } = require("../commands/sandbox-propose");
 const { runSandboxCatalogCommand } = require("../commands/sandbox-catalog");
+const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover");
+const { runSandboxSearchCommand } = require("../commands/sandbox-search");
 const { runSystemCheckCommand } = require("../commands/system-check");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
 const { runPortableCommand } = require("../commands/portable");
@@ -87,6 +89,16 @@ async function main() {
 
   if (command === "sandbox-catalog") {
     runSandboxCatalogCommand();
+    return;
+  }
+
+  if (command === "sandbox-discover") {
+    runSandboxDiscoverCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "sandbox-search") {
+    runSandboxSearchCommand(process.argv[3], process.argv.slice(4).join(" "));
     return;
   }
 
