@@ -6,11 +6,11 @@ Complete the remaining process guardrails, then prove the protocol can carry a s
 
 SEQUENCE STATUS:
 
-PAUSED_STOP_GATE
+ACTIVE
 
 CURRENT CURSOR:
 
-20
+21
 
 NEXT PACKAGE:
 
@@ -183,9 +183,16 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: tightened the panel wording so the action now refers directly to saving a bookmark into the current session.
 
-20. `run_mock_session_desktop_trial`
-   - Status: READY
+20. `formalize_context_anchor_architecture`
+   - Status: PASS
    - Depends on: `stabilize_drop_bookmark_panel_copy`
+   - Stop gate: none
+   - Human verification: optional
+   - Notes: updated the active orientation docs so they describe Consync as a sparse local context-anchor system rather than a full filesystem mirror, and clarified that `sandbox/current` is only a development harness.
+
+21. `run_mock_session_desktop_trial`
+   - Status: READY
+   - Depends on: `formalize_context_anchor_architecture`
    - Stop gate: pause after this package to review the first concrete trial blocker or confirm that the current desktop shell is usable for a short mock session.
    - Human verification: optional
    - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, if any, without broadening implementation scope prematurely.

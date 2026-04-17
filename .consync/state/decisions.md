@@ -1,5 +1,11 @@
 # Decisions
 
+- Consync captures context and re-entry cues, not full filesystem truth.
+- Session is the primary unit of captured context; folder context matters, but folder != session.
+- Local `.consync` anchors are the durable context source of truth only where meaningful local persistence exists, and they should stay sparse and intentional.
+- Active session scope is selective by default: interacted-with artifacts matter first, ambient nearby files do not automatically become tracked scope.
+- Search/discovery may scan nested `.consync` anchors under a chosen root, but discovered associations are provisional until linked deliberately.
+- `sandbox/current` is a development harness, not the final long-term ontology.
 - Electron is currently being used as a UI shell over Consync core.
 - `snapshot.md` is the main re-entry file.
 - `next-action.md` is the live execution slot for the package being prepared or currently being run.

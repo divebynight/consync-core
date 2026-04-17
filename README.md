@@ -1,11 +1,11 @@
 # consync-core
 
-Consync is a small local-first workspace for creating and inspecting structured artifact metadata, with a lightweight workflow layer kept inside `.consync/`.
+Consync is a small local-first context layer for creative work. It captures meaningful session context and artifact metadata without trying to mirror the full filesystem.
 
 Today the repo provides:
 
 - CLI commands for artifact creation and inspection
-- a minimal Electron desktop scaffold with a React renderer, preload bridge, and first in-memory session bookmark loop
+- a minimal Electron desktop scaffold with a React renderer, preload bridge, and a real saved-session bookmark loop
 - a deterministic sandbox verification loop
 - a portable scaffold command for installing a minimal Consync workflow starter into another repo
 - a portable `.consync/` boundary for workflow state and durable internal docs
@@ -22,6 +22,19 @@ It does not require network access, servers, or external services.
 - `src/electron/` — desktop scaffold split into main, preload, and renderer layers
 - `src/commands/`, `src/lib/`, `src/test/` — existing CLI commands, helpers, and verification code
 - `sandbox/` — fixtures, expectations, and current runtime artifacts used for manual and automated verification
+
+## Context Model
+
+Consync is intended to capture context, not full filesystem truth.
+
+- The session is the primary unit of captured context.
+- A folder can provide local context, but folder != session.
+- Local `.consync/` anchors hold durable context where meaningful local persistence exists.
+- Those anchors should be sparse and intentional, not sprayed across every folder.
+- By default, only artifacts explicitly interacted with, such as bookmarked or deliberately added items, enter active session scope.
+- Broader search/discovery may scan downward for nested `.consync/` anchors under a chosen root, but discovered associations are not durable structural links unless they are linked deliberately later.
+
+Consync is not a full mirror of user files, and it is not responsible for repairing renamed or moved structures on the user's behalf.
 
 ## SDC Loop
 
@@ -57,13 +70,17 @@ The architectural boundary is intentional:
 
 To start the desktop scaffold locally, run `npm run start:desktop`.
 
-The current desktop step supports a simple in-memory capture loop: the renderer can read placeholder session state and drop bookmarks through preload and IPC into shared core state. Real playback, persistence, and media control are still paused.
+The current desktop step supports a narrow real capture loop: the renderer can read session state and save bookmarks through preload and IPC into the current session artifact. Real playback, wider capture controls, and media control are still paused.
 
 The earlier terminal capture exploration remains under `sandbox/probes/audio-session-capture/`. It is still useful as a probe, but audio playback and richer media behavior remain paused while the desktop shell is being established.
+
+`sandbox/current/` remains a development harness for current artifact flow and verification. It should not be treated as the final ontology for long-term Consync storage.
 
 ## Portable Boundary
 
 `.consync/` is the portable system boundary for Consync's internal process. It holds the active state, supporting artifacts, and historical references that let the repo travel without depending on external coordination.
+
+When a local `.consync/` anchor exists, it represents durable context truth for that local scope. Higher-level context can link to it later, but should not need to rewrite that local history to make the child context legible.
 
 To scaffold the minimal workflow starter into another repo, run `node src/index.js portable --target /path/to/other-repo`.
 

@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package tightened the Drop Bookmark panel wording so it now describes saving a bookmark into the current session more directly.
+The last completed package updated the active docs so they now describe Consync as a sparse local context-anchor system rather than a filesystem mirror.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -34,9 +34,14 @@ CURRENT REALITY:
 - The bookmark loop is now also machine-verified end-to-end at the model level: persisted artifact contents, derived session state, derived Session rows, and reload consistency.
 - The Bookmarks empty state now describes the absence of saved bookmarks directly instead of referring to proving the loop.
 - The bookmark-entry panel now describes the action in terms of saving a bookmark into the current session instead of using generic earlier wording.
+- Consync is now documented as a context/memory layer over creative work rather than a tracker of full filesystem truth.
+- Local `.consync` anchors are now explicitly described as sparse durable context truth where meaningful local persistence exists.
+- Session is now explicitly documented as the primary captured unit, with folder context treated as supportive rather than equivalent.
+- Search/discovery is now documented as downward scanning of nested anchors under a chosen root, with discovered associations kept provisional until linked deliberately.
+- `sandbox/current` is now explicitly framed as a development harness rather than the long-term ontology.
 
 ACTIVE FOCUS:
-Shift from bookmark copy cleanup to a short mock-session trial so the next package can expose the first concrete usability blocker, if one remains.
+Use the clarified anchor/session architecture as the baseline for a short mock-session trial so the next package can expose the first concrete usability blocker, if one remains.
 
 NEXT ACTION:
 Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness.

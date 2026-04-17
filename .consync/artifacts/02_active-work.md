@@ -1,14 +1,16 @@
 # Active Work
 
 ## Now
-- Packet 1: Capture + Minimal Annotation
-- Stay in observation mode while validating proposal behavior on real folders.
+- Keep the active docs aligned around sparse local `.consync` anchors as durable context truth.
+- Treat sessions as the primary captured unit and keep folder context secondary to that.
+- Keep default scope selective: only explicitly interacted-with artifacts should matter by default.
 
 ## Next
-- Packet 2: List Artifacts
-- Packet 3: Funnel Visibility (light)
-- Promote only strong manual-test cases to fixtures.
+- Run a short mock-session trial against the current saved-session bookmark flow.
+- Clarify downward search/discovery behavior for nested `.consync` anchors without turning search hits into durable links automatically.
+- Keep `sandbox/current` framed as a development harness while real usage patterns are still being learned.
 
 ## Later
-- File linking (optional)
-- Session notes (optional)
+- Rebuildable discovery/index caching for speed only.
+- Deliberate parent/child context linking above local anchors.
+- Gravity, decay, and self-cleaning-hoard behavior as future-layer concepts.

@@ -1,5 +1,11 @@
 # Current System
 
+## What Consync Is
+
+Consync is a small offline-first context layer over creative work.
+
+It captures meaningful interaction and re-entry cues that a normal filesystem does not express well, while staying grounded in local files and small human-readable metadata.
+
 ## What Consync Does Today
 
 Consync is a small offline-first workspace that is still CLI-first, with a new desktop scaffold layered in for local app iteration.
@@ -9,10 +15,18 @@ It currently:
 - creates GUID-backed JSON artifacts
 - reads and lists existing artifact metadata
 - includes a first Electron main/preload/renderer scaffold with a React renderer
-- supports an in-memory desktop session state and bookmark creation loop through preload + IPC
+- supports a real desktop session read/write bookmark loop through preload + IPC
 - installs a curated portable workflow scaffold into another repo
 - runs deterministic sandbox inspection and proposal commands
 - keeps workflow state and durable internal reference docs inside `.consync/`
+
+## What Consync Is Not
+
+Consync is not:
+
+- a full mirror of the filesystem
+- a file-repair system for renamed or moved user structures
+- a tracker of every file in ambient scope
 
 ## What It Does Not Do Yet
 
@@ -25,11 +39,34 @@ Consync does not currently:
 - maintain a database or central index
 - implement real desktop audio playback or renderer-side filesystem access
 
+## Primary Unit And Local Truth
+
+- Session is the primary unit of captured context.
+- Folder context is important, but folder != session.
+- Local `.consync` anchors hold durable context truth where meaningful local persistence exists.
+- Those anchors should remain sparse and intentional rather than being placed in every folder automatically.
+
+## Selective Capture And Relationships
+
+- By default, only artifacts explicitly interacted with, such as bookmarked or deliberately added items, become active session scope.
+- Nearby files remain background context unless scope is widened deliberately.
+- Parent or higher-level context may know about child contexts.
+- Child contexts should remain locally legible and portable even if higher-level links are added later.
+- Search/discovery associations are provisional until they are linked deliberately; they are not durable structural links by default.
+
+## Search And Discovery
+
+- A broader search root may scan downward for nested `.consync` anchors.
+- A rebuildable index or cache may exist later for speed, but local anchors remain the source of truth.
+- Search hits should not automatically rewrite or manufacture durable history.
+
 ## State And Artifacts
 
 - Runtime and workflow state lives in `.consync/state/`
 - Durable internal artifacts and reference docs live in `.consync/artifacts/`
 - Runtime sandbox outputs for command verification live under `sandbox/`
+
+`sandbox/current/` is currently a development harness. It is useful for exercising artifact flow and verification, but it should not be treated as the final long-term Consync ontology.
 
 ## Prompt Adapter Layer
 
@@ -47,7 +84,7 @@ Those prompt files tell the agent where to read the next action, where to write 
 
 The earlier terminal capture probe remains in `sandbox/probes/audio-session-capture/` as an exploratory reference. Audio playback, timeline sync, and richer capture behaviors are paused while the shared desktop shell is established.
 
-The active desktop direction now proves one real interaction loop: the renderer can read session state and create bookmarks, but persistence and playback remain intentionally deferred.
+The active desktop direction now proves one real interaction loop: the renderer can read session state and save bookmarks into the current session artifact, but playback and wider capture behavior remain intentionally deferred.
 
 ## Command Surface
 
