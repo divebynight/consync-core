@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package exposed nested-anchor search through a single grouped desktop-style mock flow.
+The last completed package ran a short desktop mock-session trial and identified the first concrete blocker.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -45,9 +45,11 @@ CURRENT REALITY:
 - The nested-anchor trial is deterministic enough for expectation-based verification and remains read-only.
 - `sandbox-desktop-search` now wraps nested anchor discovery and bookmark search into a grouped user-facing preview that feels closer to what a desktop result view would show.
 - The grouped mock flow still uses the same read-only anchor truth and does not add new linking, ranking, or persistent state.
+- The current desktop shell still exposes only summary rows and bookmark creation; it has no root/query search path for the grouped mock flow.
+- The first concrete blocker for a short desktop mock session is therefore missing desktop access to the existing read-only grouped search capability.
 
 ACTIVE FOCUS:
-Use the grouped desktop-style mock search flow as the new reality check while exercising the current desktop shell in a short mock session.
+Use the recorded blocker to add one minimal desktop read-only search path without broadening the shell into a full future app.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should exercise the current desktop shell in a short mock session and record the first concrete blocker or confirm basic trial readiness against the new grouped mock-flow baseline.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should expose the existing grouped mock search flow through the desktop shell so the first short mock session can actually attempt a root-and-query search.

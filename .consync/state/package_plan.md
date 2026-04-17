@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-23
+24
 
 NEXT PACKAGE:
 
-`run_mock_session_desktop_trial`
+`expose_grouped_mock_search_in_desktop_shell`
 
 DEFAULT RUN WINDOW:
 
@@ -205,11 +205,18 @@ PLANNED PACKAGES:
    - Notes: added a grouped desktop-style read-only search command that wraps nested anchor discovery and bookmark search into a more user-facing mock flow without adding UI or new durable relationships.
 
 23. `run_mock_session_desktop_trial`
-   - Status: READY
+   - Status: PASS
    - Depends on: `expose_nested_anchor_search_as_desktop_mock_flow`
    - Stop gate: pause after this package to review the first concrete trial blocker or confirm that the current desktop shell is usable for a short mock session.
    - Human verification: optional
-   - Notes: should exercise the current desktop shell against a short mock session and capture the first concrete usability blocker, using the new desktop-style grouped search flow as the more realistic context baseline.
+   - Notes: identified one concrete blocker without broadening implementation: the desktop shell has no way to choose a root or run the grouped mock search flow because the preload/IPC/renderer surface still exposes only session summary and bookmark creation.
+
+24. `expose_grouped_mock_search_in_desktop_shell`
+   - Status: READY
+   - Depends on: `run_mock_session_desktop_trial`
+   - Stop gate: pause after this package to review whether the desktop shell can now conduct one narrow read-only search flow without pretending to be the full future app.
+   - Human verification: optional
+   - Notes: should expose the existing grouped mock search flow through one minimal desktop read-only path with root/query inputs and result display, while avoiding writes, ranking, or durable linking.
 
 REPAIR HANDLING:
 
