@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-25
+26
 
 NEXT PACKAGE:
 
-`rerun_mock_session_desktop_trial_with_search_path`
+`render_mock_search_results_as_structured_desktop_rows`
 
 DEFAULT RUN WINDOW:
 
@@ -219,11 +219,18 @@ PLANNED PACKAGES:
    - Notes: exposed the existing grouped mock search through one minimal desktop read-only path with root/query inputs and result display, without adding writes, ranking, or durable linking.
 
 25. `rerun_mock_session_desktop_trial_with_search_path`
-   - Status: READY
+   - Status: PASS
    - Depends on: `expose_grouped_mock_search_in_desktop_shell`
    - Stop gate: pause after this package to review the next concrete blocker or confirm that the desktop shell is now usable for one short search-oriented mock session.
    - Human verification: optional
-   - Notes: should rerun the short desktop mock-session trial now that the shell can execute one grouped mock search directly.
+   - Notes: reran the short desktop mock-session trial and found no new blocker at this scale; the shell is now usable for one narrow search-oriented mock session through the grouped read-only search path.
+
+26. `render_mock_search_results_as_structured_desktop_rows`
+   - Status: READY
+   - Depends on: `rerun_mock_session_desktop_trial_with_search_path`
+   - Stop gate: pause after this package to review whether the grouped mock-search result now feels like renderer-owned output rather than a preformatted bridge dump.
+   - Human verification: optional
+   - Notes: should replace the current preformatted grouped search block with a small structured renderer presentation while preserving the same read-only search truth.
 
 REPAIR HANDLING:
 

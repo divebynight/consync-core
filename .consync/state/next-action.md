@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: rerun_mock_session_desktop_trial_with_search_path
+TYPE: FEATURE
+PACKAGE: render_mock_search_results_as_structured_desktop_rows
 
 STATUS
 
@@ -7,17 +7,18 @@ READY
 
 SUMMARY
 
-Rerun the short desktop mock-session trial now that the shell can execute one grouped mock search directly, and record the next concrete blocker or confirm that the shell is usable at that scale.
+Replace the current preformatted grouped mock-search block with a small structured renderer presentation so the desktop shell feels more like a real interface while still using the same read-only grouped search truth.
 
-The last package removed the first clear blocker by exposing a minimal desktop read-only root/query search path. This package should now test that updated shell again and identify what the next concrete blocker is, if one still appears.
+The last package confirmed that the shell is usable for one narrow search-oriented mock session at this scale. The next most useful improvement is presentational rather than architectural: the grouped result still renders as a preformatted block instead of structured renderer-owned rows.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-<timestamp>-rerun-mock-session-desktop-trial-with-search-path.md` — preserve this instruction before replacing the live `next-action.md` slot
+- `.consync/state/history/plans/feature-<timestamp>-render-mock-search-results-as-structured-desktop-rows.md` — preserve this instruction before replacing the live `next-action.md` slot
 
 FILES MODIFIED
 
-- minimal state or notes files only as needed to record the trial outcome
+- desktop renderer files only as needed to present grouped mock-search results structurally
+- focused verification files only as needed
 - `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
@@ -25,37 +26,34 @@ FILES MODIFIED
 
 GOAL
 
-Determine whether the updated desktop shell is now ready for a short search-oriented mock session by:
+Render the grouped mock-search result more intentionally in the desktop shell by:
 
-1. exercising the visible desktop flow with the new grouped mock-search path in place
-2. identifying the next concrete blocker that makes a short mock session awkward, if one appears
-3. avoiding speculative fixes until that blocker is named clearly
-4. confirming trial readiness explicitly if no blocker appears at this scale
+1. keeping the existing root/query search path unchanged
+2. presenting grouped results as structured renderer rows or sections instead of a raw preformatted block
+3. preserving the same read-only search truth already returned by the desktop/search path
+4. avoiding broader search behavior or new persistent state
 
 CONSTRAINTS
 
-- Keep this package narrow and observational first
-- Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
-- Do not broaden the desktop shell or search path further unless a tiny unblocker is clearly required and still fits the package scope
-- Prefer recording the blocker over partially fixing several things at once
+- Keep this package narrow and renderer-facing
+- Do not change the underlying grouped mock-search truth unless required for a tiny presentation helper
+- Do not add writes, ranking, filtering, persistence, or durable relationships
+- Do not turn this into a full search UI redesign
 
 TASK
 
-1. Define a very short mock-session trial flow that uses the desktop shell with the new grouped search path available.
-2. Identify the smallest realistic path a human can now attempt in the updated shell.
-3. Record the next concrete blocker or friction point that would likely matter in that trial.
-4. If no blocker appears at this scale, record that the shell appears ready for one short search-oriented mock session and name the next most useful feature target.
-5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
-6. Run repo verification.
-7. Update state files at the end.
+1. Add the smallest renderer-side structure needed to display grouped mock-search results as readable rows or sections.
+2. Preserve the same root/query inputs and the same underlying grouped search truth.
+3. Add focused verification only where needed.
+4. Run repo verification.
+5. Update state files at the end.
 
 DO NOT
 
-- start a broad usability push
 - redesign the desktop shell
-- add multiple new blockers or a long backlog
-- expand the package beyond one concrete trial outcome
-- broaden the grouped search behavior unless the new blocker clearly requires it
+- change the search contract or add new search features
+- add row actions, saved searches, or query history
+- broaden the package beyond a structured presentation pass
 
 COMMANDS TO RUN
 
@@ -65,34 +63,34 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success.
-2. Start the desktop shell and use the new root/query search path once.
-3. Confirm the grouped result appears and that the shell now supports at least one short search-oriented trial path end to end.
-4. Confirm the package records one next blocker clearly, or explicitly records that no blocker appeared at this scale.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected narrow files.
+2. Start the desktop shell and run one grouped mock search.
+3. Confirm the result now renders as structured desktop-owned rows or sections rather than a raw preformatted block.
+4. Confirm the rendered result still matches the same underlying grouped search truth for the same root/query.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected renderer, verification, and state files.
 
 PASS CRITERIA
 
-- One concrete next trial outcome is recorded clearly
-- Scope remains narrow and grounded in actual trial use
+- Grouped mock-search results render as structured desktop rows or sections
+- The displayed result still matches the existing grouped search truth
 - `npm run verify` passes
 - No unnecessary implementation sprawl was introduced
 
 FAIL CRITERIA
 
-- The package produces only vague usability commentary
-- The package tries to fix several possible future issues at once
-- The recorded blocker does not map to a plausible short mock session through the updated shell
+- The result still renders only as a raw preformatted block
+- The structured display diverges from the existing grouped search truth
+- The package introduces broader search features or write behavior
 - `npm run verify` fails
 
 STATE UPDATES
 
-- `package_plan.md` → record completion of the rerun trial package and set up the next narrow package from the observed outcome
-- `snapshot.md` → reflect the observed trial readiness or blocker after the desktop search path was exposed
+- `package_plan.md` → record completion of the structured-result package and set up the next narrow package from the observed outcome
+- `snapshot.md` → reflect that the grouped search path is now both usable and presented more intentionally in the shell
 - `next-action.md` → point to the next logical package after this unblocker
-- `handoff.md` → record the result of this PROCESS package
+- `handoff.md` → record the result of this FEATURE package
 
 NOTES
 
-- Keep this boring and observational.
-- The purpose is to see what the next real blocker is now that the first one is gone.
-- Prefer one crisp outcome over partial follow-on fixes.
+- Keep this boring and presentational.
+- The point is to improve readability without changing the underlying search model.
+- Prefer the smallest renderer-facing change that still feels more intentional.

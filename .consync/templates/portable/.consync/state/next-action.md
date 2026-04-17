@@ -1,302 +1,109 @@
 TYPE: PROCESS
-PACKAGE: establish_architecture_system_contract
-
-STATUS
-
-READY
-
-SUMMARY
-
-Introduce a global architecture contract that defines how Consync is structured across Core, Bridge, and Interface layers.
-
-This ensures that all future development follows a consistent system-first approach and prevents business logic from drifting into UI or Electron layers.
-
-This is not a feature change. It is a foundational system document.
-
-FILES CREATED
-
-- `ARCHITECTURE.md` — defines system layers, responsibilities, and development rules
-
-FILES MODIFIED
-
-- `.consync/state/package_plan.md`
-- `.consync/state/snapshot.md`
-- `.consync/state/next-action.md`
-- `.consync/state/handoff.md`
+PACKAGE: rerun_mock_session_desktop_trial_after_search_exposure
 
 GOAL
 
-Create a single source-of-truth document that:
+Rerun the short desktop mock-session trial now that the grouped mock-search flow is exposed through the desktop shell, and identify the next smallest real usability blocker or confirm that the current mock flow is coherent enough to continue.
 
-1. Defines Core as the only source of business logic
-2. Defines Bridge as a thin forwarding layer
-3. Defines Interface as display/input only
-4. Establishes development and testing rules
-5. Prevents architectural drift as the system evolves
+This is an observational package. Do not expand scope into fixes unless the trial reveals something impossible to evaluate without a tiny correction. Prefer recording one concrete blocker over speculative redesign.
+
+PRIMARY QUESTION
+
+Now that desktop can accept a root and query and show grouped mock-search results, what is the next real friction point in the mock-session flow?
+
+TRIAL TO RUN
+
+Use the current desktop shell and attempt a short mock session that mirrors the architecture we have been building toward:
+
+1. Launch the desktop shell.
+2. Enter a root such as:
+   `sandbox/fixtures/nested-anchor-trial`
+3. Enter a query such as:
+   `moss`
+4. Run the grouped search.
+5. Review the result as if you were actually trying to use Consync to find relevant prior context.
+
+Focus on whether the shell now supports a coherent minimal loop, and if not, what the single next blocker is.
+
+EVALUATION CRITERIA
+
+Look for the next smallest blocker in areas like:
+- clarity of the root/query flow
+- readability of grouped results
+- whether the results give enough context to be useful
+- whether the desktop shell now feels like a meaningful thin wrapper over the existing search truth
+- whether there is a missing read-only action needed to continue the mock session
+
+Do NOT jump ahead to solving broad UX, linking, ranking, or persistence questions.
 
 CONSTRAINTS
 
-- Keep the document simple and readable
-- Do not over-engineer or introduce excessive abstraction
-- Do not modify existing application code
-- Do not restructure folders in this package
-- Focus only on defining the contract, not enforcing it programmatically
+- Read-only only
+- No new feature work in this package unless absolutely necessary to complete the observation, and if so keep it extremely narrow
+- No linking
+- No saved query history
+- No ranking changes
+- No schema changes
+- No architecture expansion
+- Prefer naming one concrete blocker, not a list of abstract wishes
 
-TASK
+SUCCESS CONDITION
 
-1. Create a new file at the project root named `ARCHITECTURE.md`
+This package is successful if it produces one of these outcomes:
 
-2. Populate it with the following content:
+A) the desktop mock-session flow is now coherent enough that the next package can move to one small read-only interaction improvement, or
 
----
+B) the trial reveals one clear next blocker, stated narrowly and grounded in actual usage
 
-# Consync Architecture — System Contract
+HANDOFF FORMAT
 
-## Purpose
+Return a handoff in this exact structure:
 
-This document defines the core architectural rules of Consync.
+TYPE: PROCESS
+PACKAGE: rerun_mock_session_desktop_trial_after_search_exposure
 
-Its purpose is to ensure that:
+STATUS
 
-- The system remains stable as it evolves
-- Features are implemented in the correct layer
-- Multiple interfaces (Electron, CLI, MCP) can exist without duplicating logic
-- The system behaves consistently regardless of how it is accessed
+PASS or FAIL
 
-This is a global contract, not tied to any single package or feature.
+SUMMARY
 
----
+A concise summary of what the rerun trial showed and what the next smallest blocker or next step is.
 
-## Core Principle
+FILES CREATED
 
-Consync is a single system with multiple interfaces.
+- path — short reason
+- path — short reason
 
-There is one source of truth:
+FILES MODIFIED
 
-The Core (Node.js)
+- path — what changed
+- path — what changed
 
-All other layers must depend on it and must not reimplement its logic.
+TRIAL OUTCOME
 
----
+- bullet list of the concrete findings from the rerun trial
 
-## System Layers
+NEXT SMALLEST BLOCKER OR NEXT STEP
 
-### 1. Core (Node.js) — Source of Truth
+- one bullet only
 
-The Core is the actual Consync system.
+COMMANDS RUN
 
-It is responsible for:
-
-- Session artifact persistence (read/write)
-- Bookmark creation and storage
-- Session derivation (counts, latest note, timestamps)
-- File system interaction
-- All business logic
-
-Requirements:
-
-- Must be executable without Electron
-- Must be testable independently
-- Must not depend on UI or renderer code
-- Must produce deterministic outputs
-
-Example responsibilities:
-
-- writeBookmark(sessionDir, data)
-- readSession(sessionDir)
-- deriveSessionState(sessionData)
-
----
-
-### 2. Bridge Layer (Electron Main + Preload)
-
-The Bridge connects interfaces to the Core.
-
-It is responsible for:
-
-- Exposing safe APIs to the renderer
-- Forwarding calls to the Core
-- Managing IPC boundaries
-
-Requirements:
-
-- Must be thin and minimal
-- Must not contain business logic
-- Must not derive session state
-- Must not modify data beyond simple validation or forwarding
-
-Example:
-
-preload exposes addBookmark → calls core.writeBookmark
-
----
-
-### 3. Interface Layer (Renderer / UI)
-
-The Interface displays state and captures user input.
-
-It is responsible for:
-
-- Rendering session data
-- Triggering user actions (e.g., adding a bookmark)
-- Displaying derived values
-
-Requirements:
-
-- Must not contain business logic
-- Must not derive session state independently
-- Must not read/write files directly
-- Must rely entirely on the Core (via Bridge)
-
-Example:
-
-UI triggers addBookmark via exposed API
-
----
-
-### 4. Tests (Verification Layer)
-
-Tests validate system behavior.
-
-Core Tests (Required):
-
-- Must verify:
-  - persistence (artifact correctness)
-  - derivation (session state)
-  - reload consistency
-- Must not depend on UI
-
-Interface Tests (Optional):
-
-- Should be minimal
-- Must not be the only verification of behavior
-
----
-
-## Development Rules
-
-Every feature must follow this sequence:
-
-1. Implement in Core
-2. Verify with deterministic tests (no UI)
-3. Confirm persistence behavior
-4. Expose through Bridge (if needed)
-5. Integrate into Interface (UI)
-
----
-
-## Anti-Rules (Critical)
-
-Do NOT:
-
-- Put business logic in the renderer
-- Derive session state in the UI
-- Depend on Electron for correctness
-- Use UI behavior as proof of system correctness
-- Duplicate logic across layers
-
----
-
-## Verification Rule
-
-A feature is not complete until:
-
-- It works through Core alone
-- It passes deterministic tests
-- It persists correctly
-- It can be reloaded from disk with identical results
-
----
-
-## Mental Model
-
-Consync is:
-
-One engine (Core) with multiple dashboards (interfaces)
-
-Interfaces may change, but the engine must remain stable.
-
----
-
-## Future Interfaces
-
-This architecture supports additional interfaces without changing Core:
-
-- CLI commands
-- MCP server (AI integration)
-- Web UI
-
-All must call into the same Core logic.
-
----
-
-## Enforcement
-
-When implementing or reviewing any change, ask:
-
-1. Does this logic belong in Core?
-2. Can this be tested without UI?
-3. Is this duplicating logic that already exists?
-4. Would this still work if Electron was removed?
-
-If any answer is “no,” the implementation likely violates this contract.
-
----
-
-## Final Note
-
-This document is intentionally simple.
-
-It exists to prevent drift and ensure Consync remains:
-
-- predictable
-- testable
-- extensible
-- system-first (not UI-first)
-
----
-
-3. Do not modify any other files except state files
-
-4. Update state files:
-
-- `package_plan.md`
-  - Add this as a foundational process package
-
-- `snapshot.md`
-  - Note that architecture contract is now defined
-
-- `next-action.md`
-  - Point to the next package (likely continuing bookmark or session work)
-
-- `handoff.md`
-  - Record that ARCHITECTURE.md was created and no code changes were made
+- exact command
+- exact command
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && git status --short`
+- exact command
+- exact command
 
 HUMAN VERIFICATION
 
-1. Confirm `ARCHITECTURE.md` exists at project root
-2. Confirm content matches the contract structure
-3. Confirm no application code was modified
-4. Confirm only expected state files were updated
+1. step
+2. step
+3. step
 
-PASS CRITERIA
+VERIFICATION NOTES
 
-- Architecture contract exists and is readable
-- No unintended code changes
-- State files updated correctly
-
-FAIL CRITERIA
-
-- Document is missing or incomplete
-- Code was modified
-- Scope expanded beyond documentation
-
-NOTES
-
-- This is a system-level guardrail for all future work
-- It should be referenced implicitly in all future packages
-- Keep it stable unless a major architectural shift occurs
+- explain how you reran the trial and why the recorded blocker or next step is the smallest grounded move

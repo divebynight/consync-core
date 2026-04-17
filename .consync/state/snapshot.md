@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package exposed the grouped mock search flow directly through the desktop shell.
+The last completed package reran the short desktop mock-session trial and confirmed that the shell is usable for one narrow search-oriented mock session at this scale.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -48,9 +48,11 @@ CURRENT REALITY:
 - The desktop shell now exposes one minimal root/query mock-search path through preload, IPC, shared core, and the renderer.
 - The renderer can now display the same grouped mock-search truth already returned by `sandbox-desktop-search`.
 - The new desktop search path remains read-only and adds no query persistence, linking, or ranking behavior.
+- A short desktop trial can now complete one root-and-query grouped mock search end to end without exposing a new workflow blocker at that scale.
+- The most useful next improvement is presentation-level: the grouped result still renders as preformatted text rather than structured renderer-owned rows.
 
 ACTIVE FOCUS:
-Rerun the short desktop mock-session trial now that the grouped mock search path is directly available in the shell.
+Move from baseline trial readiness to a small renderer-side presentation improvement for grouped mock-search results.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm basic search-oriented trial readiness.
+Run the next FEATURE package in `.consync/state/next-action.md`, which should render the grouped mock-search result as structured desktop rows while preserving the same read-only search truth.
