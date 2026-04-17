@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package reran the short desktop mock-session trial against the structured grouped-result renderer and confirmed that no new blocker appears at this scale.
+The last completed package added a narrow selected-match detail panel to the structured desktop mock-search view.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -53,10 +53,11 @@ CURRENT REALITY:
 - The renderer now presents grouped search results as labeled sections and match rows instead of a single preformatted text block.
 - Deterministic verification still covers the desktop scaffold path and the CLI desktop-search expectation remains stable.
 - A short desktop trial can now complete one root-and-query grouped search with structured results end to end without exposing a new blocker at this scale.
-- The next most useful feature target is a narrow read-only detail panel for one selected search match, not broader navigation or write behavior.
+- The desktop search view now lets a user select one result row and inspect its full path, note, tags, and session/anchor context in a read-only detail panel.
+- The selected-match detail view stays renderer-only and does not add navigation, linking, writes, or new IPC behavior.
 
 ACTIVE FOCUS:
-Move from structured grouped results to one narrow read-only selected-match detail view.
+Rerun the short desktop mock-session trial now that the shell includes one selected-match detail view.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should add one read-only detail surface for the currently selected mock-search result while preserving the same grouped search truth.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the selected-match detail view is usable at this scale.

@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-28
+29
 
 NEXT PACKAGE:
 
-`add_read_only_mock_search_match_detail_panel`
+`rerun_mock_session_desktop_trial_with_selected_match_detail_panel`
 
 DEFAULT RUN WINDOW:
 
@@ -239,12 +239,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: reran the short desktop mock-session trial against the structured grouped-result renderer and found no new blocker at this scale; the shell is now usable for one narrow search-oriented mock session with structured results.
 
-28. `add_read_only_mock_search_match_detail_panel`
-   - Status: READY
+28. `add_selected_match_detail_panel`
+   - Status: PASS
    - Depends on: `rerun_mock_session_desktop_trial_with_structured_results`
    - Stop gate: pause after this package to review whether one selected-match detail view adds useful depth without broadening the shell into navigation or write behavior.
    - Human verification: optional
-   - Notes: should add one narrow read-only detail surface for the currently selected mock-search result so a short desktop search trial can inspect a match more deliberately without leaving the shell.
+   - Notes: added one narrow renderer-only selected-match detail surface so a result row can be inspected more deliberately without introducing navigation, writes, or new IPC behavior.
+
+29. `rerun_mock_session_desktop_trial_with_selected_match_detail_panel`
+   - Status: READY
+   - Depends on: `add_selected_match_detail_panel`
+   - Stop gate: pause after this package to review whether the selected-match detail view is enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Human verification: optional
+   - Notes: should rerun the short desktop mock-session trial against the selected-match detail view and record the next concrete blocker or confirm the shell is still usable at this scale.
 
 REPAIR HANDLING:
 

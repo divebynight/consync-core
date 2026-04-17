@@ -1,20 +1,19 @@
-TYPE: FEATURE
-PACKAGE: add_read_only_mock_search_match_detail_panel
+TYPE: PROCESS
+PACKAGE: rerun_mock_session_desktop_trial_with_selected_match_detail_panel
 
 SUMMARY
 
-Add one narrow read-only detail panel for the currently selected structured mock-search result so the desktop shell can inspect a chosen match more deliberately without adding navigation, writes, or broader search behavior.
+Rerun the short desktop mock-session trial now that the search view includes a selected-match detail panel, and record the next concrete blocker or confirm that the desktop shell is usable at this scale.
 
-The last package confirmed that the structured grouped-result view is usable for one short search-oriented desktop trial at this scale. The next most useful improvement is a small read-only detail surface for one selected result, so the shell can inspect a match more intentionally without turning into a full search product.
+The last package added the first narrow selection-based interaction: clicking a result row now reveals one read-only detail panel. This package should now test that updated shell again and identify the next concrete blocker, if one still appears.
 
 FILES CREATED
 
-- `.consync/state/history/plans/feature-<timestamp>-add-read-only-mock-search-match-detail-panel.md` — preserve this instruction before replacing the live `next-action.md` slot
+- `.consync/state/history/plans/process-<timestamp>-rerun-mock-session-desktop-trial-with-selected-match-detail-panel.md` — preserve this instruction before replacing the live `next-action.md` slot
 
 FILES MODIFIED
 
-- desktop renderer files only as needed to support one selected-match detail surface
-- focused verification files only as needed
+- minimal state or notes files only as needed to record the trial outcome
 - `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
@@ -22,37 +21,37 @@ FILES MODIFIED
 
 GOAL
 
-Add one narrow selected-result detail surface by:
+Determine whether the updated desktop shell is now ready for a short search-oriented mock session by:
 
-1. keeping the existing root/query search path and grouped result truth unchanged
-2. allowing the renderer to track one currently selected match from the structured result list
-3. showing that selected match in a readable read-only detail panel
-4. avoiding navigation, file opening, link actions, writes, or broader search-state expansion
+1. exercising the visible desktop flow with the selected-match detail panel now in place
+2. identifying the next concrete blocker that makes a short mock session awkward, if one appears
+3. avoiding speculative fixes until that blocker is named clearly
+4. confirming trial readiness explicitly if no blocker appears at this scale
 
 CONSTRAINTS
 
-- Keep this package narrow and renderer-facing
-- Do not change the meaning of the grouped search data
-- Do not add new IPC surface unless a tiny shape adjustment is absolutely necessary
-- Do not add open-file behavior, saved queries, ranking, linking, or new persistent state
-- Do not redesign the search panel into a full browser
+- Keep this package narrow and observational first
+- Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
+- Do not broaden the desktop shell or search path further unless a tiny unblocker is clearly required and still fits the package scope
+- Prefer recording the blocker over partially fixing several things at once
 
 TASK
 
-1. Add the smallest renderer-side selected state needed for one mock-search result row.
-2. Present a read-only detail panel for the selected row that shows the most useful already-available fields, such as session, anchor, artifact path, note, and tags.
-3. Keep the empty-state behavior simple when no result is selected.
-4. Add focused verification only where needed.
-5. Preserve the current grouped search truth and CLI behavior.
+1. Define a very short mock-session trial flow that uses the desktop shell with the selected-match detail panel available.
+2. Identify the smallest realistic path a human can now attempt in the updated shell.
+3. Record the next concrete blocker or friction point that would likely matter in that trial.
+4. If no blocker appears at this scale, record that the shell appears ready for one short search-oriented mock session and name the next most useful feature target.
+5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
 6. Run repo verification.
 7. Update state files at the end.
 
 DO NOT
 
+- start a broad usability push
 - redesign the desktop shell
-- add file-opening or click-through navigation
-- add write behavior or durable selection state
-- broaden the package beyond one selected-match detail surface
+- add multiple new blockers or a long backlog
+- expand the package beyond one concrete trial outcome
+- broaden the grouped search behavior unless the new blocker clearly requires it
 
 COMMANDS TO RUN
 
@@ -63,33 +62,35 @@ HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success.
 2. Start the desktop shell and run one grouped mock search using `sandbox/fixtures/nested-anchor-trial` and `moss`.
-3. Select one result row and confirm the detail panel updates to show that match's session, anchor, artifact path, note, and tags in a readable read-only way.
+3. Click one result row and confirm the detail panel updates immediately with that match's path, note, tags, and session/anchor context.
 4. Confirm the displayed selected-match fields still align with `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
-5. Confirm the panel does not introduce open-file actions, writes, saved state, or broader navigation.
-6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected renderer, verification, and state files.
+5. Confirm the flow is still read-only: no saved queries, link actions, ranking, or new session writes appear.
+6. Confirm the package records one next blocker clearly, or explicitly records that no blocker appeared at this scale.
+7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected narrow files.
 
 PASS CRITERIA
 
-- One selected match can be inspected through a read-only detail panel
-- The detail panel still reflects the same grouped search truth already used by the renderer and CLI
+- One concrete next trial outcome is recorded clearly
+- Scope remains narrow and grounded in actual trial use
 - `npm run verify` passes
 - No unnecessary implementation sprawl was introduced
 
 FAIL CRITERIA
 
-- The package adds navigation, open actions, or write behavior
-- The detail panel diverges from the grouped search truth already returned by the shell
+- The package produces only vague usability commentary
+- The package tries to fix several possible future issues at once
+- The recorded blocker does not map to a plausible short mock session through the updated shell
 - `npm run verify` fails
 
 STATE UPDATES
 
-- `package_plan.md` → record completion of the selected-match detail package and set up the next narrow package from the observed outcome
-- `snapshot.md` → reflect that the grouped search view now supports one deeper read-only inspection step
-- `next-action.md` → point to the next logical package after this feature
-- `handoff.md` → record the result of this FEATURE package
+- `package_plan.md` → record completion of the rerun trial package and set up the next narrow package from the observed outcome
+- `snapshot.md` → reflect the observed trial readiness or blocker after the selected-match detail view was introduced
+- `next-action.md` → point to the next logical package after this retry
+- `handoff.md` → record the result of this PROCESS package
 
 NOTES
 
-- Keep this boring and read-only.
-- The point is to improve inspection depth without broadening the shell into navigation or action-taking.
-- Prefer the smallest selected-state addition that still feels useful.
+- Keep this boring and observational.
+- The purpose is to see what the next real blocker is now that one deeper inspection step exists in the shell.
+- Prefer one crisp outcome over partial follow-on fixes.

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { createBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
-import { getMockSearchSummaryRows } from "./mock-search-panel.mjs";
+import {
+  getMockSearchDetailRows,
+  getMockSearchSelectionKey,
+  getMockSearchSummaryRows,
+  getSelectedMockSearchDetail,
+} from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
@@ -30,8 +35,10 @@ function getDesktopBridge() {
   return desktopBridge;
 }
 
-function MockSearchResult({ searchResult }) {
+function MockSearchResult({ searchResult, selectedMatchKey, onSelectMatch }) {
   const summaryRows = getMockSearchSummaryRows(searchResult);
+  const detailRows = getMockSearchDetailRows(searchResult, selectedMatchKey);
+  const selectedDetail = getSelectedMockSearchDetail(searchResult, selectedMatchKey);
 
   return (
     <div className="mock-search-results">
@@ -51,15 +58,26 @@ function MockSearchResult({ searchResult }) {
               </header>
 
               <ul className="mock-search-match-list">
-                {group.matches.map(match => (
-                  <li className="mock-search-match" key={`${group.anchorPath}:${match.artifactPath}`}>
-                    <p className="mock-search-artifact">{match.artifactPath}</p>
-                    <p className="mock-search-note">{match.note || "No note"}</p>
-                    <p className="mock-search-tags">
-                      {match.tags.length > 0 ? match.tags.join(" / ") : "No tags"}
-                    </p>
-                  </li>
-                ))}
+                {group.matches.map(match => {
+                  const matchKey = getMockSearchSelectionKey(group, match);
+                  const isSelected = matchKey === selectedMatchKey;
+
+                  return (
+                    <li className="mock-search-match-shell" key={`${group.anchorPath}:${match.artifactPath}`}>
+                      <button
+                        className={`mock-search-match${isSelected ? " mock-search-match-selected" : ""}`}
+                        onClick={() => onSelectMatch(matchKey)}
+                        type="button"
+                      >
+                        <p className="mock-search-artifact">{match.artifactPath}</p>
+                        <p className="mock-search-note">{match.note || "No note"}</p>
+                        <p className="mock-search-tags">
+                          {match.tags.length > 0 ? match.tags.join(" / ") : "No tags"}
+                        </p>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}
@@ -67,6 +85,18 @@ function MockSearchResult({ searchResult }) {
       ) : (
         <p className="empty-state">No bookmarked matches found for this root and query.</p>
       )}
+
+      <section className="mock-search-detail-panel">
+        <h3>Selected Match</h3>
+        <div className="mock-search-summary">
+          {detailRows.map(row => (
+            <StatusRow key={row.label} label={row.label} value={row.value} />
+          ))}
+        </div>
+        <p className="mock-search-detail-copy">
+          {selectedDetail ? selectedDetail.note : "Click a result row to inspect one match more closely."}
+        </p>
+      </section>
     </div>
   );
 }
@@ -79,6 +109,7 @@ export function App() {
   const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
   const [searchQuery, setSearchQuery] = useState("moss");
   const [searchResult, setSearchResult] = useState(null);
+  const [selectedMatchKey, setSelectedMatchKey] = useState(null);
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -150,10 +181,12 @@ export function App() {
       }
 
       setSearchResult(result);
+      setSelectedMatchKey(null);
       setErrorMessage(null);
     } catch (error) {
       setErrorMessage(error.message);
       setSearchResult(null);
+      setSelectedMatchKey(null);
     }
   }
 
@@ -261,7 +294,11 @@ export function App() {
           </form>
 
           {searchResult ? (
-            <MockSearchResult searchResult={searchResult} />
+            <MockSearchResult
+              onSelectMatch={setSelectedMatchKey}
+              searchResult={searchResult}
+              selectedMatchKey={selectedMatchKey}
+            />
           ) : (
             <p className="empty-state">Enter a root and query to preview the grouped mock search flow in the desktop shell.</p>
           )}
