@@ -17,6 +17,9 @@ function createDesktopBridge(invoke) {
     getSessionState() {
       return invoke(IPC_CHANNELS.getSessionState);
     },
+    runMockSearch(rootPath, query) {
+      return invoke(IPC_CHANNELS.runMockSearch, rootPath, query);
+    },
     ping(message) {
       return invoke(IPC_CHANNELS.ping, message);
     },

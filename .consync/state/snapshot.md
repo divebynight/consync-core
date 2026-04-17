@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package ran a short desktop mock-session trial and identified the first concrete blocker.
+The last completed package exposed the grouped mock search flow directly through the desktop shell.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -45,11 +45,12 @@ CURRENT REALITY:
 - The nested-anchor trial is deterministic enough for expectation-based verification and remains read-only.
 - `sandbox-desktop-search` now wraps nested anchor discovery and bookmark search into a grouped user-facing preview that feels closer to what a desktop result view would show.
 - The grouped mock flow still uses the same read-only anchor truth and does not add new linking, ranking, or persistent state.
-- The current desktop shell still exposes only summary rows and bookmark creation; it has no root/query search path for the grouped mock flow.
-- The first concrete blocker for a short desktop mock session is therefore missing desktop access to the existing read-only grouped search capability.
+- The desktop shell now exposes one minimal root/query mock-search path through preload, IPC, shared core, and the renderer.
+- The renderer can now display the same grouped mock-search truth already returned by `sandbox-desktop-search`.
+- The new desktop search path remains read-only and adds no query persistence, linking, or ranking behavior.
 
 ACTIVE FOCUS:
-Use the recorded blocker to add one minimal desktop read-only search path without broadening the shell into a full future app.
+Rerun the short desktop mock-session trial now that the grouped mock search path is directly available in the shell.
 
 NEXT ACTION:
-Run the next FEATURE package in `.consync/state/next-action.md`, which should expose the existing grouped mock search flow through the desktop shell so the first short mock session can actually attempt a root-and-query search.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm basic search-oriented trial readiness.

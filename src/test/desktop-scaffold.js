@@ -7,6 +7,7 @@ const {
   getDesktopBackendSummary,
   getDesktopConsyncSummary,
   getDesktopShellInfo,
+  runDesktopMockSearch,
 } = require("../core/desktop-shell");
 const {
   createBookmark,
@@ -68,6 +69,7 @@ function testCoreSurface() {
   const shellInfo = getDesktopShellInfo();
   const backendSummary = getDesktopBackendSummary();
   const consyncSummary = getDesktopConsyncSummary();
+  const mockSearchResult = runDesktopMockSearch("sandbox/fixtures/nested-anchor-trial", "moss");
   const pingResponse = createDesktopPingResponse("desktop-test");
 
   assert.strictEqual(shellInfo.appName, "Consync Desktop");
@@ -85,6 +87,9 @@ function testCoreSurface() {
     sessionCount: fs.readdirSync(path.join(process.cwd(), "sandbox", "current")).filter(entry => entry.endsWith(".json")).length,
     sessionDirectoryExists: true,
   });
+  assert.strictEqual(mockSearchResult.ok, true);
+  assert.ok(mockSearchResult.output.includes("DESKTOP SEARCH PREVIEW"));
+  assert.ok(mockSearchResult.output.includes("SESSION: Balcony Zine Session"));
   assert.deepStrictEqual(pingResponse, {
     ok: true,
     message: "pong:desktop-test",
@@ -116,6 +121,7 @@ function testIpcRegistration() {
 
     assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
     assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
+    assert.ok(handlers.has(IPC_CHANNELS.runMockSearch));
     assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
     assert.ok(handlers.has(IPC_CHANNELS.ping));
     assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
@@ -125,6 +131,7 @@ function testIpcRegistration() {
     const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
     const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
     const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
+    const mockSearch = handlers.get(IPC_CHANNELS.runMockSearch)(null, "sandbox/fixtures/nested-anchor-trial", "moss");
     const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -135,6 +142,8 @@ function testIpcRegistration() {
     assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
     assert.strictEqual(sessionState.currentPositionSeconds, 84);
+    assert.strictEqual(mockSearch.ok, true);
+    assert.ok(mockSearch.output.includes("ANCHOR: 2026/april/greenhouse-poster"));
     assert.strictEqual(updatedSessionState.artifactCount, getSessionArtifactCount());
     assert.deepStrictEqual(updatedSessionState.bookmarks, [
       {
@@ -221,6 +230,10 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.runMockSearch) {
+        return Promise.resolve(runDesktopMockSearch(args[0], args[1]));
+      }
+
       if (channel === IPC_CHANNELS.createBookmark) {
         return Promise.resolve({
           artifactCount: getSessionArtifactCount(),
@@ -244,6 +257,7 @@ async function testPreloadBridge() {
     const consyncSummary = await bridge.getConsyncSummary();
     const shellInfo = await bridge.getShellInfo();
     const sessionState = await bridge.getSessionState();
+    const mockSearch = await bridge.runMockSearch("sandbox/fixtures/nested-anchor-trial", "moss");
     const bookmarkState = await bridge.createBookmark("renderer bookmark");
     const pingResponse = await bridge.ping("renderer-ready");
 
@@ -261,6 +275,8 @@ async function testPreloadBridge() {
       currentFile: getLatestSessionFileName(),
       currentPositionSeconds: 84,
     });
+    assert.strictEqual(mockSearch.ok, true);
+    assert.ok(mockSearch.output.includes("SESSION: Greenhouse Poster Session"));
     assert.deepStrictEqual(bookmarkState, {
       artifactCount: getSessionArtifactCount(),
       bookmarks: [
@@ -279,6 +295,7 @@ async function testPreloadBridge() {
       { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
       { channel: IPC_CHANNELS.getShellInfo, args: [] },
       { channel: IPC_CHANNELS.getSessionState, args: [] },
+      { channel: IPC_CHANNELS.runMockSearch, args: ["sandbox/fixtures/nested-anchor-trial", "moss"] },
       { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
       { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
     ]);

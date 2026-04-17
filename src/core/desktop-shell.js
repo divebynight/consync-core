@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { buildSandboxDesktopSearchOutput } = require("../lib/sandbox-anchors");
 
 function getDesktopShellInfo() {
   return {
@@ -43,9 +44,14 @@ function getDesktopConsyncSummary() {
   };
 }
 
+function runDesktopMockSearch(rootPath, query) {
+  return buildSandboxDesktopSearchOutput(rootPath, query);
+}
+
 module.exports = {
   createDesktopPingResponse,
   getDesktopBackendSummary,
   getDesktopConsyncSummary,
   getDesktopShellInfo,
+  runDesktopMockSearch,
 };

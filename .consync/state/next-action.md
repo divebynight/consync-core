@@ -1,5 +1,5 @@
-TYPE: FEATURE
-PACKAGE: expose_grouped_mock_search_in_desktop_shell
+TYPE: PROCESS
+PACKAGE: rerun_mock_session_desktop_trial_with_search_path
 
 STATUS
 
@@ -7,18 +7,17 @@ READY
 
 SUMMARY
 
-Expose the existing grouped mock search flow through one minimal desktop read-only path so the shell can finally attempt the same root-and-query search that the sandbox mock flow already supports.
+Rerun the short desktop mock-session trial now that the shell can execute one grouped mock search directly, and record the next concrete blocker or confirm that the shell is usable at that scale.
 
-The last package identified the first concrete blocker clearly: the desktop shell has no way to choose a root or run the grouped mock search at all. This package should fix only that blocker, without pretending to be the full future desktop app.
+The last package removed the first clear blocker by exposing a minimal desktop read-only root/query search path. This package should now test that updated shell again and identify what the next concrete blocker is, if one still appears.
 
 FILES CREATED
 
-- `.consync/state/history/plans/feature-<timestamp>-expose-grouped-mock-search-in-desktop-shell.md` — preserve this instruction before replacing the live `next-action.md` slot
+- `.consync/state/history/plans/process-<timestamp>-rerun-mock-session-desktop-trial-with-search-path.md` — preserve this instruction before replacing the live `next-action.md` slot
 
 FILES MODIFIED
 
-- desktop shell files only as needed to expose one minimal read-only root/query search path
-- focused test or expectation files only as needed
+- minimal state or notes files only as needed to record the trial outcome
 - `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
@@ -26,37 +25,37 @@ FILES MODIFIED
 
 GOAL
 
-Expose one narrow desktop mock-search path by:
+Determine whether the updated desktop shell is now ready for a short search-oriented mock session by:
 
-1. letting the desktop shell accept a root and a query
-2. routing that read-only request through the existing desktop bridge/main/core path
-3. presenting the grouped mock search result in the renderer clearly enough for a short trial
-4. avoiding broader search features, linking, or new durable state
+1. exercising the visible desktop flow with the new grouped mock-search path in place
+2. identifying the next concrete blocker that makes a short mock session awkward, if one appears
+3. avoiding speculative fixes until that blocker is named clearly
+4. confirming trial readiness explicitly if no blocker appears at this scale
 
 CONSTRAINTS
 
-- Keep this package narrow and read-only
-- Reuse the existing grouped mock-search truth rather than duplicating discovery/search logic
-- Do not add writes, linking, ranking, persistence, or durable relationships
-- Do not turn this into a polished search product
-- Do not broaden the renderer beyond the minimum needed to expose one understandable mock flow
+- Keep this package narrow and observational first
+- Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
+- Do not broaden the desktop shell or search path further unless a tiny unblocker is clearly required and still fits the package scope
+- Prefer recording the blocker over partially fixing several things at once
 
 TASK
 
-1. Add one minimal bridge/main/core path that lets the desktop shell request the existing grouped mock search result for a chosen root and query.
-2. Add the smallest renderer surface needed to enter a root and query and display the grouped result.
-3. Keep the result read-only and clearly tied to the current mock flow.
-4. Add focused verification only where needed.
-5. Run repo verification.
-6. Update state files at the end.
+1. Define a very short mock-session trial flow that uses the desktop shell with the new grouped search path available.
+2. Identify the smallest realistic path a human can now attempt in the updated shell.
+3. Record the next concrete blocker or friction point that would likely matter in that trial.
+4. If no blocker appears at this scale, record that the shell appears ready for one short search-oriented mock session and name the next most useful feature target.
+5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
+6. Run repo verification.
+7. Update state files at the end.
 
 DO NOT
 
+- start a broad usability push
 - redesign the desktop shell
-- add fuzzy search, ranking, saved searches, or multi-root behavior
-- persist root selections or query history
-- infer parent/child relationships beyond the current grouped mock result
-- expand the package beyond one minimal searchable desktop mock flow
+- add multiple new blockers or a long backlog
+- expand the package beyond one concrete trial outcome
+- broaden the grouped search behavior unless the new blocker clearly requires it
 
 COMMANDS TO RUN
 
@@ -66,34 +65,34 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success.
-2. Start the desktop shell and confirm you can enter a root and query through one narrow read-only path.
-3. Confirm the displayed grouped result matches the same underlying truth already returned by `sandbox-desktop-search` for the same root/query.
-4. Confirm the desktop flow does not write links, save query history, or introduce new durable state.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected desktop, verification, and state files.
+2. Start the desktop shell and use the new root/query search path once.
+3. Confirm the grouped result appears and that the shell now supports at least one short search-oriented trial path end to end.
+4. Confirm the package records one next blocker clearly, or explicitly records that no blocker appeared at this scale.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected narrow files.
 
 PASS CRITERIA
 
-- The desktop shell can perform one minimal grouped mock search from a chosen root and query
-- The displayed result matches the existing grouped mock-search truth
+- One concrete next trial outcome is recorded clearly
+- Scope remains narrow and grounded in actual trial use
 - `npm run verify` passes
-- No new write or linking behavior is introduced
+- No unnecessary implementation sprawl was introduced
 
 FAIL CRITERIA
 
-- The desktop shell still cannot run the grouped mock search
-- The desktop result diverges from the existing grouped mock-search truth
-- The package introduces write behavior or broader search commitments
+- The package produces only vague usability commentary
+- The package tries to fix several possible future issues at once
+- The recorded blocker does not map to a plausible short mock session through the updated shell
 - `npm run verify` fails
 
 STATE UPDATES
 
-- `package_plan.md` → record completion of the desktop-search exposure package and set up the next narrow package from the observed trial outcome
-- `snapshot.md` → reflect that the desktop shell can or cannot now perform the grouped mock search directly
+- `package_plan.md` → record completion of the rerun trial package and set up the next narrow package from the observed outcome
+- `snapshot.md` → reflect the observed trial readiness or blocker after the desktop search path was exposed
 - `next-action.md` → point to the next logical package after this unblocker
-- `handoff.md` → record the result of this FEATURE package
+- `handoff.md` → record the result of this PROCESS package
 
 NOTES
 
-- Keep this boring and direct.
-- This package exists only because the blocker is now explicit.
-- Do the smallest thing that makes the desktop shell capable of one real grouped mock search.
+- Keep this boring and observational.
+- The purpose is to see what the next real blocker is now that the first one is gone.
+- Prefer one crisp outcome over partial follow-on fixes.

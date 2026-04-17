@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-24
+25
 
 NEXT PACKAGE:
 
-`expose_grouped_mock_search_in_desktop_shell`
+`rerun_mock_session_desktop_trial_with_search_path`
 
 DEFAULT RUN WINDOW:
 
@@ -212,11 +212,18 @@ PLANNED PACKAGES:
    - Notes: identified one concrete blocker without broadening implementation: the desktop shell has no way to choose a root or run the grouped mock search flow because the preload/IPC/renderer surface still exposes only session summary and bookmark creation.
 
 24. `expose_grouped_mock_search_in_desktop_shell`
-   - Status: READY
+   - Status: PASS
    - Depends on: `run_mock_session_desktop_trial`
    - Stop gate: pause after this package to review whether the desktop shell can now conduct one narrow read-only search flow without pretending to be the full future app.
    - Human verification: optional
-   - Notes: should expose the existing grouped mock search flow through one minimal desktop read-only path with root/query inputs and result display, while avoiding writes, ranking, or durable linking.
+   - Notes: exposed the existing grouped mock search through one minimal desktop read-only path with root/query inputs and result display, without adding writes, ranking, or durable linking.
+
+25. `rerun_mock_session_desktop_trial_with_search_path`
+   - Status: READY
+   - Depends on: `expose_grouped_mock_search_in_desktop_shell`
+   - Stop gate: pause after this package to review the next concrete blocker or confirm that the desktop shell is now usable for one short search-oriented mock session.
+   - Human verification: optional
+   - Notes: should rerun the short desktop mock-session trial now that the shell can execute one grouped mock search directly.
 
 REPAIR HANDLING:
 

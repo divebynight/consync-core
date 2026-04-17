@@ -20,7 +20,8 @@ function getDesktopBridge() {
     typeof desktopBridge.getBridgeStatus !== "function" ||
     typeof desktopBridge.getConsyncSummary !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
-    typeof desktopBridge.createBookmark !== "function"
+    typeof desktopBridge.createBookmark !== "function" ||
+    typeof desktopBridge.runMockSearch !== "function"
   ) {
     throw new Error("Consync desktop bridge is unavailable.");
   }
@@ -33,6 +34,9 @@ export function App() {
   const [bridgeStatus, setBridgeStatus] = useState(null);
   const [consyncSummary, setConsyncSummary] = useState(null);
   const [note, setNote] = useState("");
+  const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
+  const [searchQuery, setSearchQuery] = useState("moss");
+  const [searchOutput, setSearchOutput] = useState("");
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -85,6 +89,29 @@ export function App() {
       setNote("");
     } catch (error) {
       setErrorMessage(error.message);
+    }
+  }
+
+  async function handleRunMockSearch(event) {
+    event.preventDefault();
+
+    if (!searchRoot.trim() || !searchQuery.trim()) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.runMockSearch(searchRoot.trim(), searchQuery.trim());
+
+      if (!result.ok) {
+        throw new Error(result.output);
+      }
+
+      setSearchOutput(result.output);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error.message);
+      setSearchOutput("");
     }
   }
 
@@ -159,6 +186,43 @@ export function App() {
               Save Bookmark
             </button>
           </form>
+        </article>
+
+        <article className="panel panel-wide">
+          <h2>Mock Search</h2>
+          <form className="search-form" onSubmit={handleRunMockSearch}>
+            <label className="bookmark-label" htmlFor="mock-search-root">
+              Root to search
+            </label>
+            <input
+              id="mock-search-root"
+              className="bookmark-input"
+              value={searchRoot}
+              onChange={event => setSearchRoot(event.target.value)}
+              placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
+              type="text"
+            />
+            <label className="bookmark-label" htmlFor="mock-search-query">
+              Theme query
+            </label>
+            <input
+              id="mock-search-query"
+              className="bookmark-input"
+              value={searchQuery}
+              onChange={event => setSearchQuery(event.target.value)}
+              placeholder="Search bookmarked context such as moss"
+              type="text"
+            />
+            <button className="bookmark-button" disabled={!searchRoot.trim() || !searchQuery.trim()} type="submit">
+              Run Mock Search
+            </button>
+          </form>
+
+          {searchOutput ? (
+            <pre className="search-result">{searchOutput}</pre>
+          ) : (
+            <p className="empty-state">Enter a root and query to preview the grouped mock search flow in the desktop shell.</p>
+          )}
         </article>
 
         <article className="panel panel-wide">

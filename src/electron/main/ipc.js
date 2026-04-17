@@ -3,6 +3,7 @@ const {
   getDesktopBackendSummary,
   getDesktopConsyncSummary,
   getDesktopShellInfo,
+  runDesktopMockSearch,
 } = require("../../core/desktop-shell");
 const {
   createBookmark,
@@ -15,6 +16,7 @@ function registerDesktopIpcHandlers(ipcMainLike) {
   ipcMainLike.handle(IPC_CHANNELS.getConsyncSummary, () => getDesktopConsyncSummary());
   ipcMainLike.handle(IPC_CHANNELS.getShellInfo, () => getDesktopShellInfo());
   ipcMainLike.handle(IPC_CHANNELS.getSessionState, () => getSessionState());
+  ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => runDesktopMockSearch(rootPath, query));
   ipcMainLike.handle(IPC_CHANNELS.createBookmark, (_event, note) => createBookmark(note));
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
 }
