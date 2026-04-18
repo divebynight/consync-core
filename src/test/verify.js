@@ -3,11 +3,28 @@ const fs = require("fs");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runNodeStep(title, args) {
   console.log(title);
 
   const result = spawnSync(process.execPath, args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+
+  printOutput(result.stdout);
+  printOutput(result.stderr);
+
+  if (result.status !== 0) {
+    process.exit(result.status || 1);
+  }
+}
+
+function runCommandStep(title, command, args) {
+  console.log(title);
+
+  const result = spawnSync(command, args, {
     cwd: repoRoot,
     encoding: "utf8",
   });
@@ -68,6 +85,9 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] Renderer mock search panel slice", [path.join(repoRoot, "src", "test", "renderer-mock-search-panel.js")]);
+  console.log("");
+
+  runCommandStep("[verify] Renderer search flow UI slice", npmCommand, ["run", "test:ui-search"]);
   console.log("");
 
   runNodeStep("[verify] Renderer bookmark read-after-write slice", [path.join(repoRoot, "src", "test", "renderer-bookmark-flow.js")]);

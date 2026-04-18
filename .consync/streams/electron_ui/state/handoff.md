@@ -3,10 +3,10 @@ STREAM: electron_ui
 
 STATUS
 
-paused
+active
 
 SUMMARY
 
-Electron UI work is paused after the selection/reveal behavior was split cleanly in the desktop search view.
+Electron UI work now includes one minimal automated UI testing slice for the desktop search flow.
 
-The next likely chapter is automated UI testing, because recent live-loop observation exposed the need for more durable UI-level evidence.
+The renderer search path is now covered for grouped result rendering, selection-versus-reveal behavior, explicit reveal triggering, and selected detail fidelity. The stream remains active, with future UI changes expected to extend this coverage narrowly rather than rebuilding the test setup.

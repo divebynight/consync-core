@@ -1,127 +1,95 @@
 MODE: CONTINUE
 
-CONTEXT: PROCESS_STREAM_FINALIZATION
+CONTEXT: ELECTRON_UI_AUTOMATED_TESTING
 
-TYPE: PROCESS
-PACKAGE: finalize_process_stream_and_execute_clean_switch
+TYPE: FEATURE
+PACKAGE: add_automated_ui_testing_for_search_flow
 
 OBJECTIVE
 
-Finalize the process stream at a clean pause-safe point and perform the first real foreground stream switch to `electron_ui`.
+Introduce a minimal automated testing setup for the Electron UI search flow.
 
-This package proves that the new stream model works in practice by:
-- cleanly pausing the process stream
-- switching foreground to electron_ui
-- ensuring electron_ui can resume without reconstructing context
+This is driven by a real issue discovered during manual testing and is intended to:
+- protect current behavior
+- make future changes safer
+- establish a repeatable testing pattern for UI interactions
 
-This is the first real operational validation of the stream system.
+Focus only on the current search → select → detail → reveal flow.
 
 ---
 
 NON-GOALS
 
-- Do not add new streams
-- Do not modify the Electron UI code
-- Do not introduce new process docs
-- Do not refactor existing structure
-- Do not introduce automation or agents
+- Do not refactor the UI
+- Do not redesign components
+- Do not introduce full E2E infrastructure unless absolutely necessary
+- Do not overbuild test coverage
+- Do not introduce CI complexity yet
 
 ---
 
-REQUIRED OUTCOME
+TARGET BEHAVIOR TO TEST
 
-Complete the following steps:
+From the recent feature:
 
----
-
-1. MAKE PROCESS STREAM PAUSE-SAFE
-
-Update `.consync/streams/process/state/` so that:
-
-- `handoff.md` reflects the completion of:
-  - stream structure
-  - operating model
-  - lifecycle/promotion
-  - stream/legacy interaction
-
-- `snapshot.md` clearly states:
-  - what was accomplished in this stream
-  - that the stream is now stable and pause-safe
-  - that the next likely evolution would be future enhancements (agents, automation, etc.), but no immediate work is required
-
-- `next_action.md` is:
-  - empty OR
-  - explicitly marked as no immediate next action
+1. Search results render grouped correctly
+2. Clicking a result:
+   - updates detail panel
+   - does NOT open Finder
+3. Clicking "Reveal in Finder":
+   - triggers reveal action
+4. Selected detail matches CLI truth output
 
 ---
 
-2. UPDATE PROCESS STREAM STATUS
+IMPLEMENTATION APPROACH
 
-Update:
+Choose the simplest viable testing layer.
 
-`.consync/streams/process/stream.md`
+Preferred order:
 
-Change:
+1. If existing test setup exists → extend it
+2. Otherwise:
+   - introduce minimal test runner (e.g. Jest + React Testing Library OR Playwright if already close)
+   - keep scope extremely small
 
-status: active → status: paused
+Tests should:
+- mount the relevant UI
+- simulate user interaction
+- assert behavior
 
----
-
-3. SWITCH FOREGROUND STREAM
-
-Update:
-
-`.consync/orchestration/active_foreground_stream.txt`
-
-Set it to:
-
-electron_ui
-
----
-
-4. ENSURE ELECTRON UI STREAM IS READY
-
-Confirm `.consync/streams/electron_ui/state/` is coherent:
-
-- `snapshot.md` clearly describes:
-  - current UI state
-  - recent change (selection vs reveal behavior)
-  - that automated UI testing is the next logical step
-
-- `next_action.md` should:
-  - remain staged OR
-  - clearly indicate that the next step is to generate an SDC for automated UI testing
-
-Do not invent new UI work. Only clarify.
+Avoid:
+- deep mocking of everything
+- complex environment setup
+- over-abstracted test helpers
 
 ---
 
-5. UPDATE STREAM INDEX
+MINIMUM TEST CASES
 
-Update `.consync/orchestration/stream_index.md`:
+Implement at least:
 
-- mark `process` as paused
-- mark `electron_ui` as active
-
-Keep this change minimal.
+- selecting result updates detail panel only
+- selecting result does NOT trigger reveal
+- clicking reveal button triggers reveal
+- grouped results structure renders
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. Process stream is fully pause-safe.
-2. Process stream status is set to paused.
-3. Foreground stream is now `electron_ui`.
-4. Electron UI stream is clearly ready to resume.
-5. No new complexity or structure was introduced.
-6. The system now supports a clean stream switch without relying on memory.
+1. A minimal automated test setup exists for the search flow
+2. Tests cover selection vs reveal behavior clearly
+3. Tests are readable and not over-engineered
+4. Existing behavior is preserved
+5. Tests can be run locally with a simple command
 
 ---
 
 HANDOFF FORMAT
 
-TYPE: PROCESS
-PACKAGE: finalize_process_stream_and_execute_clean_switch
+TYPE: FEATURE
+PACKAGE: add_automated_ui_testing_for_search_flow
 
 STATUS
 
@@ -129,34 +97,38 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how the process stream was finalized and how the foreground switch was executed.
+Explain what test setup was introduced and what behaviors are now covered.
+
+FILES CREATED
+
+List new test files.
 
 FILES MODIFIED
 
-List all files updated.
+List any UI or config changes.
 
 COMMANDS TO RUN
 
-Provide simple inspection commands.
+List how to run tests locally.
 
 HUMAN VERIFICATION
 
 Confirm:
-- process stream is pause-safe
-- foreground stream is electron_ui
-- electron_ui snapshot is sufficient to resume
-- no confusion about what to do next
+- tests run successfully
+- selection does not trigger reveal
+- reveal button still works
+- no regression in UI behavior
 
 VERIFICATION NOTES
 
-State manual verification.
+State manual + automated verification.
 
 NOTES
 
-Mention any decisions made to keep this minimal and avoid overbuilding.
+Mention any decisions made to keep the test setup minimal.
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This package is about proving the system works, not expanding it.
+Be conservative. This is the first test layer, not a full testing system.

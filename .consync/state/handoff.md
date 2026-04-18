@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: finalize_process_stream_and_execute_clean_switch
+TYPE: FEATURE
+PACKAGE: add_automated_ui_testing_for_search_flow
 
 STATUS
 
@@ -7,57 +7,51 @@ PASS
 
 SUMMARY
 
-Finalized the `process` stream at a clean pause-safe stopping point and executed the first real foreground switch to `electron_ui`.
+Added a minimal automated UI test layer for the Electron desktop search flow using Vitest with Testing Library and `jsdom`.
 
-The process stream now records that its initial work is complete: stream structure, operating rules, lifecycle and promotion rules, and the bridge to the legacy live loop are all preserved in stream-local state. The foreground selector now points to `electron_ui`, the stream index matches that switch, and the Electron UI stream state now clearly says the next step is generating an SDC for automated UI testing around the search, selection, detail, and explicit reveal flow.
+The new test mounts the real renderer `App` component against a mocked desktop bridge and covers grouped result rendering, selection updating the detail panel without triggering reveal, explicit reveal button behavior, and selected detail values matching the same search result truth already used elsewhere in the repo. The existing verification surface now runs this UI slice through a simple local command and through `npm run verify`.
 
-No new structure or UI code was added. This package only proved that the stream model can support a clean handoff without relying on memory.
+Kept the setup narrow: no E2E runner, no UI refactor, and no broader test harness than the one needed to protect the current search -> select -> detail -> reveal flow.
 
 FILES CREATED
 
-- none
+- `src/test/app-search-flow.test.jsx` — mounts the renderer app with a mocked desktop bridge and verifies grouped search rendering plus selection-versus-reveal behavior.
 
 FILES MODIFIED
 
-- `.consync/streams/process/stream.md` — marks the process stream as paused now that its initial process-definition work is complete.
-- `.consync/streams/process/state/handoff.md` — records that the process stream reached a clean pause-safe stopping point.
-- `.consync/streams/process/state/snapshot.md` — summarizes what the process stream accomplished and that no immediate next action is required.
-- `.consync/streams/process/state/next_action.md` — clears the active work and marks the stream as paused with no immediate next action.
-- `.consync/orchestration/active_foreground_stream.txt` — switches the foreground stream from `process` to `electron_ui`.
-- `.consync/streams/electron_ui/stream.md` — marks the Electron UI stream as active.
-- `.consync/streams/electron_ui/state/snapshot.md` — clarifies the current UI state and names automated UI testing SDC generation as the next logical step.
-- `.consync/streams/electron_ui/state/next_action.md` — stages the next Electron UI step as generating an SDC for automated UI testing.
-- `.consync/orchestration/stream_index.md` — updates stream statuses so `process` is paused and `electron_ui` is active.
-- `.consync/state/handoff.md` — records this stream-finalization and clean-switch package result in the live handoff location.
+- `package.json` — adds a focused `test:ui-search` command for the new renderer search-flow test.
+- `package-lock.json` — records the minimal renderer test dependencies added for the new UI test layer.
+- `src/electron/renderer/App.jsx` — adds an explicit React import so the renderer component runs cleanly in the new test path.
+- `src/test/verify.js` — runs the new UI search-flow test as part of the existing repo verification pass.
+- `.consync/streams/electron_ui/state/handoff.md` — updates the stream-local handoff to reflect that automated UI coverage now exists.
+- `.consync/streams/electron_ui/state/snapshot.md` — records the new automated UI test slice as current stream reality.
+- `.consync/streams/electron_ui/state/next_action.md` — updates the next likely Electron UI step so future work builds on the new test slice.
+- `.consync/state/handoff.md` — records this feature package result in the live handoff location.
 
 COMMANDS TO RUN
 
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/orchestration/active_foreground_stream.txt`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,120p' .consync/orchestration/stream_index.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/process/state/snapshot.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/process/state/next_action.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/electron_ui/state/snapshot.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/electron_ui/state/next_action.md`
+- `cd /Users/markhughes/Projects/consync-core && npm run test:ui-search`
+- `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/orchestration/active_foreground_stream.txt` and confirm it now contains `electron_ui`.
-2. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,120p' .consync/orchestration/stream_index.md` and confirm `process` is marked paused and `electron_ui` is marked active.
-3. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/process/state/snapshot.md` and `sed -n '1,160p' .consync/streams/process/state/next_action.md` and confirm the process stream is clearly pause-safe with no immediate next action.
-4. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,160p' .consync/streams/electron_ui/state/snapshot.md` and `sed -n '1,160p' .consync/streams/electron_ui/state/next_action.md` and confirm the Electron UI stream is ready to resume and clearly points to SDC generation for automated UI testing.
-5. Confirm the success case that no new folders or extra process machinery were introduced. If the stream files suggest duplicate active state or unclear ownership between streams, treat that as a failure case and inspect before advancing.
-6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the modified files are limited to the expected stream-state, orchestration, and handoff files for this switch.
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run test:ui-search` and confirm the success case that both search-flow tests pass.
+2. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm the repo verification pass includes the new renderer search-flow UI slice and still ends with `PASS`.
+3. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`, use the default mock search root and query, then click a search result row. Confirm the detail panel updates and Finder does not open. If selecting a row opens Finder, treat that as a failure.
+4. In the running desktop shell, click `Reveal in Finder` after selecting a result. Confirm the success case that reveal runs only from the button. If the button does nothing or reveal happens before the click, treat that as a failure.
+5. Confirm the grouped search sections and selected detail values still match the rendered mock search result content. If the detail panel shows a different path, note, or tags than the selected row implies, treat that as a failure.
+6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed files are limited to the new test, the minimal test wiring, the explicit renderer import, the refreshed Electron UI stream state, and the updated handoff.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no automated test or runtime command was appropriate for this stream-state package.
-- Confirmed the process stream now reads as paused across its stream metadata, handoff, snapshot, and next-action files.
-- Confirmed the foreground selector and stream index both now point to `electron_ui` as the active stream.
-- Confirmed the Electron UI stream state remains narrow and coherent: it preserves the current UI state, keeps the recent selection-versus-reveal context, and names SDC generation for automated UI testing as the next logical step without inventing new UI work.
-- Validated the switch introduces no new structural complexity beyond the required state and status updates.
+- Automated verification passed with `npm run test:ui-search` and with `npm run verify`, which now includes the new UI search-flow slice.
+- The focused UI test exercised the real `App` component against a mocked desktop bridge and observed grouped result rendering, selection updating detail without reveal, and explicit reveal triggering only from the button.
+- Manual live desktop behavior was not rerun during this package; the handoff includes concrete manual checks for the user to confirm the same selection-versus-reveal behavior in the running shell.
+- Validated one edge case in the test layer: selected note text legitimately appears both in the result list and in the detail panel after selection, so the test now asserts that duplicated display intentionally rather than treating it as a regression.
 
 NOTES
 
-- This package stayed within the existing stream structure and did not create any new coordination layer.
-- The main caution was keeping the switch clean: `process` is now explicitly pause-safe before `electron_ui` becomes foreground, so the handoff does not depend on chat memory or implied state.
+- Chose Vitest plus Testing Library because the repo already uses Vite and the new test only needed a minimal component-level DOM environment, not full E2E infrastructure.
+- Kept the coverage intentionally narrow to the current search -> select -> detail -> reveal flow so future Electron UI work can extend the same pattern without inheriting a heavy test framework.
