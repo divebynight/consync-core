@@ -124,6 +124,11 @@ export function App() {
   const [sessionState, setSessionState] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  function clearSearchInteractionState() {
+    setSearchResult(null);
+    setSelectedMatchKey(null);
+  }
+
   useEffect(() => {
     let cancelled = false;
 
@@ -308,7 +313,10 @@ export function App() {
               id="mock-search-root"
               className="bookmark-input"
               value={searchRoot}
-              onChange={event => setSearchRoot(event.target.value)}
+              onChange={event => {
+                setSearchRoot(event.target.value);
+                clearSearchInteractionState();
+              }}
               placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
               type="text"
             />
@@ -319,7 +327,10 @@ export function App() {
               id="mock-search-query"
               className="bookmark-input"
               value={searchQuery}
-              onChange={event => setSearchQuery(event.target.value)}
+              onChange={event => {
+                setSearchQuery(event.target.value);
+                clearSearchInteractionState();
+              }}
               placeholder="Search bookmarked context such as moss"
               type="text"
             />

@@ -1,5 +1,5 @@
 TYPE: FEATURE
-PACKAGE: strengthen_electron_ui_action_flow_tests
+PACKAGE: cover_renderer_search_input_state_invalidation
 
 STATUS
 
@@ -7,37 +7,26 @@ PASS
 
 SUMMARY
 
-Strengthened the Electron renderer search-flow tests around explicit action behavior in the detail panel without changing product code or the test framework.
+Inspected the renderer search-input behavior and found a real stale-state bug: after results loaded or a result was selected, editing the root or query inputs left the old results, detail panel, and reveal target visible under the new input values.
 
-The new coverage protects the current interaction contract more directly: the reveal action is hidden before results exist, disabled until a result is selected, reset on a new search, and still points at the current selection if reveal fails. This closes a high-value action-flow gap that was previously left mostly to manual app-open checking.
+Applied a minimal renderer fix so editing either search input now clears loaded search results and selection immediately, then added focused renderer tests that lock in that corrected contract. This keeps the search/detail panel aligned with the current input state and removes a misleading reveal target.
 
-AUDIT OF CURRENT UI TEST SETUP
+CURRENT INPUT-EDIT CONTRACT
 
-Current test entry points:
+Before this package, the renderer behaved as follows:
 
-- `src/test/app-search-flow.test.jsx` — renderer-level Vitest + jsdom test for the main search/detail flow through `App.jsx`
-- `src/test/renderer-mock-search-panel.js` — node-level helper-slice test for mock-search summary/detail row shaping and selection lookup
-- `src/test/desktop-scaffold.js` — desktop boundary test, but not a search interaction test
+- editing the root input after results loaded left the old results visible
+- editing the query input after results loaded left the old results visible
+- editing either input after a result was selected left the old detail content and reveal target active
 
-Current covered behaviors:
+That was risky because the visible result/detail state no longer matched the active root and query inputs.
 
-- grouped result rendering
-- detail-panel fidelity for session, anchor, note, and tags
-- explicit reveal action instead of selection-triggered side effects
-- search failure handling
-- reveal failure messaging
-- no-results state
+Current contract after this package:
 
-Current uncovered behaviors before this package:
-
-- explicit action visibility before any search result exists
-- explicit action disabled state after search but before selection
-- selection reset on a fresh search run
-- proof that reveal failure does not corrupt the current detail selection
-
-Specific gap this package closes:
-
-- action-flow contract coverage for selection state and detail-panel actions around the existing search/detail UI
+- editing the root input clears loaded search results
+- editing the query input clears loaded search results
+- editing either input clears any selected detail state
+- the reveal action disappears with the cleared results, so no stale action target remains available
 
 FILES CREATED
 
@@ -45,7 +34,8 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `src/test/app-search-flow.test.jsx` — adds focused renderer tests for hidden-versus-disabled reveal action behavior, selection reset on rerun, and preserved detail state after reveal failure.
+- `src/electron/renderer/App.jsx` — clears search results and selection when the root or query input changes, fixing stale renderer state with a minimal local change.
+- `src/test/app-search-flow.test.jsx` — adds focused renderer tests for query/root edits after results or selection so stale list/detail state cannot quietly regress.
 - `.consync/state/handoff.md` — records this feature package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -56,18 +46,19 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 7 renderer search-flow tests pass.
-2. Open `src/test/app-search-flow.test.jsx` and confirm there is coverage for these cases: no reveal button before results, disabled reveal button before selection, selection reset after rerunning search, and preserved detail selection after reveal failure.
-3. Run `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js` and confirm the full repo verification ends with `[verify] PASS`.
-4. If the focused UI suite fails, if verify fails at the renderer search-flow slice, or if the new tests depend on live Electron behavior instead of deterministic mocks, treat that as a failure.
+1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 10 renderer search-flow tests pass.
+2. Open `src/electron/renderer/App.jsx` and confirm editing either search input now clears search results and selection immediately.
+3. Open `src/test/app-search-flow.test.jsx` and confirm there is explicit coverage for: query edit after results, query edit after selection, and root edit after selection.
+4. Run `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js` and confirm the repo verification ends with `[verify] PASS`.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the worktree shows the renderer file, the test file, and the live next-action file. If stale result or detail state survives input edits, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 7 of 7 tests passing.
+- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 10 of 10 tests passing.
 - Ran `node src/test/verify.js` and observed the full verification suite pass, including the renderer search-flow UI slice.
-- Validated the hidden-versus-disabled action edge case directly: before results the reveal control is absent, and after results but before selection it is present and disabled.
-- Validated that rerunning search clears the prior selection and that a reveal failure leaves the current selected detail visible rather than corrupting state.
+- Ran `git status --short` and observed only `.consync/state/next-action.md`, `src/electron/renderer/App.jsx`, and `src/test/app-search-flow.test.jsx` as modified.
+- Validated the main edge case directly: after results or selection exist, editing either search input clears the stale list/detail state and removes the reveal action instead of leaving an incorrect action target behind.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add one narrow renderer test for search input editing behavior, especially whether changing root or query after a result selection should preserve or clear stale result/detail state.
+- Add one narrow renderer test for how search-error state should behave when the user edits root or query after a failed search, so the error-clearing contract is explicit before more UI state accumulates.

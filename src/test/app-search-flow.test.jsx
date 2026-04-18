@@ -214,6 +214,72 @@ describe("App search flow", () => {
     );
   });
 
+  it("clears stale results when the query changes after results load", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    expect(screen.getByRole("button", { name: "Reveal in Finder" }).disabled).toBe(true);
+
+    await user.type(screen.getByLabelText("Theme query"), "-alt");
+
+    expect(screen.queryByText("Balcony Zine Session")).toBeNull();
+    expect(
+      screen.getByText("Enter a root and query to preview the grouped mock search flow in the desktop shell.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+  });
+
+  it("clears stale selection and detail when the query changes after a result is selected", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md"
+      )
+    ).toBeTruthy();
+
+    await user.type(screen.getByLabelText("Theme query"), "-updated");
+
+    expect(screen.queryByText("exports/cover-notes.md")).toBeNull();
+    expect(screen.queryByText("Moss motif for cover transition")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+    expect(
+      screen.getByText("Enter a root and query to preview the grouped mock search flow in the desktop shell.")
+    ).toBeTruthy();
+  });
+
+  it("clears stale selection and detail when the root changes after a result is selected", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+    await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
+
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
+      )
+    ).toBeTruthy();
+
+    await user.type(screen.getByLabelText("Root to search"), "-other-root");
+
+    expect(screen.queryByText("Greenhouse Poster Session")).toBeNull();
+    expect(screen.queryByText("moss, poster, texture")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+    expect(
+      screen.getByText("Enter a root and query to preview the grouped mock search flow in the desktop shell.")
+    ).toBeTruthy();
+  });
+
   it("shows a search error when runMockSearch fails", async () => {
     const user = userEvent.setup();
     window.consyncDesktop = createDesktopBridge({
