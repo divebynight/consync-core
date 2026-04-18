@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: define_stream_operating_model
+PACKAGE: define_stream_lifecycle_and_promotion
 
 STATUS
 
@@ -7,46 +7,46 @@ PASS
 
 SUMMARY
 
-Created one small process-facing stream operating model reference under `.consync/docs/`.
+Created one small process-facing lifecycle and promotion reference under `.consync/docs/`.
 
-The new doc defines the tiny stream core, the current status vocabulary, the pause-safe rule, and the current one-foreground-stream policy with a short future-friendly note about possible parallel work later. Supporting updates were kept light: one pointer in the current-system doc and one pointer in the stream index.
+The new doc defines when an idea becomes a real stream, when extra structure is earned, how the current status vocabulary works over time, how low-gravity streams should be reviewed, and how Consync prefers recognizable patterns across scales. Supporting updates were kept light: one companion pointer from the operating-model doc and one current-system pointer.
 
-Legacy `.consync/state/` remains the live loop, and no orchestration code, new streams, or heavy framework material was added.
+Legacy `.consync/state/` remains the live loop, and no new streams, orchestration behavior, or archival framework was added.
 
 FILES CREATED
 
-- `.consync/docs/stream-operating-model.md` — defines the current minimal stream structure, status meanings, pause-safe rule, and foreground-stream policy.
+- `.consync/docs/stream-lifecycle-and-promotion.md` — defines when streams become real, how they earn more structure, how statuses are used over time, and how low-gravity streams should be reviewed.
 
 FILES MODIFIED
 
-- `.consync/docs/current-system.md` — adds a short pointer to the new stream doc and notes where stream orchestration state now lives.
-- `.consync/orchestration/stream_index.md` — adds a short reference to the operating-model doc near the stream list.
+- `.consync/docs/stream-operating-model.md` — adds a short companion reference to the lifecycle and promotion doc.
+- `.consync/docs/current-system.md` — adds a short pointer to the lifecycle and promotion doc in the state-and-artifacts section.
 - `.consync/state/handoff.md` — records this package result in the live handoff location.
 
 COMMANDS TO RUN
 
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/stream-operating-model.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/stream-lifecycle-and-promotion.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/docs/stream-operating-model.md`
 - `cd /Users/markhughes/Projects/consync-core && sed -n '1,120p' .consync/docs/current-system.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/orchestration/stream_index.md`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/stream-operating-model.md` and confirm the doc exists.
-2. Confirm that the doc covers all four required areas: tiny stream core, status vocabulary, pause-safe rule, and foreground rule with a short future-friendly note.
-3. Confirm the doc stays small and practical rather than expanding into a framework or implementation plan.
-4. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,120p' .consync/docs/current-system.md` and confirm the new reference appears in the state-and-artifacts section.
-5. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/orchestration/stream_index.md` and confirm the stream list now points to the operating-model doc.
-6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the expected success case: one new doc plus only the two light pointer updates and the updated handoff. If additional unrelated files appear, treat that as a failure case for this package's repo-scope cleanliness and inspect before advancing.
+1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/stream-lifecycle-and-promotion.md` and confirm the doc exists.
+2. Confirm it covers all five required areas: promotion rule, earned structure rule, lifecycle states in practice, low-gravity or decay handling, and consistency across scales.
+3. Confirm the doc stays short and practical rather than expanding into an archival or orchestration framework.
+4. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,80p' .consync/docs/stream-operating-model.md` and confirm the companion pointer appears near the top.
+5. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,120p' .consync/docs/current-system.md` and confirm the new lifecycle reference appears in the state-and-artifacts section.
+6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the success case: one new lifecycle doc, two light supporting doc updates, and the updated handoff. If unrelated files appear beyond the already-live `next-action.md`, treat that as a failure case for clean package scope and inspect before advancing.
 
 VERIFICATION NOTES
 
 - Verification was manual and inspection-based; no automated test or runtime command was appropriate for this doc-only process package.
-- Confirmed the chosen location fits the existing `.consync/docs/` process surface and keeps the operating model easy to find.
-- Validated the new doc includes the required tiny-core list, all six statuses, the pause-safe recovery test, and the one-foreground-stream rule.
-- Validated the supporting updates remain light and do not migrate or rewrite the legacy live loop.
+- Confirmed the new doc sits cleanly beside the stream operating model and remains easy to find under `.consync/docs/`.
+- Validated that the new doc covers promotion, earned structure, practical lifecycle use of all six statuses, low-gravity review handling, and repeating patterns across scales.
+- Validated that the supporting updates remain light and do not add new stream mechanics or rewrite the legacy live loop.
 
 NOTES
 
-- The document is intentionally small and process-facing; it does not introduce orchestration behavior, agent logic, or concurrency control.
-- Legacy `.consync/state/` remains the authoritative live loop for now, so this package only clarifies the new stream model instead of migrating the whole process system.
+- The document is intentionally small and process-facing; it does not introduce decay automation, archival machinery, or orchestrator behavior.
+- Legacy `.consync/state/` remains the authoritative live loop for now, so this package only clarifies stream lifecycle behavior instead of migrating the full process system.

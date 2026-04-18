@@ -1,46 +1,55 @@
 MODE: CONTINUE
 
-CONTEXT: PROCESS_STREAM_OPERATING_MODEL
+CONTEXT: PROCESS_STREAM_LIFECYCLE
 
 TYPE: PROCESS
-PACKAGE: define_stream_operating_model
+PACKAGE: define_stream_lifecycle_and_promotion
 
 OBJECTIVE
 
-Define the minimal operating model for the new stream structure in a small, durable, human-readable way.
+Define the minimal lifecycle and promotion rules for streams in a small, durable, human-readable way.
 
-This package should make the stream model clearer without overbuilding it. It should explain how streams work now, what statuses mean, what “pause-safe” means, and how we should think about foreground focus versus future parallel-capable design.
+This package should explain when something becomes a real stream, when a stream earns more structure, how streams move through practical states over time, and how low-gravity streams should be handled without turning the system into a hoard.
 
-This is a process/structure package, not an automation or code feature package.
+This is a process/structure package, not an automation or feature package.
 
 NON-GOALS
 
-- Do not add new streams
-- Do not add agent execution logic
-- Do not add orchestration code
-- Do not build concurrency control
-- Do not rewrite the whole process system
-- Do not create a heavy framework document blob
-- Do not migrate all legacy `.consync/state/` behavior yet
+- Do not add new real streams
+- Do not build decay automation
+- Do not build orchestrator logic
+- Do not add agent execution behavior
+- Do not create heavy archival machinery
+- Do not rewrite the full process system
+- Do not migrate legacy `.consync/state/` behavior yet
 
 REQUIRED OUTCOME
 
-Create one small process-facing document that defines the stream operating model clearly enough that a human or future agent can understand the current rules.
+Create one small process-facing document that defines the current stream lifecycle and promotion model clearly enough that a human or future agent can understand how streams should be created, deepened, paused, completed, or allowed to decay.
 
-The document should cover these four areas:
+The document should cover these five areas:
 
-1. TINY STREAM CORE
-Define the minimum structure every real stream has:
-- `stream.md`
-- `state/next_action.md`
-- `state/handoff.md`
-- `state/snapshot.md`
-- optional `history/`
+1. STREAM PROMOTION RULE
+Define when an idea/note/thread earns promotion into a real stream.
 
-Make clear that extra structure is earned, not automatic.
+Keep it practical. A stream should become real only when at least one of these is true:
+- it has its own active or paused work packet
+- it has a distinct goal that can continue independently
+- losing its current state would be costly
+- it needs its own handoff/resume loop
 
-2. STATUS VOCABULARY
-Define the current status vocabulary in a compact, practical way:
+Make clear that not every idea becomes a stream.
+
+2. EARNED STRUCTURE RULE
+Define that every stream begins with the tiny core and earns additional structure only when needed.
+
+Include a practical rule such as:
+extra files like `package_plan.md` should appear only when the stream has enough iterations, branching, coordination, or consequence to justify them.
+
+Make clear that more gravity = more structure, not more speculation.
+
+3. LIFECYCLE STATES IN PRACTICE
+Define how the existing status vocabulary is used over time in a practical way:
 - `new`
 - `ready`
 - `active`
@@ -48,46 +57,49 @@ Define the current status vocabulary in a compact, practical way:
 - `blocked`
 - `complete`
 
-Make the definitions short and operational, not philosophical.
+You may also describe archival/decay behavior in prose, but do not add new required status words unless clearly necessary.
 
-3. PAUSE-SAFE RULE
-Define the current pause-safe rule:
-A stream is pause-safe when:
-- `handoff.md` is complete
-- `snapshot.md` is updated
-- `next_action.md` is empty or clearly staged
+4. LOW-GRAVITY / DECAY HANDLING
+Define the current philosophy for things that stall:
+- not everything should live forever as active structure
+- stalled streams should eventually be reviewed
+- the user can keep, merge, archive, or let them decay
 
-Include the practical recovery test:
-“If I came back cold later, could I continue without relying on memory alone?”
+Keep this lightweight and practical. Do not turn it into a retention policy framework.
 
-4. FOREGROUND RULE + FUTURE-FRIENDLY NOTE
-Define the current operating rule:
-- one foreground active stream at a time by policy
+5. CONSISTENCY ACROSS SCALES
+Add a short section explaining that Consync prefers repeating patterns across scales:
+- projects
+- streams
+- packages
+- sessions
 
-Also make clear this is a policy for now, not a hard architectural limit forever:
-- the structure should remain compatible with future background/parallel agent work if streams are independent enough
-- do not over-elaborate this; keep it as a simple future-facing note
+The point is not identical structure everywhere, but recognizable recurring patterns that reduce cognitive switching.
+
+Keep this short and grounded.
 
 DOCUMENT PLACEMENT
 
-Prefer to add this as a small new process-facing doc in the most coherent location under `.consync/`.
+Prefer to add this as a small new process-facing doc in the most coherent location under `.consync/docs/`.
 
-Choose a location/name that fits the repo’s current process docs cleanly and does not create confusion.
+Choose a location/name that fits cleanly beside the stream operating model doc and keeps the system easy to navigate.
 
 Good outcome:
-- a small clearly named doc that becomes the current reference for stream operating behavior
+- a clearly named companion doc to the operating-model reference
 
 Avoid:
-- scattering this across many files
+- scattering this material across many files
 - hiding it in a place that will be hard to find later
+- creating a giant theory doc
 
 COHERENCE UPDATES
 
-Make only very light supporting updates elsewhere if needed so the new operating-model doc is discoverable and consistent.
+Make only very light supporting updates elsewhere if needed so the new lifecycle/promotion doc is discoverable and consistent.
 
 Examples of acceptable light updates:
-- a brief note in an existing current-system/process index doc
-- a small pointer from a stream snapshot or orchestration file if truly helpful
+- a short pointer from `.consync/docs/current-system.md`
+- a short pointer from `.consync/docs/stream-operating-model.md` if that helps navigation
+- a small note in stream index only if genuinely useful
 
 Do not do broad rewrites.
 
@@ -97,24 +109,26 @@ STYLE
 - keep it readable
 - keep it practical
 - prefer markdown
-- avoid dense abstraction
-- avoid speculative agent architecture language
-- make it feel like the smallest durable reference for how streams currently work
+- avoid abstraction for its own sake
+- avoid overusing future-agent language
+- do not turn “earned gravity” into poetic branding unless it genuinely helps clarity
+- make it feel like the smallest durable reference for stream lifecycle behavior
 
 ACCEPTANCE CRITERIA
 
-1. A small durable doc exists that defines the stream operating model.
-2. The doc explains the tiny stream core, status vocabulary, pause-safe rule, and foreground-stream rule.
-3. The doc makes clear that extra stream structure is earned rather than automatic.
-4. The doc leaves the door open to future parallel/agent work without turning that into present complexity.
-5. Any supporting doc updates remain light and conservative.
+1. A small durable doc exists that defines stream promotion and lifecycle behavior.
+2. The doc explains when something becomes a real stream.
+3. The doc explains that extra stream structure is earned, not automatic.
+4. The doc explains how low-gravity streams should be reviewed rather than preserved forever as active structure.
+5. The doc includes a short note about repeating patterns across scales.
+6. Any supporting updates remain light and conservative.
 
 HANDOFF FORMAT
 
 Write the result to the usual handoff location using this format:
 
 TYPE: PROCESS
-PACKAGE: define_stream_operating_model
+PACKAGE: define_stream_lifecycle_and_promotion
 
 STATUS
 
@@ -122,7 +136,7 @@ PASS or FAIL
 
 SUMMARY
 
-Concise summary of the operating-model doc created, what it defines, and any small coherence updates made.
+Concise summary of the lifecycle/promotion doc created and any light coherence updates made.
 
 FILES CREATED
 
@@ -139,8 +153,8 @@ List any commands the user should run for inspection. If no automated verificati
 HUMAN VERIFICATION
 
 Provide a short checklist to confirm:
-- the operating-model doc exists
-- it covers the required four areas
+- the lifecycle/promotion doc exists
+- it covers the required five areas
 - it stays small and practical
 - any supporting updates are light and coherent
 
@@ -154,4 +168,4 @@ Mention any cautious decisions taken to avoid overbuilding or conflicting with t
 
 FINAL INSTRUCTION
 
-Be conservative. This package should produce the smallest credible operating-model reference, not a full framework.
+Be conservative. This package should produce the smallest credible lifecycle/promotion reference, not a framework.

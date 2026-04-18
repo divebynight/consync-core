@@ -2,6 +2,8 @@
 
 This is the current minimal operating model for real streams in `.consync/`.
 
+Companion reference: see `.consync/docs/stream-lifecycle-and-promotion.md` for when streams should become real, deepen, or decay.
+
 ## Tiny Stream Core
 
 Every real stream should start with:
