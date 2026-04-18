@@ -1,57 +1,64 @@
-TYPE: FEATURE
-PACKAGE: cover_renderer_error_state_invalidation
+TYPE: PROCESS
+PACKAGE: define_next_action_handoff_automation_contract
 
 GOAL
 
-Define and protect the renderer contract for how search error state behaves when the user edits search inputs after a failed search.
+Define a minimal, explicit automation contract for the `next-action` ↔ `handoff` loop so future tooling can generate, validate, and advance package work with less manual copy/paste and less risk of drift.
 
 WHY
 
-The renderer now correctly invalidates stale success state (results and selection) when inputs change. However, the behavior for error state after a failed search is not yet explicitly tested or guaranteed.
+The current loop is working well in practice:
 
-Without this, the UI may:
-- continue showing an outdated error after inputs change
-- mix error state with new input intent
-- create inconsistent feedback loops for the user
+- ChatGPT generates an SDC for `next-action`
+- the package is run through the existing prompt/process
+- a structured handoff is written
+- the handoff is returned for review
+- the next package is selected and written back into `next-action`
 
-This package ensures error state follows the same clear invalidation rules as success state.
+This pattern is now stable enough to formalize. Before building any helper script, agent skill, or MCP-facing tool, we should define the smallest machine-readable contract that preserves the current workflow and judgment points.
 
 DO
 
-1. Inspect current renderer behavior when:
-   - a search fails (error visible)
-   - the user edits:
-     - query input
-     - root input
+1. Audit the current `next-action` and `handoff` loop as it exists in the repo/process docs and identify:
+   - which fields are required in a valid `next-action` package
+   - which fields are required in a valid handoff
+   - which parts are deterministic
+   - which parts still require human or model judgment
 
-2. Capture the current behavior as a contract:
-   - does error clear immediately on input change?
-   - does it persist until next search?
-   - does it interfere with reveal/action state?
+2. Write a small contract document that defines:
+   - required structure for `next-action`
+   - required structure for handoff
+   - minimum pass/fail criteria for a valid package closeout
+   - where the “next recommended package” belongs
+   - what an automation helper is allowed to do vs not do
 
-3. Add focused renderer tests in `src/test/app-search-flow.test.jsx` for:
-   - editing query after error
-   - editing root after error
-   - ensuring no stale error is shown alongside new input intent
-   - ensuring no action controls are incorrectly available during error state
+3. Keep the contract lightweight and aligned to the current working loop. Do not redesign the whole process or introduce a larger agent framework in this package.
 
-4. If behavior is unsafe or inconsistent:
-   - apply a minimal renderer fix (same philosophy as previous package)
-   - keep scope strictly limited to error-state correctness
+4. Add one small validation surface if appropriate. Examples:
+   - a simple script stub
+   - a format checker
+   - a documented checklist
+   But only if it directly supports the contract and stays small.
+
+5. Record open follow-up packages needed for actual automation, such as:
+   - validate handoff structure automatically
+   - generate draft next-action from latest handoff
+   - support stream-aware package advancement
 
 CONSTRAINTS
 
-- Keep this renderer-only and test-focused
-- Do not redesign error UX or messaging
-- Do not introduce new frameworks or async complexity
-- Prefer deterministic mocks
+- Do not build full automation in this package.
+- Do not change the current working package loop unless necessary for clarity.
+- Prefer explicit contract definition over speculative architecture.
+- Keep this process-facing and portable across streams.
 
 OUTPUT
 
-Return normal handoff with:
+Return the normal handoff format with:
 - STATUS
 - SUMMARY
-- CURRENT ERROR-STATE CONTRACT
+- CURRENT LOOP AUDIT
+- CONTRACT DECISIONS
 - FILES CREATED
 - FILES MODIFIED
 - COMMANDS TO RUN
@@ -61,6 +68,7 @@ Return normal handoff with:
 
 VERIFICATION
 
-- `vitest` renderer test file
-- full `verify.js`
-- ensure no stale error persists incorrectly after input edits
+At minimum:
+- confirm the contract document matches the current real loop
+- confirm any added validation surface runs successfully if one is added
+- confirm no existing process docs were accidentally broadened or contradicted

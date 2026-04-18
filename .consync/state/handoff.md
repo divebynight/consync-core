@@ -1,5 +1,5 @@
-TYPE: FEATURE
-PACKAGE: cover_renderer_error_state_invalidation
+TYPE: PROCESS
+PACKAGE: define_next_action_handoff_automation_contract
 
 STATUS
 
@@ -7,59 +7,73 @@ PASS
 
 SUMMARY
 
-Inspected the renderer behavior after a failed search and found that editing the root or query inputs did not clear the stale error message. That left an outdated failure visible even after the user had started expressing a new search intent.
+Defined a minimal automation contract for the `next-action.md` ↔ `handoff.md` loop so future helpers can validate and support the current workflow without changing its judgment points.
 
-Applied a minimal renderer fix so search-input edits now clear search error state along with stale search results and selection, then added focused renderer tests to lock in that contract. This keeps the search panel consistent: new input intent no longer shares space with an old failed-search message.
+The new contract document separates deterministic structure from human or model judgment, defines the required shape of both files, sets minimum package-closeout criteria, places `NEXT RECOMMENDED PACKAGE` at the end of handoff when used, and limits automation helpers to validation and drafting support rather than autonomous advancement.
 
-CURRENT ERROR-STATE CONTRACT
+Added one light pointer from the system overview and used an embedded validation checklist as the small validation surface for this package.
 
-Before this package, the renderer behaved as follows after `runMockSearch` failed:
+CURRENT LOOP AUDIT
 
-- the error message became visible
-- editing the query input did not clear that stale error
-- editing the root input did not clear that stale error
-- reveal controls were not available because no results were present
+Current loop behavior in repo practice:
 
-That was inconsistent with the newer stale-success invalidation behavior and kept outdated error feedback visible while inputs changed.
+- `next-action.md` carries one active package at a time
+- the package is executed through the prompt-driven workflow
+- `handoff.md` is overwritten for the current closeout
+- `TYPE` and `PACKAGE` carry package identity across the loop
+- verification notes record what was actually run or inspected
 
-Current contract after this package:
+Current deterministic areas:
 
-- a failed-search error is shown after `runMockSearch` returns `ok: false`
-- editing the query input clears the stale failed-search error immediately
-- editing the root input clears the stale failed-search error immediately
-- reveal controls remain unavailable during failed-search state and after error invalidation until results are loaded again
+- single active package in `next-action.md`
+- overwritten `handoff.md` per package
+- required handoff closeout sections
+- package identity matching between `next-action.md` and `handoff.md`
+
+Current judgment-dependent areas:
+
+- package wording and scope
+- package PASS or FAIL decision
+- when optional integrity or process checks should run
+- whether a suggested next package is worth recording
+
+CONTRACT DECISIONS
+
+- Required `next-action.md` contract: `TYPE`, `PACKAGE`, one goal section, actionable instructions, constraints or non-goals, and verification expectations.
+- Required `handoff.md` contract: `TYPE`, `PACKAGE`, `STATUS`, `SUMMARY`, `FILES CREATED`, `FILES MODIFIED`, `COMMANDS TO RUN`, `HUMAN VERIFICATION`, and `VERIFICATION NOTES`.
+- `NEXT RECOMMENDED PACKAGE` belongs at the end of handoff when there is a clear follow-up.
+- Automation helpers may validate structure, compare identity fields, draft shells, and surface mismatches.
+- Automation helpers must not invent execution results, mark status without real context, or autonomously choose the next package.
 
 FILES CREATED
 
-- none
+- `.consync/docs/next-action-handoff-automation-contract.md` — defines the minimal structure, closeout criteria, automation boundaries, and embedded validation checklist for the live next-action/handoff loop.
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — clears stale error state when the search root or query changes, keeping search feedback aligned with current input intent.
-- `src/test/app-search-flow.test.jsx` — adds focused renderer tests for query/root edits after a failed search and confirms no reveal controls are exposed during error state.
+- `.consync/docs/current-system.md` — adds a light pointer to the next-action/handoff automation contract doc.
 - `.consync/state/handoff.md` — records this feature package result in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx`
-- `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js`
+- `cd /Users/markhughes/Projects/consync-core && git status --short .consync`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 12 renderer search-flow tests pass.
-2. Open `src/electron/renderer/App.jsx` and confirm search input edits now clear error state through the shared search-state invalidation path.
-3. Open `src/test/app-search-flow.test.jsx` and confirm there is explicit coverage for query edits after a failed search and root edits after a failed search.
-4. Run `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js` and confirm the repo verification ends with `[verify] PASS`.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the worktree shows the renderer file, the test file, and the live next-action file. If a failed-search error remains visible after editing root or query, treat that as a failure.
+1. Open `.consync/docs/next-action-handoff-automation-contract.md` and confirm it defines required structure for both `next-action.md` and `handoff.md` without redesigning the loop.
+2. Confirm the contract distinguishes deterministic parts of the loop from judgment-based parts.
+3. Confirm the contract places `NEXT RECOMMENDED PACKAGE` at the end of handoff when used.
+4. Confirm the automation-boundary section allows validation and drafting support but forbids autonomous PASS/FAIL decisions or invented results.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short .consync` and confirm the new contract doc and the light pointer update are the only process-doc changes. If the doc broadens into a larger framework or contradicts the current loop, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 12 of 12 tests passing.
-- Ran `node src/test/verify.js` and observed the full verification suite pass, including the renderer search-flow UI slice.
-- Ran `git status --short` and observed only `.consync/state/next-action.md`, `src/electron/renderer/App.jsx`, and `src/test/app-search-flow.test.jsx` as modified.
-- Validated the key edge case directly: after a failed search, editing either root or query removes the stale error immediately and does not expose a reveal control or stale action target.
+- Verification was manual and inspection-based.
+- Confirmed the new contract doc matches the current live loop: one package in `next-action.md`, one overwritten `handoff.md`, shared `TYPE` and `PACKAGE`, and required closeout sections.
+- Confirmed the embedded validation checklist provides a small validation surface without adding scripts or automation logic.
+- Confirmed the only supporting change outside the new doc is a light pointer in `current-system.md`, with no contradictory process rewrites introduced.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add one narrow renderer package to separate search-panel errors from non-search session errors, so future reveal or bookmark failures can be scoped more precisely without broadening the current single-error-message model by accident.
+- Add a tiny checker or script that validates required `handoff.md` sections and `TYPE`/`PACKAGE` matching automatically, using this contract as the source of truth.
