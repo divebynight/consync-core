@@ -1,107 +1,43 @@
 MODE: CONTINUE
 
-CONTEXT: CREATE_PROCESS_ALIGNMENT_AGENT
+CONTEXT: TIGHTEN_PROCESS_AGENT_OUTPUT
 
 TYPE: PROCESS
-PACKAGE: create_consync_process_agent
+PACKAGE: refine_process_agent_output_format
 
 OBJECTIVE
 
-Create a second repo-local custom Copilot agent for Consync: `consync-process-agent`.
-
-This agent is responsible for checking process and state alignment across package execution artifacts.
-
-It should inspect:
-- package identity alignment
-- next_action / handoff consistency
-- stream status and foreground alignment
-- handoff formatting issues
-- scope/verification consistency
-
-This is a report-only agent. It must not modify files.
-
----
+Reduce verbosity and improve signal quality of consync-process-agent output while preserving its usefulness.
 
 NON-GOALS
 
-- Do not implement orchestration
-- Do not modify streams or state
-- Do not create automation
-- Do not create multiple agents
-- Do not allow the agent to mutate files
-- Do not over-design the agent
-
----
+- Do not change agent scope
+- Do not change evaluation logic
+- Do not add responsibilities
+- Do not introduce automation
 
 REQUIRED OUTCOME
 
-Create a new file:
+Update the agent prompt in:
 
 .github/agents/consync-process.agent.md
 
----
+CHANGES
 
-FILE CONTENT
+1. REMOVE THINKING/PROCESS NARRATION
 
-Create the file with the exact content below:
+Agent should NOT:
+- describe what it is doing
+- mention commands it ran
+- narrate inspection steps
+- include transitional thoughts like “I need one more pass...”
 
----
-name: consync-process-agent
-description: Checks package-loop alignment across next_action, handoff, stream state, and process docs. Reports mismatches and protocol drift without modifying files.
----
+2. TIGHTEN OUTPUT
 
-You are a Consync process-alignment agent.
+Each section should be:
 
-Your role is to evaluate whether the package loop artifacts and process state remain aligned.
-
-You do NOT modify files.
-You only inspect, reason, and report.
-
----
-
-CONTEXT
-
-This repository uses a stream-based workflow:
-
-- Work is executed via next_action → execution → verify → optional integrity agent → handoff → commit
-- Streams are defined under .consync/streams/
-- The active foreground stream is tracked in .consync/orchestration/active_foreground_stream.txt
-- The current live loop still uses .consync/state/next_action.md and .consync/state/handoff.md
-- Process docs under .consync/docs/ define expected workflow behavior
-
----
-
-YOUR TASK
-
-When given a recent package or current repo state, evaluate process alignment across:
-
-1. PACKAGE IDENTITY
-- Confirm TYPE and PACKAGE remain consistent across next_action, handoff, and any referenced stream-local state
-- Flag mismatches, duplicated headers, or stale package labels
-
-2. LOOP STATE ALIGNMENT
-- Check whether next_action, handoff, and active foreground stream appear to describe the same current phase of work
-- Identify mid-transition mismatches or unresolved drift
-
-3. STREAM / FOREGROUND CONSISTENCY
-- Check whether active_foreground_stream.txt matches stream status and current package context
-- Flag inconsistent paused/active states
-
-4. HANDOFF HYGIENE
-- Check for duplicated sections, malformed structure, missing required sections, or unclear closeout state
-- Treat formatting drift as a real issue if it harms readability or protocol clarity
-
-5. SCOPE / VERIFICATION CONSISTENCY
-- Compare claimed package scope to changed files and listed verification steps
-- Flag missing verification, unexpected scope expansion, or unclear advancement state
-
----
-
-OUTPUT FORMAT
-
-Return:
-
-STATUS: PASS | WARNING | FAIL
+STATUS:
+- single line
 
 FINDINGS:
 - concise bullets only
@@ -110,46 +46,34 @@ RISKS:
 - short, concrete risks
 
 SUGGESTED IMPROVEMENTS:
-- actionable, minimal next steps
+- actionable, minimal
 
----
+3. ADD RULE
 
-RULES
+Add explicit instruction:
 
-- Be conservative and grounded in actual repository state
-- Do not assume missing context
-- Prefer "unknown" over guessing
-- Do not modify files
-- Do not act as an orchestrator
-- Do not include reasoning steps or narration
-- Only output final structured results
+"Do not include reasoning steps or narration. Only output final structured results."
 
-You are a checker, not a decision-maker.
+4. KEEP BEHAVIOR
 
----
+Do NOT:
+- reduce accuracy
+- remove useful process-level insights
+- simplify logic beyond output style
 
-COHERENCE UPDATES
-
-None required.
-
-Do not modify other files.
-
----
+Only reduce noise.
 
 ACCEPTANCE CRITERIA
 
-1. .github/agents/consync-process.agent.md exists
-2. Agent prompt clearly defines role, scope, and output format
-3. Agent is report-only
-4. Agent covers package identity, loop alignment, stream state, handoff hygiene, and scope/verification consistency
-5. File remains minimal and readable
-
----
+1. Agent output is shorter and more direct
+2. No narration or step-by-step chatter appears
+3. Output remains structured and useful
+4. No loss of meaningful process-alignment signal
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: create_consync_process_agent
+PACKAGE: refine_process_agent_output_format
 
 STATUS
 
@@ -157,15 +81,12 @@ PASS or FAIL
 
 SUMMARY
 
-Explain what agent was created and its purpose.
-
-FILES CREATED
-
-List the agent file.
+Explain how output was tightened.
 
 FILES MODIFIED
 
-List any modified files.
+- .github/agents/consync-process.agent.md
+- .consync/state/handoff.md
 
 COMMANDS TO RUN
 
@@ -173,18 +94,15 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Confirm agent file exists
-2. Open it and confirm the frontmatter, role, task sections, output format, and non-mutation rules are correct
-3. Reload Copilot agent list or restart the IDE
-4. Confirm consync-process-agent appears in the agent picker
-5. Select it and verify it responds as a report-only process checker
+Confirm:
+- output is cleaner
+- no narration
+- still catches real process issues
 
 VERIFICATION NOTES
 
-Manual verification.
-
----
+Manual inspection.
 
 FINAL INSTRUCTION
 
-Be conservative. This agent should remain simple, safe, and focused on process alignment.
+Be conservative. Improve clarity, not behavior.
