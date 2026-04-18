@@ -72,6 +72,7 @@ Consync does not currently:
 - The current integrity-agent loop rules live in `.consync/docs/integrity-agent-loop.md`
 - The current agent routing guidance lives in `.consync/docs/agent-routing-policy.md`
 - The current next-action/handoff automation contract lives in `.consync/docs/next-action-handoff-automation-contract.md`
+- The current human-assisted observation closeout rules live in `.consync/docs/human-assisted-observation-closeout-rules.md`
 - Runtime sandbox outputs for command verification live under `sandbox/`
 
 `sandbox/current/` is currently a development harness. It is useful for exercising artifact flow and verification, but it should not be treated as the final long-term Consync ontology.
