@@ -1,156 +1,59 @@
-MODE: CONTINUE
+TYPE: FEATURE
+PACKAGE: strengthen_electron_ui_action_flow_tests
 
-CONTEXT: AGENT_ROUTING_POLICY
+GOAL
 
-TYPE: PROCESS
-PACKAGE: define_agent_routing_policy
+Audit and strengthen the current Electron UI testing layer by extending coverage from search-state rendering into explicit action-flow behavior around selection and the detail panel.
 
-OBJECTIVE
+WHY
 
-Define a small, practical routing policy for when to run:
-- consync-integrity-agent
-- consync-process-agent
-- both agents
-- neither
+The current Electron UI testing surface appears to cover the main search path, detail fidelity, failure handling, and no-results behavior. The highest-value next gap is likely interaction-contract coverage for how the user moves from search results into explicit actions.
 
-This package should reduce unnecessary overhead and make agent use more consistent.
+This package should reduce dependence on manual app-open verification for routine UI behavior and make the search/detail workflow safer to change in small packages.
 
-NON-GOALS
+DO
 
-- Do not create new agents
-- Do not automate routing
-- Do not change agent behavior
-- Do not rewrite the package loop
-- Do not introduce orchestration logic
-- Do not build a large decision framework
+1. Inspect the existing Electron UI testing setup and identify:
+   - which test files currently exercise the search flow
+   - whether tests run at renderer level, desktop-scaffold level, or both
+   - what bridge/preload/backend mocks already exist
+   - which user interactions are already covered versus only manually verified
 
-REQUIRED OUTCOME
+2. Write a short audit summary into the handoff that lists:
+   - current test entry points
+   - current covered behaviors
+   - current uncovered behaviors
+   - the specific gap this package closes
 
-Create one small process-facing document under `.consync/docs/` that defines when each agent should be used.
+3. Add or extend tests for the highest-value action-flow behavior around the current search/detail UI. Prefer behavior that is already implemented in the product but not yet protected by tests. Focus on things like:
+   - selecting a result updates the detail panel without triggering side effects
+   - explicit action buttons remain disabled or hidden when no valid selection exists
+   - explicit action buttons trigger the intended bridge call when a valid selection exists
+   - action failures are surfaced cleanly without corrupting selection/detail state
 
-The document should cover these areas:
+4. Keep the package small. Do not broaden into new UI features, visual redesign, or a larger test framework rewrite. Strengthen the existing testing layer using the current architecture.
 
-1. PURPOSE
+5. Preserve the usual next_action/handoff discipline. If you discover a larger testing gap that should become its own package, note it in the handoff rather than expanding scope here.
 
-Explain that agent routing exists to:
-- reduce unnecessary ceremony
-- keep agent use consistent
-- focus checks where they add the most value
+CONSTRAINTS
 
-2. INTEGRITY AGENT
+- Do not introduce a new heavyweight testing framework unless it is already present and clearly intended.
+- Do not require manual app-open verification for this package unless there is no stable automated seam.
+- Prefer deterministic mocks over live Electron behavior when asserting renderer workflow.
+- Keep changes aligned with the current stream/process/integrity model.
 
-Define that integrity agent is most useful for:
-- feature changes
-- test changes
-- user-facing behavior changes
-- packages where code/tests/docs may drift
+OUTPUT
 
-3. PROCESS AGENT
+Return the normal handoff format with:
+- STATUS
+- SUMMARY
+- AUDIT OF CURRENT UI TEST SETUP
+- FILES CREATED
+- FILES MODIFIED
+- COMMANDS TO RUN
+- VERIFICATION NOTES
+- NEXT RECOMMENDED PACKAGE
 
-Define that process agent is most useful for:
-- process packages
-- stream/state/doc changes
-- packages touching handoff, next_action, stream status, or loop docs
-- situations where formatting or alignment drift is likely
+VERIFICATION
 
-4. BOTH AGENTS
-
-Define when both are recommended, such as:
-- larger packages
-- multi-step workflow changes
-- packages affecting both behavior and process
-- times when extra redundancy is useful
-
-5. NEITHER AGENT
-
-Define when neither is usually needed, such as:
-- tiny typo-only fixes
-- trivial low-risk edits
-- extremely narrow changes with obvious verification
-
-6. HUMAN OVERRIDE
-
-State clearly:
-- this is guidance, not a hard rule
-- the user may run an agent whenever extra confidence is helpful
-- when mentally fatigued or sick, using more checks is reasonable
-
-7. FUTURE NOTE
-
-Add a short note:
-- routing may later be embedded into SDC or lightweight automation
-- current version is manual and judgment-based
-
-DOCUMENT PLACEMENT
-
-Create a clearly named doc under `.consync/docs/`, such as:
-
-- agent-routing-policy.md
-
-COHERENCE UPDATES
-
-Make only light updates if helpful:
-- add a pointer from `current-system.md`
-- optionally add a pointer from `integrity-agent-loop.md`
-- optionally add a pointer from `agent-introduction-strategy.md`
-
-Do not do broad rewrites.
-
-STYLE
-
-- keep it short
-- keep it practical
-- avoid abstract language
-- write as a working guideline, not a theory doc
-
-ACCEPTANCE CRITERIA
-
-1. A small doc exists defining when to run which agent
-2. It clearly distinguishes integrity, process, both, and neither
-3. It keeps the process lightweight
-4. It leaves room for human judgment
-5. Supporting updates remain light
-
-HANDOFF FORMAT
-
-TYPE: PROCESS
-PACKAGE: define_agent_routing_policy
-
-STATUS
-
-PASS or FAIL
-
-SUMMARY
-
-Explain what routing policy was added and how it reduces overhead.
-
-FILES CREATED
-
-List the new doc.
-
-FILES MODIFIED
-
-List any light pointer updates.
-
-COMMANDS TO RUN
-
-- git status --short
-
-HUMAN VERIFICATION
-
-Confirm:
-- doc exists
-- guidance is practical
-- it reduces ambiguity without adding complexity
-
-VERIFICATION NOTES
-
-Manual inspection.
-
-NOTES
-
-Mention any decisions made to keep the policy lightweight and non-prescriptive.
-
-FINAL INSTRUCTION
-
-Be conservative. This should reduce friction, not add framework.
+At minimum, run the relevant Electron/UI test command(s) plus the normal repo verification command if appropriate for this package.

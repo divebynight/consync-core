@@ -142,6 +142,78 @@ describe("App search flow", () => {
     });
   });
 
+  it("keeps explicit actions disabled until a result is selected and resets selection on a new search", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    const revealButton = screen.getByRole("button", { name: "Reveal in Finder" });
+
+    expect(screen.getByText("Click a result row to inspect one match more closely.")).toBeTruthy();
+    expect(revealButton.disabled).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+
+    expect(revealButton.disabled).toBe(false);
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md"
+      )
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    expect(screen.getByText("Click a result row to inspect one match more closely.")).toBeTruthy();
+    expect(revealButton.disabled).toBe(true);
+    expect(window.consyncDesktop.revealSearchResult).not.toHaveBeenCalled();
+  });
+
+  it("updates the detail panel to the current selection and preserves it when reveal fails", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      revealSearchResult: vi.fn().mockResolvedValue({ ok: false, output: "Reveal failed for test" }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md"
+      )
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
+
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText("Click a result row to inspect one match more closely.")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Reveal in Finder" }));
+
+    expect(await screen.findByText("Reveal failed for test")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
+      )
+    ).toBeTruthy();
+    expect(screen.getAllByText("Greenhouse Poster Session")).toHaveLength(2);
+    expect(window.consyncDesktop.revealSearchResult).toHaveBeenCalledWith(
+      "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
+    );
+  });
+
   it("shows a search error when runMockSearch fails", async () => {
     const user = userEvent.setup();
     window.consyncDesktop = createDesktopBridge({
