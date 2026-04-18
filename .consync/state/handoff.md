@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: create_consync_integrity_agent
+TYPE: FEATURE
+PACKAGE: strengthen_ui_test_coverage_based_on_integrity_feedback
 
 STATUS
 
@@ -7,41 +7,41 @@ PASS
 
 SUMMARY
 
-Created the first repo-local custom Copilot agent for Consync: `consync-integrity-agent`.
+Strengthened the automated UI test coverage for the Electron search flow without changing UI behavior or introducing new test infrastructure.
 
-The new agent is a report-only integrity checker that inspects change surface, test coverage, behavioral risk, doc and stream-state alignment, and process integrity after a package completes. Its prompt explicitly forbids file mutation and orchestration behavior, and defines a simple `PASS | WARNING | FAIL` report format.
+The existing renderer search-flow suite now verifies the full selected detail surface for session, anchor, and tags, covers `runMockSearch` failure and `revealSearchResult` failure handling, and adds one minimal no-results edge case. The focused UI suite still runs through the same `vitest` command and remains readable and narrow.
 
-Kept the agent minimal and safe: one file, no supporting framework, no execution logic, and no changes to streams or process flow.
+Coverage improved based on the integrity feedback while staying inside the original feature surface.
 
 FILES CREATED
 
-- `.github/agents/consync-integrity.agent.md` — defines the first repo-local integrity checker agent with report-only scope and a fixed output format.
+- none
 
 FILES MODIFIED
 
+- `src/test/app-search-flow.test.jsx` — expands the existing search-flow UI tests with detail fidelity assertions, failure-path coverage, and a no-results edge case.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && git status --short`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .github/agents/consync-integrity.agent.md`
+- `cd /Users/markhughes/Projects/consync-core && npm run test:ui-search`
+- `cd /Users/markhughes/Projects/consync-core && npm run verify`
 
 HUMAN VERIFICATION
 
-1. Confirm `.github/agents/consync-integrity.agent.md` exists.
-2. Open the file and confirm the frontmatter, role, task sections, output format, and non-mutation rules match the requested structure.
-3. Reload the Copilot agent list or restart the IDE.
-4. Confirm `consync-integrity-agent` appears in the agent picker dropdown.
-5. Select it and verify the success case that it responds to a prompt as a report-only checker. If it suggests editing files or acting as an orchestrator, treat that as a failure.
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run test:ui-search` and confirm the success case that all five search-flow tests pass.
+2. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm the repo verification pass still ends with `PASS`.
+3. Confirm the test output remains clear and focused on grouped rendering, selection-versus-reveal behavior, detail fidelity, failure handling, and the no-results state.
+4. If either command fails or the test output becomes noisy enough to obscure which search-flow behavior broke, treat that as a failure case and inspect the updated test file before advancing.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no automated test or execution path exists for agent-picker registration in this package.
-- Confirmed the requested agent file now exists at `.github/agents/consync-integrity.agent.md` and contains the specified report-only integrity-checker prompt.
-- Validated that the prompt explicitly forbids code modification and orchestration behavior.
-- The agent picker appearance step remains a manual IDE verification task, because this package only creates the repo-local agent file.
+- Automated verification passed with `npm run test:ui-search`, which now reports 5 passing tests in the focused renderer search-flow suite.
+- Automated verification also passed with `npm run verify`, confirming the strengthened UI tests still integrate cleanly with the broader repo verification surface.
+- Validated the added coverage areas directly: session, anchor, and tags in the selected detail panel; `runMockSearch` error handling; `revealSearchResult` error handling; and the no-results UI state.
+- Adjusted assertions to match real rendered behavior where selected session and anchor text legitimately appear in both the result list and the detail panel after selection.
 
 NOTES
 
-- Kept scope minimal by creating exactly one repo-local agent file and no supporting framework.
-- Did not add any automation, stream changes, or mutation instructions, because this first agent is intended to inspect and report only.
+- Kept scope limited to the existing UI test file so coverage improved without refactoring the renderer or widening the test framework.
+- Chose the no-results state as the one extra edge case because it closes a real user-facing gap without expanding into broader interaction coverage.

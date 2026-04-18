@@ -1,151 +1,77 @@
 MODE: CONTINUE
 
-CONTEXT: CREATE_FIRST_CUSTOM_AGENT
+CONTEXT: ELECTRON_UI_TEST_COVERAGE_IMPROVEMENT
 
-TYPE: PROCESS
-PACKAGE: create_consync_integrity_agent
+TYPE: FEATURE
+PACKAGE: strengthen_ui_test_coverage_based_on_integrity_feedback
 
 OBJECTIVE
 
-Create the first repo-local custom Copilot agent for Consync: consync-integrity-agent.
+Improve the automated UI test coverage for the Electron search flow based on integrity-agent findings.
 
-This agent is responsible for checking system integrity after a package completes.
-
-It should:
-- inspect changes
-- compare code, tests, docs, and stream state
-- report PASS / WARNING / FAIL
-- suggest improvements
-
-This is a report-only agent. It must not modify code.
+Focus on closing high-signal gaps without expanding scope unnecessarily.
 
 ---
 
 NON-GOALS
 
-- Do not implement orchestration
-- Do not modify existing streams or state
-- Do not create multiple agents
-- Do not add automation or execution logic
-- Do not allow the agent to mutate files
-- Do not over-design the agent
+- Do not refactor UI components
+- Do not introduce new test frameworks
+- Do not add broad coverage
+- Do not change existing behavior
 
 ---
 
-REQUIRED OUTCOME
+TARGET IMPROVEMENTS
 
-Create a new file:
+1. DETAIL FIDELITY
 
-.github/agents/consync-integrity.agent.md
+Add assertions for:
+- session
+- anchor
+- tags
 
----
-
-FILE CONTENT
-
-Create the file with the exact content below:
-
----
-name: consync-integrity-agent
-description: Checks repository integrity after a package by comparing code, tests, docs, and stream state. Reports findings without modifying files.
----
-
-You are a Consync integrity agent.
-
-Your role is to evaluate the integrity of a completed package.
-
-You do NOT modify code.
-You only inspect, reason, and report.
+Ensure selected detail panel reflects full data surface.
 
 ---
 
-CONTEXT
+2. FAILURE PATHS
 
-This repository uses a stream-based workflow:
+Add tests for:
 
-- Work is executed via next_action → handoff → verify
-- Streams are defined under .consync/streams/
-- The active stream is tracked in .consync/orchestration/active_foreground_stream.txt
-- Tests define behavioral truth
-- Docs and stream state define expected system understanding
+- runMockSearch failure
+- revealSearchResult failure
 
----
-
-YOUR TASK
-
-When given a recent package or changes, evaluate system integrity across:
-
-1. CHANGE SURFACE
-- Identify files that were modified or created
-- Determine what behavior or system surface was affected
-
-2. TEST COVERAGE
-- Determine whether tests cover the changed behavior
-- Identify missing or weak coverage
-
-3. BEHAVIORAL RISK
-- Identify edge cases or flows that could break but are not tested
-- Call out fragile or implicit assumptions
-
-4. DOC + STATE ALIGNMENT
-- Check whether docs, stream snapshots, and handoffs match current behavior
-- Identify inconsistencies or stale descriptions
-
-5. PROCESS INTEGRITY
-- Confirm that the package stayed within its intended scope
-- Flag unexpected file changes or missing verification steps
+Ensure UI handles these states predictably.
 
 ---
 
-OUTPUT FORMAT
+3. MINIMAL EDGE COVERAGE
 
-Return:
+Add ONE of:
 
-STATUS: PASS | WARNING | FAIL
+- no-results state OR
+- reselection behavior
 
-FINDINGS:
-- bullet list of observations
-
-RISKS:
-- potential failure points
-
-SUGGESTED IMPROVEMENTS:
-- concrete next steps (if needed)
-
----
-
-RULES
-
-- Be conservative and grounded in actual repository state
-- Do not assume missing context
-- Do not invent behavior
-- Prefer "unknown" over guessing
-- Do not modify files
-- Do not act as an orchestrator
-
-You are a checker, not a decision-maker.
-
----
-
-COHERENCE UPDATES
-
-None required.
+Do not overbuild.
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. .github/agents/consync-integrity.agent.md exists
-2. Agent appears in Copilot agent picker (after reload if needed)
-3. Agent prompt clearly defines role, scope, and output format
-4. Agent is report-only (no mutation instructions)
-5. File is minimal and readable
+1. Existing tests still pass
+2. New tests cover:
+   - detail fidelity
+   - at least one failure path
+3. Coverage remains simple and readable
+4. No UI behavior changes
 
 ---
 
 HANDOFF FORMAT
 
-TYPE: PROCESS
-PACKAGE: create_consync_integrity_agent
+TYPE: FEATURE
+PACKAGE: strengthen_ui_test_coverage_based_on_integrity_feedback
 
 STATUS
 
@@ -153,34 +79,26 @@ PASS or FAIL
 
 SUMMARY
 
-Explain what agent was created and its purpose.
-
-FILES CREATED
-
-List the agent file.
+Explain what gaps were addressed and how coverage improved.
 
 FILES MODIFIED
 
-Should be empty.
+List updated test files.
 
 COMMANDS TO RUN
 
-git status --short
+- npm run test:ui-search
+- npm run verify
 
 HUMAN VERIFICATION
 
-1. Confirm agent file exists
-2. Open it and confirm structure is correct
-3. Reload Copilot agent list (or restart IDE)
-4. Confirm agent appears in dropdown
-5. Select it and verify it responds to prompts
-
-VERIFICATION NOTES
-
-Manual verification.
+Confirm:
+- new tests pass
+- no regression in behavior
+- test output remains clear
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This is the first agent and should remain simple and safe.
+Be conservative. Improve signal, not surface area.

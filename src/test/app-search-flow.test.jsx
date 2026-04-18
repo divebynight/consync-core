@@ -42,7 +42,22 @@ const mockSearchResult = {
   ],
 };
 
-function createDesktopBridge() {
+const noResultsSearchResult = {
+  ok: true,
+  output: [
+    "ROOT: sandbox/fixtures/nested-anchor-trial",
+    "QUERY: moss",
+    "SESSIONS: 0",
+    "MATCHES: 0",
+  ].join("\n"),
+  rootPath: "sandbox/fixtures/nested-anchor-trial",
+  query: "moss",
+  sessionCount: 0,
+  matchCount: 0,
+  groups: [],
+};
+
+function createDesktopBridge(overrides = {}) {
   return {
     getBackendSummary: vi.fn().mockResolvedValue({
       platform: "darwin",
@@ -67,6 +82,7 @@ function createDesktopBridge() {
     createBookmark: vi.fn().mockResolvedValue({ ok: true }),
     revealSearchResult: vi.fn().mockResolvedValue({ ok: true, output: "revealed" }),
     runMockSearch: vi.fn().mockResolvedValue(mockSearchResult),
+    ...overrides,
   };
 }
 
@@ -94,6 +110,9 @@ describe("App search flow", () => {
         "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
       )
     ).toBeTruthy();
+    expect(screen.getAllByText("Greenhouse Poster Session")).toHaveLength(2);
+    expect(screen.getAllByText("2026/april/greenhouse-poster")).toHaveLength(2);
+    expect(screen.getByText("moss, poster, texture")).toBeTruthy();
     expect(screen.getAllByText("Moss texture reference for poster lighting")).toHaveLength(2);
     expect(window.consyncDesktop.revealSearchResult).not.toHaveBeenCalled();
   });
@@ -121,5 +140,50 @@ describe("App search flow", () => {
         "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md"
       );
     });
+  });
+
+  it("shows a search error when runMockSearch fails", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      runMockSearch: vi.fn().mockResolvedValue({ ok: false, output: "Search failed for test" }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+
+    expect(await screen.findByText("Search failed for test")).toBeTruthy();
+    expect(screen.queryByText("Balcony Zine Session")).toBeNull();
+  });
+
+  it("shows a session error when reveal fails", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      revealSearchResult: vi.fn().mockResolvedValue({ ok: false, output: "Reveal failed for test" }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+    await user.click(screen.getByRole("button", { name: "Reveal in Finder" }));
+
+    expect(await screen.findByText("Reveal failed for test")).toBeTruthy();
+  });
+
+  it("renders the no-results state without fabricating matches", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      runMockSearch: vi.fn().mockResolvedValue(noResultsSearchResult),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+
+    expect(await screen.findByText("No bookmarked matches found for this root and query.")).toBeTruthy();
+    expect(screen.getByText("Click a result row to inspect one match more closely.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reveal in Finder" }).disabled).toBe(true);
   });
 });
