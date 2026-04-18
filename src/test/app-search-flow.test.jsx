@@ -294,6 +294,50 @@ describe("App search flow", () => {
     expect(screen.queryByText("Balcony Zine Session")).toBeNull();
   });
 
+  it("clears a failed-search error when the query input changes", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      runMockSearch: vi.fn().mockResolvedValue({ ok: false, output: "Search failed for test" }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+
+    expect(await screen.findByText("Search failed for test")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+
+    await user.type(screen.getByLabelText("Theme query"), "-retry");
+
+    expect(screen.queryByText("Search failed for test")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+    expect(
+      screen.getByText("Enter a root and query to preview the grouped mock search flow in the desktop shell.")
+    ).toBeTruthy();
+  });
+
+  it("clears a failed-search error when the root input changes", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      runMockSearch: vi.fn().mockResolvedValue({ ok: false, output: "Search failed for test" }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+
+    expect(await screen.findByText("Search failed for test")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+
+    await user.type(screen.getByLabelText("Root to search"), "-retry-root");
+
+    expect(screen.queryByText("Search failed for test")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
+    expect(
+      screen.getByText("Enter a root and query to preview the grouped mock search flow in the desktop shell.")
+    ).toBeTruthy();
+  });
+
   it("shows a session error when reveal fails", async () => {
     const user = userEvent.setup();
     window.consyncDesktop = createDesktopBridge({

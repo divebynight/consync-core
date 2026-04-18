@@ -127,6 +127,7 @@ export function App() {
   function clearSearchInteractionState() {
     setSearchResult(null);
     setSelectedMatchKey(null);
+    setErrorMessage(null);
   }
 
   useEffect(() => {

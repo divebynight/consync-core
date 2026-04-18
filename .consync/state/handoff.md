@@ -1,5 +1,5 @@
 TYPE: FEATURE
-PACKAGE: cover_renderer_search_input_state_invalidation
+PACKAGE: cover_renderer_error_state_invalidation
 
 STATUS
 
@@ -7,26 +7,27 @@ PASS
 
 SUMMARY
 
-Inspected the renderer search-input behavior and found a real stale-state bug: after results loaded or a result was selected, editing the root or query inputs left the old results, detail panel, and reveal target visible under the new input values.
+Inspected the renderer behavior after a failed search and found that editing the root or query inputs did not clear the stale error message. That left an outdated failure visible even after the user had started expressing a new search intent.
 
-Applied a minimal renderer fix so editing either search input now clears loaded search results and selection immediately, then added focused renderer tests that lock in that corrected contract. This keeps the search/detail panel aligned with the current input state and removes a misleading reveal target.
+Applied a minimal renderer fix so search-input edits now clear search error state along with stale search results and selection, then added focused renderer tests to lock in that contract. This keeps the search panel consistent: new input intent no longer shares space with an old failed-search message.
 
-CURRENT INPUT-EDIT CONTRACT
+CURRENT ERROR-STATE CONTRACT
 
-Before this package, the renderer behaved as follows:
+Before this package, the renderer behaved as follows after `runMockSearch` failed:
 
-- editing the root input after results loaded left the old results visible
-- editing the query input after results loaded left the old results visible
-- editing either input after a result was selected left the old detail content and reveal target active
+- the error message became visible
+- editing the query input did not clear that stale error
+- editing the root input did not clear that stale error
+- reveal controls were not available because no results were present
 
-That was risky because the visible result/detail state no longer matched the active root and query inputs.
+That was inconsistent with the newer stale-success invalidation behavior and kept outdated error feedback visible while inputs changed.
 
 Current contract after this package:
 
-- editing the root input clears loaded search results
-- editing the query input clears loaded search results
-- editing either input clears any selected detail state
-- the reveal action disappears with the cleared results, so no stale action target remains available
+- a failed-search error is shown after `runMockSearch` returns `ok: false`
+- editing the query input clears the stale failed-search error immediately
+- editing the root input clears the stale failed-search error immediately
+- reveal controls remain unavailable during failed-search state and after error invalidation until results are loaded again
 
 FILES CREATED
 
@@ -34,8 +35,8 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — clears search results and selection when the root or query input changes, fixing stale renderer state with a minimal local change.
-- `src/test/app-search-flow.test.jsx` — adds focused renderer tests for query/root edits after results or selection so stale list/detail state cannot quietly regress.
+- `src/electron/renderer/App.jsx` — clears stale error state when the search root or query changes, keeping search feedback aligned with current input intent.
+- `src/test/app-search-flow.test.jsx` — adds focused renderer tests for query/root edits after a failed search and confirms no reveal controls are exposed during error state.
 - `.consync/state/handoff.md` — records this feature package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -46,19 +47,19 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 10 renderer search-flow tests pass.
-2. Open `src/electron/renderer/App.jsx` and confirm editing either search input now clears search results and selection immediately.
-3. Open `src/test/app-search-flow.test.jsx` and confirm there is explicit coverage for: query edit after results, query edit after selection, and root edit after selection.
+1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 12 renderer search-flow tests pass.
+2. Open `src/electron/renderer/App.jsx` and confirm search input edits now clear error state through the shared search-state invalidation path.
+3. Open `src/test/app-search-flow.test.jsx` and confirm there is explicit coverage for query edits after a failed search and root edits after a failed search.
 4. Run `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js` and confirm the repo verification ends with `[verify] PASS`.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the worktree shows the renderer file, the test file, and the live next-action file. If stale result or detail state survives input edits, treat that as a failure.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the worktree shows the renderer file, the test file, and the live next-action file. If a failed-search error remains visible after editing root or query, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 10 of 10 tests passing.
+- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 12 of 12 tests passing.
 - Ran `node src/test/verify.js` and observed the full verification suite pass, including the renderer search-flow UI slice.
 - Ran `git status --short` and observed only `.consync/state/next-action.md`, `src/electron/renderer/App.jsx`, and `src/test/app-search-flow.test.jsx` as modified.
-- Validated the main edge case directly: after results or selection exist, editing either search input clears the stale list/detail state and removes the reveal action instead of leaving an incorrect action target behind.
+- Validated the key edge case directly: after a failed search, editing either root or query removes the stale error immediately and does not expose a reveal control or stale action target.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add one narrow renderer test for how search-error state should behave when the user edits root or query after a failed search, so the error-clearing contract is explicit before more UI state accumulates.
+- Add one narrow renderer package to separate search-panel errors from non-search session errors, so future reveal or bookmark failures can be scoped more precisely without broadening the current single-error-message model by accident.
