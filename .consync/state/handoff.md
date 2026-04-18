@@ -1,74 +1,58 @@
 TYPE: PROCESS
-PACKAGE: rerun_observational_search_loop_after_selection_reveal_split
+PACKAGE: bootstrap_minimal_stream_model
 
 STATUS
 
-FAIL
+PASS
 
 SUMMARY
 
-The automated baseline remained healthy after the selection/reveal split, but this observational rerun could not close PASS because the live desktop interaction was not durably observed end to end.
+Bootstrapped the first minimal stream/orchestration layout under `.consync/` without replacing or deleting the existing live state loop.
 
-`node src/test/desktop-scaffold.js` passed, `npm run verify` passed, and the CLI truth source for `sandbox/fixtures/nested-anchor-trial` with `moss` still reported two sessions and two matches. The desktop app was launched and then manually closed, but the actual search -> select -> explicit reveal -> reselection behavior was not captured reliably enough to confirm that the live loop behaved cleanly.
+`process` is now represented as the active foreground stream, and `electron_ui` is represented as paused with enough preserved state to resume later without reconstructing context from memory. The new structure stays intentionally small: one orchestration folder, two streams, compact metadata, and minimal per-stream state files.
 
-No product code changed in this package. This remained a pure observational and state-update package, and it closes FAIL only because the required live-shell observation was incomplete rather than because a concrete regression was proven.
+Legacy `.consync/state/` files were left intact on purpose to preserve continuity while the stream model is still being introduced. No speculative extra streams, orchestration logic, or heavy framework docs were added.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-20260417-rerun-observational-search-loop-after-selection-reveal-split.md` — preserved the executed observational instruction before restoring the live `next-action.md` slot.
+- `.consync/orchestration/active_foreground_stream.txt` — records the active foreground stream in the new orchestration layout.
+- `.consync/orchestration/stream_index.md` — lists the two initial streams with short human-readable status and purpose notes.
+- `.consync/streams/process/stream.md` — defines the active process stream metadata.
+- `.consync/streams/process/state/next_action.md` — stages the next process-stream decision without inventing a new active package.
+- `.consync/streams/process/state/handoff.md` — preserves a compact process-stream handoff summary.
+- `.consync/streams/process/state/snapshot.md` — captures a concise re-entry snapshot for the active process stream.
+- `.consync/streams/electron_ui/stream.md` — defines the paused Electron UI stream metadata.
+- `.consync/streams/electron_ui/state/next_action.md` — stages the likely next Electron UI step without pretending the stream is active.
+- `.consync/streams/electron_ui/state/handoff.md` — preserves the paused Electron UI stopping point in stream-local form.
+- `.consync/streams/electron_ui/state/snapshot.md` — captures a concise Electron UI re-entry snapshot and likely next chapter.
 
 FILES MODIFIED
 
-- `.consync/state/package_plan.md` — marked the observational rerun FAIL, paused normal advancement, and queued a narrow manual-observation repair-style package.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that automated checks passed but live-loop confirmation is still missing.
-- `.consync/state/next-action.md` — replaced the live slot with a manual-observation package to resolve the failed evidence gap.
-- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this observational package.
-
-BEHAVIOR OBSERVED
-
-- The automated desktop scaffold path remained healthy.
-- The CLI grouped-search truth remained stable at two sessions and two matches for the `moss` query.
-- The desktop app launched successfully and was manually closed.
-
-BEHAVIOR PRESERVED
-
-- The grouped desktop search still returns the same underlying matches and formatted output used by `sandbox-desktop-search`.
-- The desktop search flow remains read-only and does not add session mutation, saved queries, ranking changes, or durable history.
-
-BEHAVIOR CHANGED
-
-- No product behavior changed in this package.
-
-COMMANDS RUN
-
-- `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`
-- `cd /Users/markhughes/Projects/consync-core && npm run verify`
-- `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
-- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
-- `cd /Users/markhughes/Projects/consync-core && git status --short`
+- `.consync/state/handoff.md` — records the completed stream-bootstrap package in the usual live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && npm run verify`
-- `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
-- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
+- `cd /Users/markhughes/Projects/consync-core && find .consync/orchestration .consync/streams -maxdepth 4 | sort`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-3. Search `sandbox/fixtures/nested-anchor-trial` for `moss` and confirm grouped results appear.
-4. Click one result row and confirm only the detail panel changes.
-5. Confirm Finder does not open on selection.
-6. Click `Reveal in Finder` and confirm Finder reveals the correct file, or its parent folder, on demand.
-7. Confirm the selected detail still matches `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
-8. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected state files unless a small repair was required.
-9. Failure case: if the live interaction still cannot be observed clearly, the observational gap remains unresolved.
+1. Run `cd /Users/markhughes/Projects/consync-core && find .consync/orchestration .consync/streams -maxdepth 4 | sort` and confirm the minimal orchestration and two-stream layout exists.
+2. Open `.consync/orchestration/active_foreground_stream.txt` and confirm it contains exactly `process`.
+3. Open `.consync/orchestration/stream_index.md` and confirm only `process` and `electron_ui` are listed.
+4. Open each stream's `stream.md`, `state/next_action.md`, `state/handoff.md`, and `state/snapshot.md` and confirm `process` is active while `electron_ui` is paused.
+5. Confirm legacy `.consync/state/` files still exist unchanged enough to preserve continuity.
+6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the new orchestration/stream files plus the updated live handoff.
 
 VERIFICATION NOTES
 
-- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`, and `cd /Users/markhughes/Projects/consync-core && git status --short` during this package.
-- A desktop-shell launch was also actually performed via `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`, and the app was manually closed.
-- Observed outcome: the automated baseline passed and the app launched, but no trustworthy full live observation of search -> select -> explicit reveal -> reselection was captured, so no product code was changed and the package closes FAIL.
-- Validated the important edge cases that the grouped search truth remained stable and that this package introduced no new product changes while resolving the observational status honestly.
+- No automated verification was appropriate for this structural bootstrap.
+- Manually checked the existing `.consync` layout before creating the new stream structure so the bootstrap could reuse continuity instead of inventing state.
+- Verified by inspection that the new orchestration folder, the two stream folders, and each required stream-state file were created.
+- Chose copy/adapt over move/delete so the legacy `.consync/state/` workflow remains intact while the new stream model is introduced conservatively.
+
+NOTES
+
+- The bootstrap intentionally leaves legacy `.consync/state/` files in place to avoid breaking the current live loop.
+- `process` is represented as active because stream/workflow definition is the current foreground concern.
+- `electron_ui` is represented as paused at a clean stopping point, with automated UI testing staged as the likely next chapter instead of inventing more UI work now.

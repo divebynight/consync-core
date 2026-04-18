@@ -1,98 +1,186 @@
+MODE: CONTINUE
+
+CONTEXT: CONSYNC_STREAM_MODEL_BOOTSTRAP
+
+OBJECTIVE
+
+Set up the first minimal phase of the new stream structure inside the repo.
+
+This is a conservative structural/process change only. Do not overbuild it.
+
+The purpose of this step is to support one real current situation:
+
+- `process` stream is the current foreground stream
+- `electron_ui` stream is paused but preserved
+- the structure should let us return to `electron_ui` later without relying on memory alone
+
+Do not introduce speculative extra streams, agent logic, orchestration code, or concurrency mechanisms.
+
+---
+
+REQUIRED IMPLEMENTATION
+
+1. CREATE THE MINIMAL STREAM/ORCHESTRATION FOLDER STRUCTURE
+
+Under `.consync/`, create this structure:
+
+.consync/
+  orchestration/
+    active_foreground_stream.txt
+    stream_index.md
+  streams/
+    process/
+      stream.md
+      state/
+        next_action.md
+        handoff.md
+        snapshot.md
+      history/
+    electron_ui/
+      stream.md
+      state/
+        next_action.md
+        handoff.md
+        snapshot.md
+      history/
+
+Do not create additional stream folders.
+
+Do not create package plans for both streams by default.
+
+Do not add extra process docs unless a very small update to an existing doc is needed for coherence.
+
+---
+
+2. POPULATE THE NEW ORCHESTRATION FILES
+
+Create `.consync/orchestration/active_foreground_stream.txt` with exactly:
+
+process
+
+Create `.consync/orchestration/stream_index.md` as a short human-readable file with content equivalent to:
+
+## Streams
+
+### process
+- status: active
+- owner: human
+- purpose: define stream-based workflow
+
+### electron_ui
+- status: paused
+- owner: human
+- purpose: continue Electron UI work, next step likely automated UI testing
+
+You may tighten wording slightly, but keep it short and practical.
+
+---
+
+3. CREATE THE TWO INITIAL STREAMS WITH MINIMAL STREAM METADATA + STATE
+
+Create `.consync/streams/process/stream.md` with these required fields:
+
+- id: process
+- title: Stream Model + Process Evolution
+- status: active
+- owner: human
+- mode: system
+- summary: define and implement the stream-based workflow for Consync without breaking existing work
+
+Create `.consync/streams/electron_ui/stream.md` with these required fields:
+
+- id: electron_ui
+- title: Electron UI Behavior + Testing
+- status: paused
+- owner: human
+- mode: build
+- summary: continue Electron UI development; next likely step is automated UI testing after recent issue discovery
+
+Use a compact readable markdown format, not a complicated schema.
+
+For each stream, ensure these files exist:
+
+- state/next_action.md
+- state/handoff.md
+- state/snapshot.md
+
+Important: if there is relevant existing current-state content elsewhere in `.consync/state/`, reuse or adapt it carefully instead of inventing fake state. Preserve continuity. Do not silently destroy useful existing state. If a direct move seems risky, copy/adapt the minimum needed and leave legacy files intact for now.
+
+For the new `snapshot.md` files, ensure they are concise re-entry docs that answer:
+
+- what just happened
+- current state
+- what matters next
+
+For `process`, note that this stream is actively defining the stream-based workflow and light orchestration structure.
+
+For `electron_ui`, note that the stream is paused at a clean stopping point and that automated UI testing is the likely next chapter based on the recently exposed need.
+
+---
+
+4. KEEP THE MODEL MINIMAL AND CONSISTENT
+
+Use this status vocabulary consistently if statuses appear anywhere in the new files:
+
+- new
+- ready
+- active
+- paused
+- blocked
+- complete
+
+For this step, only `active` and `paused` need to be used unless something else is clearly required.
+
+Reflect this pause-safe idea in the structure and wording where natural, but do not create a new heavyweight framework doc just for it:
+
+A stream is pause-safe when:
+- `handoff.md` is complete
+- `snapshot.md` is updated
+- `next_action.md` is empty or clearly staged
+
+If an existing process-facing doc should receive a very small update to acknowledge the new stream/orchestration layout, that is acceptable. Do not rewrite major docs in this step.
+
+Acceptance criteria:
+- the new `.consync/orchestration/` and `.consync/streams/` structure exists
+- `process` is the active foreground stream
+- `electron_ui` is represented as paused with preserved resume intent
+- each stream has `stream.md`, `state/next_action.md`, `state/handoff.md`, and `state/snapshot.md`
+- the implementation stays minimal and does not introduce speculative extra machinery
+- enough state is preserved that returning to the Electron UI work later will not require reconstructing context from memory alone
+
+---
+
+HANDOFF FORMAT
+
+Write the result to the usual handoff location using this format:
+
 TYPE: PROCESS
-PACKAGE: capture_manual_observation_for_explicit_reveal_search_loop
+PACKAGE: bootstrap_minimal_stream_model
+
+STATUS
+
+PASS or FAIL
 
 SUMMARY
 
-Capture one reliable manual live observation of the desktop search -> select -> explicit reveal loop so the current failed observational package can be resolved honestly.
-
-The last attempted observational package had a clean automated baseline, and the app launched, but the actual live interaction was not durably observed end to end. This package should resolve that gap with one explicit manual observation pass rather than adding more product work.
+Concise summary of what was implemented and how the two current streams were represented.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-<timestamp>-capture-manual-observation-for-explicit-reveal-search-loop.md` — preserve this instruction before replacing the live `next-action.md` slot
+List every new file created.
 
 FILES MODIFIED
 
-- minimal state or notes files only as needed to record the manual observation outcome
-- `.consync/state/package_plan.md`
-- `.consync/state/snapshot.md`
-- `.consync/state/next-action.md`
-- `.consync/state/handoff.md`
+List every modified file and why.
 
-GOAL
+VERIFICATION
 
-Resolve the current observational failure by:
-
-1. launching the desktop shell
-2. running the known mock search for `sandbox/fixtures/nested-anchor-trial` and `moss`
-3. selecting one result and confirming only detail changes occur
-4. clicking `Reveal in Finder` and confirming reveal works on demand
-5. selecting another result and confirming no automatic reveal returns
-6. recording either PASS or one concrete blocker based on that direct observation
-
-CONSTRAINTS
-
-- Keep this package narrow and observational.
-- Do not add product features.
-- Do not change search ranking, grouping, persistence, or session mutation behavior.
-- Prefer zero code changes unless a small regression is found and clearly inside the current package boundary.
-
-TASK
-
-1. Re-run the verification baseline if needed to confirm the repo remains healthy.
-2. Perform one complete manual live pass of the explicit-reveal search loop.
-3. If the flow is clean, update only the state docs.
-4. If a small regression is found, fix only that regression and rerun the relevant verification.
-5. Preserve this instruction in history before replacing the live slot.
-
-DO NOT
-
-- invent a PASS without a real live observation
-- broaden the shell into new UX work
-- add multiple new blockers or speculative follow-on ideas
-- widen the search model or reveal model beyond the current loop
-
-COMMANDS TO RUN
-
-- `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`
-- `cd /Users/markhughes/Projects/consync-core && npm run verify`
-- `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
-- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
-- `cd /Users/markhughes/Projects/consync-core && git status --short`
-
-HUMAN VERIFICATION
-
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Search `sandbox/fixtures/nested-anchor-trial` for `moss`.
-3. Click one result row and confirm only the detail panel changes.
-4. Confirm Finder does not open on selection.
-5. Click `Reveal in Finder` and confirm the correct file, or its parent folder, is revealed.
-6. Click a second result row and confirm the detail updates again without automatic reveal.
-7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected state files unless a small repair was required.
-
-PASS CRITERIA
-
-- One complete manual live pass of the explicit-reveal loop is observed
-- The flow behaves as intended without automatic reveal on selection
-- `Reveal in Finder` still works on demand
-- `npm run verify` passes
-
-FAIL CRITERIA
-
-- The live pass still cannot be observed reliably
-- Selecting a row still opens Finder automatically
-- `Reveal in Finder` no longer works on demand
-- `npm run verify` fails
-
-STATE UPDATES
-
-- `package_plan.md` -> resolve the failed observational package and record the next narrow step
-- `snapshot.md` -> reflect whether the live loop is now confirmed or still blocked
-- `next-action.md` -> point to the next logical package after the manual observation resolves
-- `handoff.md` -> record the result of this PROCESS package
+List exact verification performed. If no automated verification is appropriate, say so plainly and describe what was checked manually.
 
 NOTES
 
-- Keep this boring and evidence-based.
-- The current gap is observational, not architectural.
-- Do not claim live behavior that was not directly observed.
+Mention any cautious decisions taken to preserve existing state or avoid overbuilding.
+
+FINAL INSTRUCTION
+
+Be conservative. This should feel like the smallest credible version of the stream model, not a grand redesign.
