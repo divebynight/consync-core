@@ -1,95 +1,174 @@
 MODE: CONTINUE
 
-CONTEXT: ELECTRON_UI_AUTOMATED_TESTING
+CONTEXT: AGENT_INTRODUCTION_STRATEGY
 
-TYPE: FEATURE
-PACKAGE: add_automated_ui_testing_for_search_flow
+TYPE: PROCESS
+PACKAGE: capture_agent_introduction_strategy
 
 OBJECTIVE
 
-Introduce a minimal automated testing setup for the Electron UI search flow.
+Capture the current strategy for introducing agents into Consync in a small, durable, process-facing document.
 
-This is driven by a real issue discovered during manual testing and is intended to:
-- protect current behavior
-- make future changes safer
-- establish a repeatable testing pattern for UI interactions
+This should preserve:
+- when agents should be introduced
+- what kinds of tasks are appropriate early
+- what to avoid
+- initial candidate agent roles
 
-Focus only on the current search → select → detail → reveal flow.
+This is not an implementation package. It is a reference capture.
 
 ---
 
 NON-GOALS
 
-- Do not refactor the UI
-- Do not redesign components
-- Do not introduce full E2E infrastructure unless absolutely necessary
-- Do not overbuild test coverage
-- Do not introduce CI complexity yet
+- Do not create actual agents
+- Do not modify stream structure
+- Do not introduce orchestration logic
+- Do not add automation
+- Do not create a large or abstract document
+- Do not turn this into a full system design
 
 ---
 
-TARGET BEHAVIOR TO TEST
+REQUIRED OUTCOME
 
-From the recent feature:
+Create one small document under:
 
-1. Search results render grouped correctly
-2. Clicking a result:
-   - updates detail panel
-   - does NOT open Finder
-3. Clicking "Reveal in Finder":
-   - triggers reveal action
-4. Selected detail matches CLI truth output
+.consync/docs/agent-introduction-strategy.md
+
+The document should cover these areas:
 
 ---
 
-IMPLEMENTATION APPROACH
+1. PRINCIPLE
 
-Choose the simplest viable testing layer.
+Define the core idea:
 
-Preferred order:
+Agents should be introduced when:
+- tasks are repeatable
+- success is easy to verify
+- blast radius is small
 
-1. If existing test setup exists → extend it
-2. Otherwise:
-   - introduce minimal test runner (e.g. Jest + React Testing Library OR Playwright if already close)
-   - keep scope extremely small
+Include the rule:
 
-Tests should:
-- mount the relevant UI
-- simulate user interaction
-- assert behavior
-
-Avoid:
-- deep mocking of everything
-- complex environment setup
-- over-abstracted test helpers
+Agents should compete on execution speed, not on guessing reality.
 
 ---
 
-MINIMUM TEST CASES
+2. MATURITY STAGES
 
-Implement at least:
+Define a simple progression:
 
-- selecting result updates detail panel only
-- selecting result does NOT trigger reveal
-- clicking reveal button triggers reveal
-- grouped results structure renders
+Stage 1 — Human-run simulation  
+Stage 2 — Agent drafts, human approves  
+Stage 3 — Agent executes in isolated lanes  
+Stage 4 — Background/parallel agents (later)
+
+Keep this short and practical.
+
+---
+
+3. GOOD EARLY AGENT TASKS
+
+List practical, low-risk uses:
+
+- test generation and expansion
+- doc cleanup and linking
+- stream snapshot summarization
+- handoff condensation
+- integrity checks (docs vs code vs state)
+- fixture and verification checks
+
+---
+
+4. TASKS TO AVOID EARLY
+
+List high-risk areas:
+
+- process model changes
+- orchestration decisions
+- multi-stream coordination
+- anything relying on implicit human context
+
+---
+
+5. FIRST CANDIDATE AGENTS
+
+Define a few narrow roles:
+
+- consync-test-agent
+- consync-integrity-agent
+- consync-docs-agent
+
+Include a short description of each.
+
+---
+
+6. INTEGRITY AGENT IDEA
+
+Capture the concept:
+
+An agent that checks:
+- docs vs repo reality
+- test coverage vs changed surface
+- broken references
+- missing verification steps
+
+Make clear:
+- it reports first
+- does not enforce or mutate yet
+
+---
+
+7. RELATIONSHIP TO STREAMS
+
+Add a short note:
+
+Streams define boundaries.  
+Tests define truth.  
+Agents operate inside those boundaries.
+
+---
+
+DOCUMENT PLACEMENT
+
+Place under `.consync/docs/` alongside other process docs.
+
+---
+
+COHERENCE UPDATES
+
+Optional:
+- add a light pointer from `current-system.md` if appropriate
+
+Do not rewrite existing docs.
+
+---
+
+STYLE
+
+- keep it short
+- keep it practical
+- avoid hype language
+- avoid over-architecting
+- write as a working guideline, not a vision doc
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. A minimal automated test setup exists for the search flow
-2. Tests cover selection vs reveal behavior clearly
-3. Tests are readable and not over-engineered
-4. Existing behavior is preserved
-5. Tests can be run locally with a simple command
+1. Document exists and is easy to find.
+2. It clearly defines when and how to introduce agents.
+3. It lists realistic early use cases.
+4. It avoids turning into a full system design.
+5. It feels aligned with current Consync philosophy.
 
 ---
 
 HANDOFF FORMAT
 
-TYPE: FEATURE
-PACKAGE: add_automated_ui_testing_for_search_flow
+TYPE: PROCESS
+PACKAGE: capture_agent_introduction_strategy
 
 STATUS
 
@@ -97,38 +176,37 @@ PASS or FAIL
 
 SUMMARY
 
-Explain what test setup was introduced and what behaviors are now covered.
+Explain what was captured and why.
 
 FILES CREATED
 
-List new test files.
+List the new doc.
 
 FILES MODIFIED
 
-List any UI or config changes.
+List any small pointer updates.
 
 COMMANDS TO RUN
 
-List how to run tests locally.
+Provide simple inspection commands.
 
 HUMAN VERIFICATION
 
 Confirm:
-- tests run successfully
-- selection does not trigger reveal
-- reveal button still works
-- no regression in UI behavior
+- doc exists
+- content matches intent
+- stays small and practical
 
 VERIFICATION NOTES
 
-State manual + automated verification.
+State manual inspection.
 
 NOTES
 
-Mention any decisions made to keep the test setup minimal.
+Mention any decisions to keep scope minimal.
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This is the first test layer, not a full testing system.
+Be conservative. This is a capture step, not a system build step.

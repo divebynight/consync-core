@@ -68,6 +68,7 @@ Consync does not currently:
 - The current stream operating rules live in `.consync/docs/stream-operating-model.md`
 - The current stream lifecycle and promotion rules live in `.consync/docs/stream-lifecycle-and-promotion.md`
 - The current stream-to-live-loop bridge rules live in `.consync/docs/stream-and-state-interaction.md`
+- The current agent introduction strategy lives in `.consync/docs/agent-introduction-strategy.md`
 - Runtime sandbox outputs for command verification live under `sandbox/`
 
 `sandbox/current/` is currently a development harness. It is useful for exercising artifact flow and verification, but it should not be treated as the final long-term Consync ontology.
