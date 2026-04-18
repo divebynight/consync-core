@@ -51,3 +51,5 @@ The integrity agent fits:
 ## Future Note
 
 This is currently a manual step. It may later be embedded into the package loop or automated, but not yet.
+
+Use `.consync/prompts/run_integrity_agent.md` when you want a reusable prompt template for running the integrity agent consistently.

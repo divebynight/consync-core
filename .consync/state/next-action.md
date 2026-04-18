@@ -1,113 +1,100 @@
 MODE: CONTINUE
 
-CONTEXT: INTEGRITY_AGENT_LOOP_INTEGRATION
+CONTEXT: INTEGRITY_AGENT_PROMPT_STANDARDIZATION
 
 TYPE: PROCESS
-PACKAGE: define_integrity_agent_in_package_loop
+PACKAGE: add_reusable_integrity_agent_prompt
 
 OBJECTIVE
 
-Define the minimal process for using the repo-local `consync-integrity-agent` as part of the package loop.
+Create a reusable, repo-local prompt template for running the consync-integrity-agent.
 
-This package should make the current workflow less ad hoc by defining:
-- when the integrity agent should be run
-- what input it should use
-- what output it should produce
-- where that output should live in the process
-- when it is optional vs expected
+This removes the need to manually reconstruct prompts and makes agent usage consistent and repeatable.
 
-This is a process-integration step, not an automation step.
+---
 
 NON-GOALS
 
-- Do not automate agent execution
+- Do not modify agent behavior
+- Do not automate execution
 - Do not create new agents
 - Do not change stream structure
-- Do not rewrite the full package loop
-- Do not add orchestration code
-- Do not force the integrity agent into every package regardless of value
+- Do not introduce orchestration logic
+
+---
 
 REQUIRED OUTCOME
 
-Create one small process-facing document under `.consync/docs/` that defines how the integrity agent participates in the package loop.
+Create a new file:
 
-The doc should cover these areas:
+.consync/prompts/run_integrity_agent.md
 
-1. PURPOSE
-Define the integrity agent as a report-only checker that helps assess package integrity after implementation and verification.
+---
 
-2. WHEN TO RUN IT
-Define practical guidance for when the integrity agent should be used.
-Examples:
-- packages that add or change tests
-- packages that alter user-facing behavior
-- packages where docs, code, and state may drift
-- not required for every tiny doc-only package
+CONTENT REQUIREMENTS
 
-3. INPUTS
-Define the typical inputs:
-- package handoff
-- changed files
-- relevant stream snapshot/handoff
-- recent verification results
+The prompt should:
 
-4. OUTPUT
-Define the expected output shape:
-- STATUS: PASS | WARNING | FAIL
-- FINDINGS
-- RISKS
-- SUGGESTED IMPROVEMENTS
+- instruct the agent to evaluate the most recent package
+- reference TYPE + PACKAGE
+- guide it through:
+  - change surface
+  - test coverage
+  - behavioral risk
+  - doc/state alignment
+  - process integrity
+- enforce structured output:
+  - STATUS
+  - FINDINGS
+  - RISKS
+  - SUGGESTED IMPROVEMENTS
 
-5. PLACE IN LOOP
-Define where it fits in the current process:
-- after implementation
-- after tests/verification
-- before final confidence/next-step planning
+---
 
-6. HANDLING RESULTS
-Define the lightweight rule:
-- PASS → package may proceed
-- WARNING → decide whether to tighten now or note for later
-- FAIL → inspect before advancing
+PROMPT CONTENT
 
-7. FUTURE NOTE
-Add a short note that this is currently a manual step but may later be embedded into the execution loop or automated.
+Write a clean, reusable version of the prompt you’ve been using, but:
 
-DOCUMENT PLACEMENT
+- remove package-specific details
+- keep placeholders like:
+  - TYPE: <TYPE>
+  - PACKAGE: <PACKAGE>
 
-Create a clearly named doc under `.consync/docs/`, such as:
+---
 
-- integrity-agent-loop.md
+USAGE NOTE
 
-Keep it near the other process docs.
+Include a short note at the top explaining:
+
+- copy prompt into Copilot Chat
+- fill in TYPE and PACKAGE
+- run with consync-integrity-agent selected
+
+---
 
 COHERENCE UPDATES
 
-Make only light updates if helpful:
-- add a pointer from `current-system.md`
-- optionally add a small note in `agent-introduction-strategy.md`
+Optional:
+- add pointer in integrity-agent-loop.md
 
-Do not do broad rewrites.
+Do not modify other docs.
 
-STYLE
-
-- keep it short
-- keep it practical
-- avoid hype language
-- write as a working rule, not a future architecture doc
+---
 
 ACCEPTANCE CRITERIA
 
-1. A small doc exists defining how the integrity agent fits into the package loop.
-2. It clearly defines when to run the agent and what output to expect.
-3. It places the agent after verification and before final advancement.
-4. It remains manual/process-facing rather than automated.
-5. Supporting updates remain light.
+1. Prompt file exists and is readable
+2. Prompt is reusable and generic
+3. Output format is clearly defined
+4. Removes need to rewrite prompts manually
+5. Keeps process simple and lightweight
+
+---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: define_integrity_agent_in_package_loop
+PACKAGE: add_reusable_integrity_agent_prompt
 
 STATUS
 
@@ -115,36 +102,33 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how the integrity agent is now defined within the package loop.
+Explain what was added and how it reduces friction.
 
 FILES CREATED
 
-List the new doc.
+List prompt file.
 
 FILES MODIFIED
 
-List any light pointer updates.
+List any pointer updates.
 
 COMMANDS TO RUN
 
-Provide simple inspection commands.
+- git status --short
 
 HUMAN VERIFICATION
 
 Confirm:
-- doc exists
-- guidance is practical
-- it clearly fits into the current loop
-- no unnecessary complexity was added
+- prompt is usable
+- easy to copy and run
+- no missing instructions
 
 VERIFICATION NOTES
 
-State manual inspection.
+Manual inspection.
 
-NOTES
-
-Mention any decisions made to keep this process step lightweight and manual for now.
+---
 
 FINAL INSTRUCTION
 
-Be conservative. This package should clarify the workflow, not automate it.
+Be conservative. This improves usability, not system complexity.
