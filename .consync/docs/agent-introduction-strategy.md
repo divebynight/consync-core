@@ -50,6 +50,8 @@ The first integrity-focused agent should check:
 
 It should report first and should not enforce or mutate yet.
 
+Its current place in the package workflow is defined in `.consync/docs/integrity-agent-loop.md`.
+
 ## Relationship To Streams
 
 Streams define boundaries.

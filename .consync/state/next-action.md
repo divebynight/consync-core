@@ -1,77 +1,113 @@
 MODE: CONTINUE
 
-CONTEXT: ELECTRON_UI_TEST_COVERAGE_IMPROVEMENT
+CONTEXT: INTEGRITY_AGENT_LOOP_INTEGRATION
 
-TYPE: FEATURE
-PACKAGE: strengthen_ui_test_coverage_based_on_integrity_feedback
+TYPE: PROCESS
+PACKAGE: define_integrity_agent_in_package_loop
 
 OBJECTIVE
 
-Improve the automated UI test coverage for the Electron search flow based on integrity-agent findings.
+Define the minimal process for using the repo-local `consync-integrity-agent` as part of the package loop.
 
-Focus on closing high-signal gaps without expanding scope unnecessarily.
+This package should make the current workflow less ad hoc by defining:
+- when the integrity agent should be run
+- what input it should use
+- what output it should produce
+- where that output should live in the process
+- when it is optional vs expected
 
----
+This is a process-integration step, not an automation step.
 
 NON-GOALS
 
-- Do not refactor UI components
-- Do not introduce new test frameworks
-- Do not add broad coverage
-- Do not change existing behavior
+- Do not automate agent execution
+- Do not create new agents
+- Do not change stream structure
+- Do not rewrite the full package loop
+- Do not add orchestration code
+- Do not force the integrity agent into every package regardless of value
 
----
+REQUIRED OUTCOME
 
-TARGET IMPROVEMENTS
+Create one small process-facing document under `.consync/docs/` that defines how the integrity agent participates in the package loop.
 
-1. DETAIL FIDELITY
+The doc should cover these areas:
 
-Add assertions for:
-- session
-- anchor
-- tags
+1. PURPOSE
+Define the integrity agent as a report-only checker that helps assess package integrity after implementation and verification.
 
-Ensure selected detail panel reflects full data surface.
+2. WHEN TO RUN IT
+Define practical guidance for when the integrity agent should be used.
+Examples:
+- packages that add or change tests
+- packages that alter user-facing behavior
+- packages where docs, code, and state may drift
+- not required for every tiny doc-only package
 
----
+3. INPUTS
+Define the typical inputs:
+- package handoff
+- changed files
+- relevant stream snapshot/handoff
+- recent verification results
 
-2. FAILURE PATHS
+4. OUTPUT
+Define the expected output shape:
+- STATUS: PASS | WARNING | FAIL
+- FINDINGS
+- RISKS
+- SUGGESTED IMPROVEMENTS
 
-Add tests for:
+5. PLACE IN LOOP
+Define where it fits in the current process:
+- after implementation
+- after tests/verification
+- before final confidence/next-step planning
 
-- runMockSearch failure
-- revealSearchResult failure
+6. HANDLING RESULTS
+Define the lightweight rule:
+- PASS → package may proceed
+- WARNING → decide whether to tighten now or note for later
+- FAIL → inspect before advancing
 
-Ensure UI handles these states predictably.
+7. FUTURE NOTE
+Add a short note that this is currently a manual step but may later be embedded into the execution loop or automated.
 
----
+DOCUMENT PLACEMENT
 
-3. MINIMAL EDGE COVERAGE
+Create a clearly named doc under `.consync/docs/`, such as:
 
-Add ONE of:
+- integrity-agent-loop.md
 
-- no-results state OR
-- reselection behavior
+Keep it near the other process docs.
 
-Do not overbuild.
+COHERENCE UPDATES
 
----
+Make only light updates if helpful:
+- add a pointer from `current-system.md`
+- optionally add a small note in `agent-introduction-strategy.md`
+
+Do not do broad rewrites.
+
+STYLE
+
+- keep it short
+- keep it practical
+- avoid hype language
+- write as a working rule, not a future architecture doc
 
 ACCEPTANCE CRITERIA
 
-1. Existing tests still pass
-2. New tests cover:
-   - detail fidelity
-   - at least one failure path
-3. Coverage remains simple and readable
-4. No UI behavior changes
-
----
+1. A small doc exists defining how the integrity agent fits into the package loop.
+2. It clearly defines when to run the agent and what output to expect.
+3. It places the agent after verification and before final advancement.
+4. It remains manual/process-facing rather than automated.
+5. Supporting updates remain light.
 
 HANDOFF FORMAT
 
-TYPE: FEATURE
-PACKAGE: strengthen_ui_test_coverage_based_on_integrity_feedback
+TYPE: PROCESS
+PACKAGE: define_integrity_agent_in_package_loop
 
 STATUS
 
@@ -79,26 +115,36 @@ PASS or FAIL
 
 SUMMARY
 
-Explain what gaps were addressed and how coverage improved.
+Explain how the integrity agent is now defined within the package loop.
+
+FILES CREATED
+
+List the new doc.
 
 FILES MODIFIED
 
-List updated test files.
+List any light pointer updates.
 
 COMMANDS TO RUN
 
-- npm run test:ui-search
-- npm run verify
+Provide simple inspection commands.
 
 HUMAN VERIFICATION
 
 Confirm:
-- new tests pass
-- no regression in behavior
-- test output remains clear
+- doc exists
+- guidance is practical
+- it clearly fits into the current loop
+- no unnecessary complexity was added
 
----
+VERIFICATION NOTES
+
+State manual inspection.
+
+NOTES
+
+Mention any decisions made to keep this process step lightweight and manual for now.
 
 FINAL INSTRUCTION
 
-Be conservative. Improve signal, not surface area.
+Be conservative. This package should clarify the workflow, not automate it.
