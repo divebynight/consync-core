@@ -63,7 +63,9 @@ Consync does not currently:
 ## State And Artifacts
 
 - Runtime and workflow state lives in `.consync/state/`
+- Stream orchestration state lives in `.consync/orchestration/` and `.consync/streams/`
 - Durable internal artifacts and reference docs live in `.consync/artifacts/`
+- The current stream operating rules live in `.consync/docs/stream-operating-model.md`
 - Runtime sandbox outputs for command verification live under `sandbox/`
 
 `sandbox/current/` is currently a development harness. It is useful for exercising artifact flow and verification, but it should not be treated as the final long-term Consync ontology.

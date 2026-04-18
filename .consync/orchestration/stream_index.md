@@ -1,5 +1,7 @@
 ## Streams
 
+Reference: see `.consync/docs/stream-operating-model.md` for the current stream operating rules.
+
 ### process
 - status: active
 - owner: human
