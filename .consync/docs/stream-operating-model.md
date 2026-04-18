@@ -46,3 +46,5 @@ If the answer is no, the stream is not pause-safe yet.
 Current policy is simple: one foreground active stream at a time.
 
 That is a working rule, not a permanent architectural limit. The structure should stay compatible with future background or parallel agent work when streams are independent enough, but that future should not add present complexity.
+
+When a package needs extra confidence after verification, the current manual loop may include an optional integrity-agent step before final handoff and advancement.

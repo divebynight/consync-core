@@ -1,100 +1,106 @@
 MODE: CONTINUE
 
-CONTEXT: INTEGRITY_AGENT_PROMPT_STANDARDIZATION
+CONTEXT: EMBED_INTEGRITY_AGENT_IN_LOOP
 
 TYPE: PROCESS
-PACKAGE: add_reusable_integrity_agent_prompt
+PACKAGE: add_integrity_agent_step_to_execution_pattern
 
 OBJECTIVE
 
-Create a reusable, repo-local prompt template for running the consync-integrity-agent.
+Introduce a standard, optional step in next_action packages that runs the integrity agent using the reusable prompt.
 
-This removes the need to manually reconstruct prompts and makes agent usage consistent and repeatable.
+This makes the agent part of the execution pattern without automating it yet.
 
 ---
 
 NON-GOALS
 
+- Do not automate agent execution
 - Do not modify agent behavior
-- Do not automate execution
-- Do not create new agents
-- Do not change stream structure
 - Do not introduce orchestration logic
+- Do not require the agent for every package
+- Do not change stream structure
 
 ---
 
 REQUIRED OUTCOME
 
-Create a new file:
+Update process guidance to include a standard optional step:
 
-.consync/prompts/run_integrity_agent.md
+"Run integrity agent using .consync/prompts/run_integrity_agent.md"
+
+This should:
+
+- appear in next_action structure as a recognizable step
+- reference the reusable prompt file
+- clarify that it happens after verification
+
+---
+
+WHERE TO UPDATE
+
+Add a small section in:
+
+.consync/docs/integrity-agent-loop.md
+
+and optionally:
+
+.consync/docs/stream-operating-model.md
 
 ---
 
 CONTENT REQUIREMENTS
 
-The prompt should:
+Define:
 
-- instruct the agent to evaluate the most recent package
-- reference TYPE + PACKAGE
-- guide it through:
-  - change surface
-  - test coverage
-  - behavioral risk
-  - doc/state alignment
-  - process integrity
-- enforce structured output:
-  - STATUS
-  - FINDINGS
-  - RISKS
-  - SUGGESTED IMPROVEMENTS
+1. STANDARD STEP
 
----
+Example:
 
-PROMPT CONTENT
+- After verification, optionally run integrity agent:
+  - copy prompt from .consync/prompts/run_integrity_agent.md
+  - fill TYPE and PACKAGE
+  - run with consync-integrity-agent
 
-Write a clean, reusable version of the prompt you’ve been using, but:
+2. POSITION IN FLOW
 
-- remove package-specific details
-- keep placeholders like:
-  - TYPE: <TYPE>
-  - PACKAGE: <PACKAGE>
+Explicitly state:
 
----
+implementation → tests → verify → integrity agent → handoff → commit
 
-USAGE NOTE
+3. OPTIONAL NATURE
 
-Include a short note at the top explaining:
+Clarify:
 
-- copy prompt into Copilot Chat
-- fill in TYPE and PACKAGE
-- run with consync-integrity-agent selected
+- not required for every package
+- recommended for:
+  - feature changes
+  - test changes
+  - behavior changes
 
----
+4. FUTURE NOTE
 
-COHERENCE UPDATES
+State:
 
-Optional:
-- add pointer in integrity-agent-loop.md
-
-Do not modify other docs.
+- this step may become automated later
+- current version is manual but standardized
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. Prompt file exists and is readable
-2. Prompt is reusable and generic
-3. Output format is clearly defined
-4. Removes need to rewrite prompts manually
-5. Keeps process simple and lightweight
+1. Docs clearly define integrity agent as a standard optional step
+2. Step references reusable prompt file
+3. Placement in flow is explicit
+4. Process remains lightweight and manual
+5. No unrelated changes introduced
 
 ---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: add_reusable_integrity_agent_prompt
+PACKAGE: add_integrity_agent_step_to_execution_pattern
 
 STATUS
 
@@ -102,15 +108,11 @@ PASS or FAIL
 
 SUMMARY
 
-Explain what was added and how it reduces friction.
-
-FILES CREATED
-
-List prompt file.
+Explain how the integrity agent is now embedded into the execution pattern.
 
 FILES MODIFIED
 
-List any pointer updates.
+List updated docs.
 
 COMMANDS TO RUN
 
@@ -119,9 +121,10 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 Confirm:
-- prompt is usable
-- easy to copy and run
-- no missing instructions
+- step is clearly defined
+- references prompt file
+- fits naturally into workflow
+- no added complexity
 
 VERIFICATION NOTES
 
@@ -131,4 +134,4 @@ Manual inspection.
 
 FINAL INSTRUCTION
 
-Be conservative. This improves usability, not system complexity.
+Be conservative. This is a small integration step, not automation.

@@ -42,6 +42,17 @@ The integrity agent fits:
 - after tests or verification
 - before final confidence and next-step planning
 
+Standard optional step:
+
+- After verification, optionally run the integrity agent:
+	- copy the prompt from `.consync/prompts/run_integrity_agent.md`
+	- fill in `TYPE` and `PACKAGE`
+	- run it with `consync-integrity-agent`
+
+Current flow is:
+
+implementation → tests → verify → integrity agent → handoff → commit
+
 ## Handling Results
 
 - `PASS` — package may proceed
@@ -53,3 +64,5 @@ The integrity agent fits:
 This is currently a manual step. It may later be embedded into the package loop or automated, but not yet.
 
 Use `.consync/prompts/run_integrity_agent.md` when you want a reusable prompt template for running the integrity agent consistently.
+
+It remains optional, but it is recommended for feature changes, test changes, and user-facing behavior changes.
