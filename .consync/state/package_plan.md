@@ -6,11 +6,11 @@ Complete the remaining process guardrails, then prove the protocol can carry a s
 
 SEQUENCE STATUS:
 
-PAUSED_FAIL
+ACTIVE
 
 CURRENT CURSOR:
 
-31
+32
 
 NEXT PACKAGE:
 
@@ -272,7 +272,13 @@ PLANNED PACKAGES:
    - Depends on: `rerun_observational_search_loop_after_selection_reveal_split`
    - Stop gate: pause after this package to review whether the manual live observation now resolves the failed observational gap cleanly.
    - Human verification: required
-   - Notes: should capture one clean manual pass of search -> select -> explicit reveal -> reselection in the live desktop shell and then close or repair based on that direct observation.
+   - Notes: should capture one clean manual pass of search -> select -> explicit reveal -> reselection in the live desktop shell and then close or repair based on that direct observation. This remains the restored blocked planned package after loop-state reconciliation.
+
+RECONCILIATION RECORD:
+
+- Recent completed packages executed outside the recorded plan cursor but now reconciled as completed: `strengthen_electron_ui_action_flow_tests` (`7038a6a`), `cover_renderer_search_input_state_invalidation` (`73d132b`), `cover_renderer_error_state_invalidation` (`4f80e7e`), `define_next_action_handoff_automation_contract` (`5edd862`), `add_handoff_contract_checker` (`d96f1bd`), and `audit_package_loop_sync_state` (`3cf705a`).
+- Commit-subject mismatch: commit `d96f1bd` contains the completed `add_handoff_contract_checker` package, but the subject line still describes stale renderer error-state work instead of the handoff-checker package contents.
+- Repair return point: `capture_manual_observation_for_explicit_reveal_search_loop` remains the next normal planned package after this reconciliation package.
 
 REPAIR HANDLING:
 

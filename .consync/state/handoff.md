@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: audit_package_loop_sync_state
+PACKAGE: reconcile_package_plan_after_loop_drift
 
 STATUS
 
@@ -7,86 +7,65 @@ PASS
 
 SUMMARY
 
-Audited the current package-loop control surfaces against recent git history and found that the live package execution moved several packages past the package-plan cursor without corresponding plan reconciliation.
+Reconciled the live package-loop control surfaces so the plan, handoff, and next-action slot now point to one clear stream position again.
 
-The recent handoff and commits show that four recent packages map cleanly to commits, and `add_handoff_contract_checker` was also completed and committed, but it was folded into the latest commit under an incorrect or ambiguous subject that still describes the earlier renderer error-state package. The current active package is `audit_package_loop_sync_state` in the working-tree version of `next-action.md`, but that advancement is not yet reflected in `package_plan.md`.
+The repair restores the blocked planned package as the active next-action target, updates `package_plan.md` to the true cursor position, archives this repair instruction under state history, and records a durable note that commit `d96f1bd` contains `add_handoff_contract_checker` even though its subject line describes a different package.
 
-CURRENT PACKAGE LOOP STATE
+RECONCILED LOOP STATE
 
-- `package_plan.md` still shows cursor `31`, sequence status `PAUSED_FAIL`, and `NEXT PACKAGE` set to `capture_manual_observation_for_explicit_reveal_search_loop`.
-- `handoff.md` closes `add_handoff_contract_checker` as `PASS`.
-- the committed `HEAD` copy of `next-action.md` still points to `add_handoff_contract_checker`.
-- the current working-tree `next-action.md` has advanced to `audit_package_loop_sync_state` and is the only uncommitted file.
+- last completed package: `reconcile_package_plan_after_loop_drift`
+- restored current cursor: `32`
+- restored active next package: `capture_manual_observation_for_explicit_reveal_search_loop`
+- sequence status: `ACTIVE`
 
-This means the live loop surfaces no longer agree about where the sequence is.
+The live loop surfaces are now aligned around the same return target instead of split between a stale plan cursor and a later unreconciled repair path.
 
-RECENT PACKAGE ↔ COMMIT RECONCILIATION
+PACKAGE PLAN REPAIR
 
-Clearly completed and committed:
+- `package_plan.md` now moves the cursor from stale package `31` to package `32`.
+- stale `PAUSED_FAIL` state is replaced with `ACTIVE` because the reconciliation package resolved the control-surface contradiction.
+- the blocked planned package remains package `32` and is explicitly retained as the return target after repair.
+- a reconciliation record was added so the recent out-of-plan completed packages are visible from the plan file without redesigning the process model.
 
-- `strengthen_electron_ui_action_flow_tests` ↔ commit `7038a6a` — clean mapping; commit contents match the renderer test-only package.
-- `cover_renderer_search_input_state_invalidation` ↔ commit `73d132b` — clean mapping; commit contents match the stale search-state invalidation fix and tests.
-- `cover_renderer_error_state_invalidation` ↔ commit `4f80e7e` — clean mapping; commit contents match the stale error-state invalidation fix and tests.
-- `define_next_action_handoff_automation_contract` ↔ commit `5edd862` — clean mapping; commit contents match the contract doc and light process-doc pointer.
+COMMIT-SUBJECT MISMATCH RECORD
 
-Completed and committed under an incorrect or ambiguous commit subject:
-
-- `add_handoff_contract_checker` ↔ commit `d96f1bd` — commit contents contain the checker files, package script additions, and matching handoff/next-action state for `add_handoff_contract_checker`, but the commit subject still says `fix(test): clear stale error state on search input edit`, which describes the previous feature package instead.
-
-Clearly completed but not committed:
-
-- none found in the recent package set inspected.
-
-Planned but not yet executed in visible loop state:
-
-- `audit_package_loop_sync_state` — present only in the working-tree `next-action.md`; no matching handoff closeout or commit yet.
-- `capture_manual_observation_for_explicit_reveal_search_loop` — still listed as the next planned package in `package_plan.md`, but not reflected in the live `next-action.md`, current handoff, or recent commits.
-
-Current active package:
-
-- `audit_package_loop_sync_state`
-
-OUT-OF-SYNC FINDINGS
-
-- `package_plan.md` is stale relative to recent package execution. It still reflects the earlier `PAUSED_FAIL` state at package 31 and does not record the later feature and process packages that were actually executed and committed.
-- `next-action.md`, `handoff.md`, and recent commits indicate the loop continued past the recorded plan cursor without a plan reconciliation step.
-- `add_handoff_contract_checker` was not skipped. It was completed, closed `PASS`, and committed, but the commit subject is wrong for the underlying package content.
-- the preserved history surface under `.consync/state/history/plans/` contains archived plan files through the older cursor-era packages, but no visible archived next-action instruction files for the recent packages after the package-plan drift began.
-- current repo state is not clean because `next-action.md` has already advanced to the audit package while the rest of the control surfaces have not yet been reconciled.
+- The durable note now lives in `package_plan.md` under `RECONCILIATION RECORD`.
+- It records that commit `d96f1bd` contains the completed `add_handoff_contract_checker` package.
+- It also records that the commit subject is inaccurate because it still describes stale renderer error-state work instead of the checker package contents.
 
 FILES CREATED
 
-- none
+- `.consync/state/history/plans/process-20260418-reconcile-package-plan-after-loop-drift.md` — preserves the executed repair instruction before the live next-action slot was replaced.
 
 FILES MODIFIED
 
-- `.consync/state/handoff.md` — records this reconciliation audit in the live handoff location.
+- `.consync/state/package_plan.md` — restores the true active cursor, records the reconciled out-of-plan completed packages, and stores the durable `d96f1bd` subject-mismatch note.
+- `.consync/state/next-action.md` — replaces the repair package with the restored blocked planned package so the live slot now points to the agreed next package.
+- `.consync/state/handoff.md` — records this reconciliation repair in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && git --no-pager log --oneline -12`
 - `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only d96f1bd --`
-- `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only 5edd862 --`
-- `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only 4f80e7e --`
-- `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only 73d132b --`
+- `cd /Users/markhughes/Projects/consync-core && git --no-pager show HEAD:.consync/state/next-action.md`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
-1. Open `.consync/state/package_plan.md`, `.consync/state/next-action.md`, and `.consync/state/handoff.md` side by side and confirm they currently disagree about the active position in the package loop.
-2. Run `cd /Users/markhughes/Projects/consync-core && git --no-pager log --oneline -12` and confirm the recent commits include the feature and process packages listed in this audit window.
-3. Run `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only d96f1bd --` and confirm the files in that commit are the handoff-checker files rather than the stale-error renderer files named by the commit subject.
-4. Confirm `add_handoff_contract_checker` is closed `PASS` in `handoff.md` and was committed, but under the ambiguous or incorrect subject in `d96f1bd`.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the only live worktree drift is the advanced `next-action.md`. If the plan already reflects the later packages or if `add_handoff_contract_checker` is absent from both handoff and commit contents, treat this audit as wrong.
+1. Open `.consync/state/package_plan.md`, `.consync/state/next-action.md`, and `.consync/state/handoff.md` side by side and confirm they now agree that the last completed package is the reconciliation repair and the next active package is `capture_manual_observation_for_explicit_reveal_search_loop`.
+2. Open `.consync/state/history/plans/process-20260418-reconcile-package-plan-after-loop-drift.md` and confirm the executed repair instruction was preserved before the live next-action slot was replaced.
+3. Run `cd /Users/markhughes/Projects/consync-core && git --no-pager show --stat --name-only d96f1bd --` and confirm the checker files are present in that commit even though the subject line still describes stale renderer error-state work.
+4. Confirm the `RECONCILIATION RECORD` section in `package_plan.md` durably records the `d96f1bd` subject mismatch and the recent out-of-plan completed packages.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm no git history was rewritten and the live control-surface edits are present in the working tree. If the plan, handoff, and next-action slot still disagree after this repair, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Read `.consync/state/package_plan.md`, `.consync/state/next-action.md`, and `.consync/state/handoff.md` directly and observed clear disagreement between the plan cursor and the later executed packages.
-- Ran `git --no-pager log --oneline -12` and matched the recent package sequence to commits `7038a6a`, `73d132b`, `4f80e7e`, `5edd862`, and `d96f1bd`.
-- Ran `git show --stat --name-only` on `7038a6a`, `73d132b`, `4f80e7e`, `5edd862`, and `d96f1bd` and confirmed that `d96f1bd` contains the `add_handoff_contract_checker` files even though the subject line still describes stale renderer error-state work.
-- Ran `git status --short` and observed only `.consync/state/next-action.md` modified, which shows the audit package is active in the working tree but not yet durably reconciled into the rest of the loop state.
-- Checked `.consync/state/history/plans/` and found archived plan entries through the older package-plan sequence, but no visible archived next-action instructions for the recent packages after plan drift began.
+- Read `.consync/state/package_plan.md`, `.consync/state/next-action.md`, and `.consync/state/handoff.md` directly and repaired them so they now point to one clear return target instead of the earlier split state.
+- Preserved the executed repair instruction under `.consync/state/history/plans/process-20260418-reconcile-package-plan-after-loop-drift.md` before replacing the live next-action slot.
+- Recorded the `d96f1bd` subject mismatch durably in the `RECONCILIATION RECORD` section of `package_plan.md`.
+- Re-ran `git --no-pager show --stat --name-only d96f1bd --` and confirmed the commit includes the handoff-checker files rather than the stale-error renderer files described by the subject line.
+- Ran `git status --short` and observed the expected live control-surface changes only: `.consync/state/handoff.md`, `.consync/state/next-action.md`, `.consync/state/package_plan.md`, and `.consync/state/history/plans/process-20260418-reconcile-package-plan-after-loop-drift.md`.
+- No git history was rewritten; this package only changed live process files and added one human-readable history artifact.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add one small repair package that reconciles `package_plan.md` with the actual completed packages, records the commit-subject mismatch for `d96f1bd`, and re-establishes a clean active cursor before any new normal package work proceeds.
+- Run `capture_manual_observation_for_explicit_reveal_search_loop` as the restored blocked planned package and close it from direct live observation rather than inference.

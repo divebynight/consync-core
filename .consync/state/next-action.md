@@ -1,59 +1,42 @@
 TYPE: PROCESS
-PACKAGE: audit_package_loop_sync_state
+PACKAGE: capture_manual_observation_for_explicit_reveal_search_loop
 
 GOAL
 
-Audit the current stream/package loop state and identify exactly what package work, if any, is out of sync between `package_plan.md`, `next-action.md`, `handoff.md`, and recent git history.
+Capture one clean manual live observation of the explicit reveal search loop in the desktop shell so the previously blocked observational gap is resolved or escalated honestly.
 
 WHY
 
-Recent package execution and commit history suggest that at least one package may have been completed, partially completed, committed under the wrong message, or skipped in visible git history. We need a narrow audit that establishes the current truth before promoting more packages or building more automation on top of the loop.
+The previous observational package failed because the live inspect -> explicit reveal interaction was not durably observed end to end, even though automated verification and CLI truth passed.
+
+The loop state is now reconciled. The next honest step is to perform the blocked manual observation directly and close the gap without broadening implementation.
 
 DO
 
-1. Inspect the current stream control surfaces:
-   - `.consync/state/package_plan.md`
-   - `.consync/state/next-action.md`
-   - `.consync/state/handoff.md`
-
-2. Inspect recent git history and compare it against recent package execution. Focus on:
-   - recent package names in handoff / plan
-   - recent commit subjects
-   - whether each recent completed package has a corresponding commit
-   - whether any commit appears to use the wrong subject for the underlying package
-
-3. Produce a small reconciliation summary that identifies:
-   - packages that are clearly completed and committed
-   - packages that are clearly completed but not committed
-   - packages that appear committed under an incorrect or ambiguous commit message
-   - packages that appear planned but not yet executed
-   - the current active package
-
-4. Specifically check whether the `add_handoff_contract_checker` package:
-   - was completed
-   - was committed
-   - was folded into another commit
-   - or was skipped
-
-5. Do not change behavior or add automation in this package. This is a state-reconciliation audit only.
-
-6. If a repair action is needed, recommend the smallest next repair package rather than performing it here.
+1. Launch or use the running desktop shell.
+2. In the live UI, perform one narrow manual pass of the current search loop:
+   - run the grouped mock search
+   - select a result row
+   - confirm the detail panel updates without auto-revealing
+   - use the explicit reveal action
+   - reselect or change selection and confirm the shell remains coherent
+3. Record exactly what was directly observed in the handoff.
+4. If the live observation passes cleanly, close the package honestly as `PASS`.
+5. If the live observation exposes a real UX or behavior blocker, close the package as `FAIL` or recommend the smallest repair package instead of smoothing it over.
 
 CONSTRAINTS
 
-- Do not rewrite plan docs beyond minimal factual corrections if absolutely necessary.
-- Do not change package ordering unless the audit proves the plan is wrong.
-- Do not commit anything in this package.
-- Keep the output factual and reconciliation-focused.
+- Keep this manual and observational.
+- Do not broaden implementation in this package.
+- Do not invent observations that were not directly seen.
+- Prefer a narrow factual closeout over speculative UI commentary.
 
 OUTPUT
 
 Return the normal handoff format with:
 - STATUS
 - SUMMARY
-- CURRENT PACKAGE LOOP STATE
-- RECENT PACKAGE ↔ COMMIT RECONCILIATION
-- OUT-OF-SYNC FINDINGS
+- LIVE OBSERVATION
 - FILES CREATED
 - FILES MODIFIED
 - COMMANDS TO RUN
@@ -64,7 +47,6 @@ Return the normal handoff format with:
 VERIFICATION
 
 At minimum:
-- inspect recent git history
-- inspect package plan / next-action / handoff
-- confirm whether recent completed packages map cleanly to recent commits
-- explicitly resolve the status of `add_handoff_contract_checker`
+- perform the live desktop observation directly
+- confirm whether the explicit reveal loop was actually seen end to end
+- run `git status --short`
