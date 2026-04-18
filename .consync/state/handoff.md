@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: add_process_agent_step_to_execution_pattern
+PACKAGE: define_agent_routing_policy
 
 STATUS
 
@@ -7,19 +7,19 @@ PASS
 
 SUMMARY
 
-Extended the package-loop guidance so the process agent is now documented as a standard optional step after the integrity step.
+Added a small routing policy doc that explains when to run `consync-integrity-agent`, `consync-process-agent`, both agents, or neither.
 
-The loop doc now states that `consync-process-agent` may be run after `consync-integrity-agent`, and that its structured output should be appended to `handoff.md` under `PROCESS CHECK`. The documented order is now implementation → tests → verify → integrity agent → process agent → handoff → commit.
+The new guidance keeps agent use lightweight by focusing checks where they add value: integrity for behavior, tests, and drift risk; process for package-loop, state, stream, and doc alignment; both for larger or mixed-impact packages; neither for trivial low-risk edits. It also makes human override explicit so extra checks remain acceptable when confidence is low.
 
-The workflow remains manual and simple. The process-agent step is optional, but recommended for process changes, multi-step workflows, and packages that touch docs or streams.
+Added one light pointer from the system overview so the routing guidance is easy to find without rewriting the loop docs.
 
 FILES CREATED
 
-- none
+- `.consync/docs/agent-routing-policy.md` — defines a small manual routing policy for integrity agent, process agent, both agents, or neither.
 
 FILES MODIFIED
 
-- `.consync/docs/integrity-agent-loop.md` — adds the optional process-agent step after the integrity step, defines `PROCESS CHECK` placement, and updates the standard loop order.
+- `.consync/docs/current-system.md` — adds a light pointer to the new agent-routing-policy doc.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -28,25 +28,20 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Open `.consync/docs/integrity-agent-loop.md` and confirm the loop now includes an optional process-agent step after the integrity step.
-2. Confirm the documented order reads: implementation → tests → verify → integrity agent → process agent → handoff → commit.
-3. Confirm the doc explicitly says process-agent output should be appended to `handoff.md` under `PROCESS CHECK`.
-4. Confirm the process-agent step is described as optional, with recommendations for process changes, multi-step workflows, and packages touching docs or streams.
-5. If the new step is unclear, placed in the wrong order, or makes the loop feel automated or overcomplicated, treat that as a failure.
+1. Open `.consync/docs/agent-routing-policy.md` and confirm it clearly separates when to run integrity agent, process agent, both agents, and neither.
+2. Confirm the guidance is short and practical rather than theoretical or mandatory.
+3. Confirm the human-override section explicitly allows extra checks when more confidence is useful, including low-energy or high-fatigue cases.
+4. Open `.consync/docs/current-system.md` and confirm it includes a pointer to the new routing-policy doc.
+5. If the routing doc adds heavy framework, hard rules, or unnecessary complexity, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no automated test exists for package-loop documentation changes.
-- Confirmed the loop doc now places the optional process-agent step after the integrity step and before final handoff.
-- Confirmed the output location is explicitly named as `PROCESS CHECK` and the required structured output remains `STATUS`, `FINDINGS`, `RISKS`, and `SUGGESTED IMPROVEMENTS`.
-- Validated the change stayed narrow: one loop doc update only, with no agent behavior, orchestration logic, or unrelated process changes introduced.
+- Verification was manual and inspection-based.
+- Confirmed the new doc distinguishes integrity-agent use, process-agent use, both-agent use, and cases where neither is usually needed.
+- Confirmed the policy stays manual and judgment-based, with explicit human override rather than hard routing rules.
+- Confirmed supporting changes remained light: one new doc and one pointer update, with no loop rewrite or agent-behavior changes.
 
 NOTES
 
-- Kept the change limited to extending the documented manual loop rather than adding new automation.
-- Mirrored the integrity-step pattern so the process-agent step fits the existing workflow instead of introducing a separate path.
-
-NOTES
-
-- Kept this change limited to output quality so it improves signal without changing logic.
-- The main scope guard was to remove noise, not to reduce accuracy or alter the agent’s evaluation role.
+- Kept the policy lightweight by using a single small doc instead of spreading routing rules across multiple process docs.
+- Avoided prescriptive thresholds so the guidance reduces ambiguity without turning into a framework.

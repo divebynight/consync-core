@@ -70,6 +70,7 @@ Consync does not currently:
 - The current stream-to-live-loop bridge rules live in `.consync/docs/stream-and-state-interaction.md`
 - The current agent introduction strategy lives in `.consync/docs/agent-introduction-strategy.md`
 - The current integrity-agent loop rules live in `.consync/docs/integrity-agent-loop.md`
+- The current agent routing guidance lives in `.consync/docs/agent-routing-policy.md`
 - Runtime sandbox outputs for command verification live under `sandbox/`
 
 `sandbox/current/` is currently a development harness. It is useful for exercising artifact flow and verification, but it should not be treated as the final long-term Consync ontology.

@@ -1,110 +1,120 @@
 MODE: CONTINUE
 
-CONTEXT: EMBED_PROCESS_AGENT_IN_LOOP
+CONTEXT: AGENT_ROUTING_POLICY
 
 TYPE: PROCESS
-PACKAGE: add_process_agent_step_to_execution_pattern
+PACKAGE: define_agent_routing_policy
 
 OBJECTIVE
 
-Introduce a standard optional step in the package loop to run consync-process-agent after the integrity step.
+Define a small, practical routing policy for when to run:
+- consync-integrity-agent
+- consync-process-agent
+- both agents
+- neither
 
-This mirrors the integrity agent integration and ensures process alignment is checked before final handoff.
-
----
+This package should reduce unnecessary overhead and make agent use more consistent.
 
 NON-GOALS
 
-- Do not automate execution
-- Do not require process agent for every package
+- Do not create new agents
+- Do not automate routing
 - Do not change agent behavior
+- Do not rewrite the package loop
 - Do not introduce orchestration logic
-
----
+- Do not build a large decision framework
 
 REQUIRED OUTCOME
 
-Update process guidance to include:
+Create one small process-facing document under `.consync/docs/` that defines when each agent should be used.
 
-"Run process agent and append output to handoff under PROCESS CHECK"
+The document should cover these areas:
 
----
+1. PURPOSE
 
-WHERE TO UPDATE
+Explain that agent routing exists to:
+- reduce unnecessary ceremony
+- keep agent use consistent
+- focus checks where they add the most value
 
-.consync/docs/integrity-agent-loop.md  
-(or wherever the loop is currently defined)
+2. INTEGRITY AGENT
 
----
+Define that integrity agent is most useful for:
+- feature changes
+- test changes
+- user-facing behavior changes
+- packages where code/tests/docs may drift
 
-CONTENT REQUIREMENTS
+3. PROCESS AGENT
 
-1. DEFINE NEW STEP
+Define that process agent is most useful for:
+- process packages
+- stream/state/doc changes
+- packages touching handoff, next_action, stream status, or loop docs
+- situations where formatting or alignment drift is likely
 
-After integrity agent:
+4. BOTH AGENTS
 
-- optionally run process agent
-- use consync-process-agent
-- append output to handoff.md under:
+Define when both are recommended, such as:
+- larger packages
+- multi-step workflow changes
+- packages affecting both behavior and process
+- times when extra redundancy is useful
 
-PROCESS CHECK
+5. NEITHER AGENT
 
----
+Define when neither is usually needed, such as:
+- tiny typo-only fixes
+- trivial low-risk edits
+- extremely narrow changes with obvious verification
 
-2. DEFINE ORDER
+6. HUMAN OVERRIDE
 
-Explicitly document:
+State clearly:
+- this is guidance, not a hard rule
+- the user may run an agent whenever extra confidence is helpful
+- when mentally fatigued or sick, using more checks is reasonable
 
-implementation → tests → verify → integrity agent → process agent → handoff → commit
+7. FUTURE NOTE
 
----
+Add a short note:
+- routing may later be embedded into SDC or lightweight automation
+- current version is manual and judgment-based
 
-3. OUTPUT FORMAT
+DOCUMENT PLACEMENT
 
-Require structured output:
+Create a clearly named doc under `.consync/docs/`, such as:
 
-STATUS  
-FINDINGS  
-RISKS  
-SUGGESTED IMPROVEMENTS  
+- agent-routing-policy.md
 
----
+COHERENCE UPDATES
 
-4. OPTIONAL NATURE
+Make only light updates if helpful:
+- add a pointer from `current-system.md`
+- optionally add a pointer from `integrity-agent-loop.md`
+- optionally add a pointer from `agent-introduction-strategy.md`
 
-Clarify:
+Do not do broad rewrites.
 
-- not required for every package
-- recommended for:
-  - process changes
-  - multi-step workflows
-  - packages touching docs or streams
+STYLE
 
----
-
-5. FUTURE NOTE
-
-State:
-
-- this step may be automated later
-- current version is manual but standardized
-
----
+- keep it short
+- keep it practical
+- avoid abstract language
+- write as a working guideline, not a theory doc
 
 ACCEPTANCE CRITERIA
 
-1. Docs define process agent as a standard optional step
-2. Step is placed after integrity agent
-3. Output location (PROCESS CHECK) is clearly defined
-4. Process remains simple and manual
-5. No unrelated changes introduced
-
----
+1. A small doc exists defining when to run which agent
+2. It clearly distinguishes integrity, process, both, and neither
+3. It keeps the process lightweight
+4. It leaves room for human judgment
+5. Supporting updates remain light
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: add_process_agent_step_to_execution_pattern
+PACKAGE: define_agent_routing_policy
 
 STATUS
 
@@ -112,11 +122,15 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how process agent is now embedded into the loop.
+Explain what routing policy was added and how it reduces overhead.
+
+FILES CREATED
+
+List the new doc.
 
 FILES MODIFIED
 
-List updated docs.
+List any light pointer updates.
 
 COMMANDS TO RUN
 
@@ -125,12 +139,18 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 Confirm:
-- step is clear
-- output placement is clear
-- workflow remains readable
+- doc exists
+- guidance is practical
+- it reduces ambiguity without adding complexity
 
----
+VERIFICATION NOTES
+
+Manual inspection.
+
+NOTES
+
+Mention any decisions made to keep the policy lightweight and non-prescriptive.
 
 FINAL INSTRUCTION
 
-Be conservative. Extend the loop, don’t complicate it.
+Be conservative. This should reduce friction, not add framework.
