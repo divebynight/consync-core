@@ -78,6 +78,8 @@ Consync does not currently:
 
 `.github/prompts/` is the adapter layer for Copilot-driven workflow execution.
 
+Reusable repo-local prompt templates for manual process helpers now also live under `.consync/prompts/`.
+
 Those prompt files tell the agent where to read the next action, where to write the handoff, and how to format the workflow output without changing the actual runtime code.
 
 ## Desktop Architecture

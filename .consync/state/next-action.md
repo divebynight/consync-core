@@ -1,86 +1,70 @@
 MODE: CONTINUE
 
-CONTEXT: SEMI_AUTOMATED_INTEGRITY_STEP
+CONTEXT: FULL_LOOP_WITH_INTEGRITY
 
 TYPE: PROCESS
-PACKAGE: enable_integrity_agent_execution_within_sdc
+PACKAGE: execute_full_package_with_integrity_step
 
 OBJECTIVE
 
-Enable Copilot to execute the integrity agent as part of the SDC workflow instead of requiring manual prompting.
+Run one complete package using the updated workflow that includes the integrity agent as part of the loop.
 
-This step reduces friction while keeping the process explicit and reviewable.
+This validates that:
+- the agent step works inside SDC
+- output lands correctly in handoff.md
+- the workflow remains clear and manageable
 
 ---
 
 NON-GOALS
 
-- Do not fully automate agent execution
-- Do not remove human review
-- Do not introduce orchestration logic
-- Do not change agent behavior
+- Do not introduce new system structure
+- Do not expand agent behavior
+- Do not automate beyond defined process
+- Do not create a large feature
 
 ---
 
-REQUIRED OUTCOME
+TASK
 
-Update process instructions so that SDCs can include:
+Choose a small, safe package, such as:
 
-"Run integrity agent using .consync/prompts/run_integrity_agent.md and append output to handoff"
+- minor test cleanup
+- small doc alignment
+- minor UI consistency tweak
 
----
-
-IMPLEMENTATION
-
-1. Update process guidance (likely integrity-agent-loop.md):
-
-Add a section:
-
-### Executing the Integrity Step in SDC
-
-Define that:
-
-- SDCs may include an instruction to run the integrity agent
-- Copilot should:
-  - use the reusable prompt
-  - execute with consync-integrity-agent
-  - append results to handoff.md
+Keep scope minimal.
 
 ---
 
-2. Define expected behavior:
+REQUIRED STEPS
 
-- agent output is appended under a clear section in handoff:
-  "INTEGRITY CHECK"
+1. Execute package normally
+2. Run tests and verification
+3. Run integrity agent using:
+   .consync/prompts/run_integrity_agent.md
+4. Append output to handoff.md under:
 
-- output must remain structured:
-  STATUS / FINDINGS / RISKS / SUGGESTED IMPROVEMENTS
+   INTEGRITY CHECK
 
----
-
-3. Keep it optional:
-
-- not required for every package
-- recommended for:
-  - feature work
-  - test changes
-  - behavior changes
+5. Complete handoff
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. Docs define how SDC can trigger integrity agent execution
-2. Output destination (handoff) is clearly defined
-3. Process remains human-reviewed
-4. No automation framework introduced
+1. Package completes successfully
+2. Integrity agent runs as part of the loop
+3. Agent output appears in handoff.md
+4. Output follows structured format
+5. Workflow remains readable and not cumbersome
 
 ---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: enable_integrity_agent_execution_within_sdc
+PACKAGE: execute_full_package_with_integrity_step
 
 STATUS
 
@@ -88,25 +72,25 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how integrity agent execution is now possible within SDC.
+Explain how the full loop worked with the integrity step included.
 
 FILES MODIFIED
 
-List updated docs.
+List changes.
 
 COMMANDS TO RUN
 
-- git status --short
+- npm run verify
 
 HUMAN VERIFICATION
 
 Confirm:
-- instructions are clear
-- integration feels natural
-- no complexity added
+- integrity output exists in handoff
+- workflow feels smooth
+- no confusion introduced
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This is controlled friction reduction, not automation.
+Be conservative. This is a validation run, not a feature push.
