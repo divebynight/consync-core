@@ -1,70 +1,94 @@
 MODE: CONTINUE
 
-CONTEXT: FULL_LOOP_WITH_INTEGRITY
+CONTEXT: TIGHTEN_INTEGRITY_AGENT_OUTPUT
 
 TYPE: PROCESS
-PACKAGE: execute_full_package_with_integrity_step
+PACKAGE: refine_integrity_agent_output_format
 
 OBJECTIVE
 
-Run one complete package using the updated workflow that includes the integrity agent as part of the loop.
-
-This validates that:
-- the agent step works inside SDC
-- output lands correctly in handoff.md
-- the workflow remains clear and manageable
+Reduce verbosity and improve signal quality of consync-integrity-agent output while preserving its usefulness.
 
 ---
 
 NON-GOALS
 
-- Do not introduce new system structure
-- Do not expand agent behavior
-- Do not automate beyond defined process
-- Do not create a large feature
+- Do not change agent scope
+- Do not change evaluation logic
+- Do not add new responsibilities
+- Do not introduce automation
 
 ---
 
-TASK
+REQUIRED OUTCOME
 
-Choose a small, safe package, such as:
+Update the agent prompt in:
 
-- minor test cleanup
-- small doc alignment
-- minor UI consistency tweak
-
-Keep scope minimal.
+.github/agents/consync-integrity.agent.md
 
 ---
 
-REQUIRED STEPS
+CHANGES
 
-1. Execute package normally
-2. Run tests and verification
-3. Run integrity agent using:
-   .consync/prompts/run_integrity_agent.md
-4. Append output to handoff.md under:
+1. REMOVE THINKING/PROCESS NARRATION
 
-   INTEGRITY CHECK
+Agent should NOT:
+- describe what it is doing
+- mention commands it ran
+- narrate inspection steps
 
-5. Complete handoff
+---
+
+2. TIGHTEN OUTPUT
+
+Each section should be:
+
+STATUS:
+- single line
+
+FINDINGS:
+- concise bullets (no paragraphs)
+
+RISKS:
+- short, concrete risks
+
+SUGGESTED IMPROVEMENTS:
+- actionable, minimal
+
+---
+
+3. ADD RULE
+
+Add explicit instruction:
+
+"Do not include reasoning steps or narration. Only output final structured results."
+
+---
+
+4. KEEP BEHAVIOR
+
+Do NOT:
+- reduce accuracy
+- remove useful insights
+- simplify logic
+
+Only reduce noise.
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. Package completes successfully
-2. Integrity agent runs as part of the loop
-3. Agent output appears in handoff.md
-4. Output follows structured format
-5. Workflow remains readable and not cumbersome
+1. Agent output is shorter and more direct
+2. No "I am inspecting..." style narration
+3. Output remains structured and useful
+4. No loss of important signal
 
 ---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: execute_full_package_with_integrity_step
+PACKAGE: refine_integrity_agent_output_format
 
 STATUS
 
@@ -72,25 +96,25 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how the full loop worked with the integrity step included.
+Explain how output was tightened.
 
 FILES MODIFIED
 
-List changes.
+- .github/agents/consync-integrity.agent.md
 
 COMMANDS TO RUN
 
-- npm run verify
+- git status --short
 
 HUMAN VERIFICATION
 
 Confirm:
-- integrity output exists in handoff
-- workflow feels smooth
-- no confusion introduced
+- output is cleaner
+- no narration
+- still useful
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This is a validation run, not a feature push.
+Be conservative. Improve clarity, not behavior.

@@ -56,14 +56,16 @@ Return:
 
 STATUS: PASS | WARNING | FAIL
 
+- single line only
+
 FINDINGS:
-- bullet list of observations
+- concise bullets only
 
 RISKS:
-- potential failure points
+- short, concrete risks
 
 SUGGESTED IMPROVEMENTS:
-- concrete next steps (if needed)
+- actionable, minimal next steps
 
 ---
 
@@ -73,6 +75,7 @@ RULES
 - Do not assume missing context
 - Do not invent behavior
 - Prefer "unknown" over guessing
+- Do not include reasoning steps or narration. Only output final structured results.
 - Do not modify files
 - Do not act as an orchestrator
 
