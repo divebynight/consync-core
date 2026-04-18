@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: capture_agent_introduction_strategy
+PACKAGE: create_consync_integrity_agent
 
 STATUS
 
@@ -7,43 +7,41 @@ PASS
 
 SUMMARY
 
-Captured the current strategy for introducing agents into Consync in one small process-facing document under `.consync/docs/`.
+Created the first repo-local custom Copilot agent for Consync: `consync-integrity-agent`.
 
-The new doc defines when agents should be introduced, a short maturity progression, practical early agent tasks, high-risk tasks to avoid, narrow first candidate agent roles, the initial integrity-agent idea, and how agents relate to streams and tests. Supporting updates stayed light: one pointer was added in `current-system.md` so the new reference is easy to find.
+The new agent is a report-only integrity checker that inspects change surface, test coverage, behavioral risk, doc and stream-state alignment, and process integrity after a package completes. Its prompt explicitly forbids file mutation and orchestration behavior, and defines a simple `PASS | WARNING | FAIL` report format.
 
-No agents, orchestration logic, stream changes, or automation behavior were added.
+Kept the agent minimal and safe: one file, no supporting framework, no execution logic, and no changes to streams or process flow.
 
 FILES CREATED
 
-- `.consync/docs/agent-introduction-strategy.md` — captures when agents should be introduced, what they should handle early, what to avoid, and the first candidate roles.
+- `.github/agents/consync-integrity.agent.md` — defines the first repo-local integrity checker agent with report-only scope and a fixed output format.
 
 FILES MODIFIED
 
-- `.consync/docs/current-system.md` — adds a short pointer to the new agent introduction strategy doc in the current process-doc list.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
 
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/agent-introduction-strategy.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '60,95p' .consync/docs/current-system.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .github/agents/consync-integrity.agent.md`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/docs/agent-introduction-strategy.md` and confirm the doc exists.
-2. Confirm it stays small and practical while covering the principle, maturity stages, good early tasks, tasks to avoid, first candidate agents, the integrity-agent idea, and the relationship to streams.
-3. Confirm the strategy fits current Consync constraints: agents are introduced only when tasks are repeatable, verification is easy, and blast radius is small.
-4. Run `cd /Users/markhughes/Projects/consync-core && sed -n '60,95p' .consync/docs/current-system.md` and confirm the new agent-strategy pointer appears alongside the other process-doc references.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the success case that this package only adds the new strategy doc, the light pointer update, and the updated handoff. If wider repo changes appear, treat them as unrelated existing work unless they conflict with these files.
+1. Confirm `.github/agents/consync-integrity.agent.md` exists.
+2. Open the file and confirm the frontmatter, role, task sections, output format, and non-mutation rules match the requested structure.
+3. Reload the Copilot agent list or restart the IDE.
+4. Confirm `consync-integrity-agent` appears in the agent picker dropdown.
+5. Select it and verify the success case that it responds to a prompt as a report-only checker. If it suggests editing files or acting as an orchestrator, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no code execution or automated test run was necessary for this doc-only process package.
-- Confirmed the new doc sits cleanly beside the existing stream/process references under `.consync/docs/`.
-- Validated that the doc stays practical by centering repeatable, verifiable, low-blast-radius work and by explicitly avoiding process-model changes, orchestration decisions, and implicit-context tasks.
-- Validated that the integrity-agent idea is report-first only and does not imply new enforcement or mutation behavior.
+- Verification was manual and inspection-based; no automated test or execution path exists for agent-picker registration in this package.
+- Confirmed the requested agent file now exists at `.github/agents/consync-integrity.agent.md` and contains the specified report-only integrity-checker prompt.
+- Validated that the prompt explicitly forbids code modification and orchestration behavior.
+- The agent picker appearance step remains a manual IDE verification task, because this package only creates the repo-local agent file.
 
 NOTES
 
-- Kept the strategy intentionally small and process-facing so it captures current agent introduction rules without turning into a system design document.
-- The main scope guard was to describe where agents fit later without changing any current stream, execution, or orchestration behavior now.
+- Kept scope minimal by creating exactly one repo-local agent file and no supporting framework.
+- Did not add any automation, stream changes, or mutation instructions, because this first agent is intended to inspect and report only.
