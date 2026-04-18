@@ -1,148 +1,127 @@
 MODE: CONTINUE
 
-CONTEXT: STREAM_AND_LEGACY_STATE_BRIDGE
+CONTEXT: PROCESS_STREAM_FINALIZATION
 
 TYPE: PROCESS
-PACKAGE: define_stream_and_legacy_state_interaction
+PACKAGE: finalize_process_stream_and_execute_clean_switch
 
 OBJECTIVE
 
-Define how the new stream-based structure interacts with the existing `.consync/state/` live loop.
+Finalize the process stream at a clean pause-safe point and perform the first real foreground stream switch to `electron_ui`.
 
-This package should resolve any ambiguity about where execution state lives, how the foreground stream maps to the live loop, and how we avoid duplicate or conflicting sources of truth.
+This package proves that the new stream model works in practice by:
+- cleanly pausing the process stream
+- switching foreground to electron_ui
+- ensuring electron_ui can resume without reconstructing context
 
-This is a critical bridge step that connects the new stream model to real execution.
+This is the first real operational validation of the stream system.
+
+---
 
 NON-GOALS
 
-- Do not migrate all state into streams yet
-- Do not delete legacy `.consync/state/`
-- Do not introduce orchestration code
-- Do not introduce agents or concurrency
-- Do not redesign the next_action/handoff loop
-- Do not create a heavy system diagram or framework doc
+- Do not add new streams
+- Do not modify the Electron UI code
+- Do not introduce new process docs
+- Do not refactor existing structure
+- Do not introduce automation or agents
+
+---
 
 REQUIRED OUTCOME
 
-Create one small process-facing document that defines the relationship between:
-
-- `.consync/state/` (live loop)
-- `.consync/streams/*/state/` (per-stream state)
-
-The document should clearly answer these four areas:
+Complete the following steps:
 
 ---
 
-1. SOURCE OF TRUTH DURING EXECUTION
+1. MAKE PROCESS STREAM PAUSE-SAFE
 
-Define that:
+Update `.consync/streams/process/state/` so that:
 
-- the existing `.consync/state/next_action.md` and `handoff.md` remain the active execution surface for now
-- this is the "live loop"
+- `handoff.md` reflects the completion of:
+  - stream structure
+  - operating model
+  - lifecycle/promotion
+  - stream/legacy interaction
 
-Clarify that:
+- `snapshot.md` clearly states:
+  - what was accomplished in this stream
+  - that the stream is now stable and pause-safe
+  - that the next likely evolution would be future enhancements (agents, automation, etc.), but no immediate work is required
 
-- the foreground stream *drives* what appears in the live loop
-- but the loop itself is still global during this phase
-
----
-
-2. FOREGROUND STREAM MAPPING
-
-Define that:
-
-- the foreground stream is identified via `.consync/orchestration/active_foreground_stream.txt`
-- the live loop should always reflect the current foreground stream’s work
-
-Explain conceptually:
-
-- the live loop acts as a working surface
-- the stream acts as the container of long-term state
+- `next_action.md` is:
+  - empty OR
+  - explicitly marked as no immediate next action
 
 ---
 
-3. PER-STREAM STATE ROLE
+2. UPDATE PROCESS STREAM STATUS
 
-Define that per-stream state files:
+Update:
 
-- are the durable, recoverable state of each stream
-- are used for pause/resume
-- should not compete with the live loop
+`.consync/streams/process/stream.md`
 
-Clarify:
+Change:
 
-- no duplication of active state across multiple places
-- per-stream state is authoritative for that stream’s history and recovery
+status: active → status: paused
 
 ---
 
-4. TRANSITION MODEL (IMPORTANT)
+3. SWITCH FOREGROUND STREAM
 
-Define how we operate during this hybrid phase:
+Update:
 
-- legacy loop remains active
-- streams are being introduced alongside it
-- no forced migration yet
+`.consync/orchestration/active_foreground_stream.txt`
 
-Clarify the intent:
+Set it to:
 
-- eventually, the live loop may become stream-scoped
-- but for now, it is a shared execution surface
+electron_ui
 
 ---
 
-DOCUMENT PLACEMENT
+4. ENSURE ELECTRON UI STREAM IS READY
 
-Create a new doc under:
+Confirm `.consync/streams/electron_ui/state/` is coherent:
 
-.consync/docs/
+- `snapshot.md` clearly describes:
+  - current UI state
+  - recent change (selection vs reveal behavior)
+  - that automated UI testing is the next logical step
 
-Choose a clear name such as:
+- `next_action.md` should:
+  - remain staged OR
+  - clearly indicate that the next step is to generate an SDC for automated UI testing
 
-stream-and-state-interaction.md
-
-It should sit alongside:
-- stream-operating-model.md
-- stream-lifecycle-and-promotion.md
-
----
-
-COHERENCE UPDATES
-
-Make only light updates if helpful:
-
-- add a pointer from `current-system.md`
-- optionally add a short note in the stream operating model doc
-
-Do not rewrite large docs.
+Do not invent new UI work. Only clarify.
 
 ---
 
-STYLE
+5. UPDATE STREAM INDEX
 
-- keep it short
-- keep it practical
-- avoid abstract system language
-- avoid diagrams unless extremely simple
-- write like a working rulebook, not a theory paper
+Update `.consync/orchestration/stream_index.md`:
+
+- mark `process` as paused
+- mark `electron_ui` as active
+
+Keep this change minimal.
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. A clear doc exists defining how streams and the live loop interact.
-2. It clearly states that `.consync/state/` is still the execution surface.
-3. It defines how the foreground stream maps to the live loop.
-4. It clarifies the role of per-stream state vs live state.
-5. It avoids introducing a second active source of truth.
-6. It keeps the system understandable and minimal.
+1. Process stream is fully pause-safe.
+2. Process stream status is set to paused.
+3. Foreground stream is now `electron_ui`.
+4. Electron UI stream is clearly ready to resume.
+5. No new complexity or structure was introduced.
+6. The system now supports a clean stream switch without relying on memory.
 
 ---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: define_stream_and_legacy_state_interaction
+PACKAGE: finalize_process_stream_and_execute_clean_switch
 
 STATUS
 
@@ -150,15 +129,11 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how the interaction between streams and the live loop is now defined.
-
-FILES CREATED
-
-List new doc.
+Explain how the process stream was finalized and how the foreground switch was executed.
 
 FILES MODIFIED
 
-List any small pointer updates.
+List all files updated.
 
 COMMANDS TO RUN
 
@@ -167,19 +142,21 @@ Provide simple inspection commands.
 HUMAN VERIFICATION
 
 Confirm:
-- doc exists
-- rules are clear
-- no ambiguity about source of truth
-- system still feels simple
+- process stream is pause-safe
+- foreground stream is electron_ui
+- electron_ui snapshot is sufficient to resume
+- no confusion about what to do next
 
 VERIFICATION NOTES
 
-State manual inspection.
+State manual verification.
 
 NOTES
 
-Mention any decisions made to avoid duplication or over-migration.
+Mention any decisions made to keep this minimal and avoid overbuilding.
+
+---
 
 FINAL INSTRUCTION
 
-Be conservative. This should clarify reality, not invent a new system.
+Be conservative. This package is about proving the system works, not expanding it.

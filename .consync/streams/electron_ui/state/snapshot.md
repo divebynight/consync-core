@@ -6,11 +6,11 @@ What just happened:
 
 Current state:
 
-- the stream is paused, not abandoned
+- the stream is now the active foreground stream
 - inspect and reveal are now separated in the UI
 - recent manual observation pressure exposed the need for stronger UI-level verification
 
 What matters next:
 
 - resume from this preserved state rather than chat memory
-- likely next step: automated UI testing for search, selection, detail, and explicit reveal behavior
+- next logical step: generate an SDC for automated UI testing around search, selection, detail, and explicit reveal behavior

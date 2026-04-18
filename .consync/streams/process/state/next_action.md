@@ -1,8 +1,5 @@
-STATUS: active
+STATUS: paused
 
-Next likely step:
+No immediate next action.
 
-- decide how the legacy `.consync/state/` loop should map onto the new stream layout without breaking current use
-- keep `process` as the foreground stream while the stream model is still being defined
-
-This file stays active while the stream-model bootstrap is being reviewed and mapped onto the legacy process loop.
+The process stream is paused at a clean stopping point. Resume only when a future package needs to extend the stream model beyond the current minimal rules.
