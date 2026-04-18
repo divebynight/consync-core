@@ -1,54 +1,59 @@
 TYPE: PROCESS
-PACKAGE: add_handoff_contract_checker
+PACKAGE: audit_package_loop_sync_state
 
 GOAL
 
-Add a tiny checker that validates the live `handoff.md` structure against the documented next-action/handoff automation contract and catches basic identity mismatches automatically.
+Audit the current stream/package loop state and identify exactly what package work, if any, is out of sync between `package_plan.md`, `next-action.md`, `handoff.md`, and recent git history.
 
 WHY
 
-The automation contract is now defined. The smallest useful next step is a lightweight checker that removes repetitive structural validation work without making package decisions or inventing outcomes.
-
-This should help confirm that:
-- required handoff sections are present
-- `TYPE` and `PACKAGE` are present
-- `TYPE` and `PACKAGE` match the active `next-action.md`
-- the handoff is structurally usable for the next package-selection step
+Recent package execution and commit history suggest that at least one package may have been completed, partially completed, committed under the wrong message, or skipped in visible git history. We need a narrow audit that establishes the current truth before promoting more packages or building more automation on top of the loop.
 
 DO
 
-1. Read the new contract doc and implement a very small checker that validates the live files against the documented contract.
-2. The checker should inspect:
+1. Inspect the current stream control surfaces:
+   - `.consync/state/package_plan.md`
    - `.consync/state/next-action.md`
    - `.consync/state/handoff.md`
-3. Validate at minimum:
-   - required `handoff.md` sections exist
-   - required `next-action.md` identity fields exist
-   - `TYPE` matches between the two files
-   - `PACKAGE` matches between the two files
-4. Keep output simple and readable. Prefer a clear PASS/FAIL style result with specific missing fields or mismatches.
-5. Keep the checker narrow. It must not:
-   - infer whether STATUS is correct
-   - judge whether the summary is good
-   - choose the next package
-   - rewrite files automatically
-6. Add a small test surface if appropriate for the repo style, but keep this package tight and avoid overbuilding.
-7. Add a light doc pointer only if needed for discoverability of the checker. Do not broaden the process docs.
+
+2. Inspect recent git history and compare it against recent package execution. Focus on:
+   - recent package names in handoff / plan
+   - recent commit subjects
+   - whether each recent completed package has a corresponding commit
+   - whether any commit appears to use the wrong subject for the underlying package
+
+3. Produce a small reconciliation summary that identifies:
+   - packages that are clearly completed and committed
+   - packages that are clearly completed but not committed
+   - packages that appear committed under an incorrect or ambiguous commit message
+   - packages that appear planned but not yet executed
+   - the current active package
+
+4. Specifically check whether the `add_handoff_contract_checker` package:
+   - was completed
+   - was committed
+   - was folded into another commit
+   - or was skipped
+
+5. Do not change behavior or add automation in this package. This is a state-reconciliation audit only.
+
+6. If a repair action is needed, recommend the smallest next repair package rather than performing it here.
 
 CONSTRAINTS
 
-- Keep this tiny and deterministic.
-- Do not build a generator yet.
-- Do not mutate `next-action.md` or `handoff.md`.
-- Use the contract doc as the source of truth.
-- Avoid creating a framework or generalized workflow engine.
+- Do not rewrite plan docs beyond minimal factual corrections if absolutely necessary.
+- Do not change package ordering unless the audit proves the plan is wrong.
+- Do not commit anything in this package.
+- Keep the output factual and reconciliation-focused.
 
 OUTPUT
 
 Return the normal handoff format with:
 - STATUS
 - SUMMARY
-- CHECKER BEHAVIOR
+- CURRENT PACKAGE LOOP STATE
+- RECENT PACKAGE ↔ COMMIT RECONCILIATION
+- OUT-OF-SYNC FINDINGS
 - FILES CREATED
 - FILES MODIFIED
 - COMMANDS TO RUN
@@ -59,7 +64,7 @@ Return the normal handoff format with:
 VERIFICATION
 
 At minimum:
-- run the checker directly against the current live files
-- confirm it passes on a valid pair of files
-- if tests are added, run the relevant test command
-- run the normal repo verification command if appropriate for the package
+- inspect recent git history
+- inspect package plan / next-action / handoff
+- confirm whether recent completed packages map cleanly to recent commits
+- explicitly resolve the status of `add_handoff_contract_checker`
