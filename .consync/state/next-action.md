@@ -1,134 +1,148 @@
 MODE: CONTINUE
 
-CONTEXT: PROCESS_STREAM_LIFECYCLE
+CONTEXT: STREAM_AND_LEGACY_STATE_BRIDGE
 
 TYPE: PROCESS
-PACKAGE: define_stream_lifecycle_and_promotion
+PACKAGE: define_stream_and_legacy_state_interaction
 
 OBJECTIVE
 
-Define the minimal lifecycle and promotion rules for streams in a small, durable, human-readable way.
+Define how the new stream-based structure interacts with the existing `.consync/state/` live loop.
 
-This package should explain when something becomes a real stream, when a stream earns more structure, how streams move through practical states over time, and how low-gravity streams should be handled without turning the system into a hoard.
+This package should resolve any ambiguity about where execution state lives, how the foreground stream maps to the live loop, and how we avoid duplicate or conflicting sources of truth.
 
-This is a process/structure package, not an automation or feature package.
+This is a critical bridge step that connects the new stream model to real execution.
 
 NON-GOALS
 
-- Do not add new real streams
-- Do not build decay automation
-- Do not build orchestrator logic
-- Do not add agent execution behavior
-- Do not create heavy archival machinery
-- Do not rewrite the full process system
-- Do not migrate legacy `.consync/state/` behavior yet
+- Do not migrate all state into streams yet
+- Do not delete legacy `.consync/state/`
+- Do not introduce orchestration code
+- Do not introduce agents or concurrency
+- Do not redesign the next_action/handoff loop
+- Do not create a heavy system diagram or framework doc
 
 REQUIRED OUTCOME
 
-Create one small process-facing document that defines the current stream lifecycle and promotion model clearly enough that a human or future agent can understand how streams should be created, deepened, paused, completed, or allowed to decay.
+Create one small process-facing document that defines the relationship between:
 
-The document should cover these five areas:
+- `.consync/state/` (live loop)
+- `.consync/streams/*/state/` (per-stream state)
 
-1. STREAM PROMOTION RULE
-Define when an idea/note/thread earns promotion into a real stream.
+The document should clearly answer these four areas:
 
-Keep it practical. A stream should become real only when at least one of these is true:
-- it has its own active or paused work packet
-- it has a distinct goal that can continue independently
-- losing its current state would be costly
-- it needs its own handoff/resume loop
+---
 
-Make clear that not every idea becomes a stream.
+1. SOURCE OF TRUTH DURING EXECUTION
 
-2. EARNED STRUCTURE RULE
-Define that every stream begins with the tiny core and earns additional structure only when needed.
+Define that:
 
-Include a practical rule such as:
-extra files like `package_plan.md` should appear only when the stream has enough iterations, branching, coordination, or consequence to justify them.
+- the existing `.consync/state/next_action.md` and `handoff.md` remain the active execution surface for now
+- this is the "live loop"
 
-Make clear that more gravity = more structure, not more speculation.
+Clarify that:
 
-3. LIFECYCLE STATES IN PRACTICE
-Define how the existing status vocabulary is used over time in a practical way:
-- `new`
-- `ready`
-- `active`
-- `paused`
-- `blocked`
-- `complete`
+- the foreground stream *drives* what appears in the live loop
+- but the loop itself is still global during this phase
 
-You may also describe archival/decay behavior in prose, but do not add new required status words unless clearly necessary.
+---
 
-4. LOW-GRAVITY / DECAY HANDLING
-Define the current philosophy for things that stall:
-- not everything should live forever as active structure
-- stalled streams should eventually be reviewed
-- the user can keep, merge, archive, or let them decay
+2. FOREGROUND STREAM MAPPING
 
-Keep this lightweight and practical. Do not turn it into a retention policy framework.
+Define that:
 
-5. CONSISTENCY ACROSS SCALES
-Add a short section explaining that Consync prefers repeating patterns across scales:
-- projects
-- streams
-- packages
-- sessions
+- the foreground stream is identified via `.consync/orchestration/active_foreground_stream.txt`
+- the live loop should always reflect the current foreground stream’s work
 
-The point is not identical structure everywhere, but recognizable recurring patterns that reduce cognitive switching.
+Explain conceptually:
 
-Keep this short and grounded.
+- the live loop acts as a working surface
+- the stream acts as the container of long-term state
+
+---
+
+3. PER-STREAM STATE ROLE
+
+Define that per-stream state files:
+
+- are the durable, recoverable state of each stream
+- are used for pause/resume
+- should not compete with the live loop
+
+Clarify:
+
+- no duplication of active state across multiple places
+- per-stream state is authoritative for that stream’s history and recovery
+
+---
+
+4. TRANSITION MODEL (IMPORTANT)
+
+Define how we operate during this hybrid phase:
+
+- legacy loop remains active
+- streams are being introduced alongside it
+- no forced migration yet
+
+Clarify the intent:
+
+- eventually, the live loop may become stream-scoped
+- but for now, it is a shared execution surface
+
+---
 
 DOCUMENT PLACEMENT
 
-Prefer to add this as a small new process-facing doc in the most coherent location under `.consync/docs/`.
+Create a new doc under:
 
-Choose a location/name that fits cleanly beside the stream operating model doc and keeps the system easy to navigate.
+.consync/docs/
 
-Good outcome:
-- a clearly named companion doc to the operating-model reference
+Choose a clear name such as:
 
-Avoid:
-- scattering this material across many files
-- hiding it in a place that will be hard to find later
-- creating a giant theory doc
+stream-and-state-interaction.md
+
+It should sit alongside:
+- stream-operating-model.md
+- stream-lifecycle-and-promotion.md
+
+---
 
 COHERENCE UPDATES
 
-Make only very light supporting updates elsewhere if needed so the new lifecycle/promotion doc is discoverable and consistent.
+Make only light updates if helpful:
 
-Examples of acceptable light updates:
-- a short pointer from `.consync/docs/current-system.md`
-- a short pointer from `.consync/docs/stream-operating-model.md` if that helps navigation
-- a small note in stream index only if genuinely useful
+- add a pointer from `current-system.md`
+- optionally add a short note in the stream operating model doc
 
-Do not do broad rewrites.
+Do not rewrite large docs.
+
+---
 
 STYLE
 
 - keep it short
-- keep it readable
 - keep it practical
-- prefer markdown
-- avoid abstraction for its own sake
-- avoid overusing future-agent language
-- do not turn “earned gravity” into poetic branding unless it genuinely helps clarity
-- make it feel like the smallest durable reference for stream lifecycle behavior
+- avoid abstract system language
+- avoid diagrams unless extremely simple
+- write like a working rulebook, not a theory paper
+
+---
 
 ACCEPTANCE CRITERIA
 
-1. A small durable doc exists that defines stream promotion and lifecycle behavior.
-2. The doc explains when something becomes a real stream.
-3. The doc explains that extra stream structure is earned, not automatic.
-4. The doc explains how low-gravity streams should be reviewed rather than preserved forever as active structure.
-5. The doc includes a short note about repeating patterns across scales.
-6. Any supporting updates remain light and conservative.
+1. A clear doc exists defining how streams and the live loop interact.
+2. It clearly states that `.consync/state/` is still the execution surface.
+3. It defines how the foreground stream maps to the live loop.
+4. It clarifies the role of per-stream state vs live state.
+5. It avoids introducing a second active source of truth.
+6. It keeps the system understandable and minimal.
+
+---
 
 HANDOFF FORMAT
 
-Write the result to the usual handoff location using this format:
-
 TYPE: PROCESS
-PACKAGE: define_stream_lifecycle_and_promotion
+PACKAGE: define_stream_and_legacy_state_interaction
 
 STATUS
 
@@ -136,36 +150,36 @@ PASS or FAIL
 
 SUMMARY
 
-Concise summary of the lifecycle/promotion doc created and any light coherence updates made.
+Explain how the interaction between streams and the live loop is now defined.
 
 FILES CREATED
 
-List every new file created.
+List new doc.
 
 FILES MODIFIED
 
-List every modified file and why.
+List any small pointer updates.
 
 COMMANDS TO RUN
 
-List any commands the user should run for inspection. If no automated verification is appropriate, provide simple inspection commands only.
+Provide simple inspection commands.
 
 HUMAN VERIFICATION
 
-Provide a short checklist to confirm:
-- the lifecycle/promotion doc exists
-- it covers the required five areas
-- it stays small and practical
-- any supporting updates are light and coherent
+Confirm:
+- doc exists
+- rules are clear
+- no ambiguity about source of truth
+- system still feels simple
 
 VERIFICATION NOTES
 
-State plainly whether verification was manual/inspection-based.
+State manual inspection.
 
 NOTES
 
-Mention any cautious decisions taken to avoid overbuilding or conflicting with the legacy live loop.
+Mention any decisions made to avoid duplication or over-migration.
 
 FINAL INSTRUCTION
 
-Be conservative. This package should produce the smallest credible lifecycle/promotion reference, not a framework.
+Be conservative. This should clarify reality, not invent a new system.
