@@ -1,79 +1,110 @@
 MODE: CONTINUE
 
-CONTEXT: TIGHTEN_PROCESS_AGENT_OUTPUT
+CONTEXT: EMBED_PROCESS_AGENT_IN_LOOP
 
 TYPE: PROCESS
-PACKAGE: refine_process_agent_output_format
+PACKAGE: add_process_agent_step_to_execution_pattern
 
 OBJECTIVE
 
-Reduce verbosity and improve signal quality of consync-process-agent output while preserving its usefulness.
+Introduce a standard optional step in the package loop to run consync-process-agent after the integrity step.
+
+This mirrors the integrity agent integration and ensures process alignment is checked before final handoff.
+
+---
 
 NON-GOALS
 
-- Do not change agent scope
-- Do not change evaluation logic
-- Do not add responsibilities
-- Do not introduce automation
+- Do not automate execution
+- Do not require process agent for every package
+- Do not change agent behavior
+- Do not introduce orchestration logic
+
+---
 
 REQUIRED OUTCOME
 
-Update the agent prompt in:
+Update process guidance to include:
 
-.github/agents/consync-process.agent.md
+"Run process agent and append output to handoff under PROCESS CHECK"
 
-CHANGES
+---
 
-1. REMOVE THINKING/PROCESS NARRATION
+WHERE TO UPDATE
 
-Agent should NOT:
-- describe what it is doing
-- mention commands it ran
-- narrate inspection steps
-- include transitional thoughts like “I need one more pass...”
+.consync/docs/integrity-agent-loop.md  
+(or wherever the loop is currently defined)
 
-2. TIGHTEN OUTPUT
+---
 
-Each section should be:
+CONTENT REQUIREMENTS
 
-STATUS:
-- single line
+1. DEFINE NEW STEP
 
-FINDINGS:
-- concise bullets only
+After integrity agent:
 
-RISKS:
-- short, concrete risks
+- optionally run process agent
+- use consync-process-agent
+- append output to handoff.md under:
 
-SUGGESTED IMPROVEMENTS:
-- actionable, minimal
+PROCESS CHECK
 
-3. ADD RULE
+---
 
-Add explicit instruction:
+2. DEFINE ORDER
 
-"Do not include reasoning steps or narration. Only output final structured results."
+Explicitly document:
 
-4. KEEP BEHAVIOR
+implementation → tests → verify → integrity agent → process agent → handoff → commit
 
-Do NOT:
-- reduce accuracy
-- remove useful process-level insights
-- simplify logic beyond output style
+---
 
-Only reduce noise.
+3. OUTPUT FORMAT
+
+Require structured output:
+
+STATUS  
+FINDINGS  
+RISKS  
+SUGGESTED IMPROVEMENTS  
+
+---
+
+4. OPTIONAL NATURE
+
+Clarify:
+
+- not required for every package
+- recommended for:
+  - process changes
+  - multi-step workflows
+  - packages touching docs or streams
+
+---
+
+5. FUTURE NOTE
+
+State:
+
+- this step may be automated later
+- current version is manual but standardized
+
+---
 
 ACCEPTANCE CRITERIA
 
-1. Agent output is shorter and more direct
-2. No narration or step-by-step chatter appears
-3. Output remains structured and useful
-4. No loss of meaningful process-alignment signal
+1. Docs define process agent as a standard optional step
+2. Step is placed after integrity agent
+3. Output location (PROCESS CHECK) is clearly defined
+4. Process remains simple and manual
+5. No unrelated changes introduced
+
+---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: refine_process_agent_output_format
+PACKAGE: add_process_agent_step_to_execution_pattern
 
 STATUS
 
@@ -81,12 +112,11 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how output was tightened.
+Explain how process agent is now embedded into the loop.
 
 FILES MODIFIED
 
-- .github/agents/consync-process.agent.md
-- .consync/state/handoff.md
+List updated docs.
 
 COMMANDS TO RUN
 
@@ -95,14 +125,12 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 Confirm:
-- output is cleaner
-- no narration
-- still catches real process issues
+- step is clear
+- output placement is clear
+- workflow remains readable
 
-VERIFICATION NOTES
-
-Manual inspection.
+---
 
 FINAL INSTRUCTION
 
-Be conservative. Improve clarity, not behavior.
+Be conservative. Extend the loop, don’t complicate it.

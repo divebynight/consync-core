@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: refine_process_agent_output_format
+PACKAGE: add_process_agent_step_to_execution_pattern
 
 STATUS
 
@@ -7,11 +7,11 @@ PASS
 
 SUMMARY
 
-Tightened the output instructions for `consync-process-agent` so its results stay shorter, cleaner, and more direct without changing its scope or evaluation logic.
+Extended the package-loop guidance so the process agent is now documented as a standard optional step after the integrity step.
 
-The prompt now explicitly requires a single-line `STATUS`, concise `FINDINGS`, short concrete `RISKS`, actionable minimal `SUGGESTED IMPROVEMENTS`, and forbids narration, command mentions, inspection-step chatter, and transitional thoughts. The agent still evaluates the same process-alignment dimensions and remains report-only.
+The loop doc now states that `consync-process-agent` may be run after `consync-integrity-agent`, and that its structured output should be appended to `handoff.md` under `PROCESS CHECK`. The documented order is now implementation → tests → verify → integrity agent → process agent → handoff → commit.
 
-This improves clarity and signal quality without changing behavior.
+The workflow remains manual and simple. The process-agent step is optional, but recommended for process changes, multi-step workflows, and packages that touch docs or streams.
 
 FILES CREATED
 
@@ -19,7 +19,7 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `.github/agents/consync-process.agent.md` — tightens the final output format and strengthens the non-narration rule while preserving the agent’s role and evaluation surface.
+- `.consync/docs/integrity-agent-loop.md` — adds the optional process-agent step after the integrity step, defines `PROCESS CHECK` placement, and updates the standard loop order.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -28,17 +28,23 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Open `.github/agents/consync-process.agent.md` and confirm the output-format bullets now require shorter, more direct results.
-2. Confirm the prompt explicitly forbids narration, command mentions, inspection-step chatter, and transitional thoughts.
-3. Confirm the agent still covers the same process-alignment areas and remains report-only.
-4. If the prompt removes useful signal or changes the agent’s scope beyond output style, treat that as a failure.
+1. Open `.consync/docs/integrity-agent-loop.md` and confirm the loop now includes an optional process-agent step after the integrity step.
+2. Confirm the documented order reads: implementation → tests → verify → integrity agent → process agent → handoff → commit.
+3. Confirm the doc explicitly says process-agent output should be appended to `handoff.md` under `PROCESS CHECK`.
+4. Confirm the process-agent step is described as optional, with recommendations for process changes, multi-step workflows, and packages touching docs or streams.
+5. If the new step is unclear, placed in the wrong order, or makes the loop feel automated or overcomplicated, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no automated test or execution path exists for process-agent output formatting in this package.
-- Confirmed the updated prompt now requires a single-line `STATUS`, concise `FINDINGS`, short concrete `RISKS`, and actionable minimal `SUGGESTED IMPROVEMENTS`.
-- Confirmed the strengthened rule forbids narration, command mentions, inspection-step chatter, and transitional thoughts while preserving the same process-alignment responsibilities.
-- Validated that the package stayed narrowly scoped to the agent prompt and did not change streams, process docs, or agent behavior.
+- Verification was manual and inspection-based; no automated test exists for package-loop documentation changes.
+- Confirmed the loop doc now places the optional process-agent step after the integrity step and before final handoff.
+- Confirmed the output location is explicitly named as `PROCESS CHECK` and the required structured output remains `STATUS`, `FINDINGS`, `RISKS`, and `SUGGESTED IMPROVEMENTS`.
+- Validated the change stayed narrow: one loop doc update only, with no agent behavior, orchestration logic, or unrelated process changes introduced.
+
+NOTES
+
+- Kept the change limited to extending the documented manual loop rather than adding new automation.
+- Mirrored the integrity-step pattern so the process-agent step fits the existing workflow instead of introducing a separate path.
 
 NOTES
 
