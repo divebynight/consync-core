@@ -1,68 +1,74 @@
-TYPE: FEATURE
-PACKAGE: separate_selection_and_reveal_actions
+TYPE: PROCESS
+PACKAGE: rerun_observational_search_loop_after_selection_reveal_split
 
 STATUS
 
-PASS
+FAIL
 
 SUMMARY
 
-Separated result-row selection from reveal behavior so clicking a search result now inspects only, and reveal happens through an explicit button in the detail panel.
+The automated baseline remained healthy after the selection/reveal split, but this observational rerun could not close PASS because the live desktop interaction was not durably observed end to end.
 
-Clicking a result row now selects it and updates the detail panel without opening Finder automatically. The new `Reveal in Finder` button reuses the existing preload, IPC, and main-process reveal flow, so inspect and act are separated without changing search truth, session state, or persistence behavior.
+`node src/test/desktop-scaffold.js` passed, `npm run verify` passed, and the CLI truth source for `sandbox/fixtures/nested-anchor-trial` with `moss` still reported two sessions and two matches. The desktop app was launched and then manually closed, but the actual search -> select -> explicit reveal -> reselection behavior was not captured reliably enough to confirm that the live loop behaved cleanly.
 
-Desktop scaffold and full repo verification still pass after the behavior split, confirming that reveal remains available while selection no longer triggers it as a side effect.
+No product code changed in this package. This remained a pure observational and state-update package, and it closes FAIL only because the required live-shell observation was incomplete rather than because a concrete regression was proven.
 
 FILES CREATED
 
-- `.consync/state/history/plans/feature-20260417-separate-selection-and-reveal-actions.md` — preserved the executed feature instruction before restoring the live `next-action.md` slot to the next planned package.
+- `.consync/state/history/plans/process-20260417-rerun-observational-search-loop-after-selection-reveal-split.md` — preserved the executed observational instruction before restoring the live `next-action.md` slot.
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — removed automatic reveal from row selection and added an explicit reveal button in the detail panel.
-- `src/electron/renderer/styles.css` — added a small layout rule for the new explicit detail-panel action row.
-- `.consync/state/package_plan.md` — recorded the completed feature package and queued a narrow observational rerun.
-- `.consync/state/snapshot.md` — updated the re-entry summary to reflect the explicit reveal-button flow.
-- `.consync/state/next-action.md` — replaced the live slot with the next process package.
-- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this feature package.
+- `.consync/state/package_plan.md` — marked the observational rerun FAIL, paused normal advancement, and queued a narrow manual-observation repair-style package.
+- `.consync/state/snapshot.md` — updated the re-entry summary to reflect that automated checks passed but live-loop confirmation is still missing.
+- `.consync/state/next-action.md` — replaced the live slot with a manual-observation package to resolve the failed evidence gap.
+- `.consync/state/handoff.md` — overwrote the handoff with the completed result of this observational package.
 
-BEHAVIOR ADDED
+BEHAVIOR OBSERVED
 
-- Result rows now select only, so inspection state updates without triggering Finder.
-- The detail panel now includes an explicit `Reveal in Finder` button that triggers the existing reveal flow on demand.
-- The search flow now has a cleaner inspect-then-act sequence.
+- The automated desktop scaffold path remained healthy.
+- The CLI grouped-search truth remained stable at two sessions and two matches for the `moss` query.
+- The desktop app launched successfully and was manually closed.
 
 BEHAVIOR PRESERVED
 
 - The grouped desktop search still returns the same underlying matches and formatted output used by `sandbox-desktop-search`.
-- The reveal capability still works through the existing read-only bridge, IPC, and main-process path.
 - The desktop search flow remains read-only and does not add session mutation, saved queries, ranking changes, or durable history.
+
+BEHAVIOR CHANGED
+
+- No product behavior changed in this package.
 
 COMMANDS RUN
 
 - `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`
 - `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
+- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 COMMANDS TO RUN
 
 - `cd /Users/markhughes/Projects/consync-core && npm run verify`
 - `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
+- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm it exits successfully.
-2. Start the desktop shell and run one grouped mock search using `sandbox/fixtures/nested-anchor-trial` and `moss`.
-3. Click one result row and confirm it updates the detail panel without opening Finder automatically.
-4. Click the `Reveal in Finder` button and confirm Finder reveals the correct file, or opens the parent folder if the direct file reveal is unavailable.
-5. Confirm the grouped result and selected-match detail still align with `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
-6. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected renderer, verification, and state files.
-7. Failure case: if selecting a row still opens Finder automatically, the behavior split is incomplete.
-8. Failure case: if the explicit reveal button no longer opens Finder or the fallback folder, the reveal path regressed.
+2. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
+3. Search `sandbox/fixtures/nested-anchor-trial` for `moss` and confirm grouped results appear.
+4. Click one result row and confirm only the detail panel changes.
+5. Confirm Finder does not open on selection.
+6. Click `Reveal in Finder` and confirm Finder reveals the correct file, or its parent folder, on demand.
+7. Confirm the selected detail still matches `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
+8. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected state files unless a small repair was required.
+9. Failure case: if the live interaction still cannot be observed clearly, the observational gap remains unresolved.
 
 VERIFICATION NOTES
 
-- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, and `cd /Users/markhughes/Projects/consync-core && git status --short` after separating selection from reveal.
-- Observed outcome: the desktop scaffold test passed, full repo verification passed, and the working tree contained only the expected renderer, verification, and state-file edits for this package.
-- Validated the important edge cases that selection now updates state without invoking the reveal side effect, the explicit reveal button still reuses the existing reveal path, and the desktop search flow remained read-only with no search-truth or session-state changes.
+- Actually tested `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`, `cd /Users/markhughes/Projects/consync-core && npm run verify`, `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`, and `cd /Users/markhughes/Projects/consync-core && git status --short` during this package.
+- A desktop-shell launch was also actually performed via `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`, and the app was manually closed.
+- Observed outcome: the automated baseline passed and the app launched, but no trustworthy full live observation of search -> select -> explicit reveal -> reselection was captured, so no product code was changed and the package closes FAIL.
+- Validated the important edge cases that the grouped search truth remained stable and that this package introduced no new product changes while resolving the observational status honestly.

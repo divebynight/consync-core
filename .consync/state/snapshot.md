@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package separated selection from reveal in the desktop search results.
+The last attempted package reran the observational search loop after the selection/reveal split, but it could not close PASS because the live interaction was not durably observed end to end.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -59,9 +59,11 @@ CURRENT REALITY:
 - The reveal path falls back to the parent folder when a direct file reveal is unavailable.
 - Clicking a result row now updates selection and detail state only; reveal happens only through the explicit detail-panel button.
 - The search flow now has a clearer separation between inspect and act without changing grouped search truth or session state.
+- The current automated baseline is still healthy: `node src/test/desktop-scaffold.js` passed, `npm run verify` passed, and the CLI grouped-search truth for the nested-anchor trial still reports two sessions and two matches for `moss`.
+- A desktop launch was attempted and manually closed, but the actual live search -> select -> explicit reveal -> reselection interaction was not durably captured, so readiness at this scale remains unconfirmed.
 
 ACTIVE FOCUS:
-Rerun the short desktop mock-session trial now that reveal is an explicit button instead of a side effect of selection.
+Repair the failed observational gap by capturing one clean manual pass of the explicit-reveal search loop.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the explicit-reveal search view is usable at this scale.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should capture one reliable manual live observation of the explicit-reveal search loop and then either close the flow PASS or name the concrete blocker.

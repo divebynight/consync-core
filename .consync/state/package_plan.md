@@ -6,7 +6,7 @@ Complete the remaining process guardrails, then prove the protocol can carry a s
 
 SEQUENCE STATUS:
 
-ACTIVE
+PAUSED_FAIL
 
 CURRENT CURSOR:
 
@@ -14,7 +14,7 @@ CURRENT CURSOR:
 
 NEXT PACKAGE:
 
-`rerun_mock_session_desktop_trial_with_explicit_reveal_action`
+`capture_manual_observation_for_explicit_reveal_search_loop`
 
 DEFAULT RUN WINDOW:
 
@@ -260,12 +260,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: split row selection from Finder reveal so clicking a result now only selects it and updates the detail panel, while reveal remains an explicit button in the detail view.
 
-31. `rerun_mock_session_desktop_trial_with_explicit_reveal_action`
-   - Status: READY
+31. `rerun_observational_search_loop_after_selection_reveal_split`
+   - Status: FAIL
    - Depends on: `separate_selection_and_reveal_actions`
    - Stop gate: pause after this package to review whether the explicit reveal button is enough for one short search-oriented desktop trial without exposing a new blocker.
    - Human verification: optional
-   - Notes: should rerun the short desktop mock-session trial against the explicit reveal-action flow and record the next concrete blocker or confirm the shell is still usable at this scale.
+   - Notes: automated verification and CLI truth passed, and the app was launched manually, but the live inspect -> explicit reveal interaction was not durably observed end to end, so the package cannot honestly close PASS.
+
+32. `capture_manual_observation_for_explicit_reveal_search_loop`
+   - Status: READY
+   - Depends on: `rerun_observational_search_loop_after_selection_reveal_split`
+   - Stop gate: pause after this package to review whether the manual live observation now resolves the failed observational gap cleanly.
+   - Human verification: required
+   - Notes: should capture one clean manual pass of search -> select -> explicit reveal -> reselection in the live desktop shell and then close or repair based on that direct observation.
 
 REPAIR HANDLING:
 

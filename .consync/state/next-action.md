@@ -1,19 +1,19 @@
 TYPE: PROCESS
-PACKAGE: rerun_mock_session_desktop_trial_with_explicit_reveal_action
+PACKAGE: capture_manual_observation_for_explicit_reveal_search_loop
 
 SUMMARY
 
-Rerun the short desktop mock-session trial now that selection and reveal are separated, and record the next concrete blocker or confirm that the desktop shell is usable at this scale.
+Capture one reliable manual live observation of the desktop search -> select -> explicit reveal loop so the current failed observational package can be resolved honestly.
 
-The last package removed the coupling between inspect and act by making row clicks selection-only and moving Finder reveal to an explicit button in the detail panel. This package should now test that updated shell again and identify the next concrete blocker, if one still appears.
+The last attempted observational package had a clean automated baseline, and the app launched, but the actual live interaction was not durably observed end to end. This package should resolve that gap with one explicit manual observation pass rather than adding more product work.
 
 FILES CREATED
 
-- `.consync/state/history/plans/process-<timestamp>-rerun-mock-session-desktop-trial-with-explicit-reveal-action.md` — preserve this instruction before replacing the live `next-action.md` slot
+- `.consync/state/history/plans/process-<timestamp>-capture-manual-observation-for-explicit-reveal-search-loop.md` — preserve this instruction before replacing the live `next-action.md` slot
 
 FILES MODIFIED
 
-- minimal state or notes files only as needed to record the trial outcome
+- minimal state or notes files only as needed to record the manual observation outcome
 - `.consync/state/package_plan.md`
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
@@ -21,76 +21,78 @@ FILES MODIFIED
 
 GOAL
 
-Determine whether the updated desktop shell is now ready for a short search-oriented mock session by:
+Resolve the current observational failure by:
 
-1. exercising the visible desktop flow with the explicit reveal button now in place
-2. identifying the next concrete blocker that makes a short mock session awkward, if one appears
-3. avoiding speculative fixes until that blocker is named clearly
-4. confirming trial readiness explicitly if no blocker appears at this scale
+1. launching the desktop shell
+2. running the known mock search for `sandbox/fixtures/nested-anchor-trial` and `moss`
+3. selecting one result and confirming only detail changes occur
+4. clicking `Reveal in Finder` and confirming reveal works on demand
+5. selecting another result and confirming no automatic reveal returns
+6. recording either PASS or one concrete blocker based on that direct observation
 
 CONSTRAINTS
 
-- Keep this package narrow and observational first
-- Do not introduce speculative implementation work just because the trial reveals multiple possible future improvements
-- Do not broaden the desktop shell or search path further unless a tiny unblocker is clearly required and still fits the package scope
-- Prefer recording the blocker over partially fixing several things at once
+- Keep this package narrow and observational.
+- Do not add product features.
+- Do not change search ranking, grouping, persistence, or session mutation behavior.
+- Prefer zero code changes unless a small regression is found and clearly inside the current package boundary.
 
 TASK
 
-1. Define a very short mock-session trial flow that uses the desktop shell with the explicit reveal button available.
-2. Identify the smallest realistic path a human can now attempt in the updated shell.
-3. Record the next concrete blocker or friction point that would likely matter in that trial.
-4. If no blocker appears at this scale, record that the shell appears ready for one short search-oriented mock session and name the next most useful feature target.
-5. Keep implementation changes at zero unless a tiny unblocker is clearly necessary and still narrower than the recorded blocker itself.
-6. Run repo verification.
-7. Update state files at the end.
+1. Re-run the verification baseline if needed to confirm the repo remains healthy.
+2. Perform one complete manual live pass of the explicit-reveal search loop.
+3. If the flow is clean, update only the state docs.
+4. If a small regression is found, fix only that regression and rerun the relevant verification.
+5. Preserve this instruction in history before replacing the live slot.
 
 DO NOT
 
-- start a broad usability push
-- redesign the desktop shell
-- add multiple new blockers or a long backlog
-- expand the package beyond one concrete trial outcome
-- broaden the grouped search behavior unless the new blocker clearly requires it
+- invent a PASS without a real live observation
+- broaden the shell into new UX work
+- add multiple new blockers or speculative follow-on ideas
+- widen the search model or reveal model beyond the current loop
 
 COMMANDS TO RUN
 
+- `cd /Users/markhughes/Projects/consync-core && node src/test/desktop-scaffold.js`
 - `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`
+- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm success.
-2. Start the desktop shell and run one grouped mock search using `sandbox/fixtures/nested-anchor-trial` and `moss`.
-3. Click one result row and confirm it updates the detail panel without opening Finder automatically.
-4. Click the `Reveal in Finder` button and confirm Finder reveals the correct file, or opens the parent folder if the direct file reveal is unavailable.
-5. Confirm the grouped result and selected-match detail still align with `node src/index.js sandbox-desktop-search sandbox/fixtures/nested-anchor-trial moss`.
-6. Confirm the package records one next blocker clearly, or explicitly records that no blocker appeared at this scale.
-7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected narrow files.
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
+2. Search `sandbox/fixtures/nested-anchor-trial` for `moss`.
+3. Click one result row and confirm only the detail panel changes.
+4. Confirm Finder does not open on selection.
+5. Click `Reveal in Finder` and confirm the correct file, or its parent folder, is revealed.
+6. Click a second result row and confirm the detail updates again without automatic reveal.
+7. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm changes are limited to the expected state files unless a small repair was required.
 
 PASS CRITERIA
 
-- One concrete next trial outcome is recorded clearly
-- Scope remains narrow and grounded in actual trial use
+- One complete manual live pass of the explicit-reveal loop is observed
+- The flow behaves as intended without automatic reveal on selection
+- `Reveal in Finder` still works on demand
 - `npm run verify` passes
-- No unnecessary implementation sprawl was introduced
 
 FAIL CRITERIA
 
-- The package produces only vague usability commentary
-- The package tries to fix several possible future issues at once
-- The recorded blocker does not map to a plausible short mock session through the updated shell
+- The live pass still cannot be observed reliably
+- Selecting a row still opens Finder automatically
+- `Reveal in Finder` no longer works on demand
 - `npm run verify` fails
 
 STATE UPDATES
 
-- `package_plan.md` → record completion of the rerun trial package and set up the next narrow package from the observed outcome
-- `snapshot.md` → reflect the observed trial readiness or blocker after the explicit reveal button was introduced
-- `next-action.md` → point to the next logical package after this retry
-- `handoff.md` → record the result of this PROCESS package
+- `package_plan.md` -> resolve the failed observational package and record the next narrow step
+- `snapshot.md` -> reflect whether the live loop is now confirmed or still blocked
+- `next-action.md` -> point to the next logical package after the manual observation resolves
+- `handoff.md` -> record the result of this PROCESS package
 
 NOTES
 
-- Keep this boring and observational.
-- The purpose is to see what the next real blocker is now that inspect and reveal are separated cleanly.
-- Prefer one crisp outcome over partial follow-on fixes.
+- Keep this boring and evidence-based.
+- The current gap is observational, not architectural.
+- Do not claim live behavior that was not directly observed.
