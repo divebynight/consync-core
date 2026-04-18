@@ -49,6 +49,27 @@ Standard optional step:
 	- fill in `TYPE` and `PACKAGE`
 	- run it with `consync-integrity-agent`
 
+### Executing the Integrity Step in SDC
+
+SDCs may include an instruction to run the integrity agent.
+
+When that happens, Copilot should:
+
+- use `.consync/prompts/run_integrity_agent.md`
+- execute it with `consync-integrity-agent`
+- append the result to `handoff.md`
+
+Append the result under a clear section:
+
+`INTEGRITY CHECK`
+
+The appended output should remain structured as:
+
+- `STATUS: PASS | WARNING | FAIL`
+- `FINDINGS`
+- `RISKS`
+- `SUGGESTED IMPROVEMENTS`
+
 Current flow is:
 
 implementation → tests → verify → integrity agent → handoff → commit
@@ -66,3 +87,5 @@ This is currently a manual step. It may later be embedded into the package loop 
 Use `.consync/prompts/run_integrity_agent.md` when you want a reusable prompt template for running the integrity agent consistently.
 
 It remains optional, but it is recommended for feature changes, test changes, and user-facing behavior changes.
+
+This step may become more automated later, but the current version stays explicit, reviewable, and human-reviewed.

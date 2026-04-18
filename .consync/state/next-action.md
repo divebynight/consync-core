@@ -1,106 +1,86 @@
 MODE: CONTINUE
 
-CONTEXT: EMBED_INTEGRITY_AGENT_IN_LOOP
+CONTEXT: SEMI_AUTOMATED_INTEGRITY_STEP
 
 TYPE: PROCESS
-PACKAGE: add_integrity_agent_step_to_execution_pattern
+PACKAGE: enable_integrity_agent_execution_within_sdc
 
 OBJECTIVE
 
-Introduce a standard, optional step in next_action packages that runs the integrity agent using the reusable prompt.
+Enable Copilot to execute the integrity agent as part of the SDC workflow instead of requiring manual prompting.
 
-This makes the agent part of the execution pattern without automating it yet.
+This step reduces friction while keeping the process explicit and reviewable.
 
 ---
 
 NON-GOALS
 
-- Do not automate agent execution
-- Do not modify agent behavior
+- Do not fully automate agent execution
+- Do not remove human review
 - Do not introduce orchestration logic
-- Do not require the agent for every package
-- Do not change stream structure
+- Do not change agent behavior
 
 ---
 
 REQUIRED OUTCOME
 
-Update process guidance to include a standard optional step:
+Update process instructions so that SDCs can include:
 
-"Run integrity agent using .consync/prompts/run_integrity_agent.md"
-
-This should:
-
-- appear in next_action structure as a recognizable step
-- reference the reusable prompt file
-- clarify that it happens after verification
+"Run integrity agent using .consync/prompts/run_integrity_agent.md and append output to handoff"
 
 ---
 
-WHERE TO UPDATE
+IMPLEMENTATION
 
-Add a small section in:
+1. Update process guidance (likely integrity-agent-loop.md):
 
-.consync/docs/integrity-agent-loop.md
+Add a section:
 
-and optionally:
+### Executing the Integrity Step in SDC
 
-.consync/docs/stream-operating-model.md
+Define that:
+
+- SDCs may include an instruction to run the integrity agent
+- Copilot should:
+  - use the reusable prompt
+  - execute with consync-integrity-agent
+  - append results to handoff.md
 
 ---
 
-CONTENT REQUIREMENTS
+2. Define expected behavior:
 
-Define:
+- agent output is appended under a clear section in handoff:
+  "INTEGRITY CHECK"
 
-1. STANDARD STEP
+- output must remain structured:
+  STATUS / FINDINGS / RISKS / SUGGESTED IMPROVEMENTS
 
-Example:
+---
 
-- After verification, optionally run integrity agent:
-  - copy prompt from .consync/prompts/run_integrity_agent.md
-  - fill TYPE and PACKAGE
-  - run with consync-integrity-agent
-
-2. POSITION IN FLOW
-
-Explicitly state:
-
-implementation → tests → verify → integrity agent → handoff → commit
-
-3. OPTIONAL NATURE
-
-Clarify:
+3. Keep it optional:
 
 - not required for every package
 - recommended for:
-  - feature changes
+  - feature work
   - test changes
   - behavior changes
-
-4. FUTURE NOTE
-
-State:
-
-- this step may become automated later
-- current version is manual but standardized
 
 ---
 
 ACCEPTANCE CRITERIA
 
-1. Docs clearly define integrity agent as a standard optional step
-2. Step references reusable prompt file
-3. Placement in flow is explicit
-4. Process remains lightweight and manual
-5. No unrelated changes introduced
+1. Docs define how SDC can trigger integrity agent execution
+2. Output destination (handoff) is clearly defined
+3. Process remains human-reviewed
+4. No automation framework introduced
 
 ---
 
 HANDOFF FORMAT
 
 TYPE: PROCESS
-PACKAGE: add_integrity_agent_step_to_execution_pattern
+PACKAGE: enable_integrity_agent_execution_within_sdc
 
 STATUS
 
@@ -108,7 +88,7 @@ PASS or FAIL
 
 SUMMARY
 
-Explain how the integrity agent is now embedded into the execution pattern.
+Explain how integrity agent execution is now possible within SDC.
 
 FILES MODIFIED
 
@@ -121,17 +101,12 @@ COMMANDS TO RUN
 HUMAN VERIFICATION
 
 Confirm:
-- step is clearly defined
-- references prompt file
-- fits naturally into workflow
-- no added complexity
-
-VERIFICATION NOTES
-
-Manual inspection.
+- instructions are clear
+- integration feels natural
+- no complexity added
 
 ---
 
 FINAL INSTRUCTION
 
-Be conservative. This is a small integration step, not automation.
+Be conservative. This is controlled friction reduction, not automation.
