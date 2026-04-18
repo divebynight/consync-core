@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: define_next_action_handoff_automation_contract
+PACKAGE: add_handoff_contract_checker
 
 STATUS
 
@@ -7,73 +7,69 @@ PASS
 
 SUMMARY
 
-Defined a minimal automation contract for the `next-action.md` ↔ `handoff.md` loop so future helpers can validate and support the current workflow without changing its judgment points.
+Added a tiny deterministic checker that validates the live `next-action.md` and `handoff.md` files against the documented automation contract and reports a simple PASS or FAIL result with specific mismatches.
 
-The new contract document separates deterministic structure from human or model judgment, defines the required shape of both files, sets minimum package-closeout criteria, places `NEXT RECOMMENDED PACKAGE` at the end of handoff when used, and limits automation helpers to validation and drafting support rather than autonomous advancement.
+The checker stays intentionally narrow. It verifies required identity fields, required handoff sections, and `TYPE` and `PACKAGE` matching between the live files, but it does not judge whether a package deserves its status, choose the next package, or rewrite any files. A focused node test covers the validator logic, and package scripts now expose both the live checker and the narrow test directly.
 
-Added one light pointer from the system overview and used an embedded validation checklist as the small validation surface for this package.
+CHECKER BEHAVIOR
 
-CURRENT LOOP AUDIT
+The checker reads:
 
-Current loop behavior in repo practice:
+- `.consync/state/next-action.md`
+- `.consync/state/handoff.md`
 
-- `next-action.md` carries one active package at a time
-- the package is executed through the prompt-driven workflow
-- `handoff.md` is overwritten for the current closeout
-- `TYPE` and `PACKAGE` carry package identity across the loop
-- verification notes record what was actually run or inspected
+It validates:
 
-Current deterministic areas:
+- `TYPE` exists in `next-action.md`
+- `PACKAGE` exists in `next-action.md`
+- required handoff sections exist
+- `TYPE` exists in `handoff.md`
+- `PACKAGE` exists in `handoff.md`
+- `TYPE` matches between the live files
+- `PACKAGE` matches between the live files
 
-- single active package in `next-action.md`
-- overwritten `handoff.md` per package
-- required handoff closeout sections
-- package identity matching between `next-action.md` and `handoff.md`
+It also enforces one small contract detail from the automation contract doc:
 
-Current judgment-dependent areas:
+- if `NEXT RECOMMENDED PACKAGE` is present, it must be the final handoff section
 
-- package wording and scope
-- package PASS or FAIL decision
-- when optional integrity or process checks should run
-- whether a suggested next package is worth recording
+On success it prints `STATUS: PASS` with a short checklist.
 
-CONTRACT DECISIONS
-
-- Required `next-action.md` contract: `TYPE`, `PACKAGE`, one goal section, actionable instructions, constraints or non-goals, and verification expectations.
-- Required `handoff.md` contract: `TYPE`, `PACKAGE`, `STATUS`, `SUMMARY`, `FILES CREATED`, `FILES MODIFIED`, `COMMANDS TO RUN`, `HUMAN VERIFICATION`, and `VERIFICATION NOTES`.
-- `NEXT RECOMMENDED PACKAGE` belongs at the end of handoff when there is a clear follow-up.
-- Automation helpers may validate structure, compare identity fields, draft shells, and surface mismatches.
-- Automation helpers must not invent execution results, mark status without real context, or autonomously choose the next package.
+On failure it prints `STATUS: FAIL` plus each missing field or mismatch.
 
 FILES CREATED
 
-- `.consync/docs/next-action-handoff-automation-contract.md` — defines the minimal structure, closeout criteria, automation boundaries, and embedded validation checklist for the live next-action/handoff loop.
+- `scripts/check-handoff-contract.js` — runs the live next-action/handoff contract checker against `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+- `src/lib/handoffContractChecker.js` — shared deterministic validator for required identity fields, required handoff sections, and basic contract mismatches.
+- `src/test/handoff-contract-checker.js` — focused node test covering both a valid contract pair and a failure case with a missing section and mismatched package.
 
 FILES MODIFIED
 
-- `.consync/docs/current-system.md` — adds a light pointer to the next-action/handoff automation contract doc.
-- `.consync/state/handoff.md` — records this feature package result in the live handoff location.
+- `package.json` — adds small script entries for running the live handoff checker and the focused validator test.
+- `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && git status --short .consync`
+- `cd /Users/markhughes/Projects/consync-core && npm run check:handoff-contract`
+- `cd /Users/markhughes/Projects/consync-core && npm run test:handoff-contract`
+- `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
-1. Open `.consync/docs/next-action-handoff-automation-contract.md` and confirm it defines required structure for both `next-action.md` and `handoff.md` without redesigning the loop.
-2. Confirm the contract distinguishes deterministic parts of the loop from judgment-based parts.
-3. Confirm the contract places `NEXT RECOMMENDED PACKAGE` at the end of handoff when used.
-4. Confirm the automation-boundary section allows validation and drafting support but forbids autonomous PASS/FAIL decisions or invented results.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short .consync` and confirm the new contract doc and the light pointer update are the only process-doc changes. If the doc broadens into a larger framework or contradicts the current loop, treat that as a failure.
+1. Run `cd /Users/markhughes/Projects/consync-core && npm run check:handoff-contract` and confirm it reports `STATUS: PASS` against the current live files.
+2. Run `cd /Users/markhughes/Projects/consync-core && npm run test:handoff-contract` and confirm the focused validator test prints `PASS`.
+3. Open `src/lib/handoffContractChecker.js` and confirm it only validates structure and identity matching, without judging status quality or rewriting files.
+4. Confirm the checker reports `STATUS: FAIL` if `TYPE`, `PACKAGE`, or a required handoff section is removed or mismatched. If it silently passes those cases, treat that as a failure.
+5. Run `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js` and confirm the normal repo verification still ends with `[verify] PASS`.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based.
-- Confirmed the new contract doc matches the current live loop: one package in `next-action.md`, one overwritten `handoff.md`, shared `TYPE` and `PACKAGE`, and required closeout sections.
-- Confirmed the embedded validation checklist provides a small validation surface without adding scripts or automation logic.
-- Confirmed the only supporting change outside the new doc is a light pointer in `current-system.md`, with no contradictory process rewrites introduced.
+- Ran `npm run test:handoff-contract` and observed `PASS` after fixing one validator bug in the `NEXT RECOMMENDED PACKAGE` final-section check.
+- Ran `node src/test/verify.js` and observed the normal repo verification suite still ending with `[verify] PASS`.
+- Ran `npm run check:handoff-contract` against the updated `.consync/state/next-action.md` and `.consync/state/handoff.md` pair and observed `STATUS: PASS` with matching `TYPE` and `PACKAGE`.
+- Ran `git status --short` and observed the expected worktree changes: `.consync/state/handoff.md`, `.consync/state/next-action.md`, `package.json`, `scripts/`, `src/lib/handoffContractChecker.js`, and `src/test/handoff-contract-checker.js`.
+- Validated one extra contract edge case in code: if `NEXT RECOMMENDED PACKAGE` exists, the checker requires it to be the final handoff section.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add a tiny checker or script that validates required `handoff.md` sections and `TYPE`/`PACKAGE` matching automatically, using this contract as the source of truth.
+- Add one small draft-generator helper that can produce an empty handoff shell from the current `next-action.md` without filling any judgment-based content.

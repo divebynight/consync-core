@@ -3,11 +3,13 @@
   "main": ".vite/build/index.js",
   "private": true,
   "scripts": {
+    "check:handoff-contract": "node scripts/check-handoff-contract.js",
     "probe:audio-session": "cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js",
     "start:desktop": "electron-forge start",
     "package:desktop": "electron-forge package",
     "make:desktop": "electron-forge make",
     "test:ui-search": "vitest run --environment jsdom src/test/app-search-flow.test.jsx",
+    "test:handoff-contract": "node src/test/handoff-contract-checker.js",
     "test:probe:audio-session": "node sandbox/probes/audio-session-capture/test-capture-session.js",
     "test:desktop-scaffold": "node src/test/desktop-scaffold.js",
     "verify": "node src/test/verify.js",
