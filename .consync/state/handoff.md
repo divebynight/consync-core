@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: refine_integrity_agent_output_format
+PACKAGE: create_consync_process_agent
 
 STATUS
 
@@ -7,28 +7,18 @@ PASS
 
 SUMMARY
 
-TYPE: PROCESS
-PACKAGE: refine_integrity_agent_output_format
+Created the second repo-local custom Copilot agent for Consync: `consync-process-agent`.
 
-STATUS
+The new agent is a report-only process-alignment checker that inspects package identity consistency, next_action and handoff alignment, foreground stream and stream-status consistency, handoff hygiene, and scope or verification drift across the package loop. Its prompt explicitly forbids file mutation, orchestration behavior, and reasoning narration, while keeping a concise structured `PASS | WARNING | FAIL` output format.
 
-PASS
-
-SUMMARY
-
-Tightened the output instructions for `consync-integrity-agent` so its results stay shorter, cleaner, and more direct without changing its scope or evaluation logic.
-
-The prompt now explicitly requires a single-line `STATUS`, concise bullets in `FINDINGS`, short concrete `RISKS`, actionable minimal `SUGGESTED IMPROVEMENTS`, and forbids reasoning steps or narration. The agent still evaluates the same integrity dimensions and remains report-only.
-
-This improves clarity and signal quality without changing behavior.
+Kept the agent minimal and safe: one file, no supporting framework, no execution logic, and no changes to streams or process flow.
 
 FILES CREATED
 
-- none
+- `.github/agents/consync-process.agent.md` — defines the repo-local process-alignment checker agent with report-only scope and a fixed structured output format.
 
 FILES MODIFIED
 
-- `.github/agents/consync-integrity.agent.md` — tightens the final output format and adds an explicit non-narration rule while preserving the agent’s role and evaluation surface.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -37,19 +27,20 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Open `.github/agents/consync-integrity.agent.md` and confirm the output-format bullets now require shorter, more direct results.
-2. Confirm the prompt explicitly says: `Do not include reasoning steps or narration. Only output final structured results.`
-3. Confirm the agent still covers the same integrity areas and remains report-only.
-4. If the prompt removes useful signal or changes the agent’s scope beyond output style, treat that as a failure.
+1. Confirm `.github/agents/consync-process.agent.md` exists.
+2. Open the file and confirm the frontmatter, role, task sections, output format, and non-mutation rules are correct.
+3. Reload Copilot agent list or restart the IDE.
+4. Confirm `consync-process-agent` appears in the agent picker.
+5. Select it and verify it responds as a report-only process checker. If it suggests editing files or acting as an orchestrator, treat that as a failure.
 
 VERIFICATION NOTES
 
-- Verification was manual and inspection-based; no automated test or execution path exists for agent output formatting in this package.
-- Confirmed the updated prompt now requires a single-line `STATUS`, concise `FINDINGS`, short concrete `RISKS`, and actionable minimal `SUGGESTED IMPROVEMENTS`.
-- Confirmed the new explicit rule forbids reasoning steps and narration while preserving the same integrity-checking responsibilities.
-- Validated that the package stayed narrowly scoped to the agent prompt and did not change streams, process docs, or agent behavior.
+- Verification was manual and inspection-based; no automated test or execution path exists for agent-picker registration in this package.
+- Confirmed the requested agent file now exists at `.github/agents/consync-process.agent.md` and contains the specified report-only process-alignment prompt.
+- Validated that the prompt covers package identity, loop alignment, foreground-stream consistency, handoff hygiene, and scope or verification consistency.
+- Validated that the prompt explicitly forbids file modification, orchestration behavior, and reasoning narration.
 
 NOTES
 
-- Kept this change limited to output quality so it improves signal without changing logic.
-- The main scope guard was to remove noise, not to reduce accuracy or alter the agent’s evaluation role.
+- Kept scope minimal by creating exactly one repo-local agent file and no supporting framework.
+- Did not add any automation, stream changes, or mutation instructions, because this agent is intended to inspect and report only.
