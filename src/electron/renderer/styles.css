@@ -279,6 +279,11 @@ body {
   gap: 12px;
 }
 
+.mock-search-detail-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .mock-search-detail-panel h3 {
   margin: 0;
   font-size: 1rem;

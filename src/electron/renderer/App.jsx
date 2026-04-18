@@ -36,7 +36,7 @@ function getDesktopBridge() {
   return desktopBridge;
 }
 
-function MockSearchResult({ searchResult, selectedMatchKey, onSelectMatch }) {
+function MockSearchResult({ searchResult, selectedMatchKey, onRevealSelectedMatch, onSelectMatch }) {
   const summaryRows = getMockSearchSummaryRows(searchResult);
   const detailRows = getMockSearchDetailRows(searchResult, selectedMatchKey);
   const selectedDetail = getSelectedMockSearchDetail(searchResult, selectedMatchKey);
@@ -93,6 +93,16 @@ function MockSearchResult({ searchResult, selectedMatchKey, onSelectMatch }) {
           {detailRows.map(row => (
             <StatusRow key={row.label} label={row.label} value={row.value} />
           ))}
+        </div>
+        <div className="mock-search-detail-actions">
+          <button
+            className="bookmark-button"
+            disabled={!selectedDetail}
+            onClick={() => onRevealSelectedMatch(selectedDetail ? selectedDetail.fullPath : null)}
+            type="button"
+          >
+            Reveal in Finder
+          </button>
         </div>
         <p className="mock-search-detail-copy">
           {selectedDetail ? selectedDetail.note : "Click a result row to inspect one match more closely."}
@@ -191,20 +201,19 @@ export function App() {
     }
   }
 
-  async function handleSelectMockSearchMatch(group, match) {
-    const nextSelectedMatchKey = getMockSearchSelectionKey(group, match);
+  function handleSelectMockSearchMatch(group, match) {
+    setSelectedMatchKey(getMockSearchSelectionKey(group, match));
+    setErrorMessage(null);
+  }
 
-    setSelectedMatchKey(nextSelectedMatchKey);
+  async function handleRevealSelectedMatch(fullPath) {
+    if (!fullPath) {
+      return;
+    }
 
     try {
-      const nextSelectedDetail = getSelectedMockSearchDetail(searchResult, nextSelectedMatchKey);
-
-      if (!nextSelectedDetail) {
-        throw new Error("Search result detail is unavailable.");
-      }
-
       const desktopBridge = getDesktopBridge();
-      const result = await desktopBridge.revealSearchResult(nextSelectedDetail.fullPath);
+      const result = await desktopBridge.revealSearchResult(fullPath);
 
       if (!result.ok) {
         throw new Error(result.output);
@@ -321,6 +330,7 @@ export function App() {
 
           {searchResult ? (
             <MockSearchResult
+              onRevealSelectedMatch={handleRevealSelectedMatch}
               onSelectMatch={handleSelectMockSearchMatch}
               searchResult={searchResult}
               selectedMatchKey={selectedMatchKey}

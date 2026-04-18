@@ -7,7 +7,7 @@ CURRENT DIRECTION:
 Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
 
 LAST COMPLETED WORK:
-The last completed package added one minimal reveal-in-Finder action for desktop search results.
+The last completed package separated selection from reveal in the desktop search results.
 
 CURRENT REALITY:
 - `next-action.md` is now treated as the live execution slot rather than the durable historical record.
@@ -57,9 +57,11 @@ CURRENT REALITY:
 - The selected-match detail view stays renderer-only and does not add navigation, linking, writes, or new IPC behavior.
 - Desktop search results can now also trigger one read-only reveal action through preload, IPC, and the main process using the already-derived file path.
 - The reveal path falls back to the parent folder when a direct file reveal is unavailable.
+- Clicking a result row now updates selection and detail state only; reveal happens only through the explicit detail-panel button.
+- The search flow now has a clearer separation between inspect and act without changing grouped search truth or session state.
 
 ACTIVE FOCUS:
-Rerun the short desktop mock-session trial now that the shell includes one selected-match detail view plus one reveal action.
+Rerun the short desktop mock-session trial now that reveal is an explicit button instead of a side effect of selection.
 
 NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the reveal-enabled search view is usable at this scale.
+Run the next PROCESS package in `.consync/state/next-action.md`, which should retry the short desktop mock-session trial and record the next concrete blocker or confirm that the explicit-reveal search view is usable at this scale.

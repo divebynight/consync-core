@@ -10,11 +10,11 @@ ACTIVE
 
 CURRENT CURSOR:
 
-30
+31
 
 NEXT PACKAGE:
 
-`rerun_mock_session_desktop_trial_with_reveal_in_finder`
+`rerun_mock_session_desktop_trial_with_explicit_reveal_action`
 
 DEFAULT RUN WINDOW:
 
@@ -253,12 +253,19 @@ PLANNED PACKAGES:
    - Human verification: optional
    - Notes: added one minimal reveal action for result rows through preload, IPC, and main so a selected search result can be revealed in Finder or its parent folder without changing search truth or session state.
 
-30. `rerun_mock_session_desktop_trial_with_reveal_in_finder`
-   - Status: READY
+30. `separate_selection_and_reveal_actions`
+   - Status: PASS
    - Depends on: `add_reveal_in_finder_for_search_results`
-   - Stop gate: pause after this package to review whether the reveal action is enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Stop gate: pause after this package to review whether separating inspect from act makes the search flow clearer without broadening the shell.
    - Human verification: optional
-   - Notes: should rerun the short desktop mock-session trial against the reveal-enabled search view and record the next concrete blocker or confirm the shell is still usable at this scale.
+   - Notes: split row selection from Finder reveal so clicking a result now only selects it and updates the detail panel, while reveal remains an explicit button in the detail view.
+
+31. `rerun_mock_session_desktop_trial_with_explicit_reveal_action`
+   - Status: READY
+   - Depends on: `separate_selection_and_reveal_actions`
+   - Stop gate: pause after this package to review whether the explicit reveal button is enough for one short search-oriented desktop trial without exposing a new blocker.
+   - Human verification: optional
+   - Notes: should rerun the short desktop mock-session trial against the explicit reveal-action flow and record the next concrete blocker or confirm the shell is still usable at this scale.
 
 REPAIR HANDLING:
 
