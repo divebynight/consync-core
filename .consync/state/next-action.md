@@ -1,62 +1,75 @@
 TYPE: PROCESS
-PACKAGE: define_human_assisted_observation_closeout_rules
+PACKAGE: define_stream_switch_and_active_owner_rules
 
 GOAL
 
-Define clear rules for how human-assisted manual observation packages must be closed so that live UI behavior is recorded accurately and cannot degrade into weak or ambiguous PASS states.
+Define a lightweight formal mechanism for pausing one stream and activating another so the repo always has one clear current stream without adding excessive state docs.
 
 WHY
 
-The previous manual observation package exposed a gap in the process:
-- Copilot defaulted to a weak "window visible" closeout
-- actual observed behavior (end-to-end reveal flow) was not captured until corrected
+The current process is strong enough to support multiple streams conceptually, but stream switching is still informal. That creates ambiguity around which stream owns the live loop and what is currently being iterated on.
 
-Without explicit rules, manual observation packages risk:
-- recording insufficient evidence
-- passing without real behavior verification
-- introducing drift between actual UI behavior and recorded history
-
-This package formalizes how human-assisted observation must be captured and validated.
+We need a minimal stream-switch model that:
+- makes one active stream explicit
+- records the previous stream and switch reason
+- keeps the live execution slots singular
+- avoids a proliferation of state files
 
 DO
 
-1. Define what qualifies as valid manual observation:
-   - must describe concrete user actions
-   - must describe observable system responses
-   - must include end-to-end behavior when applicable
+1. Define the minimum stream statuses:
+   - ACTIVE
+   - PAUSED
+   - SUPPORTING
+   - BLOCKED
 
-2. Define minimum required structure for manual observation sections:
-   - SUMMARY must describe the observed flow, not just environment state
-   - LIVE OBSERVATION must list step-by-step actions and results
-   - VERIFICATION NOTES must confirm what was directly observed vs assumed
+2. Define the live ownership rule:
+   - only one stream may own `next-action.md` and `handoff.md` at a time
 
-3. Define invalid closeout patterns:
-   - "window visible" as sole evidence
-   - absence of user actions
-   - absence of system response description
-   - PASS without interaction proof
+3. Define a minimal active-stream state surface, likely:
+   - `.consync/state/active-stream.md`
+   containing:
+   - active stream
+   - previous stream
+   - switch reason
+   - paused streams
+   - supporting streams
+   - live owner note for `next-action.md` and `handoff.md`
 
-4. Define how Copilot should behave:
-   - treat human input as authoritative observation source
-   - do not attempt to replace observation with environment probing
-   - do not close PASS without explicit behavior evidence
+4. Define what each stream must own durably:
+   - stream name
+   - package plan location
+   - current status
+   - last completed package
+   Keep this lightweight and avoid creating unnecessary per-stream live docs.
 
-5. Keep rules lightweight and aligned with current handoff format
+5. Define the stream-switch ritual:
+   - close or pause the current stream cleanly
+   - update active-stream state
+   - mark the previous stream appropriately
+   - mount the new stream into `next-action.md`
+   - keep `handoff.md` aligned with the active stream
+
+6. Keep this package process-only and lightweight.
+   - do not build automation yet
+   - do not redesign the whole repo
+   - do not create a large state hierarchy
 
 CONSTRAINTS
 
-- Do not introduce automation or scripts
-- Do not change package lifecycle
-- Do not expand into full test strategy
-- Keep focused on manual observation packages only
+- Prefer one new live state doc at most
+- Keep `next-action.md` and `handoff.md` global live slots
+- Avoid per-stream duplication unless clearly necessary
+- Optimize for quick human orientation
 
 OUTPUT
 
 Return the normal handoff format with:
 - STATUS
 - SUMMARY
-- OBSERVATION RULES
-- VALID VS INVALID CLOSEOUT EXAMPLES
+- STREAM STATUS MODEL
+- ACTIVE OWNER RULE
+- STREAM SWITCH RITUAL
 - FILES CREATED
 - FILES MODIFIED
 - COMMANDS TO RUN
@@ -66,6 +79,7 @@ Return the normal handoff format with:
 
 VERIFICATION
 
-- confirm rules match the successful observation package you just completed
-- confirm rules prevent the earlier weak closeout pattern
-- confirm no process bloat introduced
+At minimum:
+- confirm a human can tell in one glance which stream is active
+- confirm only one stream owns the live loop
+- confirm the model reduces ambiguity without creating lots of new docs

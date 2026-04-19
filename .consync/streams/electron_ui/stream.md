@@ -2,7 +2,7 @@
 
 - id: electron_ui
 - title: Electron UI Behavior + Testing
-- status: active
+- status: paused
 - owner: human
 - mode: build
-- summary: continue Electron UI development; next likely step is automated UI testing after recent issue discovery
+- summary: paused while the process stream owns the live loop for shared workflow and stream-governance packages

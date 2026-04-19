@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: define_human_assisted_observation_closeout_rules
+PACKAGE: define_stream_switch_and_active_owner_rules
 
 STATUS
 
@@ -7,41 +7,43 @@ PASS
 
 SUMMARY
 
-Defined a small process rule for how human-assisted manual observation packages must be closed so they capture observed behavior rather than collapsing into weak environment-only PASS states.
+Defined a lightweight stream-switch model that makes one active stream explicit, keeps `next-action.md` and `handoff.md` singular, and avoids a heavier stream-state hierarchy.
 
-The new doc requires concrete user actions, observable system responses, and end-to-end behavior when a full interaction loop matters. It also defines the handoff expectations for `SUMMARY`, `LIVE OBSERVATION`, and `VERIFICATION NOTES`, marks window visibility as insufficient evidence on its own, and tells Copilot to treat explicit human observation as the authoritative source instead of replacing it with environment probing.
+The new rule doc defines four stream statuses, a single live-loop owner rule, the minimum information that belongs in one shared `active-stream.md` state file, and a simple switch ritual for pausing one stream and mounting another into the live loop. The current state surface was also aligned so a human can now tell in one glance that `process` owns the live loop and `electron_ui` is paused.
 
-OBSERVATION RULES
+STREAM STATUS MODEL
 
-- valid manual observation must include concrete user actions
-- valid manual observation must include observable system responses
-- end-to-end behavior must be recorded when the package depends on a full interaction loop
-- `SUMMARY` must describe the observed flow, not just the environment state
-- `LIVE OBSERVATION` must list step-by-step actions and results
-- `VERIFICATION NOTES` must state what was directly observed versus assumed
-- Copilot should treat explicit human input as the authoritative observation source
-- Copilot should not close `PASS` without explicit behavior evidence
+- `ACTIVE` — the stream currently owns the live loop
+- `PAUSED` — the stream stopped at a clean point and can resume later
+- `SUPPORTING` — the stream is not the live owner, but it is supplying context or adjacent work
+- `BLOCKED` — the stream cannot continue until a named blocker is resolved
 
-VALID VS INVALID CLOSEOUT EXAMPLES
+ACTIVE OWNER RULE
 
-Valid closeout pattern:
+- only one stream may own `.consync/state/next-action.md` and `.consync/state/handoff.md` at a time
+- the live owner is recorded in `.consync/state/active-stream.md`
+- `active-stream.md` records active stream, previous stream, switch reason, paused streams, supporting streams, and the live owner note
+- per-stream durable files remain for recovery context, but they do not compete with the global live slots
 
-- grouped mock search with query `moss` ran, a result row was selected, the detail panel updated, selection did not auto-trigger reveal, `Reveal in Finder` opened Finder to `moss-study.jpg`, and selection plus detail state remained coherent after reveal
+STREAM SWITCH RITUAL
 
-Invalid closeout patterns:
-
-- `PASS` based only on window visibility
-- no user actions recorded
-- no system response recorded
-- environment probing substituted for supplied human observation
+- close or pause the current stream cleanly
+- mark the previous stream `PAUSED`, `SUPPORTING`, or `BLOCKED`
+- update `.consync/state/active-stream.md` with active stream, previous stream, and switch reason
+- mount the new active stream into `next-action.md`
+- keep `handoff.md` aligned with the active stream's latest closeout
 
 FILES CREATED
 
-- `.consync/docs/human-assisted-observation-closeout-rules.md` — defines the minimal rules for valid human-assisted manual observation closeouts, invalid patterns, and Copilot behavior in this narrow case.
+- `.consync/docs/stream-switch-and-active-owner-rules.md` — defines the minimal status model, live ownership rule, durable stream ownership, and stream-switch ritual.
+- `.consync/state/active-stream.md` — records the current active stream, previous stream, switch reason, paused/supporting streams, and the live owner note for the global loop.
 
 FILES MODIFIED
 
-- `.consync/docs/current-system.md` — adds a light pointer to the new human-assisted observation closeout rules doc.
+- `.consync/docs/current-system.md` — adds light pointers to the new stream-switch rules doc and the new active-stream live state file.
+- `.consync/orchestration/active_foreground_stream.txt` — aligns the foreground stream marker with the current live-loop owner.
+- `.consync/streams/electron_ui/stream.md` — marks `electron_ui` paused while process packages own the live loop.
+- `.consync/streams/process/stream.md` — marks `process` active as the current live-loop owner.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -50,19 +52,20 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Open `.consync/docs/human-assisted-observation-closeout-rules.md` and confirm it requires concrete user actions, observable system responses, and end-to-end behavior when applicable.
-2. Confirm the doc explicitly marks window visibility alone as invalid evidence for a `PASS` closeout.
-3. Confirm the doc requires `SUMMARY`, `LIVE OBSERVATION`, and `VERIFICATION NOTES` to carry actual observed behavior rather than environment-only statements.
-4. Compare the rules against the successful `capture_manual_observation_for_explicit_reveal_search_loop` handoff and confirm the `moss` search/reveal example matches the new valid closeout guidance.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the change stayed limited to the new rules doc, the light pointer, and the live handoff. If the rules broaden into test strategy or automation design, treat that as a failure.
+1. Open `.consync/state/active-stream.md` and confirm a human can tell immediately that `process` is active, `electron_ui` is paused, and the live loop owner is singular.
+2. Open `.consync/docs/stream-switch-and-active-owner-rules.md` and confirm it defines only the four requested statuses: `ACTIVE`, `PAUSED`, `SUPPORTING`, and `BLOCKED`.
+3. Confirm the doc explicitly states that only one stream may own `.consync/state/next-action.md` and `.consync/state/handoff.md` at a time.
+4. Confirm the switch ritual is lightweight and does not add per-stream live-loop duplication or automation.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the change stayed limited to one new rules doc, one new live state doc, small alignment edits, and the live handoff. If multiple files still disagree about which stream is active, treat that as a failure.
 
 VERIFICATION NOTES
 
 - Verification was manual and inspection-based.
-- Confirmed the new rules match the successful observation package by using the directly observed `moss` search -> select -> explicit reveal -> coherent post-reveal state as the positive example.
-- Confirmed the earlier weak pattern is now explicitly invalid: window visibility alone is listed as insufficient evidence for `PASS`.
-- Confirmed scope stayed narrow: one small rules doc and one light discoverability pointer, with no automation, scripts, or lifecycle changes introduced.
+- Confirmed the new `active-stream.md` gives a one-glance answer for the active stream, previous stream, paused streams, and live-loop ownership.
+- Confirmed the live ownership rule stays singular: `next-action.md` and `handoff.md` are still global slots, and the new model only names one owner at a time.
+- Ran `git status --short` and observed the expected surface: the new stream-switch rules doc, the new active-stream state file, small alignment edits to the current stream indicators, the live handoff, and the already-live `next-action.md`.
+- Confirmed scope stayed lightweight: one new rules doc, one new live state doc, and small alignment edits to existing stream indicators without creating a larger state hierarchy.
 
 NEXT RECOMMENDED PACKAGE
 
-- Select the next small planned package explicitly, now that both the manual observation package and its closeout rules are captured clearly.
+- Add one small process package that defines how a paused stream should record its return conditions or resume note without creating a second live loop.

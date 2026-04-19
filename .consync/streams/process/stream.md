@@ -2,7 +2,7 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: paused
+- status: active
 - owner: human
 - mode: system
-- summary: define and implement the stream-based workflow for Consync without breaking existing work
+- summary: active owner of the live loop while stream-governance and workflow rule packages are being defined and reconciled
