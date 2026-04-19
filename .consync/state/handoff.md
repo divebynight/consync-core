@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: switch_active_stream_process_to_electron_ui
+TYPE: FEATURE
+PACKAGE: separate_search_panel_errors_from_non_search_session_errors
 
 STATUS
 
@@ -7,23 +7,22 @@ PASS
 
 SUMMARY
 
-Paused the `process` stream at a clean point and activated `electron_ui` as the live-loop owner so UI work can resume without ambiguity.
+Separated search-panel errors from non-search session errors in the Electron renderer with a small state split instead of a broader error-model redesign.
 
-The switch updates the single active-stream state surface, foreground marker, and stream status files so they all agree that `electron_ui` now owns `next-action.md` and `handoff.md`. It also mounts one concrete next UI package into the live loop so reentry is immediate instead of abstract.
+Search failures now render inside the Mock Search panel under their own `Search Error` heading, while non-search failures continue to use the top-level `Session Error` surface. This keeps search-specific failures next to the search workflow without changing the overall renderer structure.
 
-STREAM SWITCH RESULT
+CURRENT ERROR SURFACE
 
-- `process` is now paused at a clean point
-- `electron_ui` is now active
-- the global live loop now belongs to `electron_ui`
-- the next visible package in `next-action.md` is a UI package rather than another process package
+- Before this package, `runMockSearch` failures and search-result reveal failures used the same top-level `Session Error` panel as unrelated session or bookmark failures.
+- That meant search problems were rendered away from the search workflow and shared one generic error surface with non-search failures.
 
-ACTIVE STREAM STATE
+ERROR SPLIT DECISION
 
-- `.consync/state/active-stream.md` now shows `electron_ui` as active and `process` as previous
-- `.consync/orchestration/active_foreground_stream.txt` now matches the live owner as `electron_ui`
-- `.consync/streams/process/stream.md` now records `process` as paused with a brief likely follow-up
-- `.consync/streams/electron_ui/stream.md` now records `electron_ui` as active with the next likely UI slice
+- Introduced a dedicated `searchErrorMessage` state for search-panel failures.
+- Kept `sessionErrorMessage` for non-search failures such as desktop/session load or bookmark write problems.
+- Search failures from `runMockSearch` and search-result reveal failures now render under a `Search Error` heading inside the Mock Search panel.
+- Non-search failures still render in the existing top-level `Session Error` panel.
+- Input changes and new search interactions clear only the search-panel error state, preserving the narrower split.
 
 FILES CREATED
 
@@ -31,33 +30,31 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `.consync/state/active-stream.md` — switches the live owner from `process` to `electron_ui`, records the previous stream, and records the switch reason.
-- `.consync/orchestration/active_foreground_stream.txt` — switches the foreground marker to `electron_ui`.
-- `.consync/streams/process/stream.md` — marks `process` paused at a clean point and notes the most likely next follow-up.
-- `.consync/streams/electron_ui/stream.md` — marks `electron_ui` active and notes the next likely UI slice.
-- `.consync/state/next-action.md` — mounts the next active UI package into the global live loop.
-- `.consync/state/handoff.md` — records this process package result in the live handoff location.
+- `src/electron/renderer/App.jsx` — splits renderer error state into search-panel errors and non-search session errors, and renders search failures inside the Mock Search panel.
+- `src/test/app-search-flow.test.jsx` — updates focused renderer tests to confirm search failures use `Search Error` while non-search failures continue using `Session Error`.
+- `.consync/state/handoff.md` — records this feature package result in the live handoff location.
 
 COMMANDS TO RUN
 
+- `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
 
 HUMAN VERIFICATION
 
-1. Open `.consync/state/active-stream.md` and confirm it now shows `electron_ui` as active, `process` as previous, and `process` in the paused list.
-2. Open `.consync/streams/process/stream.md` and `.consync/streams/electron_ui/stream.md` and confirm the stream statuses now agree with the active-stream state.
-3. Open `.consync/state/next-action.md` and confirm it now belongs to a UI package rather than another process package.
-4. Confirm the switch stayed lightweight: no new automation, no duplicated live-loop files, and no unrelated UI implementation work.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to stream ownership files, the mounted UI package in `next-action.md`, and the live handoff. If more than one file still claims a different active stream, treat that as a failure.
+1. Run `cd /Users/markhughes/Projects/consync-core && node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and confirm all 13 renderer search-flow tests pass.
+2. Trigger a mock search failure path and confirm the error appears under `Search Error` inside the Mock Search panel instead of the top-level `Session Error` panel.
+3. Trigger a reveal failure from the search detail flow and confirm it also appears under `Search Error`.
+4. Trigger a non-search failure such as a bookmark write error and confirm it still appears under `Session Error` rather than `Search Error`.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the change stayed limited to the renderer file, the focused search-flow test file, and the live handoff. If search failures still share the generic session-level error panel, treat that as a failure.
 
 VERIFICATION NOTES
 
 - Verification was manual and inspection-based.
-- Confirmed `.consync/state/active-stream.md`, `.consync/orchestration/active_foreground_stream.txt`, and the two stream status files now agree that `electron_ui` owns the live loop.
-- Confirmed `process` is no longer the live owner and is paused at a clean point with a brief return note instead of more process machinery.
-- Confirmed `next-action.md` now contains a concrete UI package so reentry is immediate.
-- Ran `git status --short` and observed the expected switched-owner surface, including the mounted UI package in the live slot.
+- Ran `node ./node_modules/vitest/vitest.mjs run --environment jsdom src/test/app-search-flow.test.jsx` and observed 13 of 13 focused renderer tests passing.
+- Confirmed `runMockSearch` failures and search-result reveal failures now use the search-panel error surface, while a non-search bookmark failure still uses the top-level session error surface.
+- Confirmed the split stayed narrow: the renderer still uses the existing overall structure, with only one additional search-specific error channel.
+- Ran `git status --short` and observed only `src/electron/renderer/App.jsx` and `src/test/app-search-flow.test.jsx` modified before writing this closeout.
 
 NEXT RECOMMENDED PACKAGE
 
-- Execute `separate_search_panel_errors_from_non_search_session_errors` as the next active UI package.
+- Add one narrow renderer package that decides whether successful search actions should clear existing session-level errors, so the two error surfaces have an explicit interaction contract.

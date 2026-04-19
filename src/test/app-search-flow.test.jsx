@@ -290,8 +290,10 @@ describe("App search flow", () => {
 
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
+    expect(await screen.findByRole("heading", { name: "Search Error" })).toBeTruthy();
     expect(await screen.findByText("Search failed for test")).toBeTruthy();
     expect(screen.queryByText("Balcony Zine Session")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Session Error" })).toBeNull();
   });
 
   it("clears a failed-search error when the query input changes", async () => {
@@ -351,7 +353,25 @@ describe("App search flow", () => {
     await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
     await user.click(screen.getByRole("button", { name: "Reveal in Finder" }));
 
+    expect(await screen.findByRole("heading", { name: "Search Error" })).toBeTruthy();
     expect(await screen.findByText("Reveal failed for test")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Session Error" })).toBeNull();
+  });
+
+  it("keeps non-search session errors separate from search-panel errors", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark: vi.fn().mockRejectedValue(new Error("Bookmark failed for test")),
+    });
+
+    render(<App />);
+
+    await user.type(screen.getByLabelText("Bookmark note for this session"), "note");
+    await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
+
+    expect(await screen.findByRole("heading", { name: "Session Error" })).toBeTruthy();
+    expect(await screen.findByText("Bookmark failed for test")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Search Error" })).toBeNull();
   });
 
   it("renders the no-results state without fabricating matches", async () => {

@@ -122,12 +122,13 @@ export function App() {
   const [searchResult, setSearchResult] = useState(null);
   const [selectedMatchKey, setSelectedMatchKey] = useState(null);
   const [sessionState, setSessionState] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [sessionErrorMessage, setSessionErrorMessage] = useState(null);
+  const [searchErrorMessage, setSearchErrorMessage] = useState(null);
 
   function clearSearchInteractionState() {
     setSearchResult(null);
     setSelectedMatchKey(null);
-    setErrorMessage(null);
+    setSearchErrorMessage(null);
   }
 
   useEffect(() => {
@@ -150,12 +151,12 @@ export function App() {
       setBridgeStatus(nextBridgeStatus);
       setConsyncSummary(nextConsyncSummary);
       setSessionState(nextSessionState);
-      setErrorMessage(null);
+      setSessionErrorMessage(null);
     }
 
     loadDesktopState().catch(error => {
       if (!cancelled) {
-        setErrorMessage(error.message);
+        setSessionErrorMessage(error.message);
       }
     });
 
@@ -175,10 +176,10 @@ export function App() {
       const desktopBridge = getDesktopBridge();
       const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, note.trim());
       setSessionState(nextSessionState);
-      setErrorMessage(null);
+      setSessionErrorMessage(null);
       setNote("");
     } catch (error) {
-      setErrorMessage(error.message);
+      setSessionErrorMessage(error.message);
     }
   }
 
@@ -199,9 +200,9 @@ export function App() {
 
       setSearchResult(result);
       setSelectedMatchKey(null);
-      setErrorMessage(null);
+      setSearchErrorMessage(null);
     } catch (error) {
-      setErrorMessage(error.message);
+      setSearchErrorMessage(error.message);
       setSearchResult(null);
       setSelectedMatchKey(null);
     }
@@ -209,7 +210,7 @@ export function App() {
 
   function handleSelectMockSearchMatch(group, match) {
     setSelectedMatchKey(getMockSearchSelectionKey(group, match));
-    setErrorMessage(null);
+    setSearchErrorMessage(null);
   }
 
   async function handleRevealSelectedMatch(fullPath) {
@@ -225,9 +226,9 @@ export function App() {
         throw new Error(result.output);
       }
 
-      setErrorMessage(null);
+      setSearchErrorMessage(null);
     } catch (error) {
-      setErrorMessage(error.message);
+      setSearchErrorMessage(error.message);
     }
   }
 
@@ -244,10 +245,10 @@ export function App() {
         </p>
       </section>
 
-      {errorMessage ? (
+      {sessionErrorMessage ? (
         <section className="panel">
           <h2>Session Error</h2>
-          <p className="empty-state">{errorMessage}</p>
+          <p className="empty-state">{sessionErrorMessage}</p>
         </section>
       ) : null}
 
@@ -339,6 +340,13 @@ export function App() {
               Run Mock Search
             </button>
           </form>
+
+          {searchErrorMessage ? (
+            <section className="panel">
+              <h3>Search Error</h3>
+              <p className="empty-state">{searchErrorMessage}</p>
+            </section>
+          ) : null}
 
           {searchResult ? (
             <MockSearchResult
