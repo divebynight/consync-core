@@ -1,75 +1,44 @@
-TYPE: PROCESS
-PACKAGE: define_stream_switch_and_active_owner_rules
+TYPE: FEATURE
+PACKAGE: separate_search_panel_errors_from_non_search_session_errors
 
 GOAL
 
-Define a lightweight formal mechanism for pausing one stream and activating another so the repo always has one clear current stream without adding excessive state docs.
+Separate search-panel errors from non-search session errors in the Electron renderer so search failures do not share one generic error surface with unrelated bookmark or session failures.
 
 WHY
 
-The current process is strong enough to support multiple streams conceptually, but stream switching is still informal. That creates ambiguity around which stream owns the live loop and what is currently being iterated on.
+The current renderer uses a single error message surface for different failure types. That was acceptable for early slices, but it now risks blurring search failures together with unrelated session or bookmark failures.
 
-We need a minimal stream-switch model that:
-- makes one active stream explicit
-- records the previous stream and switch reason
-- keeps the live execution slots singular
-- avoids a proliferation of state files
+This package should keep scope narrow by splitting the search-panel error surface from other session-level errors without redesigning the wider UI state model.
 
 DO
 
-1. Define the minimum stream statuses:
-   - ACTIVE
-   - PAUSED
-   - SUPPORTING
-   - BLOCKED
-
-2. Define the live ownership rule:
-   - only one stream may own `next-action.md` and `handoff.md` at a time
-
-3. Define a minimal active-stream state surface, likely:
-   - `.consync/state/active-stream.md`
-   containing:
-   - active stream
-   - previous stream
-   - switch reason
-   - paused streams
-   - supporting streams
-   - live owner note for `next-action.md` and `handoff.md`
-
-4. Define what each stream must own durably:
-   - stream name
-   - package plan location
-   - current status
-   - last completed package
-   Keep this lightweight and avoid creating unnecessary per-stream live docs.
-
-5. Define the stream-switch ritual:
-   - close or pause the current stream cleanly
-   - update active-stream state
-   - mark the previous stream appropriately
-   - mount the new stream into `next-action.md`
-   - keep `handoff.md` aligned with the active stream
-
-6. Keep this package process-only and lightweight.
-   - do not build automation yet
-   - do not redesign the whole repo
-   - do not create a large state hierarchy
+1. Inspect the current renderer error handling in `App.jsx` and identify which errors currently flow through the shared session-level error surface.
+2. Define a narrow split between:
+   - search-panel errors
+   - non-search session or bookmark errors
+3. Implement the smallest renderer state change needed so search failures render in the search area rather than sharing the top-level session error panel.
+4. Preserve existing behavior for non-search errors unless a tiny adjustment is required for clarity.
+5. Add or update focused tests only as needed to lock in the separated error behavior.
+6. Keep this package narrow:
+   - no redesign of the overall error UX
+   - no new framework
+   - no broader renderer refactor
 
 CONSTRAINTS
 
-- Prefer one new live state doc at most
-- Keep `next-action.md` and `handoff.md` global live slots
-- Avoid per-stream duplication unless clearly necessary
-- Optimize for quick human orientation
+- Keep this renderer-focused and small.
+- Do not redesign the whole error model.
+- Avoid unrelated UI cleanup.
+- Prefer deterministic tests if automated coverage changes are needed.
 
 OUTPUT
 
 Return the normal handoff format with:
 - STATUS
 - SUMMARY
-- STREAM STATUS MODEL
-- ACTIVE OWNER RULE
-- STREAM SWITCH RITUAL
+- CURRENT ERROR SURFACE
+- ERROR SPLIT DECISION
 - FILES CREATED
 - FILES MODIFIED
 - COMMANDS TO RUN
@@ -80,6 +49,6 @@ Return the normal handoff format with:
 VERIFICATION
 
 At minimum:
-- confirm a human can tell in one glance which stream is active
-- confirm only one stream owns the live loop
-- confirm the model reduces ambiguity without creating lots of new docs
+- run the focused renderer test command if UI behavior changes
+- run `git status --short`
+- confirm search errors no longer share the unrelated session-level error surface

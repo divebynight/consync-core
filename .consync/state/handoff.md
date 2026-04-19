@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: define_stream_switch_and_active_owner_rules
+PACKAGE: switch_active_stream_process_to_electron_ui
 
 STATUS
 
@@ -7,43 +7,35 @@ PASS
 
 SUMMARY
 
-Defined a lightweight stream-switch model that makes one active stream explicit, keeps `next-action.md` and `handoff.md` singular, and avoids a heavier stream-state hierarchy.
+Paused the `process` stream at a clean point and activated `electron_ui` as the live-loop owner so UI work can resume without ambiguity.
 
-The new rule doc defines four stream statuses, a single live-loop owner rule, the minimum information that belongs in one shared `active-stream.md` state file, and a simple switch ritual for pausing one stream and mounting another into the live loop. The current state surface was also aligned so a human can now tell in one glance that `process` owns the live loop and `electron_ui` is paused.
+The switch updates the single active-stream state surface, foreground marker, and stream status files so they all agree that `electron_ui` now owns `next-action.md` and `handoff.md`. It also mounts one concrete next UI package into the live loop so reentry is immediate instead of abstract.
 
-STREAM STATUS MODEL
+STREAM SWITCH RESULT
 
-- `ACTIVE` — the stream currently owns the live loop
-- `PAUSED` — the stream stopped at a clean point and can resume later
-- `SUPPORTING` — the stream is not the live owner, but it is supplying context or adjacent work
-- `BLOCKED` — the stream cannot continue until a named blocker is resolved
+- `process` is now paused at a clean point
+- `electron_ui` is now active
+- the global live loop now belongs to `electron_ui`
+- the next visible package in `next-action.md` is a UI package rather than another process package
 
-ACTIVE OWNER RULE
+ACTIVE STREAM STATE
 
-- only one stream may own `.consync/state/next-action.md` and `.consync/state/handoff.md` at a time
-- the live owner is recorded in `.consync/state/active-stream.md`
-- `active-stream.md` records active stream, previous stream, switch reason, paused streams, supporting streams, and the live owner note
-- per-stream durable files remain for recovery context, but they do not compete with the global live slots
-
-STREAM SWITCH RITUAL
-
-- close or pause the current stream cleanly
-- mark the previous stream `PAUSED`, `SUPPORTING`, or `BLOCKED`
-- update `.consync/state/active-stream.md` with active stream, previous stream, and switch reason
-- mount the new active stream into `next-action.md`
-- keep `handoff.md` aligned with the active stream's latest closeout
+- `.consync/state/active-stream.md` now shows `electron_ui` as active and `process` as previous
+- `.consync/orchestration/active_foreground_stream.txt` now matches the live owner as `electron_ui`
+- `.consync/streams/process/stream.md` now records `process` as paused with a brief likely follow-up
+- `.consync/streams/electron_ui/stream.md` now records `electron_ui` as active with the next likely UI slice
 
 FILES CREATED
 
-- `.consync/docs/stream-switch-and-active-owner-rules.md` — defines the minimal status model, live ownership rule, durable stream ownership, and stream-switch ritual.
-- `.consync/state/active-stream.md` — records the current active stream, previous stream, switch reason, paused/supporting streams, and the live owner note for the global loop.
+- none
 
 FILES MODIFIED
 
-- `.consync/docs/current-system.md` — adds light pointers to the new stream-switch rules doc and the new active-stream live state file.
-- `.consync/orchestration/active_foreground_stream.txt` — aligns the foreground stream marker with the current live-loop owner.
-- `.consync/streams/electron_ui/stream.md` — marks `electron_ui` paused while process packages own the live loop.
-- `.consync/streams/process/stream.md` — marks `process` active as the current live-loop owner.
+- `.consync/state/active-stream.md` — switches the live owner from `process` to `electron_ui`, records the previous stream, and records the switch reason.
+- `.consync/orchestration/active_foreground_stream.txt` — switches the foreground marker to `electron_ui`.
+- `.consync/streams/process/stream.md` — marks `process` paused at a clean point and notes the most likely next follow-up.
+- `.consync/streams/electron_ui/stream.md` — marks `electron_ui` active and notes the next likely UI slice.
+- `.consync/state/next-action.md` — mounts the next active UI package into the global live loop.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
@@ -52,20 +44,20 @@ COMMANDS TO RUN
 
 HUMAN VERIFICATION
 
-1. Open `.consync/state/active-stream.md` and confirm a human can tell immediately that `process` is active, `electron_ui` is paused, and the live loop owner is singular.
-2. Open `.consync/docs/stream-switch-and-active-owner-rules.md` and confirm it defines only the four requested statuses: `ACTIVE`, `PAUSED`, `SUPPORTING`, and `BLOCKED`.
-3. Confirm the doc explicitly states that only one stream may own `.consync/state/next-action.md` and `.consync/state/handoff.md` at a time.
-4. Confirm the switch ritual is lightweight and does not add per-stream live-loop duplication or automation.
-5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the change stayed limited to one new rules doc, one new live state doc, small alignment edits, and the live handoff. If multiple files still disagree about which stream is active, treat that as a failure.
+1. Open `.consync/state/active-stream.md` and confirm it now shows `electron_ui` as active, `process` as previous, and `process` in the paused list.
+2. Open `.consync/streams/process/stream.md` and `.consync/streams/electron_ui/stream.md` and confirm the stream statuses now agree with the active-stream state.
+3. Open `.consync/state/next-action.md` and confirm it now belongs to a UI package rather than another process package.
+4. Confirm the switch stayed lightweight: no new automation, no duplicated live-loop files, and no unrelated UI implementation work.
+5. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to stream ownership files, the mounted UI package in `next-action.md`, and the live handoff. If more than one file still claims a different active stream, treat that as a failure.
 
 VERIFICATION NOTES
 
 - Verification was manual and inspection-based.
-- Confirmed the new `active-stream.md` gives a one-glance answer for the active stream, previous stream, paused streams, and live-loop ownership.
-- Confirmed the live ownership rule stays singular: `next-action.md` and `handoff.md` are still global slots, and the new model only names one owner at a time.
-- Ran `git status --short` and observed the expected surface: the new stream-switch rules doc, the new active-stream state file, small alignment edits to the current stream indicators, the live handoff, and the already-live `next-action.md`.
-- Confirmed scope stayed lightweight: one new rules doc, one new live state doc, and small alignment edits to existing stream indicators without creating a larger state hierarchy.
+- Confirmed `.consync/state/active-stream.md`, `.consync/orchestration/active_foreground_stream.txt`, and the two stream status files now agree that `electron_ui` owns the live loop.
+- Confirmed `process` is no longer the live owner and is paused at a clean point with a brief return note instead of more process machinery.
+- Confirmed `next-action.md` now contains a concrete UI package so reentry is immediate.
+- Ran `git status --short` and observed the expected switched-owner surface, including the mounted UI package in the live slot.
 
 NEXT RECOMMENDED PACKAGE
 
-- Add one small process package that defines how a paused stream should record its return conditions or resume note without creating a second live loop.
+- Execute `separate_search_panel_errors_from_non_search_session_errors` as the next active UI package.

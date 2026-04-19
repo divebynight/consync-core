@@ -2,7 +2,7 @@
 
 - id: electron_ui
 - title: Electron UI Behavior + Testing
-- status: paused
+- status: active
 - owner: human
 - mode: build
-- summary: paused while the process stream owns the live loop for shared workflow and stream-governance packages
+- summary: active owner of the live loop again; next likely slice is separating search-panel errors from non-search session errors without broadening the renderer model

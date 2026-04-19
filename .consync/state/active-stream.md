@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-process
+electron_ui
 
 PREVIOUS STREAM
 
-electron_ui
+process
 
 SWITCH REASON
 
-The live loop is currently executing process packages that define and repair shared workflow rules, so `process` owns `next-action.md` and `handoff.md` during this phase.
+The stream-switch rules are now defined, and the next concrete work is back in the Electron UI stream, so `electron_ui` now owns `next-action.md` and `handoff.md`.
 
 PAUSED STREAMS
 
-- electron_ui
+- process
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
 The global live loop stays singular even while other streams remain durable and resumable.

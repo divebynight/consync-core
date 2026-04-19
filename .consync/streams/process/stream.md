@@ -2,7 +2,7 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: active
+- status: paused
 - owner: human
 - mode: system
-- summary: active owner of the live loop while stream-governance and workflow rule packages are being defined and reconciled
+- summary: paused at a clean point after defining stream-switch and active-owner rules; likely next follow-up is resume-note rules for paused streams
