@@ -1,164 +1,151 @@
 TYPE: PROCESS
-PACKAGE: define_doc_integrity_layer_and_enforcement_points
+PACKAGE: define_canonical_state_contracts_and_integrity_checks
 
 GOAL
 
-Define the first formal documentation and state integrity layer for Consync so the system can answer a small set of canonical state questions consistently and so future agents/checks know exactly what they are responsible for enforcing.
+Define explicit contracts for the core live-state artifacts and introduce the preflight/postflight integrity check model so the system can prevent drift without introducing heavy planning or file-level security.
 
 WHY
 
-The system has grown beyond a single linear loop. With multiple streams, stream switching, paused local state, global ownership markers, bootstrap docs, and live state artifacts, it is no longer acceptable to infer current truth manually by reading scattered markdown files.
+The system currently relies on disciplined iteration (`next-action → handoff`) but lacks enforcement between steps. This creates risk of silent drift where state artifacts diverge or are modified outside their intended scope.
 
-Consync now needs an explicit integrity definition layer that answers:
+We do not need a full action-plan system. We need:
 
-- Is the system open or closed?
-- Which stream is currently active?
-- Which package is currently active?
-- Which files are canonical for live truth?
-- Which files are supporting, local, historical, or reference-only?
-- When should integrity be checked?
-- Which agent or check surface owns that enforcement?
+- clear contracts for core state artifacts
+- a definition of what a valid state looks like
+- preflight checks before a package runs
+- postflight checks before a handoff is accepted
+- a lightweight definition of “zones of influence” for packages
 
-This package should define the rules and surfaces before any automated validation is implemented.
+This preserves the simplicity of one-step iteration while adding guardrails that maintain system integrity.
 
 SCOPE
 
-Keep this package definition-focused.
+This is a definition-only package.
 
 Expected outcome:
-- one new doc defines the documentation/state integrity layer
-- governed artifact classes are explicitly named
-- canonical live-state questions are explicitly defined
-- canonical source-of-truth files for those answers are explicitly defined
-- enforcement timing is explicitly defined
-- agent/check ownership is explicitly defined at a high level
-- the current system docs gain only small pointers if needed
+- explicit contracts for core state artifacts
+- definition of preflight and postflight checks
+- definition of “allowed change surface” per package
+- definition of protected/global artifacts
+- no implementation of agents or automation yet
 
 Do not:
-- implement automated doc checks yet
-- create the new doc-integrity agent yet
-- refactor the whole documentation corpus
-- rewrite every state file into a new format
-- redesign the stream model again in this package
+- implement automated validators yet
+- introduce a full action-plan system
+- redesign existing docs
+- add security mechanisms or permissions
+- mix this with UI work
 
 WORK INSTRUCTIONS
 
-1. Inspect the current `.consync` structure and identify the main artifact families already in use.
+1. Create a new doc:
 
-2. Create one new process doc, preferably at:
+   `.consync/docs/state-contracts-and-integrity-checks.md`
 
-   `.consync/docs/doc-integrity-layer.md`
+2. Define **core state contracts**
 
-   This doc should define the first formal integrity model for documentation and state artifacts.
+For each of the following artifacts, define:
+- required structure
+- required fields
+- what it represents
+- what must always be true
 
-3. In that doc, define a small artifact classification system so markdown files are not treated as one undifferentiated class.
+Artifacts:
+- `.consync/state/active-stream.md`
+- `.consync/state/next-action.md`
+- `.consync/state/handoff.md`
+- `.consync/state/snapshot.md`
 
-   At minimum, define and describe these classes:
+3. Define **canonical state invariants**
 
-   - state artifacts
-   - contracts
-   - runbooks
-   - policies
-   - history records
-   - reference docs
+Examples:
+- exactly one active stream
+- next-action belongs to active stream
+- handoff reflects the last completed package
+- system is either OPEN or CLOSED, not both
+- no conflicting ownership across state files
 
-4. Explicitly define the canonical live-state questions the system must always be able to answer without ambiguity.
+4. Define **system OPEN vs CLOSED contract**
 
-   At minimum:
+Explicitly define:
+- when system is OPEN (active package in progress)
+- when system is CLOSED (no active package)
+- allowed actions in each state
 
-   - Is the system open or closed?
-   - What is the active stream?
-   - What is the previous stream, if relevant?
-   - What streams are paused?
-   - What is the active package?
-   - What is the current live-loop owner?
-   - Is the live loop reconciled or in tension?
-   - What is the next safe action?
+5. Define **preflight check (before package runs)**
 
-5. For each canonical question, define the intended source-of-truth artifact or artifact order.
+Must verify:
+- system state is coherent
+- active stream is unambiguous
+- next-action is valid and not stale
+- no unresolved state conflicts
 
-   Be explicit about which files are canonical vs supporting.
+6. Define **postflight check (before accepting handoff)**
 
-   Example shape:
-   - primary source
-   - supporting confirmation source
-   - non-canonical supporting context
-   - historical only
+Must verify:
+- handoff matches executed package
+- required sections are present
+- state files remain consistent
+- no unintended artifacts were modified
 
-6. Define “system open” vs “system closed” as a formal state concept.
+7. Define **zones of influence (bounded change model)**
 
-   Include rules such as:
-   - when the system is considered open
-   - when the system is considered closed
-   - what actions are allowed in each state
-   - what reconciliation means if state surfaces disagree
+Define three categories:
 
-7. Define enforcement points.
+- **in-scope artifacts**
+  - expected to change in a package
 
-   At minimum, specify when integrity checks should happen:
-   - before executing a new package
-   - after package completion before closeout is accepted
-   - after stream switches
-   - when bootstrap docs are refreshed
-   - before resuming a paused stream after a long gap
+- **controlled artifacts**
+  - may change but must match contract
 
-8. Define agent/check ownership at a high level.
+- **protected artifacts**
+  - should not change unless explicitly required
 
-   You do not need to implement the agents yet, but define the roles clearly. For example:
-   - process agent checks loop/state/ownership alignment
-   - integrity agent checks system trust and drift-sensitive surfaces
-   - future doc-integrity agent or verification surface checks format, governed files, and consistency across canonical state artifacts
+Make this conceptual, not permission-based.
 
-9. Keep the model simple and operational.
-   The goal is not a giant taxonomy. The goal is to make the system easier to explain and safer to continue.
+8. Define **allowed change rule**
 
-10. Add at most small pointers from one or two existing docs if needed, such as:
-   - `runbook.md`
-   - `current-system.md`
+A package should:
+- declare or imply what it is allowed to modify
+- avoid modifying unrelated artifact classes
+- trigger reconciliation if it must cross boundaries
 
-   Keep those pointers minimal.
+9. Define **integrity ownership model**
 
-CONTENT REQUIREMENTS
+Define roles:
 
-The new integrity-layer doc should clearly answer:
+- human operator: final verification
+- prompt layer: enforces structure
+- future integrity agent: enforces contracts
+- process agent: enforces loop correctness
 
-- What counts as a governed artifact?
-- Which artifacts define current truth?
-- Which artifacts are supporting only?
-- Which questions must always have a deterministic answer?
-- When must integrity be checked?
-- Who owns those checks?
-- What should happen when files disagree?
+10. Keep everything simple and operational
 
-It should also explicitly state that:
-
-- users and AI should not need to manually infer live state from scattered markdown
-- the system should converge toward deterministic state readability
-- historical/reference docs must not override live state artifacts
+The doc should make the system easier to explain, not harder.
 
 CONSTRAINTS
 
-- Keep the doc practical and short enough to use
-- Avoid inventing unnecessary categories
-- Avoid large-scale rewrites of existing docs in this package
-- Do not implement validators yet
-- Do not mix this package with UI work
-- Do not hide current ambiguities; define how they should be resolved
+- no implementation yet
+- no over-engineering
+- no large-scale rewrites
+- no duplication of existing docs
+- keep the model small and usable
 
 VERIFICATION
 
-After writing the doc:
+1. Read the doc end to end and confirm:
+   - it clearly defines what “valid state” means
+   - it clearly defines pre/post checks
+   - it clearly defines allowed vs protected changes
+   - it reduces ambiguity instead of adding it
 
-1. Read it end to end and confirm it makes the system easier to explain, not harder.
-2. Confirm it clearly distinguishes canonical state artifacts from supporting or historical markdown.
-3. Confirm it defines open vs closed state in a usable way.
-4. Confirm it defines the canonical live-state questions explicitly.
-5. Confirm it defines enforcement timing and agent ownership clearly enough that a follow-up package can build actual checks from it.
-6. If you add pointers from existing docs, keep them minimal and verify they are accurate.
+2. Confirm:
+   - it does not introduce unnecessary complexity
+   - it does not require an action plan system
+   - it preserves the current iteration model
 
 HANDOFF REQUIREMENTS
-
-Write the handoff to the live `handoff.md` using the project’s standard structure.
 
 Include:
 - TYPE
@@ -171,8 +158,9 @@ Include:
 - MANUAL VERIFICATION
 - NEXT SUGGESTED PACKAGE
 
-For `NEXT SUGGESTED PACKAGE`, recommend:
+For NEXT SUGGESTED PACKAGE:
 
-`define_canonical_state_contracts_for_open_closed_stream_and_package`
+`implement_preflight_and_postflight_doc_integrity_checks`
 
-and describe it as the next narrow package that turns the integrity-layer model into explicit contracts for the core live state artifacts before any automated checks are added.
+Describe it as:
+the first implementation package that adds a lightweight integrity check (script or agent prompt) that runs before and after each package execution.

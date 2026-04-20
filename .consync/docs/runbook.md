@@ -151,6 +151,7 @@ The assistant should:
 ## Pointers To Deeper Docs
 
 - `.consync/docs/doc-integrity-layer.md` for the governed documentation/state surface, canonical live-state questions, and integrity enforcement points
+- `.consync/docs/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth
 - `.consync/docs/stream-operating-model.md` for stream structure and pause-safe rules
 - `.consync/docs/stream-and-state-interaction.md` for live-loop versus per-stream state
