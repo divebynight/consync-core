@@ -1,9 +1,9 @@
-STATUS: active
+STATUS: paused
 
-Next likely step:
+Next likely step when this stream resumes:
 
-- use the new search-flow UI test slice as the baseline for the next narrow Electron UI change
-- extend automated coverage only when a concrete new UI interaction needs protection
-- use the preserved handoff and snapshot here rather than reconstructing context from memory
+- bind real current-session bookmark markers into one timeline lane without broadening into waveform rendering or richer interaction
+- keep the existing search-flow UI tests as the guardrail for non-timeline behavior
+- resume from the preserved stream snapshot here rather than reconstructing UI state from chat memory
 
-This stream is now active and ready to resume from its preserved state.
+This stream is intentionally paused and ready to resume later from a clean checkpoint.

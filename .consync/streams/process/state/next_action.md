@@ -1,5 +1,14 @@
-STATUS: paused
+STATUS: active
 
-No immediate next action.
+Mounted next step:
 
-The process stream is paused at a clean stopping point. Resume only when a future package needs to extend the stream model beyond the current minimal rules.
+- `define_doc_integrity_layer_and_enforcement_points`
+
+Focus:
+
+- define which docs and state files are governed
+- define what integrity means for those files
+- define when checks should run
+- define which prompt or agent surfaces should own enforcement
+
+Keep this stream narrow. Do not start automated checks in the next package.

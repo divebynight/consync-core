@@ -3,10 +3,10 @@ STREAM: electron_ui
 
 STATUS
 
-active
+paused
 
 SUMMARY
 
-Electron UI work now includes one minimal automated UI testing slice for the desktop search flow.
+Electron UI work is paused at a clean point after the renderer gained a first Creative Timeline shell, a calmer panel hierarchy, and the supporting search-flow coverage needed to resume safely later.
 
-The renderer search path is now covered for grouped result rendering, selection-versus-reveal behavior, explicit reveal triggering, and selected detail fidelity. The stream remains active, with future UI changes expected to extend this coverage narrowly rather than rebuilding the test setup.
+The stream is not abandoned. It can resume from the current renderer state with the timeline visually primary, support panels grouped underneath, and the existing search/detail/reveal behavior still protected by focused UI tests.

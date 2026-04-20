@@ -2,7 +2,7 @@
 
 - id: electron_ui
 - title: Electron UI Behavior + Testing
-- status: active
+- status: paused
 - owner: human
 - mode: build
-- summary: active owner of the live loop again; next likely slice is separating search-panel errors from non-search session errors without broadening the renderer model
+- summary: paused cleanly after the first Creative Timeline hierarchy pass so process integrity work can stabilize stream/state ownership before UI work resumes

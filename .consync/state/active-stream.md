@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-electron_ui
+process
 
 PREVIOUS STREAM
 
-process
+electron_ui
 
 SWITCH REASON
 
-The stream-switch rules are now defined, and the next concrete work is back in the Electron UI stream, so `electron_ui` now owns `next-action.md` and `handoff.md`.
+Documentation/bootstrap work exposed a real ownership mismatch between the recorded active UI stream and the live process package already mounted in the global loop, so the repo is now formally pausing `electron_ui` and switching the live loop to `process` before further UI expansion continues.
 
 PAUSED STREAMS
 
-- process
+- electron_ui
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
 The global live loop stays singular even while other streams remain durable and resumable.

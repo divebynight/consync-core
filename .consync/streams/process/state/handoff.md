@@ -3,10 +3,10 @@ STREAM: process
 
 STATUS
 
-paused
+active
 
 SUMMARY
 
-The process stream reached a clean stopping point after establishing the initial stream structure, the operating model, the lifecycle and promotion rules, and the bridge between stream-local state and the legacy live loop.
+The process stream is active again because recent bootstrap and snapshot work exposed a real mismatch between the recorded active UI owner and the process work already mounted in the global live loop.
 
-The stream is now pause-safe. Its current work is complete enough to resume later without relying on chat memory, and no immediate follow-up is required before other streams move forward.
+The immediate role of this stream is narrow: reconcile live ownership cleanly, define the documentation-integrity layer, and harden state clarity before more feature work resumes elsewhere.
