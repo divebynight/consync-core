@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: switch_active_stream_to_process_for_doc_integrity_layer
+PACKAGE: define_doc_integrity_layer_and_enforcement_points
 
 STATUS
 
@@ -7,86 +7,62 @@ PASS
 
 SUMMARY
 
-Formally paused `electron_ui` and switched the live loop back to `process` so documentation integrity and state consistency work can continue from a truthful ownership baseline.
+Defined the first formal documentation and state integrity layer for Consync in one focused process doc so live-state readability no longer depends on scattered markdown inference.
 
-The switch stayed narrow and administrative. Global ownership markers now point to `process`, `electron_ui` keeps preserved local resume state instead of being abandoned, and the live `next-action.md` is now mounted to the first documentation-integrity definition package rather than leaving the process phase abstract.
-
-STREAM SWITCH RESULT
-
-- `process` is now the active stream in both `.consync/state/active-stream.md` and `.consync/orchestration/active_foreground_stream.txt`.
-- `electron_ui` is now explicitly paused with updated stream-local `stream.md`, `handoff.md`, `next_action.md`, and `snapshot.md` files that preserve the current Creative Timeline baseline.
-- the global live loop is re-anchored to process work, and the next mounted package is `define_doc_integrity_layer_and_enforcement_points`.
-
-ACTIVE STREAM STATE
-
-- active stream: `process`
-- previous stream: `electron_ui`
-- paused streams: `electron_ui`
-- supporting streams: none
-- live owner note: only `process` now owns `.consync/state/next-action.md` and `.consync/state/handoff.md`
+The new integrity model classifies governed artifact families, names the canonical live-state questions, assigns source-of-truth order for each question, defines open versus closed system state, defines enforcement timing, and assigns high-level ownership across the human operator, prompt layer, and optional agents. Supporting changes stayed small: one pointer in the runbook, one pointer in current-system, and a snapshot refresh so the current process phase reads truthfully.
 
 FILES CREATED
 
-- none
+- `.consync/docs/doc-integrity-layer.md` — defines the governed artifact classes, canonical live-state questions, canonical source ordering, open/closed system state, enforcement points, and integrity-check ownership model.
 
 FILES MODIFIED
 
-- `.consync/state/active-stream.md` — switches the recorded live owner from `electron_ui` to `process` and records the reason for the reconciliation.
-- `.consync/orchestration/active_foreground_stream.txt` — flips the foreground owner to `process` so orchestration and live state agree.
-- `.consync/state/next-action.md` — mounts `define_doc_integrity_layer_and_enforcement_points` as the first narrow follow-up process package.
-- `.consync/state/snapshot.md` — refreshes the global re-entry surface so it reflects the formal process-stream ownership and the paused UI stream.
-- `.consync/streams/electron_ui/stream.md` — marks the UI stream paused and narrows its summary to the preserved Creative Timeline checkpoint.
-- `.consync/streams/electron_ui/state/handoff.md` — records the UI stream as paused at a clean point rather than still active.
-- `.consync/streams/electron_ui/state/next_action.md` — preserves the likely next UI resume slice around binding real bookmark markers into one timeline lane.
-- `.consync/streams/electron_ui/state/snapshot.md` — refreshes the UI stream snapshot to the current timeline/search baseline instead of the older search-only checkpoint.
-- `.consync/streams/process/stream.md` — promotes the process stream back to active ownership.
-- `.consync/streams/process/state/handoff.md` — records the process stream as active again because the live loop returned to process work.
-- `.consync/streams/process/state/next_action.md` — stores the mounted documentation-integrity definition package as the local process next step.
-- `.consync/streams/process/state/snapshot.md` — refreshes the process stream snapshot to describe the current integrity-focused phase.
-- `.consync/state/handoff.md` — records this stream-switch package result in the live handoff location.
+- `.consync/docs/runbook.md` — adds one small pointer to the integrity-layer doc so the operating entrypoint now links to the governed-state model.
+- `.consync/docs/current-system.md` — adds one small reference to the integrity-layer doc in the state-and-artifacts section.
+- `.consync/state/snapshot.md` — refreshes the global snapshot so it names the current documentation-integrity package and the current definition-first process phase accurately.
+- `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && npm run verify`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,320p' .consync/docs/doc-integrity-layer.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '110,180p' .consync/docs/runbook.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '40,95p' .consync/docs/current-system.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/snapshot.md`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/active-stream.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/next-action.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/streams/electron_ui/state/snapshot.md`
-- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/streams/process/state/snapshot.md`
 
 VERIFICATION
 
-- Ran `npm run verify` and observed `[verify] PASS`, including the system/process surface reporting `STATUS: ON_TRACK` with no warnings.
-- Read `.consync/state/active-stream.md` end to end and confirmed `process` is now the active stream and `electron_ui` is paused.
-- Read `.consync/state/next-action.md` end to end and confirmed the live loop now mounts `define_doc_integrity_layer_and_enforcement_points` as a process package.
-- Read `.consync/state/snapshot.md`, `.consync/streams/electron_ui/stream.md`, and `.consync/streams/process/stream.md` and confirmed the ownership surfaces now agree on the switch.
-- Ran `git status --short` and confirmed the package stayed limited to stream/state ownership artifacts.
+- Read `.consync/docs/doc-integrity-layer.md` end to end and confirmed it explicitly defines governed artifact classes, canonical live-state questions, canonical source ordering, open versus closed state, enforcement timing, and high-level ownership.
+- Confirmed the new integrity-layer doc clearly distinguishes canonical live-state artifacts from supporting and historical/reference markdown.
+- Confirmed the open/closed model is operational rather than abstract and explicitly defines what reconciliation means when canonical files disagree.
+- Read the updated pointer sections in `.consync/docs/runbook.md` and `.consync/docs/current-system.md` and confirmed both edits stayed minimal and accurate.
+- Read `.consync/state/snapshot.md` and confirmed it now reflects the current package instead of the earlier stream-switch package.
+- Ran `git status --short` and confirmed the package stayed narrow: one new doc, two small pointers, the snapshot refresh, and the live handoff file.
 
 MANUAL VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/active-stream.md`.
-2. Confirm success behavior: `ACTIVE STREAM` is `process`, `PREVIOUS STREAM` is `electron_ui`, and `PAUSED STREAMS` includes `electron_ui`.
-3. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/next-action.md`.
-4. Confirm success behavior: the mounted package is `define_doc_integrity_layer_and_enforcement_points`, not a UI package.
-5. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/streams/electron_ui/state/snapshot.md` and `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/streams/process/state/snapshot.md`.
-6. Confirm success behavior: the UI stream reads as intentionally paused with preserved resume context, and the process stream reads as intentionally active for documentation integrity work.
-7. Failure case: if any of the ownership surfaces still say `electron_ui` is active while the live `next-action.md` is process work, treat the switch as incomplete.
-8. Failure case: if the UI stream no longer contains enough local snapshot/next-step context to resume later, treat the pause as unclean.
+1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,320p' .consync/docs/doc-integrity-layer.md`.
+2. Confirm success behavior: the doc explicitly answers what counts as a governed artifact, which artifacts define current truth, which questions must always have deterministic answers, when integrity checks should happen, and who owns them.
+3. Confirm success behavior: the section `Canonical Sources For Each Question` clearly distinguishes primary sources from supporting, non-canonical, and historical-only context.
+4. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/snapshot.md`.
+5. Confirm success behavior: the snapshot names `define_doc_integrity_layer_and_enforcement_points` as the current package and describes the phase as definition-first rather than implying checks already exist.
+6. Failure case: if the integrity doc reads like a broad rewrite of the whole process corpus instead of a small operational model, treat the package as incomplete.
+7. Failure case: if any section implies automated validators, a new agent, or enforcement code already exists, treat the package as out of scope.
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run verify` and confirm the repo still ends with `[verify] PASS`.
-2. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to ownership and stream-state files rather than unrelated source code.
-3. Inspect `.consync/state/active-stream.md`, `.consync/orchestration/active_foreground_stream.txt`, and `.consync/state/next-action.md` together and verify success behavior: all three point coherently to `process` as the current owner.
-4. Inspect `.consync/streams/electron_ui/stream.md` and its local state files and verify success behavior: the UI stream is paused, not deleted or silently overwritten.
-5. Verify failure behavior: if the switch makes the system harder to explain, or if the next mounted package is missing, generic, or still UI-scoped, treat this package as failing the stated goal.
+1. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to `.consync/docs/doc-integrity-layer.md`, the two small pointer edits, the snapshot refresh, and the live handoff.
+2. Open `.consync/docs/doc-integrity-layer.md` and verify success behavior: a new assistant could use it to answer the active-stream, active-package, live-loop-owner, and next-safe-action questions without guessing across scattered markdown.
+3. Open `.consync/docs/runbook.md` and `.consync/docs/current-system.md` and verify success behavior: the new references point toward the integrity-layer doc without turning either file into duplicate policy text.
+4. Verify failure behavior: if historical or reference docs appear to override canonical live-state artifacts in the new model, the integrity layer is not safe enough.
+5. Verify failure behavior: if the snapshot still names the earlier switch package rather than the current integrity-layer package, the re-entry surface is stale and the package should fail.
 
 VERIFICATION NOTES
 
-- Actually tested: repo verification via `npm run verify`, focused reads of the updated global ownership files, focused reads of both stream summary files, and `git status --short` for changed-surface scope.
-- Observed outcome: verification ended with `[verify] PASS`, the system/process surface reported `STATUS: ON_TRACK`, and the global/stream-local ownership files now consistently point to `process` as active and `electron_ui` as paused.
-- Important edge cases validated: the UI stream retains a concrete resume point instead of losing context during the switch, and the next process package is already mounted so the switch does not leave the live loop ownerless or abstract.
+- Actually tested: end-to-end reading of the new integrity-layer doc, focused reads of the pointer additions in `runbook.md` and `current-system.md`, focused read of the refreshed `snapshot.md`, and `git status --short` for changed-surface scope.
+- Observed outcome: the new doc stays definition-only, the governed artifact classes and canonical question model are explicit, the ownership model is assigned clearly, and the supporting pointer edits remained minimal.
+- Important edge cases validated: the integrity layer explicitly prevents historical/reference docs from overriding live-state artifacts, and it states that reconciliation is the next safe action whenever canonical files disagree.
 
 NEXT SUGGESTED PACKAGE
 
-- `define_doc_integrity_layer_and_enforcement_points` — the first narrow process package that defines the governed documentation/state surface, integrity rules, enforcement timing, and agent ownership before any automated checks are implemented.
+- `define_canonical_state_contracts_for_open_closed_stream_and_package` — the next narrow package that turns the integrity-layer model into explicit contracts for the core live state artifacts before any automated checks are added.

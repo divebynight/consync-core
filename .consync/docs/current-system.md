@@ -76,6 +76,7 @@ Consync does not currently:
 - The current agent routing guidance lives in `.consync/docs/agent-routing-policy.md`
 - The current next-action/handoff automation contract lives in `.consync/docs/next-action-handoff-automation-contract.md`
 - The current human-assisted observation closeout rules live in `.consync/docs/human-assisted-observation-closeout-rules.md`
+- The current documentation/state integrity model lives in `.consync/docs/doc-integrity-layer.md`
 - The current active live-loop owner is recorded in `.consync/state/active-stream.md`
 - Runtime sandbox outputs for command verification live under `sandbox/`
 
