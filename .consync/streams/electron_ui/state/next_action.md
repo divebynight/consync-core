@@ -1,9 +1,13 @@
-STATUS: paused
+STATUS: active
 
-Next likely step when this stream resumes:
+Mounted next step:
 
-- bind real current-session bookmark markers into one timeline lane without broadening into waveform rendering or richer interaction
-- keep the existing search-flow UI tests as the guardrail for non-timeline behavior
-- resume from the preserved stream snapshot here rather than reconstructing UI state from chat memory
+- `bind_bookmark_markers_into_session_timeline`
 
-This stream is intentionally paused and ready to resume later from a clean checkpoint.
+Focus:
+
+- replace one placeholder bookmark lane with real current-session bookmark markers
+- keep the timeline shell shallow and display-only
+- protect existing non-timeline behavior with focused UI verification
+
+Keep this stream narrow. Do not broaden into waveform rendering, playback, or richer timeline interaction.

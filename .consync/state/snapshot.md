@@ -3,51 +3,51 @@
 ## System Status
 
 - repo state is currently clean enough to run a new package
-- the most recent completed package defined a compact trigger model for when validation should stay light and when it should escalate to elevated or heavy expectations
-- the current package wires that trigger model into the live loop so operators can see the trigger level and required checks directly during package execution
+- the most recent completed package wired the trigger model into the live loop so operators can see the trigger level and required checks directly during package execution
+- the current package performs the stream switch back to `electron_ui` so ordinary product work can resume under the integrity-aware loop
 - the process phase remains definition-focused here and still does not implement broader repo-wide validation
 
 ## Active Stream
 
-- recorded active stream: `process`
-- recorded foreground stream: `process`
-- the global live loop is now intentionally owned by `process`
+- recorded active stream: `electron_ui`
+- recorded foreground stream: `electron_ui`
+- the global live loop is now intentionally owned by `electron_ui`
 
 ## Previous Or Paused Streams
 
-- previous stream: `electron_ui`
-- paused streams: `electron_ui`
+- previous stream: `process`
+- paused streams: `process`
 - supporting streams: none
 
 ## Current Package
 
-- type: `PROCESS`
-- package: `apply_integrity_trigger_model_to_live_loop_commands_and_closeout`
+- type: `FEATURE`
+- package: `bind_bookmark_markers_into_session_timeline`
 
 ## Current Goal / Focus
 
-Wire the trigger model into the practical live loop so operators can tell which validation level applies and which checks to run before execution and before accepting closeout.
+Replace one placeholder bookmark lane in the Creative Timeline shell with real current-session bookmark markers so the timeline starts reflecting actual session data.
 
-The current package should stay compact and operational: expose the trigger level in the live loop, define the required preflight and postflight checks, and keep heavier review expectations explicit without turning ordinary work into bureaucracy.
+The current package should stay compact and renderer-focused: bind one timeline lane to real bookmark data while keeping waveform rendering and deeper timeline interaction out of scope.
 
 ## Current Loop State
 
-- the live loop remains singular, but ownership is now intentionally switched to `process`
-- `electron_ui` is paused cleanly with preserved stream-local resume state
-- the mounted package now applies the trigger rules to the operator-facing loop and template surfaces
+- the live loop remains singular, and ownership is now intentionally switched back to `electron_ui`
+- `process` is paused cleanly with preserved stream-local resume state
+- the mounted package is now the first normal UI slice under the integrity-aware loop and should remain `light`
 
 ## Known Tensions Or Pending Decisions
 
 - `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
-- the next stream switch should preserve the new trigger-aware loop without making ordinary UI work feel heavy
+- the stream switch should preserve the new trigger-aware loop without making ordinary UI work feel heavy
 - bootstrap docs should remain thin and connective rather than turning into a new meta-framework
-- the eventual return from process work back to `electron_ui` should happen intentionally, not implicitly
+- future returns to `process` should happen intentionally, not implicitly
 
 ## Next Likely Packages
 
-- `resume_electron_ui_stream_with_integrity_aware_loop`
-- a stream-switch package that returns the live loop to `electron_ui` while preserving `light` validation as the normal default for ordinary UI work
-- an intentional stream switch back to `electron_ui` after the integrity phase reaches a clean pause point
+- `bind_bookmark_markers_into_session_timeline`
+- the first normal `electron_ui` package under the integrity-aware loop, replacing one placeholder timeline lane with real current-session bookmark markers
+- a later narrow UI follow-up after bookmark markers land cleanly under `light` validation
 
 ## Bootstrap Note For New AI Conversations
 

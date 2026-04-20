@@ -8,12 +8,12 @@ What just happened:
 
 Current state:
 
-- the stream is paused cleanly rather than active
+- the stream is active again rather than paused
 - the latest useful UI baseline is the calmer Creative Timeline workspace shell, not the earlier search-only shell
 - the UI remains narrow: no waveform rendering, playback controls, or deeper timeline interaction has been introduced
 
 What matters next:
 
 - resume from this preserved state rather than chat memory
-- the next narrow UI slice should bind real bookmark markers into one timeline lane
-- do not resume broader UI work until the current process integrity phase is finished or intentionally switched away from
+- the mounted UI slice should bind real bookmark markers into one timeline lane
+- do not broaden into waveform rendering, playback, or richer timeline interaction during the first post-switch package

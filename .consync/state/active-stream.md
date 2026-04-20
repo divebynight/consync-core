@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-process
+electron_ui
 
 PREVIOUS STREAM
 
-electron_ui
+process
 
 SWITCH REASON
 
-Documentation/bootstrap work exposed a real ownership mismatch between the recorded active UI stream and the live process package already mounted in the global loop, so the repo is now formally pausing `electron_ui` and switching the live loop to `process` before further UI expansion continues.
+The process integrity phase is now coherent enough to pause cleanly, so the live loop is intentionally returning to `electron_ui` for normal product work under the new integrity-aware operating model.
 
 PAUSED STREAMS
 
-- electron_ui
+- process
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
 The global live loop stays singular even while other streams remain durable and resumable.

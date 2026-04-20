@@ -1,13 +1,13 @@
-STATUS: active
+STATUS: paused
 
-Mounted next step:
+Next likely step when this stream resumes:
 
-- `apply_integrity_trigger_model_to_live_loop_commands_and_closeout`
+- `resume_electron_ui_stream_with_integrity_aware_loop`
 
 Focus:
 
-- expose the current package trigger level directly in the live loop
-- make the required preflight and postflight checks readable during execution
-- keep the operator-facing integration shallow and avoid workflow-engine expansion
+- preserve the integrity-aware loop guidance without reopening broad process redesign
+- resume from the preserved process-stream snapshot rather than reconstructing context from chat memory
+- revisit process refinement only when a concrete new integrity gap appears
 
 Keep this stream narrow. Do not expand into orchestration bloat or broad documentation scanning.
