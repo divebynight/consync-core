@@ -17,6 +17,144 @@ function StatusRow({ label, value }) {
   );
 }
 
+function getSessionTimelineTracks(sessionState) {
+  const currentPosition = sessionState ? sessionState.currentPositionSeconds : 84;
+  const currentFile = sessionState ? sessionState.currentFile : "session-loading.json";
+  const bookmarkCount = sessionState ? sessionState.bookmarks.length : 0;
+  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
+    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+    : null;
+
+  return [
+    {
+      label: "Session Events",
+      tone: "events",
+      markers: [
+        {
+          label: "Current focus",
+          detail: `${currentPosition}s in ${currentFile}`,
+          start: 62,
+          span: 20,
+        },
+        {
+          label: "Re-entry window",
+          detail: "Recent search and selection flow",
+          start: 18,
+          span: 16,
+        },
+      ],
+    },
+    {
+      label: "Bookmarks",
+      tone: "bookmarks",
+      markers: latestBookmark
+        ? [
+            {
+              label: latestBookmark.note,
+              detail: `${latestBookmark.timeSeconds}s bookmark`,
+              start: 44,
+              span: 18,
+            },
+          ]
+        : [
+            {
+              label: "First bookmark pending",
+              detail: bookmarkCount === 0 ? "Drop a note to anchor a moment" : `${bookmarkCount} bookmarks ready`,
+              start: 36,
+              span: 22,
+            },
+          ],
+    },
+    {
+      label: "Notes",
+      tone: "notes",
+      markers: [
+        {
+          label: "Cover motif note",
+          detail: "Placeholder creative note marker",
+          start: 12,
+          span: 24,
+        },
+        {
+          label: "Lighting pass",
+          detail: "Texture and color reference",
+          start: 56,
+          span: 18,
+        },
+      ],
+    },
+    {
+      label: "Audio Cues",
+      tone: "audio",
+      markers: [
+        {
+          label: "Ambient swell",
+          detail: "Placeholder cue for future waveform work",
+          start: 8,
+          span: 20,
+        },
+        {
+          label: "Voice memo pocket",
+          detail: "Potential spoken reflection lane",
+          start: 68,
+          span: 16,
+        },
+      ],
+    },
+  ];
+}
+
+function SessionTimelineShell({ sessionState }) {
+  const timelineTracks = getSessionTimelineTracks(sessionState);
+
+  return (
+    <article className="panel panel-wide session-timeline-panel">
+      <div className="timeline-heading">
+        <p className="eyebrow timeline-eyebrow">Creative Timeline</p>
+        <h2>Session Timeline</h2>
+        <p className="timeline-copy">
+          A first-pass creative session surface with placeholder tracks for events, bookmarks, notes, and audio cues.
+        </p>
+      </div>
+
+      <div className="timeline-ruler" aria-hidden="true">
+        <span>0:00</span>
+        <span>0:30</span>
+        <span>1:00</span>
+        <span>1:30</span>
+        <span>2:00</span>
+      </div>
+
+      <div className="timeline-tracks">
+        {timelineTracks.map(track => (
+          <section className="timeline-track" key={track.label}>
+            <div className="timeline-track-meta">
+              <p className="timeline-track-label">{track.label}</p>
+              <p className="timeline-track-subtitle">{track.markers.length} markers</p>
+            </div>
+            <div className="timeline-lane" role="list" aria-label={`${track.label} markers`}>
+              {track.markers.map(marker => (
+                <div
+                  className={`timeline-marker timeline-marker-${track.tone}`}
+                  key={`${track.label}:${marker.label}`}
+                  role="listitem"
+                  style={{
+                    left: `${marker.start}%`,
+                    width: `${marker.span}%`,
+                  }}
+                >
+                  <span className="timeline-marker-label">{marker.label}</span>
+                  <span className="timeline-marker-detail">{marker.detail}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 function getDesktopBridge() {
   const desktopBridge = window.consyncDesktop;
 
@@ -253,6 +391,8 @@ export function App() {
       ) : null}
 
       <section className="panel-grid">
+        <SessionTimelineShell sessionState={sessionState} />
+
         <article className="panel">
           <h2>Bridge Status</h2>
           <StatusRow label="Status" value={bridgeStatus ? bridgeStatus.status : "loading"} />

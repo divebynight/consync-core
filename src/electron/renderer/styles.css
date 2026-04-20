@@ -76,6 +76,128 @@ body {
   font-size: 1.15rem;
 }
 
+.session-timeline-panel {
+  display: grid;
+  gap: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 242, 0.96) 0%, rgba(244, 236, 223, 0.9) 100%),
+    linear-gradient(90deg, rgba(140, 76, 31, 0.06) 1px, transparent 1px);
+}
+
+.timeline-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.timeline-eyebrow {
+  margin: 0;
+}
+
+.timeline-copy {
+  margin: 0;
+  max-width: 720px;
+  color: #52453b;
+  line-height: 1.55;
+}
+
+.timeline-ruler {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8c4c1f;
+}
+
+.timeline-tracks {
+  display: grid;
+  gap: 14px;
+}
+
+.timeline-track {
+  display: grid;
+  gap: 10px;
+}
+
+.timeline-track-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.timeline-track-label,
+.timeline-track-subtitle,
+.timeline-marker-label,
+.timeline-marker-detail {
+  margin: 0;
+}
+
+.timeline-track-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #2b221c;
+}
+
+.timeline-track-subtitle {
+  font-size: 0.8rem;
+  color: #6b5a4a;
+}
+
+.timeline-lane {
+  position: relative;
+  min-height: 76px;
+  border-radius: 20px;
+  border: 1px solid rgba(60, 44, 30, 0.08);
+  background:
+    linear-gradient(90deg, rgba(140, 76, 31, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(250, 244, 236, 0.96) 100%);
+  background-size: 12.5% 100%, 100% 100%;
+  overflow: hidden;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  min-width: 92px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  display: grid;
+  gap: 4px;
+  box-shadow: 0 10px 24px rgba(58, 38, 19, 0.1);
+}
+
+.timeline-marker-events {
+  background: linear-gradient(180deg, #f2ddbf 0%, #ebca9d 100%);
+}
+
+.timeline-marker-bookmarks {
+  background: linear-gradient(180deg, #dce6d0 0%, #c1d5ab 100%);
+}
+
+.timeline-marker-notes {
+  background: linear-gradient(180deg, #efd9cf 0%, #e5baa8 100%);
+}
+
+.timeline-marker-audio {
+  background: linear-gradient(180deg, #d8e2eb 0%, #bbcedd 100%);
+}
+
+.timeline-marker-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #2b221c;
+}
+
+.timeline-marker-detail {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #4b3d33;
+}
+
 .status-row {
   display: flex;
   justify-content: space-between;
@@ -311,5 +433,23 @@ body {
 
   .panel {
     padding: 20px;
+  }
+
+  .timeline-track-meta {
+    display: grid;
+    gap: 4px;
+  }
+
+  .timeline-lane {
+    min-height: 220px;
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .timeline-marker {
+    position: static;
+    width: 100%;
+    min-width: 0;
   }
 }

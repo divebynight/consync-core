@@ -92,6 +92,18 @@ describe("App search flow", () => {
     window.consyncDesktop = createDesktopBridge();
   });
 
+  it("renders a creative session timeline shell with placeholder tracks", async () => {
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Session Timeline" })).toBeTruthy();
+    expect(screen.getByText("Session Events")).toBeTruthy();
+    expect(screen.getByLabelText("Bookmarks markers")).toBeTruthy();
+    expect(screen.getByText("Notes")).toBeTruthy();
+    expect(screen.getByText("Audio Cues")).toBeTruthy();
+    expect(screen.getByText("Current focus")).toBeTruthy();
+    expect(screen.getByText("First bookmark pending")).toBeTruthy();
+  });
+
   it("renders grouped results and keeps selection separate from reveal", async () => {
     const user = userEvent.setup();
     render(<App />);
