@@ -1,5 +1,5 @@
 TYPE: FEATURE
-PACKAGE: render_session_timeline_shell_with_placeholder_creative_tracks
+PACKAGE: restyle_timeline_shell_and_panel_hierarchy_toward_creative_mode
 
 STATUS
 
@@ -7,15 +7,9 @@ PASS
 
 SUMMARY
 
-Added the first intentional Creative Timeline slice to the Electron renderer by introducing a visible `Session Timeline` panel with placeholder creative tracks and marker blocks.
+Restyled the Electron renderer so the Session Timeline reads as the primary workspace surface and the surrounding panels fall into a calmer supporting region underneath it.
 
-The new shell shifts the UI toward a session-oriented creative surface without adding waveform analysis, playback controls, or backend timeline persistence. The timeline uses simple local placeholder track data plus existing session-facing values such as current position and current file, while the existing search, detail, and session panels continue to function.
-
-VERIFICATION
-
-- Ran `node src/test/verify.js` and observed `[verify] PASS`.
-- The focused renderer suite now passes 14 of 14 tests, including one new assertion that the creative timeline shell and placeholder tracks render.
-- Existing search and session verification slices continued to pass under the full repo verification run.
+The package stayed presentation-focused. The timeline now sits in its own stage with stronger framing, spacing, and heading treatment, while the search, bookmark, bridge, backend, and session panels are grouped into a softer secondary area. Existing behavior was preserved: bookmark capture, session display, search flow, and separate error surfaces still work the same way.
 
 FILES CREATED
 
@@ -23,41 +17,24 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — adds a `SessionTimelineShell` renderer section with four placeholder creative tracks and marker blocks driven by simple local timeline data plus existing session-facing values.
-- `src/electron/renderer/styles.css` — adds the timeline shell, lane, ruler, and marker styling while preserving the existing renderer layout.
-- `src/test/app-search-flow.test.jsx` — adds a focused renderer assertion for the visible timeline shell and placeholder track structure.
+- `src/electron/renderer/App.jsx` — reorganized the renderer markup into a primary timeline stage plus a secondary support region while preserving the existing panel content and behavior.
+- `src/electron/renderer/styles.css` — strengthened the timeline shell hierarchy, spacing, and typography; softened secondary panels; and improved grouping so the page reads more like a creative workspace than a uniform utility grid.
 - `.consync/state/handoff.md` — records this feature package result in the live handoff location.
-- `.consync/state/next-action.md` — advances to the next Creative Timeline follow-up package.
 
-COMMANDS TO RUN
+VERIFICATION
 
-- `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js`
-- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
-- `cd /Users/markhughes/Projects/consync-core && git status --short`
+- Ran `node src/test/verify.js` and observed `[verify] PASS`.
+- The renderer search-flow UI slice passed 14 of 14 tests under the full verification run.
+- Ran `git status --short` before rewriting this handoff and observed the active worktree surface as `.consync/state/next-action.md`, `src/electron/renderer/App.jsx`, and `src/electron/renderer/styles.css`.
 
 MANUAL VERIFICATION
 
 1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Confirm a visible `Session Timeline` region appears in the main UI above the existing panel grid.
-3. Confirm the timeline renders placeholder creative tracks for `Session Events`, `Bookmarks`, `Notes`, and `Audio Cues` with visible marker blocks.
-4. Confirm the existing Mock Search panel still runs and the existing Session and Bookmarks panels still render correctly.
-5. Confirm the new timeline shell does not break the layout on the current window size. If the timeline displaces or breaks the current search or session surfaces, treat that as a failure.
-
-HUMAN VERIFICATION
-
-1. Open the renderer and confirm the new panel reads as the beginning of a creative session view rather than generic status UI.
-2. Confirm the placeholder markers are readable and lane labels are stable across rerenders.
-3. Confirm the search/detail flow still works after the timeline shell is present.
-4. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to the renderer, styles, test file, and the live next-action slot.
-5. If the timeline feels like a generic admin panel or if the existing search and session surfaces regress, treat this package as incomplete.
-
-VERIFICATION NOTES
-
-- Ran `node src/test/verify.js` and observed the full repo verification suite ending with `[verify] PASS`.
-- The renderer search-flow UI slice passed with 14 of 14 tests, including the new timeline-shell assertion.
-- Confirmed the timeline shell stayed narrow and renderer-first: no waveform analysis, playback controls, backend persistence, or deeper data-model changes were introduced.
-- Ran `git status --short` and observed the expected changed surface: `.consync/state/next-action.md`, `src/electron/renderer/App.jsx`, `src/electron/renderer/styles.css`, and `src/test/app-search-flow.test.jsx`.
+2. Confirm the `Session Timeline` now reads as the most prominent surface on the page and is visually separated from the utility panels below it.
+3. Confirm the lower support panels still render correctly and remain readable, especially `Mock Search`, `Save Bookmark`, `Session`, and `Bookmarks`.
+4. Confirm `Mock Search` still runs, selection still drives the detail panel, and `Reveal in Finder` still works only through the explicit action button.
+5. Confirm the app still feels like the same shell functionally, with the change limited to hierarchy, spacing, grouping, and tone.
 
 NEXT SUGGESTED PACKAGE
 
-- Add one narrow follow-up package that replaces one placeholder lane with real bookmark markers from the current session state, without introducing waveform rendering or timeline interaction complexity yet.
+- `bind_bookmark_markers_into_session_timeline` — replace one placeholder timeline lane with real current-session bookmark markers while keeping waveform rendering and deeper timeline interaction out of scope.

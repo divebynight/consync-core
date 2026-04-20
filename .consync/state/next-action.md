@@ -1,79 +1,88 @@
 TYPE: FEATURE
-PACKAGE: render_session_timeline_shell_with_placeholder_creative_tracks
+PACKAGE: restyle_timeline_shell_and_panel_hierarchy_toward_creative_mode
 
 GOAL
 
-Create the first intentional Creative Timeline UI slice in the Electron renderer by adding a visible session timeline shell with placeholder creative tracks and markers.
+Push the current Electron renderer visually toward the Creative Mode direction by improving hierarchy, spacing, grouping, and overall tone, while keeping the existing functionality and layout structure intact.
 
 WHY
 
-The prior packages established a cleaner renderer and clearer UI behavior. Now the UI stream should visibly pivot toward the Creative Timeline direction so the app starts reflecting Consync’s creative-memory purpose rather than remaining centered on system/status surfaces.
+The first timeline shell package established the correct product direction, but the renderer still likely reads more like a developer/admin tool than a creative session workspace. Before adding more real timeline data, we want the UI to better communicate that the timeline is the primary surface and the surrounding panels are supporting context.
 
-This package should establish the new center of gravity in the UI without requiring real waveform analysis or deeper backend changes yet.
+This package should make the current UI feel more intentional, more readable, and more aligned with the earlier Creative Timeline design direction without turning into a full redesign.
 
 SCOPE
 
-Keep this package narrow and renderer-first.
+Keep this package renderer- and style-focused.
 
 Expected outcome:
-- a visible timeline region appears in the main UI
-- the timeline includes placeholder creative tracks or lanes
-- the timeline renders simple placeholder markers/items using mock or existing session-facing data
-- the shell feels like the beginning of a creative session view, not a final production timeline
-- existing search/detail/session surfaces continue to work
+- the Session Timeline region feels visually primary
+- the surrounding panels feel secondary and better grouped
+- spacing, typography, panel hierarchy, and proportions move toward a more creative workspace feel
+- the UI becomes less generic/dev-tool-like
+- existing behavior remains intact
 
 Do not implement:
-- real waveform rendering
-- zoom, scrub, playback, drag/drop editing, or timeline interaction complexity
-- deep data-model redesign
-- backend timeline persistence unless a tiny read-only adapter is needed
+- waveform rendering
+- playback controls
+- timeline interaction complexity
+- new persistence or backend data flow
+- major component architecture changes
+- broad behavioral changes
 
 WORK INSTRUCTIONS
 
-1. Inspect the current renderer layout and identify the cleanest place to introduce a new timeline region without destabilizing the existing UI.
+1. Inspect the current renderer and identify the most important visual hierarchy issues, especially:
+   - whether the timeline is visually dominant enough
+   - whether panel spacing and grouping feel cramped or overly uniform
+   - whether headers, labels, and supporting text create a clear reading order
+   - whether the UI still feels too much like a generic utility/admin panel
 
-2. Add a new timeline shell component or renderer section with explicit, boring naming. Prefer something like:
-   - `Session Timeline`
-   - `Creative Tracks`
-   - `Markers` or `Events`
+2. Restyle the existing renderer so the timeline becomes the visual anchor of the page. Examples of acceptable changes:
+   - increase separation around the timeline shell
+   - strengthen timeline panel framing and internal spacing
+   - make timeline headings and lane labels clearer and calmer
+   - soften or reduce the visual weight of secondary panels below it
+   - improve the panel grid so the search/session/detail areas feel like support surfaces, not equal competitors
 
-3. Render a narrow first-pass structure that may include:
-   - one timeline container
-   - 2–4 placeholder lanes/tracks
-   - simple marker/event blocks
-   - light labels for track purpose such as notes, bookmarks, audio, or session events
+3. Move the UI toward the earlier Creative Mode direction using layout and style choices such as:
+   - stronger spacing rhythm
+   - cleaner panel hierarchy
+   - more intentional header/subheader treatment
+   - improved contrast and grouping
+   - calmer, more studio-like visual structure
 
-4. Use mock data or existing session-facing values if needed, but keep the data flow simple and local to this package. It is acceptable for this package to use placeholder timeline data as long as the UI shell is real and readable.
+4. Keep naming explicit and boring. This package is about presentation, not renaming concepts.
 
-5. Keep the presentation grounded in real interaction:
-   - the timeline should look like a session-oriented creative surface
-   - it should not read like generic admin/status UI
-   - avoid visual overbuild; structure matters more than polish here
+5. Prefer CSS and light renderer markup adjustments over heavy refactors. Small structural changes are acceptable if they directly improve hierarchy or grouping.
 
-6. Preserve existing renderer behavior:
-   - search panel should still function
-   - detail/session surfaces should still function
-   - existing error surfaces should remain intact
-
-7. Add or update focused renderer tests only if there is already a practical place for them. If test coverage is awkward for layout-only structure, keep the implementation small and ensure repo verification still passes.
+6. Preserve current renderer behavior:
+   - Mock Search still works
+   - Session and Bookmark panels still work
+   - existing error surfaces remain intact
+   - timeline shell remains present and readable
 
 DESIGN INTENT
 
-This is the first Creative Timeline slice, so optimize for:
-- visible directional clarity
-- readable structure
-- future extensibility
+Target feel:
+- less “tooling dashboard”
+- more “creative session workspace”
 
-A good result is:
-“the app now clearly has a creative timeline area we can build on next.”
+The renderer should begin to suggest:
+- a primary timeline/story of the session
+- supporting context panels underneath
+- a calmer and more intentional composition
+
+Good result:
+“The current UI is still simple, but it clearly feels like the beginning of a creative workspace instead of a generic status panel.”
 
 CONSTRAINTS
 
-- Do not implement real waveform analysis yet
-- Do not add playback controls unless a static placeholder is already clearly useful
-- Do not redesign the entire renderer
-- Do not let this package expand into notes editing or bookmark authoring workflows
-- Keep the package small enough to hand off and verify cleanly
+- Do not redesign the whole app from scratch
+- Do not add new product concepts unless a tiny static label adjustment is clearly useful
+- Do not introduce waveform visuals yet
+- Do not mix this with bookmark-to-timeline data binding
+- Keep the package small enough to verify and hand off cleanly
 
 VERIFICATION
 
@@ -81,10 +90,10 @@ Run the repo verification command after changes.
 
 If practical, include manual verification steps such as:
 1. launch the Electron UI
-2. confirm a visible `Session Timeline` or similarly named region appears
-3. confirm placeholder creative tracks/lanes render consistently
-4. confirm existing search and session surfaces still render and function
-5. confirm the new timeline shell does not break the current layout
+2. confirm the Session Timeline is visually more prominent than the surrounding panels
+3. confirm the lower panels still render and function without layout breakage
+4. confirm spacing, grouping, and typography feel more intentional and readable
+5. confirm the UI still behaves like the same app, only with a clearer Creative Mode direction
 
 HANDOFF REQUIREMENTS
 
@@ -101,4 +110,8 @@ Include:
 - MANUAL VERIFICATION
 - NEXT SUGGESTED PACKAGE
 
-For `NEXT SUGGESTED PACKAGE`, recommend a narrow follow-up package that adds one more real creative signal to the timeline shell, such as bookmark markers or note markers, without introducing waveform complexity yet.
+For `NEXT SUGGESTED PACKAGE`, recommend:
+
+`bind_bookmark_markers_into_session_timeline`
+
+and describe it as the first narrow package that replaces one placeholder lane with real current-session bookmark markers while keeping waveform rendering and deeper timeline interaction out of scope.

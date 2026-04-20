@@ -108,7 +108,7 @@ function SessionTimelineShell({ sessionState }) {
   const timelineTracks = getSessionTimelineTracks(sessionState);
 
   return (
-    <article className="panel panel-wide session-timeline-panel">
+    <article className="panel session-timeline-panel">
       <div className="timeline-heading">
         <p className="eyebrow timeline-eyebrow">Creative Timeline</p>
         <h2>Session Timeline</h2>
@@ -375,38 +375,53 @@ export function App() {
   return (
     <main className="shell">
       <section className="hero">
-        <p className="eyebrow">Consync Desktop Capture</p>
-        <h1>Bridge proof with incremental real session values.</h1>
-        <p className="lead">
-          This shell now surfaces a small set of real session details carried through preload into
-          the renderer so each narrow UI step stays easy to verify before broader work continues.
-        </p>
+        <div className="hero-copy">
+          <p className="eyebrow">Consync Desktop Capture</p>
+          <h1>Bridge proof with incremental real session values.</h1>
+          <p className="lead">
+            This shell now surfaces a small set of real session details carried through preload into
+            the renderer so each narrow UI step stays easy to verify before broader work continues.
+          </p>
+        </div>
       </section>
 
-      {sessionErrorMessage ? (
-        <section className="panel">
-          <h2>Session Error</h2>
-          <p className="empty-state">{sessionErrorMessage}</p>
+      <section className="workspace-shell">
+        {sessionErrorMessage ? (
+          <section className="panel session-error-panel">
+            <h2>Session Error</h2>
+            <p className="empty-state">{sessionErrorMessage}</p>
+          </section>
+        ) : null}
+
+        <section className="timeline-stage">
+          <SessionTimelineShell sessionState={sessionState} />
         </section>
-      ) : null}
 
-      <section className="panel-grid">
-        <SessionTimelineShell sessionState={sessionState} />
+        <section className="support-region" aria-label="Supporting session panels">
+          <div className="support-region-heading">
+            <p className="eyebrow support-eyebrow">Support Panels</p>
+            <h2>Search, capture, and session context</h2>
+            <p className="support-copy">
+              The timeline holds the main session story while these panels stay available for search,
+              bookmark capture, and inspection.
+            </p>
+          </div>
 
-        <article className="panel">
+          <section className="panel-grid support-panel-grid">
+            <article className="panel panel-secondary">
           <h2>Bridge Status</h2>
           <StatusRow label="Status" value={bridgeStatus ? bridgeStatus.status : "loading"} />
           <StatusRow label="Surface" value={bridgeStatus ? bridgeStatus.surface : "loading"} />
           <StatusRow label="Version" value={bridgeStatus ? bridgeStatus.version : "loading"} />
-        </article>
+            </article>
 
-        <article className="panel">
+            <article className="panel panel-secondary">
           <h2>Backend Summary</h2>
           <StatusRow label="Platform" value={backendSummary ? backendSummary.platform : "loading"} />
           <StatusRow label="Current dir" value={backendSummary ? backendSummary.cwd : "loading"} />
-        </article>
+            </article>
 
-        <article className="panel">
+            <article className="panel panel-secondary">
           <h2>Consync Summary</h2>
           <StatusRow
             label="Session dir"
@@ -416,16 +431,16 @@ export function App() {
             label="Session count"
             value={consyncSummary ? consyncSummary.sessionCount : "loading"}
           />
-        </article>
+            </article>
 
-        <article className="panel">
+            <article className="panel panel-secondary">
           <h2>Session</h2>
           {sessionRows.map(row => (
             <StatusRow key={row.label} label={row.label} value={row.value} />
           ))}
-        </article>
+            </article>
 
-        <article className="panel">
+            <article className="panel panel-secondary panel-capture">
           <h2>Save Bookmark</h2>
           <form className="bookmark-form" onSubmit={handleCreateBookmark}>
             <label className="bookmark-label" htmlFor="bookmark-note">
@@ -443,9 +458,9 @@ export function App() {
               Save Bookmark
             </button>
           </form>
-        </article>
+            </article>
 
-        <article className="panel panel-wide">
+            <article className="panel panel-wide panel-secondary panel-search-workspace">
           <h2>Mock Search</h2>
           <form className="search-form" onSubmit={handleRunMockSearch}>
             <label className="bookmark-label" htmlFor="mock-search-root">
@@ -482,7 +497,7 @@ export function App() {
           </form>
 
           {searchErrorMessage ? (
-            <section className="panel">
+            <section className="panel panel-inline panel-secondary search-error-panel">
               <h3>Search Error</h3>
               <p className="empty-state">{searchErrorMessage}</p>
             </section>
@@ -498,9 +513,9 @@ export function App() {
           ) : (
             <p className="empty-state">Enter a root and query to preview the grouped mock search flow in the desktop shell.</p>
           )}
-        </article>
+            </article>
 
-        <article className="panel panel-wide">
+            <article className="panel panel-wide panel-secondary panel-bookmarks">
           <h2>Bookmarks</h2>
           {sessionState && sessionState.bookmarks.length > 0 ? (
             <ul className="bookmark-list">
@@ -514,7 +529,9 @@ export function App() {
           ) : (
             <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
           )}
-        </article>
+            </article>
+          </section>
+        </section>
       </section>
     </main>
   );
