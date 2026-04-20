@@ -1,151 +1,122 @@
 TYPE: PROCESS
-PACKAGE: define_canonical_state_contracts_and_integrity_checks
+PACKAGE: implement_preflight_and_postflight_doc_integrity_checks
 
 GOAL
 
-Define explicit contracts for the core live-state artifacts and introduce the preflight/postflight integrity check model so the system can prevent drift without introducing heavy planning or file-level security.
+Implement the first lightweight documentation and process integrity checks so the system can validate core live-state coherence before package execution and again before accepting closeout.
 
 WHY
 
-The system currently relies on disciplined iteration (`next-action → handoff`) but lacks enforcement between steps. This creates risk of silent drift where state artifacts diverge or are modified outside their intended scope.
+The system now has defined integrity rules, state contracts, and bounded change concepts, but those protections are still only written rules. We now need a minimal enforcement layer that behaves like a smoke-test and contract-check pass for the core live loop.
 
-We do not need a full action-plan system. We need:
-
-- clear contracts for core state artifacts
-- a definition of what a valid state looks like
-- preflight checks before a package runs
-- postflight checks before a handoff is accepted
-- a lightweight definition of “zones of influence” for packages
-
-This preserves the simplicity of one-step iteration while adding guardrails that maintain system integrity.
+This package should add a small, practical integrity check surface that verifies current truth without introducing a heavy validator framework or bloated process.
 
 SCOPE
 
-This is a definition-only package.
+Keep this package intentionally small and v1.
 
 Expected outcome:
-- explicit contracts for core state artifacts
-- definition of preflight and postflight checks
-- definition of “allowed change surface” per package
-- definition of protected/global artifacts
-- no implementation of agents or automation yet
+- one lightweight preflight integrity check exists
+- one lightweight postflight integrity check exists
+- checks focus only on core live-state artifacts
+- checks return clear PASS/FAIL output with short reasons
+- checks are simple enough to run during the package loop
 
 Do not:
-- implement automated validators yet
-- introduce a full action-plan system
-- redesign existing docs
-- add security mechanisms or permissions
-- mix this with UI work
+- build a full validation framework
+- validate every markdown file in the repo
+- introduce file permissions or security controls
+- build a large agent system in this package
+- mix this package with UI work
+- over-engineer naming or artifact taxonomy beyond what is needed for the checks
 
 WORK INSTRUCTIONS
 
-1. Create a new doc:
+1. Inspect the current verification and process surface to find the simplest place to add a lightweight integrity check.
 
-   `.consync/docs/state-contracts-and-integrity-checks.md`
+2. Implement a small v1 integrity check surface.
+   This may be:
+   - a small script,
+   - a small verify subcommand,
+   - or another repo-native mechanism,
+   whichever best fits the current Consync structure.
 
-2. Define **core state contracts**
+3. The v1 check should only govern the core live-state artifacts:
 
-For each of the following artifacts, define:
-- required structure
-- required fields
-- what it represents
-- what must always be true
+   - `.consync/state/active-stream.md`
+   - `.consync/state/next-action.md`
+   - `.consync/state/handoff.md`
+   - `.consync/state/snapshot.md`
 
-Artifacts:
-- `.consync/state/active-stream.md`
-- `.consync/state/next-action.md`
-- `.consync/state/handoff.md`
-- `.consync/state/snapshot.md`
+4. Implement a **preflight** check that verifies, at minimum:
 
-3. Define **canonical state invariants**
+   - there is exactly one active stream
+   - the active stream is readable and explicit
+   - the mounted `next-action.md` is present and readable
+   - the active package can be identified
+   - the live state does not appear obviously contradictory
+   - if contradiction exists, output FAIL and indicate reconciliation is required
 
-Examples:
-- exactly one active stream
-- next-action belongs to active stream
-- handoff reflects the last completed package
-- system is either OPEN or CLOSED, not both
-- no conflicting ownership across state files
+5. Implement a **postflight** check that verifies, at minimum:
 
-4. Define **system OPEN vs CLOSED contract**
+   - `handoff.md` is present and readable
+   - the handoff package can be identified
+   - the handoff and mounted package are not obviously contradictory
+   - the live state artifacts still agree on active ownership
+   - the system can still answer the canonical questions:
+     - open or closed
+     - active stream
+     - active package
+     - next safe action
 
-Explicitly define:
-- when system is OPEN (active package in progress)
-- when system is CLOSED (no active package)
-- allowed actions in each state
+6. Keep the checks intentionally shallow and valuable.
+   This package is for smoke/contract checking, not deep repo-wide validation.
 
-5. Define **preflight check (before package runs)**
+7. Output should be concise and operational, for example:
+   - `STATUS: PASS`
+   - `STATUS: FAIL`
+   - brief reason lines
+   - optional note on what to reconcile
 
-Must verify:
-- system state is coherent
-- active stream is unambiguous
-- next-action is valid and not stale
-- no unresolved state conflicts
+8. If appropriate, wire the checks into an existing verify surface in a minimal way.
+   If not, expose them through one small explicit command and document how to run them.
 
-6. Define **postflight check (before accepting handoff)**
+9. Add only the smallest necessary documentation update so operators know:
+   - when to run preflight
+   - when to run postflight
+   - what PASS/FAIL means
 
-Must verify:
-- handoff matches executed package
-- required sections are present
-- state files remain consistent
-- no unintended artifacts were modified
+TESTING MODEL FOR THIS PACKAGE
 
-7. Define **zones of influence (bounded change model)**
+This package should behave like a lightweight process/doc equivalent of:
+- smoke checks
+- contract checks
 
-Define three categories:
-
-- **in-scope artifacts**
-  - expected to change in a package
-
-- **controlled artifacts**
-  - may change but must match contract
-
-- **protected artifacts**
-  - should not change unless explicitly required
-
-Make this conceptual, not permission-based.
-
-8. Define **allowed change rule**
-
-A package should:
-- declare or imply what it is allowed to modify
-- avoid modifying unrelated artifact classes
-- trigger reconciliation if it must cross boundaries
-
-9. Define **integrity ownership model**
-
-Define roles:
-
-- human operator: final verification
-- prompt layer: enforces structure
-- future integrity agent: enforces contracts
-- process agent: enforces loop correctness
-
-10. Keep everything simple and operational
-
-The doc should make the system easier to explain, not harder.
+It does not need to implement broader “integration checks” across all documentation yet.
 
 CONSTRAINTS
 
-- no implementation yet
-- no over-engineering
-- no large-scale rewrites
-- no duplication of existing docs
-- keep the model small and usable
+- keep the implementation small
+- do not turn this into a generalized markdown linter
+- do not add broad repo scanning
+- do not implement a separate doc-integrity agent yet unless the existing repo structure clearly demands it
+- do not validate historical/reference docs in this package
+- prioritize clarity, trust, and low cognitive load
 
 VERIFICATION
 
-1. Read the doc end to end and confirm:
-   - it clearly defines what “valid state” means
-   - it clearly defines pre/post checks
-   - it clearly defines allowed vs protected changes
-   - it reduces ambiguity instead of adding it
-
-2. Confirm:
-   - it does not introduce unnecessary complexity
-   - it does not require an action plan system
-   - it preserves the current iteration model
+1. Run the new preflight check against the current repo state and confirm it returns PASS when state is coherent.
+2. Run the new postflight check against the current repo state and confirm it returns PASS when state is coherent.
+3. If practical, simulate or reason through at least one obvious failure condition, such as:
+   - conflicting active stream and next-action ownership
+   - unreadable or missing mounted package
+   - contradictory package names across live state artifacts
+4. Confirm the output is short and understandable.
+5. Confirm the implementation stayed narrow and did not expand into a broad documentation validation system.
 
 HANDOFF REQUIREMENTS
+
+Write the handoff to the live `handoff.md` using the project’s standard structure.
 
 Include:
 - TYPE
@@ -158,9 +129,8 @@ Include:
 - MANUAL VERIFICATION
 - NEXT SUGGESTED PACKAGE
 
-For NEXT SUGGESTED PACKAGE:
+For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`implement_preflight_and_postflight_doc_integrity_checks`
+`expand_integrity_checks_from_core_state_to_stream_local_state`
 
-Describe it as:
-the first implementation package that adds a lightweight integrity check (script or agent prompt) that runs before and after each package execution.
+and describe it as the next narrow package that extends the same smoke/contract model from the four global live-state artifacts to the paused/active stream-local state surfaces without yet scanning broader reference docs.

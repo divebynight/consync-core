@@ -218,6 +218,15 @@ Preflight result meanings:
 - proceed: state is coherent enough for the mounted package
 - reconcile first: canonical files conflict or the package appears stale
 
+V1 operator command:
+
+- `npm run check:state-preflight`
+
+Meaning:
+
+- `STATUS: PASS` means the mounted package and current live state are coherent enough to proceed
+- `STATUS: FAIL` means reconciliation is required before execution continues
+
 ## Postflight Check
 
 Run after implementation and verification, before the handoff is accepted.
@@ -240,6 +249,15 @@ Postflight result meanings:
 
 - accept closeout: package output and state remain coherent
 - reconcile before accepting handoff: state drift or unplanned cross-boundary changes exist
+
+V1 operator command:
+
+- `npm run check:state-postflight`
+
+Meaning:
+
+- `STATUS: PASS` means the written handoff, mounted package, and core live-state artifacts still agree
+- `STATUS: FAIL` means closeout should not be accepted until the contradiction is resolved
 
 ## Zones Of Influence
 

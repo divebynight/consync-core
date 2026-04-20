@@ -13,6 +13,7 @@ function runSystemSummaryCommand() {
   console.log("- sandbox-desktop-search");
   console.log("- system-check");
   console.log("- system-summary");
+  console.log("- state-integrity-check");
   console.log("- portable");
   console.log("DESKTOP");
   console.log("- npm run start:desktop");
@@ -35,6 +36,8 @@ function runSystemSummaryCommand() {
   console.log("- mixed-flat-small-propose");
   console.log("VERIFY");
   console.log("- npm run verify");
+  console.log("- npm run check:state-preflight");
+  console.log("- npm run check:state-postflight");
   console.log("- read-only layered checkpoint active");
 }
 

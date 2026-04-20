@@ -3,9 +3,9 @@
 ## System Status
 
 - repo state is currently clean enough to run a new package
-- the most recent completed package defined the first formal documentation/state integrity layer
-- the current package defines explicit state contracts and the preflight/postflight integrity-check model
-- the process phase remains definition-first and still has not introduced automated integrity checks yet
+- the most recent completed package defined explicit contracts for the core live-state artifacts
+- the current package implements the first lightweight preflight and postflight integrity checks over the global live-state surface
+- the process phase has now moved from definition-only rules into the first narrow enforcement slice
 
 ## Active Stream
 
@@ -22,31 +22,31 @@
 ## Current Package
 
 - type: `PROCESS`
-- package: `define_canonical_state_contracts_and_integrity_checks`
+- package: `implement_preflight_and_postflight_doc_integrity_checks`
 
 ## Current Goal / Focus
 
-Define explicit contracts for the core live-state artifacts so the repo has a clear definition of valid state, preflight checks, postflight checks, and bounded change surfaces.
+Implement the first lightweight integrity checks so the repo can validate core live-state coherence before package execution and again before accepting closeout.
 
-The current package should stay definition-only: artifact contracts, state invariants, open vs closed behavior, preflight/postflight checks, and zones of influence.
+The current package should stay narrow: one small preflight check, one small postflight check, concise PASS/FAIL output, and minimal operator guidance for when to run them.
 
 ## Current Loop State
 
 - the live loop remains singular, but ownership is now intentionally switched to `process`
 - `electron_ui` is paused cleanly with preserved stream-local resume state
-- the mounted package is now the explicit state-contract and integrity-check model rather than an implementation package
+- the mounted package now implements the first smoke/contract checks over the four core global live-state artifacts
 
 ## Known Tensions Or Pending Decisions
 
 - `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
-- actual implementation of preflight/postflight integrity checks still needs a later narrow package
+- stream-local state is still outside the first implementation surface and should only be covered later
 - bootstrap docs should remain thin and connective rather than turning into a new meta-framework
 - the eventual return from process work back to `electron_ui` should happen intentionally, not implicitly
 
 ## Next Likely Packages
 
-- `implement_preflight_and_postflight_doc_integrity_checks`
-- a later narrow package to extend contract coverage only after the first lightweight integrity check exists
+- `expand_integrity_checks_from_core_state_to_stream_local_state`
+- a later narrow package to extend the same smoke/contract model beyond the four global artifacts without scanning broader reference docs
 - an intentional stream switch back to `electron_ui` after the integrity phase reaches a clean pause point
 
 ## Bootstrap Note For New AI Conversations

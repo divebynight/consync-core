@@ -1,0 +1,232 @@
+const assert = require("node:assert");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { evaluateStateIntegrity } = require("../lib/stateIntegrityCheck");
+
+function writeFile(rootPath, relativePath, content) {
+  const absolutePath = path.join(rootPath, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(absolutePath, content);
+}
+
+function createBaseFixture(rootPath) {
+  writeFile(
+    rootPath,
+    ".consync/state/active-stream.md",
+    [
+      "ACTIVE STREAM",
+      "",
+      "process",
+      "",
+      "PREVIOUS STREAM",
+      "",
+      "electron_ui",
+      "",
+      "SWITCH REASON",
+      "",
+      "process owns the live loop",
+      "",
+      "PAUSED STREAMS",
+      "",
+      "- electron_ui",
+      "",
+      "SUPPORTING STREAMS",
+      "",
+      "- none",
+      "",
+      "BLOCKED STREAMS",
+      "",
+      "- none",
+      "",
+      "LIVE OWNER NOTE",
+      "",
+      "Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/state/next-action.md",
+    [
+      "TYPE: PROCESS",
+      "PACKAGE: sample_current_package",
+      "",
+      "GOAL",
+      "",
+      "Run the mounted package.",
+      "",
+      "WORK INSTRUCTIONS",
+      "",
+      "1. Inspect the files.",
+      "",
+      "CONSTRAINTS",
+      "",
+      "- Keep it small.",
+      "",
+      "VERIFICATION",
+      "",
+      "- Run the check.",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/state/snapshot.md",
+    [
+      "# Consync Snapshot",
+      "",
+      "## System Status",
+      "",
+      "- repo state is currently coherent",
+      "",
+      "## Active Stream",
+      "",
+      "- recorded active stream: `process`",
+      "",
+      "## Previous Or Paused Streams",
+      "",
+      "- previous stream: `electron_ui`",
+      "- paused streams: `electron_ui`",
+      "",
+      "## Current Package",
+      "",
+      "- type: `PROCESS`",
+      "- package: `sample_current_package`",
+      "",
+      "## Current Goal / Focus",
+      "",
+      "- keep state coherent",
+      "",
+      "## Current Loop State",
+      "",
+      "- the live loop is open",
+      "",
+      "## Known Tensions Or Pending Decisions",
+      "",
+      "- none",
+      "",
+      "## Next Likely Packages",
+      "",
+      "- another small package",
+      "",
+      "## Bootstrap Note For New AI Conversations",
+      "",
+      "- treat state files as authoritative",
+      "",
+    ].join("\n")
+  );
+}
+
+function main() {
+  const rootPath = fs.mkdtempSync(path.join(os.tmpdir(), "consync-integrity-"));
+
+  createBaseFixture(rootPath);
+
+  writeFile(
+    rootPath,
+    ".consync/state/handoff.md",
+    [
+      "TYPE: PROCESS",
+      "PACKAGE: previous_package",
+      "",
+      "STATUS",
+      "",
+      "PASS",
+      "",
+      "SUMMARY",
+      "",
+      "Previous package closed.",
+      "",
+      "FILES CREATED",
+      "",
+      "- none",
+      "",
+      "FILES MODIFIED",
+      "",
+      "- none",
+      "",
+      "COMMANDS TO RUN",
+      "",
+      "- node src/index.js state-integrity-check preflight",
+      "",
+      "HUMAN VERIFICATION",
+      "",
+      "1. Confirm the sections exist.",
+      "",
+      "VERIFICATION NOTES",
+      "",
+      "- Checked manually.",
+      "",
+    ].join("\n")
+  );
+
+  const preflight = evaluateStateIntegrity(rootPath, "preflight");
+  assert.strictEqual(preflight.ok, true);
+  assert.strictEqual(preflight.status, "PASS");
+  assert.strictEqual(preflight.activeStream, "process");
+  assert.strictEqual(preflight.activePackage, "sample_current_package");
+
+  writeFile(
+    rootPath,
+    ".consync/state/handoff.md",
+    [
+      "TYPE: PROCESS",
+      "PACKAGE: sample_current_package",
+      "",
+      "STATUS",
+      "",
+      "PASS",
+      "",
+      "SUMMARY",
+      "",
+      "Current package closed.",
+      "",
+      "FILES CREATED",
+      "",
+      "- none",
+      "",
+      "FILES MODIFIED",
+      "",
+      "- none",
+      "",
+      "COMMANDS TO RUN",
+      "",
+      "- node src/index.js state-integrity-check postflight",
+      "",
+      "HUMAN VERIFICATION",
+      "",
+      "1. Confirm the sections exist.",
+      "",
+      "VERIFICATION NOTES",
+      "",
+      "- Checked manually.",
+      "",
+    ].join("\n")
+  );
+
+  const postflight = evaluateStateIntegrity(rootPath, "postflight");
+  assert.strictEqual(postflight.ok, true);
+  assert.strictEqual(postflight.status, "PASS");
+
+  writeFile(
+    rootPath,
+    ".consync/state/snapshot.md",
+    fs
+      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
+      .replace("`process`", "`electron_ui`")
+  );
+
+  const failure = evaluateStateIntegrity(rootPath, "preflight");
+  assert.strictEqual(failure.ok, false);
+  assert(
+    failure.failures.some(item => item.includes("snapshot active stream mismatch")),
+    "expected snapshot mismatch failure"
+  );
+
+  console.log("PASS");
+}
+
+main();

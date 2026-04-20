@@ -11,6 +11,7 @@ const { runSandboxSearchCommand } = require("../commands/sandbox-search");
 const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search");
 const { runSystemCheckCommand } = require("../commands/system-check");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
+const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check");
 const { runPortableCommand } = require("../commands/portable");
 
 function parseNewGuidOptions(argv) {
@@ -47,6 +48,33 @@ function parsePortableOptions(argv) {
   return {
     force,
     targetPath,
+  };
+}
+
+function parseStateIntegrityCheckOptions(argv) {
+  const mode = argv[0];
+
+  if (!mode || (mode !== "preflight" && mode !== "postflight")) {
+    throw new Error("Usage: state-integrity-check <preflight|postflight> [--root <path>]");
+  }
+
+  let rootPath;
+
+  for (let index = 1; index < argv.length; index += 1) {
+    const argument = argv[index];
+
+    if (argument === "--root") {
+      rootPath = argv[index + 1];
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown option: ${argument}`);
+  }
+
+  return {
+    mode,
+    rootPath,
   };
 }
 
@@ -115,6 +143,11 @@ async function main() {
 
   if (command === "system-summary") {
     runSystemSummaryCommand();
+    return;
+  }
+
+  if (command === "state-integrity-check") {
+    runStateIntegrityCheckCommand(parseStateIntegrityCheckOptions(process.argv.slice(3)));
     return;
   }
 
