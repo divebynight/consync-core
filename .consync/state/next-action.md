@@ -1,158 +1,172 @@
 TYPE: PROCESS
-PACKAGE: define_artifact_role_labels_for_state_control_governance_reference_and_history
+PACKAGE: scope_integrity_check_triggers_by_artifact_role_and_stream
 
 GOAL
 
-Define a small artifact-role model for Consync so markdown and related system files can be reasoned about by operational role instead of being treated as one undifferentiated file class, and explicitly establish stronger validation expectations around process/governance surfaces than around ordinary feature work.
+Define when light versus heavy integrity checks should run based on artifact role, stream type, and whether process/governance surfaces were touched, so Consync can apply strong validation where risk is highest without burdening ordinary feature work.
 
 WHY
 
-The repo now contains multiple kinds of operational files that all happen to be human-readable text, but they do not all serve the same purpose. Some define live truth, some drive execution, some govern process, some explain, and some preserve history.
+The system now has:
+- core state contracts
+- preflight and postflight integrity checks
+- stream-local integrity checks
+- an artifact-role model
+- validation tiers by role
 
-Without role labeling, AI tools and humans are more likely to treat all markdown-like files as equivalent. That increases drift risk and makes it too easy for ordinary feature work to influence process/governance surfaces casually.
+What is still missing is trigger logic.
 
-Consync does not need maximum validation everywhere. It needs role-aware validation:
-- lighter checks during normal UI/session/feature work
-- stronger checks when process/state/governance artifacts are touched
-- strongest protection around the process silo and its governing artifacts
+Without trigger rules, the system cannot answer:
+- when the lightweight checks are enough
+- when heavier process-oriented validation should run
+- whether stream type changes baseline expectations
+- whether touching governance/process/state surfaces should escalate validation
 
-This package should define the role model and expected validation weight by role before any broader enforcement is added.
+Consync should not validate everything equally on every package. It should use role-aware, stream-aware trigger rules so validation intensity follows operational risk.
 
 SCOPE
 
-Keep this package definition-focused and lightweight.
+Keep this package definition-focused.
 
 Expected outcome:
-- one doc defines the core artifact roles
-- the main operational artifacts are grouped by role
-- the process silo is explicitly identified as the highest-governance zone
-- validation expectations are defined by artifact role
-- role-aware reasoning becomes possible without restructuring the repo
+- one new doc defines integrity-check trigger rules
+- the trigger model distinguishes light and heavy checks
+- the trigger model uses artifact role and stream type
+- the trigger model explicitly treats process/governance work as higher-risk than ordinary UI/session work
+- the trigger model stays small enough to apply during real operation
 
 Do not:
-- introduce file permissions or OS-level security
-- create a tagging framework across the whole repo
-- rename large parts of the repo
 - implement new validators in this package
-- scan or classify every file exhaustively
-- mix this with UI or feature work
+- redesign the existing check commands
+- create a scheduler or workflow engine
+- introduce file permissions or security controls
+- classify every file in the repo exhaustively
+- mix this with UI work
 
 WORK INSTRUCTIONS
 
 1. Create a new doc, preferably at:
 
-   `.consync/docs/artifact-role-model.md`
+   `.consync/docs/integrity-trigger-model.md`
 
-2. In that doc, define a small and stable set of artifact roles.
-   Use explicit, operational naming.
+2. In that doc, define the purpose of trigger scoping:
+   - not all packages need the same validation depth
+   - validation should scale with risk
+   - process/governance changes should trigger stronger checks than ordinary feature work
 
-   At minimum, define:
+3. Define at least three trigger levels.
+   Keep them simple and operational.
 
-   - `state`
-     - artifacts that declare current live truth
+   Suggested shape:
+   - `light`
+     - basic smoke/contract checks over the current live loop
+   - `elevated`
+     - light checks plus stronger review of touched state/control surfaces
+   - `heavy`
+     - full process-silo validation expectations, especially when governance/process artifacts are touched
 
-   - `control`
-     - artifacts that drive the active loop or mounted execution
+4. Define what should trigger each level.
 
-   - `governance`
-     - artifacts that define rules, contracts, policies, and process expectations
+   At minimum, specify rules based on:
 
-   - `reference`
-     - artifacts that explain, clarify, orient, or provide examples
+   - artifact role touched
+     - `state`
+     - `control`
+     - `governance`
+     - `reference`
+     - `history`
 
-   - `history`
-     - artifacts that preserve past actions, prior states, or archived records
+   - stream type
+     - `process`
+     - `electron_ui`
+     - other future streams
 
-3. For each role, define:
-   - purpose
-   - examples
-   - whether it is canonical, supporting, or non-canonical
-   - expected change frequency
-   - expected validation weight
-   - typical owner or stream relationship
+   - package character
+     - ordinary feature work
+     - stream switch
+     - governance/process-model change
+     - bootstrap/re-entry change
+     - integrity-check change
 
-4. Explicitly define the process silo as the highest-governance zone.
+5. Make explicit that:
+   - ordinary UI/session feature work should usually run light checks
+   - packages that touch `state` or `control` may require elevated checks
+   - packages that touch `governance` or process-silo surfaces should default to heavy checks
+   - process stream packages are not automatically heavy, but they are more likely to cross into heavy territory
+   - touching governance/process surfaces from a non-process stream should be unusual and should escalate validation expectations
 
-   Make clear that:
-   - process/state/governance artifacts deserve stronger validation than ordinary feature work
-   - non-process packages should not casually modify governance/process surfaces
-   - when ordinary work must affect governance/process artifacts, that should be explicit and narrowly justified
+6. Define what each trigger level should require.
 
-5. Add a section defining validation tiers by role.
+   For example:
 
-   Example shape:
-   - `state` → always checked by core smoke/contract checks
-   - `control` → always checked when mounted/live
-   - `governance` → checked most heavily when touched
-   - `reference` → lightly checked, usually only for relevance or pointer accuracy
-   - `history` → usually append/preserve, not heavily validated unless it affects live truth
+   - `light`
+     - run current preflight/postflight checks
+     - confirm no obvious contradictions
+     - accept narrow closeout
 
-6. Add a section defining cross-role expectations.
+   - `elevated`
+     - run current checks
+     - verify touched artifacts are in expected zones of influence
+     - confirm no unintended cross-role drift
 
-   At minimum:
-   - reference artifacts must not override state artifacts
-   - history artifacts must not override live truth
-   - governance artifacts define how state/control artifacts are interpreted
-   - control artifacts may drive action but do not automatically redefine governance
-   - process changes that touch governance/state/control surfaces should trigger stronger integrity expectations
+   - `heavy`
+     - run current checks
+     - perform focused human review of governance/process/state implications
+     - confirm role/contract alignment
+     - confirm process silo truth remains coherent after the change
 
-7. Include a small “practical mapping” section listing the main current artifacts by role, for example:
-   - `.consync/state/active-stream.md`
-   - `.consync/state/next-action.md`
-   - `.consync/state/handoff.md`
-   - `.consync/state/snapshot.md`
+7. Add a small decision table or matrix that makes trigger selection easy.
+   Keep it compact and human-usable.
+
+8. Add a short section on override behavior.
+
+   For example:
+   - if a package appears light but actually modifies governance/state/process artifacts, treat it as elevated or heavy
+   - if state contradiction is found, reconciliation takes priority over normal trigger selection
+   - if uncertainty is high, prefer the stronger trigger level
+
+9. Add one or two minimal pointers from existing governance docs if useful, such as:
+   - `artifact-role-model.md`
    - `runbook.md`
    - `doc-integrity-layer.md`
-   - `state-contracts-and-integrity-checks.md`
-   - archived handoffs or stream-local history surfaces
-   - example/reference docs
 
-8. Keep the role model small, human-readable, and operational.
-   It should reduce ambiguity, not create a taxonomy hobby.
-
-9. If useful, add one or two tiny pointers from existing governance docs such as:
-   - `runbook.md`
-   - `doc-integrity-layer.md`
-
-   Keep them minimal.
+   Keep the pointers small.
 
 CONTENT REQUIREMENTS
 
-The new role-model doc should clearly answer:
+The trigger-model doc should clearly answer:
 
-- What kinds of artifacts exist in Consync?
-- Which ones define current truth?
-- Which ones drive action?
-- Which ones govern interpretation and process?
-- Which ones are explanatory only?
-- Which ones preserve history?
-- Which surfaces deserve the strongest validation?
-- Why should process/governance be treated more carefully than ordinary feature work?
+- What validation levels exist?
+- What causes a package to run at each level?
+- How do artifact role and stream type affect validation expectations?
+- Why is process/governance work treated more carefully?
+- Why should ordinary feature work remain lighter?
+- What happens when a package crosses expected boundaries?
 
 It should also state explicitly that:
 
-- artifact role matters more than file format
-- markdown alone is not a meaningful operational classifier
-- the system should validate based on role and risk, not uniformly across all files
-- the process silo is the highest-governance zone and should carry the strongest validation expectations
+- validation intensity should follow risk, not file format
+- the process silo is the highest-governance zone
+- non-process streams should not casually rewrite governance/process surfaces
+- trigger rules are meant to preserve flow, not create bureaucracy
 
 CONSTRAINTS
 
 - keep the model compact
-- avoid over-classifying
-- no implementation of new checks in this package
-- no repo-wide labeling migration
-- no heavy refactor
-- no security theater
+- no implementation of new commands in this package
+- no broad refactor of existing checks
+- no file-permission or “security theater” language
+- no repo-wide classification migration
+- avoid making every package feel heavy
 
 VERIFICATION
 
-1. Read the new role-model doc end to end and confirm it makes the repo easier to explain.
-2. Confirm the five roles are distinct and useful in practice.
-3. Confirm the process silo is clearly identified as the highest-governance zone.
-4. Confirm the validation-tier section makes it clear that not every stream or artifact gets the same level of checking.
-5. Confirm the role model does not imply that all feature work should trigger heavy process validation.
-6. If you add pointers from existing docs, keep them minimal and verify they are accurate.
+1. Read the new trigger-model doc end to end and confirm it is easy to explain and easy to use.
+2. Confirm the three validation levels are distinct and practical.
+3. Confirm ordinary UI/session work remains light by default.
+4. Confirm process/governance/state-touching work escalates validation appropriately.
+5. Confirm the model does not imply that every process-stream package is automatically heavy.
+6. If pointers were added, confirm they are minimal and accurate.
 
 HANDOFF REQUIREMENTS
 
@@ -171,6 +185,6 @@ Include:
 
 For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`scope_integrity_check_triggers_by_artifact_role_and_stream`
+`apply_integrity_trigger_model_to_live_loop_commands_and_closeout`
 
-and describe it as the next narrow package that defines when light versus heavy integrity checks should run based on artifact role, stream type, and whether process/governance surfaces were touched.
+and describe it as the next narrow package that wires the defined trigger levels into the practical loop, so operators know which checks to run during ordinary feature work versus process/governance changes.

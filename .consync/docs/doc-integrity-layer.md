@@ -300,3 +300,5 @@ This integrity layer does not yet add validators, scripts, or a new agent.
 It defines the governed surface, the canonical questions, the enforcement points, and the ownership model so later packages can implement one narrow integrity check at a time.
 
 See `.consync/docs/artifact-role-model.md` for the complementary role model that explains why process/governance surfaces carry stronger validation expectations than ordinary feature/reference work.
+
+See `.consync/docs/integrity-trigger-model.md` for the compact trigger rules that decide when packages should stay light and when they should escalate to elevated or heavy validation.

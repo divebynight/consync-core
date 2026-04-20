@@ -151,6 +151,7 @@ The assistant should:
 ## Pointers To Deeper Docs
 
 - `.consync/docs/artifact-role-model.md` for role-aware reasoning about state, control, governance, reference, and history artifacts and the validation weight each role should carry
+- `.consync/docs/integrity-trigger-model.md` for deciding when packages should run light, elevated, or heavy validation expectations based on role, stream type, and package character
 - `.consync/docs/doc-integrity-layer.md` for the governed documentation/state surface, canonical live-state questions, and integrity enforcement points
 - `.consync/docs/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth

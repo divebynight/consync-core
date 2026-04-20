@@ -3,8 +3,8 @@
 ## System Status
 
 - repo state is currently clean enough to run a new package
-- the most recent completed package extended the lightweight integrity checks from global live-state artifacts into active and paused stream-local state
-- the current package defines a compact artifact-role model so validation can be reasoned about by role and risk instead of file format alone
+- the most recent completed package defined a compact artifact-role model so validation can be reasoned about by role and risk instead of file format alone
+- the current package defines a compact trigger model for when validation should stay light and when it should escalate to elevated or heavy expectations
 - the process phase remains definition-focused here and still does not implement broader repo-wide validation
 
 ## Active Stream
@@ -22,31 +22,31 @@
 ## Current Package
 
 - type: `PROCESS`
-- package: `define_artifact_role_labels_for_state_control_governance_reference_and_history`
+- package: `scope_integrity_check_triggers_by_artifact_role_and_stream`
 
 ## Current Goal / Focus
 
-Define a small artifact-role model so the repo can reason about operational files by role and apply stronger validation expectations to process/governance surfaces than to ordinary feature work.
+Define a small trigger model so the repo can choose light, elevated, or heavy validation expectations based on artifact role, stream type, and package character.
 
-The current package should stay compact and definitional: five useful roles, validation tiers by role, cross-role expectations, and a practical mapping of current artifacts.
+The current package should stay compact and definitional: three trigger levels, simple selection rules, a small decision table, and clear escalation rules for state, control, and governance changes.
 
 ## Current Loop State
 
 - the live loop remains singular, but ownership is now intentionally switched to `process`
 - `electron_ui` is paused cleanly with preserved stream-local resume state
-- the mounted package now defines the role model that explains why some artifact surfaces deserve stronger validation than others
+- the mounted package now defines the trigger rules that explain when stronger validation should apply
 
 ## Known Tensions Or Pending Decisions
 
 - `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
-- the exact trigger rules for light versus heavy integrity checks still need a later narrow package
+- the next implementation package should apply the trigger model to practical loop operation without turning every package into a heavy process ceremony
 - bootstrap docs should remain thin and connective rather than turning into a new meta-framework
 - the eventual return from process work back to `electron_ui` should happen intentionally, not implicitly
 
 ## Next Likely Packages
 
-- `scope_integrity_check_triggers_by_artifact_role_and_stream`
-- a later narrow package to use the role model for deciding when light versus heavy integrity checks should run
+- `apply_integrity_trigger_model_to_live_loop_commands_and_closeout`
+- a later narrow package to use the trigger model during real package execution and closeout guidance
 - an intentional stream switch back to `electron_ui` after the integrity phase reaches a clean pause point
 
 ## Bootstrap Note For New AI Conversations
