@@ -1,5 +1,5 @@
-TYPE: FEATURE
-PACKAGE: restyle_timeline_shell_and_panel_hierarchy_toward_creative_mode
+TYPE: PROCESS
+PACKAGE: create_runbook_and_snapshot_bootstrap_docs
 
 STATUS
 
@@ -7,56 +7,58 @@ PASS
 
 SUMMARY
 
-Restyled the Electron renderer so the Session Timeline reads as the primary workspace surface and the surrounding panels fall into a calmer supporting region underneath it.
+Created a thin bootstrap layer for new AI conversations by adding a practical runbook and refreshing the live snapshot into a compact current-state artifact.
 
-The package stayed presentation-focused. The timeline now sits in its own stage with stronger framing, spacing, and heading treatment, while the search, bookmark, bridge, backend, and session panels are grouped into a softer secondary area. Existing behavior was preserved: bookmark capture, session display, search flow, and separate error surfaces still work the same way.
+The new docs stay connective instead of exhaustive. `runbook.md` defines how to start, operate, reconcile, and switch streams without duplicating the entire process corpus, while `snapshot.md` now reflects the current live repo reality, including the tension between the recorded `electron_ui` owner and the currently mounted process package.
 
 FILES CREATED
 
-- none
+- `.consync/docs/runbook.md` — adds a lightweight operating entrypoint for humans and AI tools, covering the live loop, stream rules, reconciliation priority, and deeper-doc pointers.
 
 FILES MODIFIED
 
-- `src/electron/renderer/App.jsx` — reorganized the renderer markup into a primary timeline stage plus a secondary support region while preserving the existing panel content and behavior.
-- `src/electron/renderer/styles.css` — strengthened the timeline shell hierarchy, spacing, and typography; softened secondary panels; and improved grouping so the page reads more like a creative workspace than a uniform utility grid.
-- `.consync/state/handoff.md` — records this feature package result in the live handoff location.
-- `.consync/state/next-action.md` — advances to the next Creative Timeline follow-up package.
+- `.consync/state/snapshot.md` — replaces the older long-form entry artifact with a compact live snapshot focused on system status, active stream, current package, current loop state, tensions, and bootstrap instructions.
+- `.consync/docs/current-system.md` — adds one small pointer directing new sessions to the runbook and snapshot before the deeper reference set.
+- `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 COMMANDS TO RUN
 
-- `cd /Users/markhughes/Projects/consync-core && node src/test/verify.js`
-- `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`
 - `cd /Users/markhughes/Projects/consync-core && git status --short`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,240p' .consync/docs/runbook.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/snapshot.md`
+- `cd /Users/markhughes/Projects/consync-core && sed -n '1,40p' .consync/docs/current-system.md`
 
 VERIFICATION
 
-- Ran `node src/test/verify.js` and observed `[verify] PASS`.
-- The renderer search-flow UI slice passed 14 of 14 tests under the full verification run.
-- Ran `git status --short` immediately before rewriting this handoff and observed a clean worktree.
+- Confirmed `.consync/docs/runbook.md` now exists in the expected location.
+- Read `.consync/docs/runbook.md` end to end and confirmed it provides actionable start, loop, switching, and reconciliation guidance without turning into a giant spec.
+- Read `.consync/state/snapshot.md` end to end and confirmed it reflects the current repo reality, including the current package and the stream-ownership mismatch.
+- Read the updated opening of `.consync/docs/current-system.md` and confirmed the new pointer is small and accurate.
+- Ran `git status --short` and confirmed the package stayed narrow: `runbook.md` created, `snapshot.md` updated, `current-system.md` updated, and the live `handoff.md`/`next-action.md` state files present in the working surface.
 
 MANUAL VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Confirm the `Session Timeline` now reads as the most prominent surface on the page and is visually separated from the utility panels below it.
-3. Confirm the lower support panels still render correctly and remain readable, especially `Mock Search`, `Save Bookmark`, `Session`, and `Bookmarks`.
-4. Confirm `Mock Search` still runs, selection still drives the detail panel, and `Reveal in Finder` still works only through the explicit action button.
-5. Confirm the app still feels like the same shell functionally, with the change limited to hierarchy, spacing, grouping, and tone.
+1. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,240p' .consync/docs/runbook.md`.
+2. Confirm the runbook answers these operational questions directly: what to read first, how to run one package, when to stay in the active stream, when to switch, and what to do when state is inconsistent.
+3. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,220p' .consync/state/snapshot.md`.
+4. Confirm the snapshot is short enough to paste into a new AI conversation and that it names the current package, current goal, active stream, and known tensions.
+5. Run `cd /Users/markhughes/Projects/consync-core && sed -n '1,40p' .consync/docs/current-system.md` and confirm the pointer to the runbook and snapshot is present but small.
+6. Failure case: if the runbook reads like a duplicated mega-spec, or if the snapshot hides the current stream/package mismatch instead of naming it, treat this package as incomplete.
 
 HUMAN VERIFICATION
 
-1. Run `cd /Users/markhughes/Projects/consync-core && npm run start:desktop`.
-2. Verify the timeline panel is visually dominant and the support panels below it feel secondary rather than equal-weight dashboard tiles.
-3. Run a mock search and confirm success behavior: grouped results render, selecting a result updates the detail panel, and `Reveal in Finder` only triggers when that explicit button is pressed.
-4. Save a bookmark and confirm success behavior: the session remains usable and the bookmark surfaces continue to render without layout breakage.
-5. For failure checks, trigger any existing search failure path and confirm the `Search Error` surface still appears separately from `Session Error`; if either error surface disappears or moves into the wrong panel, treat the package as failing verification.
+1. Run `cd /Users/markhughes/Projects/consync-core && git status --short` and confirm the changed surface is limited to the new runbook, the refreshed snapshot, the small pointer in `current-system.md`, and the live handoff state.
+2. Open `.consync/docs/runbook.md` and verify success behavior: a new assistant could follow it without needing the deeper process docs first.
+3. Open `.consync/state/snapshot.md` and verify success behavior: a new assistant could quickly understand what stream is recorded as active, what package is currently mounted, and what tension still needs later reconciliation.
+4. Verify failure behavior by checking for contradictions: if the snapshot claims the system is fully reconciled while `active-stream.md` still says `electron_ui` and `next-action.md` is a process package, the snapshot is inaccurate and the package should fail.
+5. Verify failure behavior by checking for bloat: if either doc duplicates large sections of existing process docs instead of acting as a thin bootstrap layer, the package should fail.
 
 VERIFICATION NOTES
 
-- Actually tested: full repo verification via `node src/test/verify.js`.
-- Observed outcome: full verification ended with `[verify] PASS`, including the renderer search-flow UI slice at 14 of 14 passing tests.
-- Also validated: the repo was clean under `git status --short` before rewriting this handoff.
-- Important edge cases covered by the passing UI suite include grouped search results, explicit reveal behavior, stale search state clearing, no-results rendering, and separation between search-panel errors and non-search session errors.
+- Actually tested: file existence for `.consync/docs/runbook.md`, end-to-end file review of `runbook.md` and `snapshot.md`, spot-check review of the `current-system.md` pointer, and `git status --short` for changed-surface scope.
+- Observed outcome: the new runbook exists, the snapshot is materially shorter and more pasteable than the previous entry artifact, and the pointer in `current-system.md` stayed minimal.
+- Important edge cases validated: the snapshot explicitly captures the current stream/package mismatch instead of flattening it away, and the runbook explicitly states that reconciliation takes priority when repo truth and state docs disagree.
 
 NEXT SUGGESTED PACKAGE
 
-- `bind_bookmark_markers_into_session_timeline` — replace one placeholder timeline lane with real current-session bookmark markers while keeping waveform rendering and deeper timeline interaction out of scope.
+- `reconcile_bootstrap_docs_with_active_stream_ownership` — decide whether this bootstrap-doc slice should remain a one-off support package under `electron_ui` or trigger a formal process-stream switch, then align `active-stream.md`, foreground ownership, and the live loop before adding deterministic documentation integrity checks.

@@ -6,6 +6,8 @@ Consync is a small offline-first context layer over creative work.
 
 It captures meaningful interaction and re-entry cues that a normal filesystem does not express well, while staying grounded in local files and small human-readable metadata.
 
+For the fastest operational bootstrap, start with `.consync/docs/runbook.md` and `.consync/state/snapshot.md` before dropping into the deeper reference set.
+
 ## What Consync Does Today
 
 Consync is a small offline-first workspace that is still CLI-first, with a new desktop scaffold layered in for local app iteration.

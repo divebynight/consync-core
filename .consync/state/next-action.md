@@ -1,103 +1,142 @@
-TYPE: FEATURE
-PACKAGE: restyle_timeline_shell_and_panel_hierarchy_toward_creative_mode
+TYPE: PROCESS
+PACKAGE: create_runbook_and_snapshot_bootstrap_docs
 
 GOAL
 
-Push the current Electron renderer visually toward the Creative Mode direction by improving hierarchy, spacing, grouping, and overall tone, while keeping the existing functionality and layout structure intact.
+Create two local Consync docs that act as the portable bootstrap layer for new AI conversations:
+
+- `.consync/docs/runbook.md`
+- `.consync/state/snapshot.md`
+
+These docs should make it easier to rehydrate system behavior and current state into a new ChatGPT or Copilot conversation with less drift and less inconsistency.
 
 WHY
 
-The first timeline shell package established the correct product direction, but the renderer still likely reads more like a developer/admin tool than a creative session workspace. Before adding more real timeline data, we want the UI to better communicate that the timeline is the primary surface and the surrounding panels are supporting context.
+The current Consync repo already contains strong distributed process documentation, but there is not yet a single lightweight bootstrap pair that answers:
 
-This package should make the current UI feel more intentional, more readable, and more aligned with the earlier Creative Timeline design direction without turning into a full redesign.
+1. How should the system be operated?
+2. What is the current live state right now?
+
+Without that bootstrap layer, new AI conversations can behave inconsistently depending on how much context is manually reintroduced. The goal of this package is not to replace existing docs, but to create a thin entrypoint and state snapshot that can be copied into future conversations and eventually exposed through MCP or other tooling.
 
 SCOPE
 
-Keep this package renderer- and style-focused.
+Create the two docs locally in the project folder and keep them intentionally thin, practical, and connective.
 
 Expected outcome:
-- the Session Timeline region feels visually primary
-- the surrounding panels feel secondary and better grouped
-- spacing, typography, panel hierarchy, and proportions move toward a more creative workspace feel
-- the UI becomes less generic/dev-tool-like
-- existing behavior remains intact
+- a new `.consync/docs/runbook.md` exists
+- a new `.consync/state/snapshot.md` exists
+- the runbook defines core operating rules and decision logic without duplicating all existing process docs
+- the snapshot summarizes the current live state in a compact, reusable format
+- both docs are suitable for pasting into a new AI conversation as bootstrap context
 
-Do not implement:
-- waveform rendering
-- playback controls
-- timeline interaction complexity
-- new persistence or backend data flow
-- major component architecture changes
-- broad behavioral changes
+Do not:
+- rewrite the entire existing doc system
+- duplicate large amounts of content from existing docs
+- introduce heavy automation in this package
+- redesign the stream model
+- add verification tooling yet
 
 WORK INSTRUCTIONS
 
-1. Inspect the current renderer and identify the most important visual hierarchy issues, especially:
-   - whether the timeline is visually dominant enough
-   - whether panel spacing and grouping feel cramped or overly uniform
-   - whether headers, labels, and supporting text create a clear reading order
-   - whether the UI still feels too much like a generic utility/admin panel
+1. Inspect the existing `.consync/docs` and `.consync/state` structure so the new files fit naturally into the current system.
 
-2. Restyle the existing renderer so the timeline becomes the visual anchor of the page. Examples of acceptable changes:
-   - increase separation around the timeline shell
-   - strengthen timeline panel framing and internal spacing
-   - make timeline headings and lane labels clearer and calmer
-   - soften or reduce the visual weight of secondary panels below it
-   - improve the panel grid so the search/session/detail areas feel like support surfaces, not equal competitors
+2. Create `.consync/docs/runbook.md` as a thin operating guide.
+   It should be a practical decision-layer and entrypoint, not a giant spec.
 
-3. Move the UI toward the earlier Creative Mode direction using layout and style choices such as:
-   - stronger spacing rhythm
-   - cleaner panel hierarchy
-   - more intentional header/subheader treatment
-   - improved contrast and grouping
-   - calmer, more studio-like visual structure
+   Include sections such as:
 
-4. Keep naming explicit and boring. This package is about presentation, not renaming concepts.
+   - Purpose
+   - How to start a session
+   - Core operating loop
+   - Active stream rule
+   - Open vs closed system rule
+   - Stream switching rule
+   - Package selection rule
+   - State reconciliation rule
+   - How to use this runbook with AI tools
+   - Pointers to deeper docs
 
-5. Prefer CSS and light renderer markup adjustments over heavy refactors. Small structural changes are acceptable if they directly improve hierarchy or grouping.
+3. The runbook should explicitly include the rule we discussed:
 
-6. Preserve current renderer behavior:
-   - Mock Search still works
-   - Session and Bookmark panels still work
-   - existing error surfaces remain intact
-   - timeline shell remains present and readable
+   - If the system is closed, any stream may be chosen intentionally.
+   - If the system is open, the active stream must be continued until it is completed, paused cleanly, or formally switched.
+   - If state is inconsistent or misleading, reconciliation takes priority over feature execution.
 
-DESIGN INTENT
+4. Create `.consync/state/snapshot.md` as a compact live-state artifact.
+   It should be easy to skim and easy to paste into a new AI conversation.
 
-Target feel:
-- less “tooling dashboard”
-- more “creative session workspace”
+   Include sections such as:
 
-The renderer should begin to suggest:
-- a primary timeline/story of the session
-- supporting context panels underneath
-- a calmer and more intentional composition
+   - System status
+   - Active stream
+   - Previous stream or paused stream(s), if useful
+   - Current package
+   - Current goal/focus
+   - Current loop state
+   - Known tensions or pending decisions
+   - Next likely package(s)
+   - Bootstrap note for new AI conversations
 
-Good result:
-“The current UI is still simple, but it clearly feels like the beginning of a creative workspace instead of a generic status panel.”
+5. Populate the snapshot using the current known state of the repo and current direction.
+   It should reflect the current UI-stream reality rather than a generic template.
+
+6. Keep both docs human-readable, direct, and compact. They should feel like practical operating artifacts, not policy theater.
+
+7. If there is an appropriate existing doc that should lightly reference the runbook, add at most one small pointer. Do not let this package expand into a broad doc refactor.
+
+CONTENT GUIDANCE
+
+For `runbook.md`, optimize for:
+- consistency across conversations
+- portability
+- decision clarity
+- minimal duplication
+
+For `snapshot.md`, optimize for:
+- current truth
+- easy pasteability
+- fast re-entry after interruption
+- compatibility with ChatGPT and Copilot bootstrap use
+
+SUGGESTED CONTENT SHAPE
+
+`runbook.md` should roughly answer:
+- What do I read first?
+- What do I do next?
+- When do I stay in the current stream?
+- When can I switch?
+- What do I do if reality and docs disagree?
+
+`snapshot.md` should roughly answer:
+- What stream is live?
+- What package is live?
+- What are we trying to do right now?
+- What should the next AI assistant know immediately?
 
 CONSTRAINTS
 
-- Do not redesign the whole app from scratch
-- Do not add new product concepts unless a tiny static label adjustment is clearly useful
-- Do not introduce waveform visuals yet
-- Do not mix this with bookmark-to-timeline data binding
-- Keep the package small enough to verify and hand off cleanly
+- Keep both docs small and useful
+- Do not create a giant meta-framework
+- Do not add code-based doc verification in this package
+- Do not stall the active UI stream with a broad process rewrite
+- This package is about bootstrap clarity, not full process formalization
 
 VERIFICATION
 
-Run the repo verification command after changes.
+After creating the docs:
 
-If practical, include manual verification steps such as:
-1. launch the Electron UI
-2. confirm the Session Timeline is visually more prominent than the surrounding panels
-3. confirm the lower panels still render and function without layout breakage
-4. confirm spacing, grouping, and typography feel more intentional and readable
-5. confirm the UI still behaves like the same app, only with a clearer Creative Mode direction
+1. Confirm both files exist in the correct locations.
+2. Read each file once end-to-end and confirm:
+   - the runbook provides actionable operating rules
+   - the snapshot reflects current repo reality
+   - neither doc is overly long or redundant
+3. Confirm the snapshot is suitable to paste into a new AI conversation with minimal editing.
+4. If you add any pointer from an existing doc, keep it small and verify it is accurate.
 
 HANDOFF REQUIREMENTS
 
-Write the handoff to the global live `handoff.md` using the project’s standard structure.
+Write the handoff to the appropriate live `handoff.md` using the project’s standard structure.
 
 Include:
 - TYPE
@@ -110,8 +149,7 @@ Include:
 - MANUAL VERIFICATION
 - NEXT SUGGESTED PACKAGE
 
-For `NEXT SUGGESTED PACKAGE`, recommend:
-
-`bind_bookmark_markers_into_session_timeline`
-
-and describe it as the first narrow package that replaces one placeholder lane with real current-session bookmark markers while keeping waveform rendering and deeper timeline interaction out of scope.
+For `NEXT SUGGESTED PACKAGE`, recommend a narrow follow-up that either:
+- lightly links the runbook from one existing system doc, or
+- adds deterministic documentation integrity checks,
+but only after the current active stream situation is reconciled intentionally.

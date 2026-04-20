@@ -1,69 +1,66 @@
-# ENTRY POINT — start here
+# Consync Snapshot
 
-SYSTEM STATE:
-PASS
+## System Status
 
-CURRENT DIRECTION:
-Keep the single-package loop atomic while making the multi-package operator artifacts concrete, minimal, and resumable from repo files alone.
+- repo state is currently clean enough to run a new package
+- the most recent completed package restyled the Electron renderer so the timeline is visually primary
+- `handoff.md` currently records that renderer restyle package as `PASS`
+- `next-action.md` currently mounts a new process package: `create_runbook_and_snapshot_bootstrap_docs`
 
-LAST COMPLETED WORK:
-The last attempted package reran the observational search loop after the selection/reveal split, but it could not close PASS because the live interaction was not durably observed end to end.
+## Active Stream
 
-CURRENT REALITY:
-- `next-action.md` is now treated as the live execution slot rather than the durable historical record.
-- `handoff.md` is the live result contract for the most recently completed package.
-- `.consync/state/history/` is the durable area for executed package instructions and superseded process material.
-- Closeout now requires repo reconciliation and resume-state classification before a new package is prepared.
-- Resume state is classified as `CLEAN`, `DIRTY_CLOSEOUT_PENDING`, `DIRTY_NEXT_PACKAGE_STARTED`, or `DIRTY_UNKNOWN`.
-- `.consync/state/package_plan.md` now defines the minimal durable orchestration format, including cursor, next package, gates, pause conditions, and repair notes.
-- The package plan format now includes a compact manual advancement checklist for reading `handoff.md`, checking gates, recording the next cursor, and replacing `next-action.md` in the correct order.
-- The package plan format now also includes a compact resume-state checklist for determining whether advancement is allowed or repair is required.
-- The resume-state rules are now backed by small worked examples so state labels can be applied without relying on chat history.
-- Verification is now standardized as automated checks, manual checks, closeout validation, and an explicit advancement classification.
-- Verification now also distinguishes manual verification instructions from the blocking human-gate mode that controls whether advancement must wait.
-- Repair handling is now documented as an explicit operator checklist that preserves the blocked package, requires a `CLEAN` return, and stops on new ambiguity.
-- The repair rules are now backed by small worked examples so return decisions can be applied without relying on chat history.
-- Session state now includes one more real value alongside the latest artifact file: artifact count derived from `sandbox/current`.
-- The Session panel now visibly renders that artifact count alongside the existing real session fields.
-- The Session panel now also shows the latest bookmark note already present in renderer-readable session state.
-- The Session panel now also shows the latest bookmark time already present in renderer-readable session state.
-- The renderer hero copy now describes incremental real session values instead of a single real backend signal.
-- `npm run verify` now includes one deterministic renderer-oriented Session panel check, reducing reliance on file review alone for recent renderer changes.
-- The desktop bookmark action now persists bookmarks into the current real session artifact instead of stopping in in-memory session state.
-- The running renderer bookmark flow now re-reads real session state after the write, keeping displayed state anchored to the persisted artifact path.
-- The bookmark loop is now also machine-verified end-to-end at the model level: persisted artifact contents, derived session state, derived Session rows, and reload consistency.
-- The Bookmarks empty state now describes the absence of saved bookmarks directly instead of referring to proving the loop.
-- The bookmark-entry panel now describes the action in terms of saving a bookmark into the current session instead of using generic earlier wording.
-- Consync is now documented as a context/memory layer over creative work rather than a tracker of full filesystem truth.
-- Local `.consync` anchors are now explicitly described as sparse durable context truth where meaningful local persistence exists.
-- Session is now explicitly documented as the primary captured unit, with folder context treated as supportive rather than equivalent.
-- Search/discovery is now documented as downward scanning of nested anchors under a chosen root, with discovered associations kept provisional until linked deliberately.
-- `sandbox/current` is now explicitly framed as a development harness rather than the long-term ontology.
-- A nested sandbox fixture now models a higher-level root with two local `.consync` anchors and one unanchored sibling.
-- `sandbox-discover` now finds nested local anchors beneath a chosen root without treating every folder as captured context.
-- `sandbox-search` now searches bookmarked artifact metadata across discovered anchors while ignoring ambient non-bookmarked files.
-- The nested-anchor trial is deterministic enough for expectation-based verification and remains read-only.
-- `sandbox-desktop-search` now wraps nested anchor discovery and bookmark search into a grouped user-facing preview that feels closer to what a desktop result view would show.
-- The grouped mock flow still uses the same read-only anchor truth and does not add new linking, ranking, or persistent state.
-- The desktop shell now exposes one minimal root/query mock-search path through preload, IPC, shared core, and the renderer.
-- The renderer can now display the same grouped mock-search truth already returned by `sandbox-desktop-search`.
-- The new desktop search path remains read-only and adds no query persistence, linking, or ranking behavior.
-- A short desktop trial can now complete one root-and-query grouped mock search end to end without exposing a new workflow blocker at that scale.
-- The desktop search path now returns structured grouped result data alongside the stable formatted CLI output so renderer presentation can stay data-driven.
-- The renderer now presents grouped search results as labeled sections and match rows instead of a single preformatted text block.
-- Deterministic verification still covers the desktop scaffold path and the CLI desktop-search expectation remains stable.
-- A short desktop trial can now complete one root-and-query grouped search with structured results end to end without exposing a new blocker at this scale.
-- The desktop search view now lets a user select one result row and inspect its full path, note, tags, and session/anchor context in a read-only detail panel.
-- The selected-match detail view stays renderer-only and does not add navigation, linking, writes, or new IPC behavior.
-- Desktop search results can now also trigger one read-only reveal action through preload, IPC, and the main process using the already-derived file path.
-- The reveal path falls back to the parent folder when a direct file reveal is unavailable.
-- Clicking a result row now updates selection and detail state only; reveal happens only through the explicit detail-panel button.
-- The search flow now has a clearer separation between inspect and act without changing grouped search truth or session state.
-- The current automated baseline is still healthy: `node src/test/desktop-scaffold.js` passed, `npm run verify` passed, and the CLI grouped-search truth for the nested-anchor trial still reports two sessions and two matches for `moss`.
-- A desktop launch was attempted and manually closed, but the actual live search -> select -> explicit reveal -> reselection interaction was not durably captured, so readiness at this scale remains unconfirmed.
+- recorded active stream: `electron_ui`
+- recorded foreground stream: `electron_ui`
+- live owner note still says `electron_ui` owns `next-action.md` and `handoff.md`
 
-ACTIVE FOCUS:
-Repair the failed observational gap by capturing one clean manual pass of the explicit-reveal search loop.
+## Previous Or Paused Streams
 
-NEXT ACTION:
-Run the next PROCESS package in `.consync/state/next-action.md`, which should capture one reliable manual live observation of the explicit-reveal search loop and then either close the flow PASS or name the concrete blocker.
+- previous stream: `process`
+- paused streams: `process`
+- supporting streams: none
+
+## Current Package
+
+- type: `PROCESS`
+- package: `create_runbook_and_snapshot_bootstrap_docs`
+
+## Current Goal / Focus
+
+Create a thin bootstrap pair for future AI conversations:
+
+- `.consync/docs/runbook.md` for operating rules and decision logic
+- `.consync/state/snapshot.md` for compact current-state re-entry
+
+The immediate goal is to make cold-start AI sessions more consistent without broadening into a full process rewrite.
+
+## Current Loop State
+
+- the live loop is open because a new package is mounted in `next-action.md`
+- the repo is between streams conceptually: active-stream metadata still points to `electron_ui`, but the mounted package is process-oriented bootstrap work
+- this is workable for the current package, but it should be reconciled intentionally rather than left implicit
+
+## Known Tensions Or Pending Decisions
+
+- stream ownership and live package type do not currently line up perfectly
+- `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
+- bootstrap docs should stay thin and practical instead of turning into a new meta-framework
+- any deterministic documentation integrity checks should come later, after stream ownership is clarified
+
+## Next Likely Packages
+
+- reconcile whether this bootstrap-doc package is a one-off process support slice inside the UI stream or the start of a formal process-stream return
+- lightly link the new runbook from one existing system doc if that pointer is still useful after this package lands
+- add deterministic documentation integrity checks only after the active stream situation is intentionally reconciled
+
+## Bootstrap Note For New AI Conversations
+
+If starting cold, read these files first:
+
+1. `.consync/state/snapshot.md`
+2. `.consync/state/next-action.md`
+3. `.consync/state/handoff.md`
+4. `.consync/state/active-stream.md`
+
+Treat `.consync/state/*` as authoritative over prior conversation memory.
+
+If repo reality and state files disagree, stop and reconcile before executing a new package.
