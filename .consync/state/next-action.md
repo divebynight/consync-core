@@ -1,104 +1,158 @@
 TYPE: PROCESS
-PACKAGE: expand_integrity_checks_from_core_state_to_stream_local_state
+PACKAGE: define_artifact_role_labels_for_state_control_governance_reference_and_history
 
 GOAL
 
-Extend the existing lightweight integrity-check surface from the four global live-state artifacts into the active/paused stream-local state surfaces so the system can verify that stream-specific truth and global truth do not drift apart.
+Define a small artifact-role model for Consync so markdown and related system files can be reasoned about by operational role instead of being treated as one undifferentiated file class, and explicitly establish stronger validation expectations around process/governance surfaces than around ordinary feature work.
 
 WHY
 
-The current integrity checks now protect the global live loop well enough to answer the core smoke-level questions about active stream, active package, and open/closed state. The next risk surface is stream-local state.
+The repo now contains multiple kinds of operational files that all happen to be human-readable text, but they do not all serve the same purpose. Some define live truth, some drive execution, some govern process, some explain, and some preserve history.
 
-With multiple streams, the system also depends on stream-local artifacts staying coherent:
-- active streams should read as active locally
-- paused streams should read as paused locally
-- stream-local snapshots should preserve usable resume context
-- stream-local next actions should not contradict the global owner model
+Without role labeling, AI tools and humans are more likely to treat all markdown-like files as equivalent. That increases drift risk and makes it too easy for ordinary feature work to influence process/governance surfaces casually.
 
-This package should extend the same smoke/contract approach into stream-local state without expanding into broad repo-wide validation or reference-doc scanning.
+Consync does not need maximum validation everywhere. It needs role-aware validation:
+- lighter checks during normal UI/session/feature work
+- stronger checks when process/state/governance artifacts are touched
+- strongest protection around the process silo and its governing artifacts
+
+This package should define the role model and expected validation weight by role before any broader enforcement is added.
 
 SCOPE
 
-Keep this package narrow and incremental.
+Keep this package definition-focused and lightweight.
 
 Expected outcome:
-- the integrity-check surface reads relevant stream-local state artifacts
-- it verifies a small set of stream-local invariants
-- it reports PASS/FAIL with concise operational output
-- it detects obvious contradictions between global state and stream-local state
-- it still avoids broader documentation scanning
+- one doc defines the core artifact roles
+- the main operational artifacts are grouped by role
+- the process silo is explicitly identified as the highest-governance zone
+- validation expectations are defined by artifact role
+- role-aware reasoning becomes possible without restructuring the repo
 
 Do not:
-- validate all docs under `.consync/docs`
-- introduce a full repo graph validator
-- create a separate integrity agent yet
-- add policy enforcement beyond the stream-local smoke/contract layer
-- mix this with UI work
+- introduce file permissions or OS-level security
+- create a tagging framework across the whole repo
+- rename large parts of the repo
+- implement new validators in this package
+- scan or classify every file exhaustively
+- mix this with UI or feature work
 
 WORK INSTRUCTIONS
 
-1. Inspect the existing integrity-check implementation and extend it in the smallest natural way.
+1. Create a new doc, preferably at:
 
-2. Limit this package to stream-local state surfaces under:
-   - `.consync/streams/*/stream.md`
-   - `.consync/streams/*/state/next_action.md`
-   - `.consync/streams/*/state/handoff.md`
-   - `.consync/streams/*/state/snapshot.md`
+   `.consync/docs/artifact-role-model.md`
 
-3. Define and implement a small set of stream-local checks.
+2. In that doc, define a small and stable set of artifact roles.
+   Use explicit, operational naming.
 
-   At minimum, verify:
+   At minimum, define:
 
-   - the globally active stream exists locally and does not read as paused
-   - any globally paused stream exists locally and does read as paused
-   - the active stream has a readable local next action or equivalent active-phase context
-   - paused streams preserve readable local resume context rather than appearing abandoned
-   - stream-local snapshot/package context does not obviously contradict stream role
-   - the global next-action owner and the active stream’s local state do not obviously conflict
+   - `state`
+     - artifacts that declare current live truth
 
-4. Keep the checks shallow and operational.
-   This is still a smoke/contract layer, not deep semantic validation.
+   - `control`
+     - artifacts that drive the active loop or mounted execution
 
-5. Update the command output minimally so the operator can understand:
-   - whether stream-local integrity passed
-   - which stream failed, if any
-   - whether reconciliation is required
+   - `governance`
+     - artifacts that define rules, contracts, policies, and process expectations
 
-6. Add a narrow test surface that covers:
-   - one passing case with coherent stream-local state
-   - at least one obvious failure case involving active/paused contradiction or missing local resume state
+   - `reference`
+     - artifacts that explain, clarify, orient, or provide examples
 
-7. If needed, update the existing contracts/integrity docs with a small note explaining that the integrity-check surface now includes stream-local state in addition to the four global live-state artifacts.
+   - `history`
+     - artifacts that preserve past actions, prior states, or archived records
 
-8. Keep naming explicit and boring.
+3. For each role, define:
+   - purpose
+   - examples
+   - whether it is canonical, supporting, or non-canonical
+   - expected change frequency
+   - expected validation weight
+   - typical owner or stream relationship
 
-CHECK MODEL
+4. Explicitly define the process silo as the highest-governance zone.
 
-The expanded checks should remain equivalent to:
-- smoke checks
-- contract checks
+   Make clear that:
+   - process/state/governance artifacts deserve stronger validation than ordinary feature work
+   - non-process packages should not casually modify governance/process surfaces
+   - when ordinary work must affect governance/process artifacts, that should be explicit and narrowly justified
 
-They should not yet become full integration checks across the entire documentation corpus.
+5. Add a section defining validation tiers by role.
+
+   Example shape:
+   - `state` → always checked by core smoke/contract checks
+   - `control` → always checked when mounted/live
+   - `governance` → checked most heavily when touched
+   - `reference` → lightly checked, usually only for relevance or pointer accuracy
+   - `history` → usually append/preserve, not heavily validated unless it affects live truth
+
+6. Add a section defining cross-role expectations.
+
+   At minimum:
+   - reference artifacts must not override state artifacts
+   - history artifacts must not override live truth
+   - governance artifacts define how state/control artifacts are interpreted
+   - control artifacts may drive action but do not automatically redefine governance
+   - process changes that touch governance/state/control surfaces should trigger stronger integrity expectations
+
+7. Include a small “practical mapping” section listing the main current artifacts by role, for example:
+   - `.consync/state/active-stream.md`
+   - `.consync/state/next-action.md`
+   - `.consync/state/handoff.md`
+   - `.consync/state/snapshot.md`
+   - `runbook.md`
+   - `doc-integrity-layer.md`
+   - `state-contracts-and-integrity-checks.md`
+   - archived handoffs or stream-local history surfaces
+   - example/reference docs
+
+8. Keep the role model small, human-readable, and operational.
+   It should reduce ambiguity, not create a taxonomy hobby.
+
+9. If useful, add one or two tiny pointers from existing governance docs such as:
+   - `runbook.md`
+   - `doc-integrity-layer.md`
+
+   Keep them minimal.
+
+CONTENT REQUIREMENTS
+
+The new role-model doc should clearly answer:
+
+- What kinds of artifacts exist in Consync?
+- Which ones define current truth?
+- Which ones drive action?
+- Which ones govern interpretation and process?
+- Which ones are explanatory only?
+- Which ones preserve history?
+- Which surfaces deserve the strongest validation?
+- Why should process/governance be treated more carefully than ordinary feature work?
+
+It should also state explicitly that:
+
+- artifact role matters more than file format
+- markdown alone is not a meaningful operational classifier
+- the system should validate based on role and risk, not uniformly across all files
+- the process silo is the highest-governance zone and should carry the strongest validation expectations
 
 CONSTRAINTS
 
-- keep the implementation small
-- no broad markdown scanning
-- no reference-doc validation
-- no agent framework work yet
-- do not require a new action-plan system
-- avoid inventing new artifact categories unless strictly necessary
+- keep the model compact
+- avoid over-classifying
+- no implementation of new checks in this package
+- no repo-wide labeling migration
+- no heavy refactor
+- no security theater
 
 VERIFICATION
 
-1. Run the updated preflight integrity check and confirm it returns PASS on coherent global + stream-local state.
-2. Run the updated postflight integrity check and confirm it returns PASS on coherent global + stream-local state.
-3. Run the narrow integrity test surface and confirm it covers at least one stream-local failure mode.
-4. If practical, simulate an obvious contradiction such as:
-   - active stream locally marked paused
-   - paused stream missing local resume snapshot
-   - stream-local next action contradicting global mounted ownership
-5. Confirm the output remains concise and operational rather than verbose.
+1. Read the new role-model doc end to end and confirm it makes the repo easier to explain.
+2. Confirm the five roles are distinct and useful in practice.
+3. Confirm the process silo is clearly identified as the highest-governance zone.
+4. Confirm the validation-tier section makes it clear that not every stream or artifact gets the same level of checking.
+5. Confirm the role model does not imply that all feature work should trigger heavy process validation.
+6. If you add pointers from existing docs, keep them minimal and verify they are accurate.
 
 HANDOFF REQUIREMENTS
 
@@ -117,6 +171,6 @@ Include:
 
 For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`define_artifact_role_labels_for_state_control_governance_reference_and_history`
+`scope_integrity_check_triggers_by_artifact_role_and_stream`
 
-and describe it as the next narrow package that formalizes artifact-role labeling so markdown files can be reasoned about by role instead of being treated as one undifferentiated file class.
+and describe it as the next narrow package that defines when light versus heavy integrity checks should run based on artifact role, stream type, and whether process/governance surfaces were touched.
