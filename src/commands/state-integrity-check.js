@@ -11,6 +11,7 @@ function runStateIntegrityCheckCommand(options) {
   console.log(`- active stream: ${result.activeStream}`);
   console.log(`- active package: ${result.activePackage}`);
   console.log(`- system state: ${result.systemState}`);
+  console.log(`- stream-local state: ${result.streamLocalStatus}`);
   console.log(`- next safe action: ${result.nextSafeAction}`);
 
   if (!result.ok) {

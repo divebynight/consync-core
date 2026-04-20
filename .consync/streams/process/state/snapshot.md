@@ -2,18 +2,18 @@
 
 What just happened:
 
-- a bootstrap runbook and compact global snapshot were added to make new AI conversations more consistent
-- that work exposed a real mismatch: the global loop was already carrying process packages while the recorded active stream still said `electron_ui`
-- this stream is now re-activated to reconcile ownership and define the first documentation-integrity layer
+- the first documentation/state integrity layer and the core live-state contracts are now defined
+- the repo now has lightweight preflight and postflight checks over the four global live-state artifacts
+- the next process slice extends that same smoke/contract model into stream-local state
 
 Current state:
 
 - the process stream now owns the live loop again
-- the immediate responsibility is documentation/state integrity, not broad process redesign
+- the immediate responsibility is still documentation/state integrity, not broad process redesign
 - `electron_ui` is intentionally paused, not abandoned
 
 What matters next:
 
-- define the governed documentation/state surface and the meaning of integrity
-- decide when integrity checks should run and which prompt or agent surfaces own enforcement
-- avoid implementing automated checks until that narrower definition package is complete
+- extend the integrity checks so active and paused stream-local state does not drift from the global owner model
+- keep the implementation shallow: smoke checks and contract checks, not repo-wide validation
+- avoid expanding into broader doc scanning or agent framework work yet

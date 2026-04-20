@@ -2,13 +2,12 @@ STATUS: active
 
 Mounted next step:
 
-- `define_doc_integrity_layer_and_enforcement_points`
+- `expand_integrity_checks_from_core_state_to_stream_local_state`
 
 Focus:
 
-- define which docs and state files are governed
-- define what integrity means for those files
-- define when checks should run
-- define which prompt or agent surfaces should own enforcement
+- extend the integrity smoke checks from the four global state artifacts into the active and paused stream-local state surfaces
+- detect obvious contradictions between global ownership and stream-local state
+- keep the check surface shallow and operational
 
-Keep this stream narrow. Do not start automated checks in the next package.
+Keep this stream narrow. Do not expand into broad documentation scanning.

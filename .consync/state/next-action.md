@@ -1,118 +1,104 @@
 TYPE: PROCESS
-PACKAGE: implement_preflight_and_postflight_doc_integrity_checks
+PACKAGE: expand_integrity_checks_from_core_state_to_stream_local_state
 
 GOAL
 
-Implement the first lightweight documentation and process integrity checks so the system can validate core live-state coherence before package execution and again before accepting closeout.
+Extend the existing lightweight integrity-check surface from the four global live-state artifacts into the active/paused stream-local state surfaces so the system can verify that stream-specific truth and global truth do not drift apart.
 
 WHY
 
-The system now has defined integrity rules, state contracts, and bounded change concepts, but those protections are still only written rules. We now need a minimal enforcement layer that behaves like a smoke-test and contract-check pass for the core live loop.
+The current integrity checks now protect the global live loop well enough to answer the core smoke-level questions about active stream, active package, and open/closed state. The next risk surface is stream-local state.
 
-This package should add a small, practical integrity check surface that verifies current truth without introducing a heavy validator framework or bloated process.
+With multiple streams, the system also depends on stream-local artifacts staying coherent:
+- active streams should read as active locally
+- paused streams should read as paused locally
+- stream-local snapshots should preserve usable resume context
+- stream-local next actions should not contradict the global owner model
+
+This package should extend the same smoke/contract approach into stream-local state without expanding into broad repo-wide validation or reference-doc scanning.
 
 SCOPE
 
-Keep this package intentionally small and v1.
+Keep this package narrow and incremental.
 
 Expected outcome:
-- one lightweight preflight integrity check exists
-- one lightweight postflight integrity check exists
-- checks focus only on core live-state artifacts
-- checks return clear PASS/FAIL output with short reasons
-- checks are simple enough to run during the package loop
+- the integrity-check surface reads relevant stream-local state artifacts
+- it verifies a small set of stream-local invariants
+- it reports PASS/FAIL with concise operational output
+- it detects obvious contradictions between global state and stream-local state
+- it still avoids broader documentation scanning
 
 Do not:
-- build a full validation framework
-- validate every markdown file in the repo
-- introduce file permissions or security controls
-- build a large agent system in this package
-- mix this package with UI work
-- over-engineer naming or artifact taxonomy beyond what is needed for the checks
+- validate all docs under `.consync/docs`
+- introduce a full repo graph validator
+- create a separate integrity agent yet
+- add policy enforcement beyond the stream-local smoke/contract layer
+- mix this with UI work
 
 WORK INSTRUCTIONS
 
-1. Inspect the current verification and process surface to find the simplest place to add a lightweight integrity check.
+1. Inspect the existing integrity-check implementation and extend it in the smallest natural way.
 
-2. Implement a small v1 integrity check surface.
-   This may be:
-   - a small script,
-   - a small verify subcommand,
-   - or another repo-native mechanism,
-   whichever best fits the current Consync structure.
+2. Limit this package to stream-local state surfaces under:
+   - `.consync/streams/*/stream.md`
+   - `.consync/streams/*/state/next_action.md`
+   - `.consync/streams/*/state/handoff.md`
+   - `.consync/streams/*/state/snapshot.md`
 
-3. The v1 check should only govern the core live-state artifacts:
+3. Define and implement a small set of stream-local checks.
 
-   - `.consync/state/active-stream.md`
-   - `.consync/state/next-action.md`
-   - `.consync/state/handoff.md`
-   - `.consync/state/snapshot.md`
+   At minimum, verify:
 
-4. Implement a **preflight** check that verifies, at minimum:
+   - the globally active stream exists locally and does not read as paused
+   - any globally paused stream exists locally and does read as paused
+   - the active stream has a readable local next action or equivalent active-phase context
+   - paused streams preserve readable local resume context rather than appearing abandoned
+   - stream-local snapshot/package context does not obviously contradict stream role
+   - the global next-action owner and the active stream’s local state do not obviously conflict
 
-   - there is exactly one active stream
-   - the active stream is readable and explicit
-   - the mounted `next-action.md` is present and readable
-   - the active package can be identified
-   - the live state does not appear obviously contradictory
-   - if contradiction exists, output FAIL and indicate reconciliation is required
+4. Keep the checks shallow and operational.
+   This is still a smoke/contract layer, not deep semantic validation.
 
-5. Implement a **postflight** check that verifies, at minimum:
+5. Update the command output minimally so the operator can understand:
+   - whether stream-local integrity passed
+   - which stream failed, if any
+   - whether reconciliation is required
 
-   - `handoff.md` is present and readable
-   - the handoff package can be identified
-   - the handoff and mounted package are not obviously contradictory
-   - the live state artifacts still agree on active ownership
-   - the system can still answer the canonical questions:
-     - open or closed
-     - active stream
-     - active package
-     - next safe action
+6. Add a narrow test surface that covers:
+   - one passing case with coherent stream-local state
+   - at least one obvious failure case involving active/paused contradiction or missing local resume state
 
-6. Keep the checks intentionally shallow and valuable.
-   This package is for smoke/contract checking, not deep repo-wide validation.
+7. If needed, update the existing contracts/integrity docs with a small note explaining that the integrity-check surface now includes stream-local state in addition to the four global live-state artifacts.
 
-7. Output should be concise and operational, for example:
-   - `STATUS: PASS`
-   - `STATUS: FAIL`
-   - brief reason lines
-   - optional note on what to reconcile
+8. Keep naming explicit and boring.
 
-8. If appropriate, wire the checks into an existing verify surface in a minimal way.
-   If not, expose them through one small explicit command and document how to run them.
+CHECK MODEL
 
-9. Add only the smallest necessary documentation update so operators know:
-   - when to run preflight
-   - when to run postflight
-   - what PASS/FAIL means
-
-TESTING MODEL FOR THIS PACKAGE
-
-This package should behave like a lightweight process/doc equivalent of:
+The expanded checks should remain equivalent to:
 - smoke checks
 - contract checks
 
-It does not need to implement broader “integration checks” across all documentation yet.
+They should not yet become full integration checks across the entire documentation corpus.
 
 CONSTRAINTS
 
 - keep the implementation small
-- do not turn this into a generalized markdown linter
-- do not add broad repo scanning
-- do not implement a separate doc-integrity agent yet unless the existing repo structure clearly demands it
-- do not validate historical/reference docs in this package
-- prioritize clarity, trust, and low cognitive load
+- no broad markdown scanning
+- no reference-doc validation
+- no agent framework work yet
+- do not require a new action-plan system
+- avoid inventing new artifact categories unless strictly necessary
 
 VERIFICATION
 
-1. Run the new preflight check against the current repo state and confirm it returns PASS when state is coherent.
-2. Run the new postflight check against the current repo state and confirm it returns PASS when state is coherent.
-3. If practical, simulate or reason through at least one obvious failure condition, such as:
-   - conflicting active stream and next-action ownership
-   - unreadable or missing mounted package
-   - contradictory package names across live state artifacts
-4. Confirm the output is short and understandable.
-5. Confirm the implementation stayed narrow and did not expand into a broad documentation validation system.
+1. Run the updated preflight integrity check and confirm it returns PASS on coherent global + stream-local state.
+2. Run the updated postflight integrity check and confirm it returns PASS on coherent global + stream-local state.
+3. Run the narrow integrity test surface and confirm it covers at least one stream-local failure mode.
+4. If practical, simulate an obvious contradiction such as:
+   - active stream locally marked paused
+   - paused stream missing local resume snapshot
+   - stream-local next action contradicting global mounted ownership
+5. Confirm the output remains concise and operational rather than verbose.
 
 HANDOFF REQUIREMENTS
 
@@ -131,6 +117,6 @@ Include:
 
 For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`expand_integrity_checks_from_core_state_to_stream_local_state`
+`define_artifact_role_labels_for_state_control_governance_reference_and_history`
 
-and describe it as the next narrow package that extends the same smoke/contract model from the four global live-state artifacts to the paused/active stream-local state surfaces without yet scanning broader reference docs.
+and describe it as the next narrow package that formalizes artifact-role labeling so markdown files can be reasoned about by role instead of being treated as one undifferentiated file class.

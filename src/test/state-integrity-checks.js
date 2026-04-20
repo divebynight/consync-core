@@ -118,6 +118,141 @@ function createBaseFixture(rootPath) {
       "",
     ].join("\n")
   );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/stream.md",
+    [
+      "# Stream",
+      "",
+      "- id: process",
+      "- title: Process Stream",
+      "- status: active",
+      "- owner: human",
+      "- mode: system",
+      "- summary: active",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/state/next_action.md",
+    [
+      "STATUS: active",
+      "",
+      "Mounted next step:",
+      "",
+      "- `sample_current_package`",
+      "",
+      "Focus:",
+      "",
+      "- keep state coherent",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/state/snapshot.md",
+    [
+      "# Process Stream Snapshot",
+      "",
+      "Current state:",
+      "",
+      "- the process stream now owns the live loop again",
+      "- the stream is active and readable",
+      "",
+      "What matters next:",
+      "",
+      "- execute the mounted package",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/state/handoff.md",
+    [
+      "TYPE: PROCESS",
+      "STREAM: process",
+      "",
+      "STATUS",
+      "",
+      "active",
+      "",
+      "SUMMARY",
+      "",
+      "Process stream is active.",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/electron_ui/stream.md",
+    [
+      "# Stream",
+      "",
+      "- id: electron_ui",
+      "- title: Electron UI Stream",
+      "- status: paused",
+      "- owner: human",
+      "- mode: build",
+      "- summary: paused",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/electron_ui/state/next_action.md",
+    [
+      "STATUS: paused",
+      "",
+      "Next likely step when this stream resumes:",
+      "",
+      "- bind bookmark markers later",
+      "",
+      "This stream is intentionally paused and ready to resume later from a clean checkpoint.",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/electron_ui/state/snapshot.md",
+    [
+      "# Electron UI Stream Snapshot",
+      "",
+      "Current state:",
+      "",
+      "- the stream is paused cleanly rather than active",
+      "",
+      "What matters next:",
+      "",
+      "- resume from this preserved state rather than chat memory",
+      "",
+    ].join("\n")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/electron_ui/state/handoff.md",
+    [
+      "TYPE: FEATURE",
+      "STREAM: electron_ui",
+      "",
+      "STATUS",
+      "",
+      "paused",
+      "",
+      "SUMMARY",
+      "",
+      "Electron UI stream is paused cleanly.",
+      "",
+    ].join("\n")
+  );
 }
 
 function main() {
@@ -224,6 +359,46 @@ function main() {
   assert(
     failure.failures.some(item => item.includes("snapshot active stream mismatch")),
     "expected snapshot mismatch failure"
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/state/snapshot.md",
+    fs
+      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
+      .replace("`electron_ui`", "`process`")
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/stream.md",
+    fs
+      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
+      .replace("- status: active", "- status: paused")
+  );
+
+  const activePausedFailure = evaluateStateIntegrity(rootPath, "preflight");
+  assert.strictEqual(activePausedFailure.ok, false);
+  assert(
+    activePausedFailure.failures.some(item => item.includes("stream process status mismatch")),
+    "expected active stream locally paused failure"
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/streams/process/stream.md",
+    fs
+      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
+      .replace("- status: paused", "- status: active")
+  );
+
+  writeFile(rootPath, ".consync/streams/electron_ui/state/snapshot.md", "# Electron UI Stream Snapshot\n\nNo resume notes.\n");
+
+  const pausedResumeFailure = evaluateStateIntegrity(rootPath, "preflight");
+  assert.strictEqual(pausedResumeFailure.ok, false);
+  assert(
+    pausedResumeFailure.failures.some(item => item.includes("paused stream electron_ui is missing readable local resume context")),
+    "expected missing paused resume context failure"
   );
 
   console.log("PASS");

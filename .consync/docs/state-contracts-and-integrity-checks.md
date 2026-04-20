@@ -343,3 +343,7 @@ This doc does not add:
 - new security mechanisms
 
 It keeps the current iteration model intact while defining what valid state means and when integrity should be checked.
+
+Current implementation note:
+
+- the lightweight integrity-check command now covers both the four global live-state artifacts and the active/paused stream-local state surfaces needed for smoke-level stream coherence
