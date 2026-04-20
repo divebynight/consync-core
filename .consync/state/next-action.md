@@ -1,172 +1,150 @@
 TYPE: PROCESS
-PACKAGE: scope_integrity_check_triggers_by_artifact_role_and_stream
+PACKAGE: apply_integrity_trigger_model_to_live_loop_commands_and_closeout
+
+INTEGRITY TRIGGER
+
+- level: `heavy`
+- why: this package changes live-loop governance guidance and the package template that future operators will use during execution
+- preflight checks:
+   - `npm run check:state-preflight`
+- postflight checks:
+   - `npm run check:state-postflight`
+- extra review required:
+   - confirm the updated loop guidance keeps ordinary feature work fast
+   - confirm the updated template and contracts do not imply every `process` package is automatically `heavy`
+   - confirm the process silo remains the highest-governance zone in the operator-facing guidance
 
 GOAL
 
-Define when light versus heavy integrity checks should run based on artifact role, stream type, and whether process/governance surfaces were touched, so Consync can apply strong validation where risk is highest without burdening ordinary feature work.
+Wire the defined integrity trigger model into the practical Consync loop so operators can tell, during real package work, which validation level applies and which checks to run before and after execution.
 
 WHY
 
-The system now has:
-- core state contracts
-- preflight and postflight integrity checks
-- stream-local integrity checks
-- an artifact-role model
-- validation tiers by role
+Consync now has:
+- state contracts
+- global and stream-local integrity checks
+- artifact roles
+- validation tiers
+- an integrity trigger model
 
-What is still missing is trigger logic.
+What is still missing is practical loop integration.
 
-Without trigger rules, the system cannot answer:
-- when the lightweight checks are enough
-- when heavier process-oriented validation should run
-- whether stream type changes baseline expectations
-- whether touching governance/process/state surfaces should escalate validation
+Right now the trigger model exists as policy, but the live loop does not yet clearly tell the operator:
+- which trigger level applies to the current package
+- which checks to run before execution
+- which checks to run before accepting closeout
+- when heavier process/governance validation is required
 
-Consync should not validate everything equally on every package. It should use role-aware, stream-aware trigger rules so validation intensity follows operational risk.
+This package should connect the defined trigger model to ordinary operation without introducing orchestration bloat.
 
 SCOPE
 
-Keep this package definition-focused.
+Keep this package small and operational.
 
 Expected outcome:
-- one new doc defines integrity-check trigger rules
-- the trigger model distinguishes light and heavy checks
-- the trigger model uses artifact role and stream type
-- the trigger model explicitly treats process/governance work as higher-risk than ordinary UI/session work
-- the trigger model stays small enough to apply during real operation
+- the live loop explicitly identifies the integrity trigger level for the current package
+- operators can tell which checks to run during preflight and postflight
+- closeout expectations reflect the selected trigger level
+- the runbook and/or loop docs make this easy to follow in practice
+- no heavy workflow engine is introduced
 
 Do not:
-- implement new validators in this package
-- redesign the existing check commands
-- create a scheduler or workflow engine
-- introduce file permissions or security controls
-- classify every file in the repo exhaustively
+- build a new scheduler or orchestrator
+- redesign the package loop
+- add repo-wide validation beyond the checks already implemented
+- create file permissions or security controls
 - mix this with UI work
 
 WORK INSTRUCTIONS
 
-1. Create a new doc, preferably at:
+1. Inspect the current live loop surfaces and determine the smallest practical integration points.
 
-   `.consync/docs/integrity-trigger-model.md`
+   Prioritize the artifacts/operators already used during normal work, such as:
+   - `.consync/state/next-action.md`
+   - `.consync/state/handoff.md`
+   - runbook / loop docs
+   - existing command surfaces
+   - closeout expectations
 
-2. In that doc, define the purpose of trigger scoping:
-   - not all packages need the same validation depth
-   - validation should scale with risk
-   - process/governance changes should trigger stronger checks than ordinary feature work
+2. Apply the trigger model to the live loop in a simple way.
 
-3. Define at least three trigger levels.
-   Keep them simple and operational.
+   At minimum, the system should make it clear for a package:
+   - which trigger level applies (`light`, `elevated`, or `heavy`)
+   - what preflight checks should run
+   - what postflight checks should run
+   - what extra human review is expected, if any
 
-   Suggested shape:
-   - `light`
-     - basic smoke/contract checks over the current live loop
-   - `elevated`
-     - light checks plus stronger review of touched state/control surfaces
-   - `heavy`
-     - full process-silo validation expectations, especially when governance/process artifacts are touched
+3. Add a lightweight operator-facing mechanism for trigger selection and visibility.
 
-4. Define what should trigger each level.
+   This may be one or more of:
+   - an explicit trigger-level section in `next-action.md`
+   - a small command/help surface that maps trigger level to required checks
+   - a closeout note in `handoff.md`
+   - a minimal runbook addition describing how trigger level should be used during execution
 
-   At minimum, specify rules based on:
+   Prefer the smallest mechanism that makes the loop clearer in practice.
 
-   - artifact role touched
-     - `state`
-     - `control`
-     - `governance`
-     - `reference`
-     - `history`
-
-   - stream type
-     - `process`
-     - `electron_ui`
-     - other future streams
-
-   - package character
-     - ordinary feature work
-     - stream switch
-     - governance/process-model change
-     - bootstrap/re-entry change
-     - integrity-check change
-
-5. Make explicit that:
-   - ordinary UI/session feature work should usually run light checks
-   - packages that touch `state` or `control` may require elevated checks
-   - packages that touch `governance` or process-silo surfaces should default to heavy checks
-   - process stream packages are not automatically heavy, but they are more likely to cross into heavy territory
-   - touching governance/process surfaces from a non-process stream should be unusual and should escalate validation expectations
-
-6. Define what each trigger level should require.
-
-   For example:
+4. Make sure the integration reflects the intended model:
 
    - `light`
-     - run current preflight/postflight checks
-     - confirm no obvious contradictions
-     - accept narrow closeout
+     - ordinary UI/session/feature work
+     - run standard preflight/postflight integrity checks
 
    - `elevated`
-     - run current checks
-     - verify touched artifacts are in expected zones of influence
-     - confirm no unintended cross-role drift
+     - packages touching `state` or `control`
+     - run standard checks plus stronger focused review of changed surfaces
 
    - `heavy`
-     - run current checks
-     - perform focused human review of governance/process/state implications
-     - confirm role/contract alignment
-     - confirm process silo truth remains coherent after the change
+     - packages touching `governance` or process-silo surfaces
+     - run standard checks plus stronger human/process review before accepting closeout
 
-7. Add a small decision table or matrix that makes trigger selection easy.
-   Keep it compact and human-usable.
+5. If useful, update the package template or current loop guidance so future packages naturally include or imply a trigger level.
 
-8. Add a short section on override behavior.
+6. Keep the implementation human-usable.
+   The operator should not need to reconstruct trigger rules manually from several docs.
 
-   For example:
-   - if a package appears light but actually modifies governance/state/process artifacts, treat it as elevated or heavy
-   - if state contradiction is found, reconciliation takes priority over normal trigger selection
-   - if uncertainty is high, prefer the stronger trigger level
+7. If command help or output is updated, keep it concise.
+   The goal is:
+   - easy to understand
+   - easy to run
+   - hard to misuse
 
-9. Add one or two minimal pointers from existing governance docs if useful, such as:
-   - `artifact-role-model.md`
-   - `runbook.md`
-   - `doc-integrity-layer.md`
-
-   Keep the pointers small.
+8. Update only the smallest necessary docs so the system’s real operational surface reflects the trigger model.
 
 CONTENT REQUIREMENTS
 
-The trigger-model doc should clearly answer:
+The applied loop behavior should clearly answer:
 
-- What validation levels exist?
-- What causes a package to run at each level?
-- How do artifact role and stream type affect validation expectations?
-- Why is process/governance work treated more carefully?
-- Why should ordinary feature work remain lighter?
-- What happens when a package crosses expected boundaries?
+- Where does the trigger level show up during live work?
+- How does the operator know what to run before execution?
+- How does the operator know what to run before closeout?
+- What additional expectations apply to elevated or heavy packages?
+- How does the system stay lightweight for ordinary feature work?
 
-It should also state explicitly that:
+It should also make clear that:
 
-- validation intensity should follow risk, not file format
-- the process silo is the highest-governance zone
-- non-process streams should not casually rewrite governance/process surfaces
-- trigger rules are meant to preserve flow, not create bureaucracy
+- trigger levels guide validation intensity, not bureaucracy
+- ordinary feature work should still feel fast
+- heavier process/governance work should be explicit and deliberate
+- the process silo remains the highest-governance zone
 
 CONSTRAINTS
 
-- keep the model compact
-- no implementation of new commands in this package
-- no broad refactor of existing checks
-- no file-permission or “security theater” language
-- no repo-wide classification migration
-- avoid making every package feel heavy
+- keep the integration small
+- do not build a workflow engine
+- do not require a full action-plan system
+- do not widen current integrity checks beyond their intended scope
+- avoid forcing heavy validation onto ordinary feature work
+- avoid spreading trigger logic across too many files
 
 VERIFICATION
 
-1. Read the new trigger-model doc end to end and confirm it is easy to explain and easy to use.
-2. Confirm the three validation levels are distinct and practical.
-3. Confirm ordinary UI/session work remains light by default.
-4. Confirm process/governance/state-touching work escalates validation appropriately.
-5. Confirm the model does not imply that every process-stream package is automatically heavy.
-6. If pointers were added, confirm they are minimal and accurate.
+1. Confirm the live loop now exposes the trigger level in a practical operator-facing way.
+2. Confirm an operator can tell which checks to run for a `light` package.
+3. Confirm an operator can tell what extra expectations apply for `elevated` and `heavy` packages.
+4. Confirm the updated guidance stays concise and does not feel like bureaucracy.
+5. Confirm the implementation does not require reading multiple deep docs just to execute one package.
+6. If commands or templates were updated, verify they are accurate and consistent with the trigger model.
 
 HANDOFF REQUIREMENTS
 
@@ -185,6 +163,6 @@ Include:
 
 For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`apply_integrity_trigger_model_to_live_loop_commands_and_closeout`
+`resume_electron_ui_stream_with_integrity_aware_loop`
 
-and describe it as the next narrow package that wires the defined trigger levels into the practical loop, so operators know which checks to run during ordinary feature work versus process/governance changes.
+and describe it as the stream-switch package that returns the live loop to `electron_ui` while preserving the new role-aware trigger model so ordinary UI work resumes under `light` validation by default.

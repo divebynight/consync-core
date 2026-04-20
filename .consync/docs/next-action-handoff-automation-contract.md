@@ -36,10 +36,18 @@ Judgment-based parts of the loop:
 
 - `TYPE: <FEATURE|PROCESS|...>`
 - `PACKAGE: <package_name>`
+- one operator-facing trigger section such as `INTEGRITY TRIGGER`
 - one clear goal section such as `GOAL` or `OBJECTIVE`
 - explicit task instructions such as `DO`, `REQUIRED OUTCOME`, or equivalent
 - explicit constraints or non-goals
 - verification expectations
+
+The trigger section must make it easy to see:
+
+- which trigger level applies: `light`, `elevated`, or `heavy`
+- what preflight check should run
+- what postflight check should run
+- what extra review is required, if any
 
 `next-action.md` may also include optional fields such as:
 
@@ -68,6 +76,7 @@ Automation should treat these optional fields as helpful but not required.
 
 Package-specific sections may be added when needed, such as:
 
+- `INTEGRITY TRIGGER APPLIED`
 - `CURRENT LOOP AUDIT`
 - `CONTRACT DECISIONS`
 - `AUDIT OF CURRENT UI TEST SETUP`
@@ -82,6 +91,7 @@ The minimum criteria for a valid package closeout are:
 - `TYPE` and `PACKAGE` match between `next-action.md` and `handoff.md`
 - `STATUS` is explicitly set for the package closeout
 - required handoff sections are present
+- the closeout reflects the trigger-guided verification expectations used during execution
 - files created and modified are listed, even when one list is `none`
 - commands to run are concrete
 - human verification is step-by-step and usable by a person
@@ -114,6 +124,7 @@ An automation helper must not:
 Use this checklist before treating the loop as automation-ready:
 
 - `next-action.md` contains one package with `TYPE` and `PACKAGE`
+- `next-action.md` exposes one trigger level with clear preflight and postflight expectations
 - `next-action.md` includes actionable instructions and verification expectations
 - `handoff.md` repeats the same `TYPE` and `PACKAGE`
 - `handoff.md` includes all required closeout sections

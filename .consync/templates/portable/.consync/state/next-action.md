@@ -1,6 +1,17 @@
 TYPE: PROCESS
 PACKAGE: rerun_mock_session_desktop_trial_after_search_exposure
 
+INTEGRITY TRIGGER
+
+- level: `light`
+- why: this example package is ordinary observation work inside the expected process surface
+- preflight checks:
+   - `npm run check:state-preflight`
+- postflight checks:
+   - `npm run check:state-postflight`
+- extra review required:
+   - none unless the package crosses into `state`, `control`, or `governance` changes beyond the stated scope
+
 GOAL
 
 Rerun the short desktop mock-session trial now that the grouped mock-search flow is exposed through the desktop shell, and identify the next smallest real usability blocker or confirm that the current mock flow is coherent enough to continue.

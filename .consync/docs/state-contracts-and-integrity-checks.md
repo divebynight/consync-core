@@ -52,11 +52,13 @@ Must always be true:
 Represents:
 
 - the one active package mounted in the live loop
+- the trigger-guided validation expectations for that package
 
 Required structure:
 
 - `TYPE: ...`
 - `PACKAGE: ...`
+- one operator-facing trigger section such as `INTEGRITY TRIGGER`
 - one clear goal section
 - actionable work instructions
 - constraints or non-goals
@@ -66,6 +68,8 @@ Required fields:
 
 - one package identity
 - package type
+- one trigger level
+- preflight and postflight check guidance
 - concrete scope
 - verification expectations
 
@@ -73,6 +77,7 @@ Must always be true:
 
 - only one package is mounted
 - the package belongs to the active stream's current live work
+- the trigger section makes the required checks and any extra review readable without reconstructing policy from multiple docs
 - the instructions are executable without guessing the intended outcome
 - the package is not stale relative to the current ownership state
 
@@ -203,6 +208,7 @@ Preflight must verify:
 - the system state is coherent enough to proceed
 - the active stream is unambiguous
 - `next-action.md` is valid and not stale
+- the package trigger level and expected preflight checks are readable
 - there are no unresolved state conflicts that make execution unsafe
 
 Minimum preflight read surface:
@@ -236,6 +242,7 @@ Postflight must verify:
 - `handoff.md` matches the executed package
 - required handoff sections are present
 - canonical state files remain consistent
+- any trigger-guided extra review was actually performed when the package required it
 - no unintended artifacts were modified outside the package's allowed change surface
 
 Minimum postflight read surface:

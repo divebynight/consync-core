@@ -46,6 +46,43 @@ For each package:
 6. refresh `snapshot.md`
 7. only then prepare the next package
 
+## Trigger Level Use
+
+The live package should expose its integrity trigger level inside `next-action.md`.
+
+Use that section to answer four operator questions without opening multiple deep docs:
+
+1. what trigger level applies
+2. what to run before execution
+3. what to run before accepting closeout
+4. what extra review is required, if any
+
+Current trigger shorthand:
+
+- `light`
+	- use for ordinary feature or reference work
+	- run `npm run check:state-preflight` before execution
+	- run `npm run check:state-postflight` before accepting closeout
+	- no extra review beyond normal closeout unless the package crosses its expected surface
+
+- `elevated`
+	- use for packages touching `state` or `control` surfaces, stream switches, or bootstrap/re-entry changes
+	- run `npm run check:state-preflight` before execution
+	- run `npm run check:state-postflight` before accepting closeout
+	- confirm changed artifacts stayed inside expected zones of influence and did not introduce cross-role drift
+
+- `heavy`
+	- use for packages touching `governance` or other process-silo surfaces
+	- run `npm run check:state-preflight` before execution
+	- run `npm run check:state-postflight` before accepting closeout
+	- require focused human review of governance, contract, and live-loop implications before accepting the handoff
+
+Trigger levels guide validation intensity, not bureaucracy.
+
+Ordinary feature work should still feel fast.
+
+Heavier process or governance work should be explicit and deliberate.
+
 ## Active Stream Rule
 
 The system may have many durable streams, but only one live owner at a time.
@@ -147,6 +184,7 @@ The assistant should:
 3. verify the result
 4. overwrite `handoff.md`
 5. avoid broad refactors or speculative expansion
+6. use the trigger-level section in `next-action.md` to decide which checks and extra review expectations apply
 
 ## Pointers To Deeper Docs
 

@@ -2,9 +2,9 @@
 
 What just happened:
 
-- the first documentation/state integrity layer and the core live-state contracts are now defined
-- the repo now has lightweight preflight and postflight checks over the four global live-state artifacts
-- the next process slice extends that same smoke/contract model into stream-local state
+- the integrity trigger model is now defined for `light`, `elevated`, and `heavy` validation levels
+- the current process slice wires that trigger model into the live loop, runbook, and package template surfaces
+- operators should now be able to see required checks directly in the mounted package instead of reconstructing them from deeper docs
 
 Current state:
 
@@ -14,6 +14,6 @@ Current state:
 
 What matters next:
 
-- extend the integrity checks so active and paused stream-local state does not drift from the global owner model
-- keep the implementation shallow: smoke checks and contract checks, not repo-wide validation
-- avoid expanding into broader doc scanning or agent framework work yet
+- keep the integration shallow: operator-visible trigger guidance plus the existing checks, not a workflow engine
+- preserve `light` validation as the normal default when the loop returns to ordinary UI work
+- avoid expanding into broader doc scanning, scheduler logic, or agent framework work yet
