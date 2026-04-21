@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../electron/renderer/App.jsx";
 
@@ -57,6 +57,23 @@ const noResultsSearchResult = {
   groups: [],
 };
 
+const timelineBookmarkSessionState = {
+  artifactCount: 4,
+  bookmarks: [
+    {
+      note: "Moss entry",
+      timeSeconds: 18,
+    },
+    {
+      note: "Lantern pivot",
+      timeSeconds: 72,
+    },
+  ],
+  currentFile: "20260405T154039301Z.json",
+  currentPositionSeconds: 84,
+  latestBookmark: null,
+};
+
 function createDesktopBridge(overrides = {}) {
   return {
     getBackendSummary: vi.fn().mockResolvedValue({
@@ -102,6 +119,70 @@ describe("App search flow", () => {
     expect(screen.getByText("Audio Cues")).toBeTruthy();
     expect(screen.getByText("Current focus")).toBeTruthy();
     expect(screen.getByText("First bookmark pending")).toBeTruthy();
+  });
+
+  it("renders real current-session bookmark markers in the bookmark lane", async () => {
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue(timelineBookmarkSessionState),
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Session Timeline" })).toBeTruthy();
+    const bookmarkLane = await screen.findByLabelText("Bookmarks markers");
+    const bookmarkTrack = bookmarkLane.closest(".timeline-track");
+
+    expect(bookmarkTrack).toBeTruthy();
+    expect(within(bookmarkLane).getByText("Moss entry")).toBeTruthy();
+    expect(within(bookmarkLane).getByText("Lantern pivot")).toBeTruthy();
+    expect(within(bookmarkLane).getByText("18s bookmark")).toBeTruthy();
+    expect(within(bookmarkLane).getByText("72s bookmark")).toBeTruthy();
+    expect(within(bookmarkTrack).getByText("2 markers")).toBeTruthy();
+    expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
+  });
+
+  it("adds a new real bookmark marker to the lane after bookmark capture", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            note: "Bridge motif",
+            timeSeconds: 48,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState,
+    });
+
+    render(<App />);
+
+    const bookmarkLane = await screen.findByLabelText("Bookmarks markers");
+
+    expect(within(bookmarkLane).getByText("First bookmark pending")).toBeTruthy();
+
+    await user.type(screen.getByLabelText("Bookmark note for this session"), "Bridge motif");
+    await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
+
+    await waitFor(() => {
+      expect(within(bookmarkLane).getByText("Bridge motif")).toBeTruthy();
+    });
+    expect(within(bookmarkLane).getByText("48s bookmark")).toBeTruthy();
+    expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {

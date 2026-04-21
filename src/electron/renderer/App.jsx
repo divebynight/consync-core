@@ -17,13 +17,70 @@ function StatusRow({ label, value }) {
   );
 }
 
+function clampTimelinePercent(value) {
+  return Math.max(0, Math.min(88, value));
+}
+
+function getBookmarkMarkerLabel(bookmark, index) {
+  if (bookmark.note && bookmark.note.trim()) {
+    return bookmark.note.trim();
+  }
+
+  return `Bookmark ${index + 1}`;
+}
+
+function getBookmarkTimelineMarkers(sessionState) {
+  if (!sessionState) {
+    return [
+      {
+        label: "Bookmarks loading",
+        detail: "Waiting for current session state",
+        start: 8,
+        span: 20,
+      },
+    ];
+  }
+
+  const bookmarks = Array.isArray(sessionState.bookmarks) ? sessionState.bookmarks : [];
+
+  if (bookmarks.length === 0) {
+    return [
+      {
+        label: "First bookmark pending",
+        detail: "Drop a note to anchor a moment",
+        start: 36,
+        span: 22,
+      },
+    ];
+  }
+
+  const maxBookmarkTime = bookmarks.reduce((highestTime, bookmark) => {
+    if (typeof bookmark.timeSeconds !== "number" || Number.isNaN(bookmark.timeSeconds)) {
+      return highestTime;
+    }
+
+    return Math.max(highestTime, bookmark.timeSeconds);
+  }, 0);
+  const timelineWindowSeconds = Math.max(sessionState.currentPositionSeconds || 0, maxBookmarkTime, 120);
+
+  return bookmarks.map((bookmark, index) => {
+    const bookmarkTime = typeof bookmark.timeSeconds === "number" && !Number.isNaN(bookmark.timeSeconds)
+      ? bookmark.timeSeconds
+      : 0;
+    const rawStart = timelineWindowSeconds > 0 ? (bookmarkTime / timelineWindowSeconds) * 88 : 0;
+
+    return {
+      label: getBookmarkMarkerLabel(bookmark, index),
+      detail: `${bookmarkTime}s bookmark`,
+      start: clampTimelinePercent(rawStart),
+      span: 12,
+    };
+  });
+}
+
 function getSessionTimelineTracks(sessionState) {
   const currentPosition = sessionState ? sessionState.currentPositionSeconds : 84;
   const currentFile = sessionState ? sessionState.currentFile : "session-loading.json";
-  const bookmarkCount = sessionState ? sessionState.bookmarks.length : 0;
-  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
-    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
-    : null;
 
   return [
     {
@@ -47,23 +104,7 @@ function getSessionTimelineTracks(sessionState) {
     {
       label: "Bookmarks",
       tone: "bookmarks",
-      markers: latestBookmark
-        ? [
-            {
-              label: latestBookmark.note,
-              detail: `${latestBookmark.timeSeconds}s bookmark`,
-              start: 44,
-              span: 18,
-            },
-          ]
-        : [
-            {
-              label: "First bookmark pending",
-              detail: bookmarkCount === 0 ? "Drop a note to anchor a moment" : `${bookmarkCount} bookmarks ready`,
-              start: 36,
-              span: 22,
-            },
-          ],
+      markers: getBookmarkTimelineMarkers(sessionState),
     },
     {
       label: "Notes",
@@ -113,7 +154,7 @@ function SessionTimelineShell({ sessionState }) {
         <p className="eyebrow timeline-eyebrow">Creative Timeline</p>
         <h2>Session Timeline</h2>
         <p className="timeline-copy">
-          A first-pass creative session surface with placeholder tracks for events, bookmarks, notes, and audio cues.
+          A first-pass creative session surface with a real bookmark lane and placeholder tracks for events, notes, and audio cues.
         </p>
       </div>
 
@@ -133,10 +174,10 @@ function SessionTimelineShell({ sessionState }) {
               <p className="timeline-track-subtitle">{track.markers.length} markers</p>
             </div>
             <div className="timeline-lane" role="list" aria-label={`${track.label} markers`}>
-              {track.markers.map(marker => (
+              {track.markers.map((marker, index) => (
                 <div
                   className={`timeline-marker timeline-marker-${track.tone}`}
-                  key={`${track.label}:${marker.label}`}
+                  key={`${track.label}:${marker.label}:${marker.start}:${index}`}
                   role="listitem"
                   style={{
                     left: `${marker.start}%`,
@@ -519,8 +560,8 @@ export function App() {
           <h2>Bookmarks</h2>
           {sessionState && sessionState.bookmarks.length > 0 ? (
             <ul className="bookmark-list">
-              {sessionState.bookmarks.map(bookmark => (
-                <li className="bookmark-item" key={bookmark.id}>
+              {sessionState.bookmarks.map((bookmark, index) => (
+                <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
                   <span className="bookmark-time">{bookmark.timeSeconds}s</span>
                   <span className="bookmark-note">{bookmark.note}</span>
                 </li>

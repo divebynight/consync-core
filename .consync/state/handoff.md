@@ -1,5 +1,12 @@
-TYPE: PROCESS
-PACKAGE: resume_electron_ui_stream_with_integrity_aware_loop
+TYPE: FEATURE
+PACKAGE: bind_bookmark_markers_into_session_timeline
+
+INTEGRITY TRIGGER APPLIED
+
+- level: `light`
+- reason: this package stayed inside the `electron_ui` renderer and focused test surface without touching process or governance artifacts
+- required checks used: `npm run check:state-preflight` before closeout drafting and `npm run check:state-postflight` before accepting the handoff
+- extra review applied: confirmed the change stayed limited to one real timeline lane, avoided waveform or playback expansion, and kept the rest of the timeline intentionally shallow
 
 STATUS
 
@@ -7,24 +14,9 @@ PASS
 
 SUMMARY
 
-Formally paused `process` and returned the live loop to `electron_ui` so normal product work can resume under the integrity-aware validation model.
+Replaced the bookmark timeline lane with real current-session bookmark markers so the Session Timeline now reflects actual session bookmark data instead of only placeholder content.
 
-The switch updated the global owner markers, paused the `process` stream without erasing its local resume context, promoted `electron_ui` back to active ownership, and preserved the trigger-aware loop so the mounted UI package can now run under `light` validation by default. The handoff was accepted while the switch package was still mounted, and the loop was then advanced intentionally to `bind_bookmark_markers_into_session_timeline` for the final live state.
-
-STREAM SWITCH RESULT
-
-- `process` is paused cleanly with preserved local snapshot and resume guidance.
-- `electron_ui` is the active stream globally and locally.
-- the global foreground marker now points to `electron_ui`.
-- the live loop has been re-anchored to the first post-integrity UI package.
-
-ACTIVE STREAM STATE
-
-- active stream: `electron_ui`
-- previous stream: `process`
-- paused streams: `process`
-- mounted UI package after switch: `bind_bookmark_markers_into_session_timeline`
-- expected trigger level for the mounted UI package: `light`
+The bookmark lane now maps over the real bookmark array from session state, uses a simple deterministic placement strategy based on available bookmark time, and renders one visible marker per real bookmark. Placeholder bookmark copy remains only for loading and empty-state cases. Focused renderer tests were updated to cover real bookmark markers in the lane and a newly created bookmark appearing in the lane after capture, while the broader search-flow coverage stayed green.
 
 FILES CREATED
 
@@ -32,48 +24,43 @@ FILES CREATED
 
 FILES MODIFIED
 
-- `.consync/state/active-stream.md` — promotes `electron_ui` to active ownership, marks `process` as paused, and updates the global owner note.
-- `.consync/orchestration/active_foreground_stream.txt` — moves the foreground stream marker from `process` to `electron_ui`.
-- `.consync/streams/process/stream.md` — marks the process stream as paused with a resume-oriented summary.
-- `.consync/streams/process/state/next_action.md` — changes the process stream local next action from active mounted work to paused resume context.
-- `.consync/streams/process/state/snapshot.md` — updates the process stream snapshot so it reads as paused and preserves clear return context.
-- `.consync/streams/electron_ui/stream.md` — marks the UI stream as active again.
-- `.consync/streams/electron_ui/state/next_action.md` — promotes the UI stream local next action to active ownership for the resumed stream.
-- `.consync/streams/electron_ui/state/snapshot.md` — updates the UI stream snapshot so it reads as active and points cleanly at the bookmark-marker resume slice.
-- `.consync/state/snapshot.md` — refreshes the global snapshot so it records `electron_ui` as active and points toward the first normal UI package.
+- `src/electron/renderer/App.jsx` — replaces the bookmark-lane placeholder logic with real session-bookmark marker mapping, adds stable marker/list keys, and updates the timeline copy to reflect the now-real bookmark lane.
+- `src/test/app-search-flow.test.jsx` — adds focused coverage for rendering real bookmark markers in the timeline and for showing a newly created bookmark in that lane after capture.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 VERIFICATION
 
-- Ran `npm run check:state-preflight` before the switch, found stale package pointers in the global snapshot and active process local state, reconciled them, and reran preflight to a passing result.
-- Confirmed the global owner markers, process stream, and electron UI stream all read coherently before writing the switch handoff.
-- Ran `npm run check:state-postflight` while the switch package was still mounted and confirmed the switch handoff, mounted package, and owner surfaces agreed.
-- Advanced the live loop intentionally to `bind_bookmark_markers_into_session_timeline` and ran a final `npm run check:state-preflight` to confirm the resumed UI package is now the coherent mounted package.
-- Ran `git status --short` and confirmed the changed surface stayed limited to the expected stream-switch and state-reanchoring files.
+- Ran `npm run check:state-preflight` and confirmed the mounted package was coherent before closeout drafting.
+- Ran `npm run test:ui-search` and confirmed all 16 focused renderer/search-flow tests passed, including the new bookmark-lane coverage.
+- Confirmed the working tree changed surface stayed limited to the mounted package plus `src/electron/renderer/App.jsx` and `src/test/app-search-flow.test.jsx`.
+- Used the existing desktop smoke-launch outcome from this session, where `npm run start:desktop` exited successfully, as a non-visual runtime check that the Electron app still starts after the renderer change.
 
 COMMANDS TO RUN
 
 - `npm run check:state-preflight`
+- `npm run test:ui-search`
+- `npm run start:desktop`
 - `npm run check:state-postflight`
 - `git status --short`
 
 HUMAN VERIFICATION
 
 1. Run `npm run check:state-preflight` from the repo root.
-2. Confirm success behavior: it reports `STATUS: PASS`, active stream `electron_ui`, mounted package `bind_bookmark_markers_into_session_timeline`, and a safe action to execute that UI package.
-3. Open `.consync/state/active-stream.md` and confirm success behavior: `electron_ui` is active, `process` is previous and paused, and the live owner note explicitly names `electron_ui`.
-4. Open `.consync/state/next-action.md` and confirm success behavior: the mounted UI package is `bind_bookmark_markers_into_session_timeline` and its `INTEGRITY TRIGGER` level is `light`.
-5. Open `.consync/streams/process/state/snapshot.md` and confirm success behavior: the process stream reads as paused with clear resume context rather than abandoned or active.
-6. Run `git status --short` and confirm success behavior: the changed files are limited to the global owner markers, the two streams’ local state surfaces, the live `next-action.md`, the refreshed snapshot, and this handoff.
-7. Failure case: if preflight reports active-stream, snapshot, or active-stream local-package mismatch, reconcile state before starting the UI package.
-8. Failure case: if the mounted UI package uses `elevated` or `heavy` trigger guidance without actually touching `state`, `control`, or `governance` surfaces, treat the switch as incomplete.
+2. Run `npm run start:desktop` and open the Session Timeline.
+3. Confirm success behavior: the Bookmarks lane renders one visible marker per real current-session bookmark and no longer stays purely placeholder-driven when bookmarks exist.
+4. Add a bookmark through the Save Bookmark form and confirm success behavior: a new bookmark appears in both the bookmark list and the Bookmarks timeline lane.
+5. Run `npm run test:ui-search` and confirm success behavior: all 16 tests pass.
+6. Run `npm run check:state-postflight` after reviewing this handoff.
+7. Confirm success behavior: postflight reports `STATUS: PASS` and the current package still matches the handoff.
+8. Failure case: if the Bookmarks lane still shows only placeholder content when session bookmarks exist, treat the package as incomplete.
+9. Failure case: if the change introduces waveform, playback, or richer timeline interaction behavior, treat the package as out of scope.
 
 VERIFICATION NOTES
 
-- Actually tested: `npm run check:state-preflight` before the switch, focused reads of the ownership and stream-local state surfaces, `npm run check:state-postflight` while the switch package remained mounted, a final `npm run check:state-preflight` after mounting `bind_bookmark_markers_into_session_timeline`, and `git status --short` on the final changed surface.
-- Observed outcome: the first preflight run failed because the global snapshot and active process stream local state still pointed at the previous process package; after reconciling those pointers, preflight passed, the switch-package postflight passed, and the final resumed `electron_ui` state also passed preflight with `bind_bookmark_markers_into_session_timeline` mounted under `light` validation.
-- Important edge cases validated: `process` is being paused rather than discarded, `electron_ui` can become active without losing the trigger-aware loop, and the first resumed UI package is intended to stay under `light` validation.
+- Actually tested: `npm run check:state-preflight`, `npm run test:ui-search`, and `git status --short`, plus the already-observed successful `npm run start:desktop` smoke launch in this session.
+- Observed outcome: preflight passed, the focused renderer suite passed 16/16 including the new bookmark-lane tests, and the changed surface stayed limited to the mounted package plus the renderer and focused test file.
+- Important edge cases validated: empty/loading bookmark states still render placeholder guidance, multiple real bookmarks render as distinct timeline markers, a newly created bookmark appears in the timeline lane after capture, and the broader search-flow behavior remained green.
 
 NEXT SUGGESTED PACKAGE
 
-- `bind_bookmark_markers_into_session_timeline` — the first normal `electron_ui` package under the integrity-aware loop, replacing one placeholder timeline lane with real current-session bookmark markers while keeping waveform rendering and deeper timeline interaction out of scope.
+- `add_note_or_session_event_markers_to_timeline` — the next narrow UI package that makes one additional lane real, either note-like session events or another simple session-derived marker class, while keeping waveform rendering and deeper timeline interaction out of scope.
