@@ -1,5 +1,5 @@
 TYPE: PROCESS
-PACKAGE: pause_electron_ui_stream_at_timeline_bookmark_milestone
+PACKAGE: define_handoff_delivery_bridge_and_automation_path
 
 STATUS
 
@@ -7,72 +7,53 @@ PASS
 
 SUMMARY
 
-Paused the `electron_ui` stream cleanly at the bookmark-lane milestone so UI work is no longer implied to be actively executing and can be resumed later from a clear checkpoint.
+Defined a compact handoff-delivery bridge model so local Consync handoff truth can be delivered into ChatGPT reliably without confusing transport with source of truth.
 
-The pause preserved the recent UI milestone in stream-local state, changed `electron_ui` from active to paused, and made `process` the explicit caretaker owner of the global live loop because the current model still requires one active owner. Global state, the foreground marker, and both streams’ local state now say the same thing: the bookmark-lane milestone is complete, UI work is paused rather than abandoned, and the likely next UI slice is a second real timeline lane.
-
-STREAM PAUSE RESULT
-
-- `electron_ui` is paused cleanly rather than left looking active.
-- the bookmark-lane milestone is preserved in the UI stream-local snapshot and local next-action file.
-- `process` is now the explicit active owner of the global live loop while no ordinary UI package is actively executing.
-- the stopped state no longer misleadingly suggests that the bookmark-lane package is still in flight.
-
-ACTIVE STREAM STATE
-
-- active stream: `process`
-- previous stream: `electron_ui`
-- paused streams: `electron_ui`
-- paused UI milestone: real current-session bookmark markers are bound into the timeline bookmark lane
-- likely next UI package: `add_note_or_session_event_markers_to_timeline`
+The new bridge doc makes three layers explicit: local truth, delivery bridge, and downstream assistant state. It establishes `.consync/state/handoff.md` as the local authoritative closeout artifact, defines acceptable delivery modes from manual copy/paste through future direct tooling, names practical bridge failure modes like stale mirrors and missing stream context, and recommends a near-term path built around a small locally generated handoff bundle rather than dependence on flaky cloud transport. Supporting changes stayed small: one runbook pointer and the normal snapshot and active-process local-state refresh for the mounted package.
 
 FILES CREATED
 
-- none
+- `.consync/docs/handoff-delivery-bridge.md` — defines the transport-vs-source-of-truth model for delivering local handoff state into ChatGPT, including delivery modes, success criteria, failure modes, and the preferred near-term automation path.
 
 FILES MODIFIED
 
-- `.consync/state/active-stream.md` — makes `process` the explicit active owner, marks `electron_ui` as paused, and updates the global owner note to describe the stopped UI state truthfully.
-- `.consync/orchestration/active_foreground_stream.txt` — moves the foreground owner marker from `electron_ui` back to `process`.
-- `.consync/state/snapshot.md` — refreshes the global snapshot so it describes the cleanly paused UI stream and the process caretaker-owner state.
-- `.consync/streams/electron_ui/stream.md` — changes the UI stream status from active to paused and records the bookmark-lane milestone as the stop point.
-- `.consync/streams/electron_ui/state/next_action.md` — converts the UI stream local state from an active mounted package to paused resume guidance pointing at the next likely UI lane.
-- `.consync/streams/electron_ui/state/snapshot.md` — preserves the bookmark-lane milestone and resume context in a paused-state snapshot.
-- `.consync/streams/process/stream.md` — changes the process stream from paused to active caretaker owner of the global live loop.
-- `.consync/streams/process/state/next_action.md` — makes the process stream local state reflect the current pause package as the active caretaker-owned step.
-- `.consync/streams/process/state/snapshot.md` — updates the process stream snapshot so it explains why process is active again without implying broader process redesign.
+- `.consync/docs/runbook.md` — adds one small pointer to the handoff-delivery bridge so the transport model is discoverable from the main operating entrypoint.
+- `.consync/state/snapshot.md` — refreshes the global snapshot so it names the current bridge-definition package and the likely next bundle-definition package accurately.
+- `.consync/streams/process/state/next_action.md` — reconciles the active process stream’s local mounted package pointer with the current bridge-definition package.
+- `.consync/streams/process/state/snapshot.md` — updates the active process stream snapshot so it describes the current delivery-bridge definition slice instead of the previous pause package.
 - `.consync/state/handoff.md` — records this process package result in the live handoff location.
 
 VERIFICATION
 
-- Ran `npm run check:state-preflight` and confirmed the mounted pause package was coherent after reconciling the stale package pointers in the global snapshot and active UI local state.
-- Read the global owner markers and both streams’ local state surfaces and confirmed they now tell one coherent stopped-state story.
-- Ran `git status --short` and confirmed the changed surface stayed limited to the global and per-stream state artifacts required for the clean pause.
+- Ran `npm run check:state-preflight`, found stale package pointers in the global snapshot and active process local state, reconciled them, and reran preflight to a passing result.
+- Read `.consync/docs/handoff-delivery-bridge.md` end to end and confirmed it clearly separates local truth from transport, keeps delivery modes practical, and names realistic bridge failures without overdesign.
+- Read the updated runbook pointer and confirmed it stayed minimal and accurate.
 
 COMMANDS TO RUN
 
 - `npm run check:state-preflight`
 - `npm run check:state-postflight`
+- `sed -n '1,260p' .consync/docs/handoff-delivery-bridge.md`
 - `git status --short`
 
 HUMAN VERIFICATION
 
 1. Run `npm run check:state-preflight` from the repo root.
-2. Confirm success behavior: it reports `STATUS: PASS`, active stream `process`, active package `pause_electron_ui_stream_at_timeline_bookmark_milestone`, and a safe action to execute the mounted pause package.
-3. Open `.consync/state/active-stream.md` and confirm success behavior: `process` is active, `electron_ui` is previous and paused, and the live owner note explicitly says UI work is paused at the bookmark-lane milestone.
-4. Open `.consync/streams/electron_ui/state/snapshot.md` and confirm success behavior: it reads as paused, names the bookmark-lane milestone, and gives enough context to resume later without guesswork.
-5. Open `.consync/streams/electron_ui/state/next_action.md` and confirm success behavior: the likely next UI package is `add_note_or_session_event_markers_to_timeline` rather than the already-finished bookmark-lane work.
+2. Confirm success behavior: it reports `STATUS: PASS`, active stream `process`, active package `define_handoff_delivery_bridge_and_automation_path`, and a safe action to execute the mounted bridge-definition package.
+3. Run `sed -n '1,260p' .consync/docs/handoff-delivery-bridge.md`.
+4. Confirm success behavior: the doc clearly identifies `.consync/state/handoff.md` as local authority, treats delivery as transport, and defines practical delivery modes and failure modes.
+5. Open `.consync/state/snapshot.md` and confirm success behavior: it names `define_handoff_delivery_bridge_and_automation_path` as the current package and points toward `define_exportable_handoff_bundle_for_ai_rehydration` as the next likely slice.
 6. Run `npm run check:state-postflight` after reviewing this handoff.
-7. Confirm success behavior: postflight reports `STATUS: PASS` and no mismatch between the mounted pause package and this handoff.
-8. Failure case: if any live state surface still implies that `bind_bookmark_markers_into_session_timeline` is actively executing, treat the pause package as incomplete.
-9. Failure case: if the UI stream reads as abandoned rather than paused-with-resume-context, treat the stopped state as unclear and incomplete.
+7. Confirm success behavior: postflight reports `STATUS: PASS` and no mismatch between the mounted package and this handoff.
+8. Failure case: if the bridge doc implies that an uploaded mirror or cloud copy becomes canonical, treat the package as incomplete.
+9. Failure case: if the preferred near-term automation path depends on Google Drive or another flaky transport as the only bridge, treat the model as too brittle.
 
 VERIFICATION NOTES
 
-- Actually tested: `npm run check:state-preflight` before the pause, focused reads of the global owner markers and both streams’ local state surfaces after the pause changes, and `git status --short` on the final changed surface before handoff replacement.
-- Observed outcome: the first preflight run failed because the global snapshot and active electron_ui local next-action still pointed at the completed bookmark-lane package; after reconciling those pointers, preflight passed. The final changed surface stayed limited to the state files needed for the clean pause.
-- Important edge cases validated: the bookmark-lane milestone is preserved in paused UI state, the likely next UI package is explicit, and the current operating model’s requirement for one active owner is now stated directly instead of leaving the UI stream looking falsely active.
+- Actually tested: `npm run check:state-preflight` before closeout drafting, direct readback of the new bridge doc, direct readback of the runbook pointer, and the mounted-package state reconciliation needed to make the active process local state and global snapshot match the current package.
+- Observed outcome: the first preflight run failed because the global snapshot and active process local state still pointed at the previous pause package; after reconciling those pointers, preflight passed and the bridge doc read as a small, practical transport model rather than a new authority layer.
+- Important edge cases validated: the doc explicitly states that local repo truth wins over transport, Google Drive is treated as optional and unreliable rather than required infrastructure, and the near-term path stays focused on a local exportable bundle instead of jumping straight to a heavy integration stack.
 
 NEXT SUGGESTED PACKAGE
 
-- `resume_electron_ui_stream_for_second_real_timeline_lane` — the restart package that resumes the UI stream from the bookmark-lane milestone and begins making one additional timeline lane real, likely notes or session events.
+- `define_exportable_handoff_bundle_for_ai_rehydration` — the next narrow process package that defines the exact minimal artifact bundle and output shape to generate locally for reliable delivery into ChatGPT before building any actual automation.

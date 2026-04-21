@@ -2,9 +2,9 @@
 
 What just happened:
 
-- the integrity-aware loop remains in place after the first real UI timeline lane landed cleanly
-- the current process slice now serves as the explicit caretaker owner while `electron_ui` is paused at a clean milestone
-- the live loop no longer needs to pretend that UI work is still actively executing
+- the UI stream is paused cleanly at the bookmark-lane milestone
+- the current process slice now focuses on the weak bridge between clean local state and external AI rehydration
+- local handoff truth remains stable, but delivery into ChatGPT still needs a clearer model
 
 Current state:
 
@@ -15,5 +15,5 @@ Current state:
 What matters next:
 
 - preserve enough local state that future process refinement can resume without reconstructing context
-- keep the paused UI milestone easy to explain and easy to resume later
-- avoid expanding into broader doc scanning, scheduler logic, or agent framework work during the stopped state
+- define a small reliable handoff-delivery bridge before building automation
+- avoid overcommitting to flaky cloud transport or a heavy integration architecture too early

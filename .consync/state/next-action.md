@@ -1,108 +1,158 @@
 TYPE: PROCESS
-PACKAGE: pause_electron_ui_stream_at_timeline_bookmark_milestone
+PACKAGE: define_handoff_delivery_bridge_and_automation_path
 
 GOAL
 
-Pause the `electron_ui` stream cleanly at the current timeline-bookmark milestone so work can stop without ambiguity and the stream can be resumed later from a well-defined checkpoint.
+Define a reliable handoff-delivery bridge between the local Consync repo and ChatGPT so the system no longer depends on inconsistent manual copy/paste behavior or partially working Google Drive handoff patterns.
 
 WHY
 
-The UI stream has reached a meaningful stopping point:
-- the creative timeline shell exists
-- the visual hierarchy has been improved
-- the bookmark lane now reflects real current-session bookmark data
-- the integrity-aware loop remained intact during normal UI work
+The core loop, integrity checks, stream model, and trigger-aware process are now strong enough to support normal work. The current weak point is delivery of live handoff context into ChatGPT.
 
-This is a good moment to stop intentionally rather than leave the stream open in a half-finished state. The goal is to preserve a truthful resume point, keep the live loop coherent, and avoid ambiguity about whether UI work is still actively mounted.
+Right now:
+- the repo may be in a coherent state locally
+- the handoff may exist truthfully in `.consync/state/handoff.md`
+- but getting that state into ChatGPT still depends too heavily on manual transfer and inconsistent external tooling behavior
+
+This creates drift risk at exactly the bridge point where the human operator must rehydrate the system for the next conversation.
+
+The next step should not be “build the full automation immediately.” It should define:
+- what the bridge is responsible for
+- what artifact(s) it should deliver
+- what “successful delivery” means
+- what fallback paths are acceptable
+- what automation path should be pursued next
 
 SCOPE
 
-Keep this package administrative and narrow.
+Keep this package definition-focused and practical.
 
 Expected outcome:
-- `electron_ui` is no longer treated as an actively executing stream
-- the current UI milestone is preserved in stream-local state
-- the live loop is no longer left pointing at an in-progress UI package
-- global and stream-local state remain coherent
-- the stream can be resumed later without reconstructing context manually
+- one new doc defines the handoff-delivery bridge
+- the bridge distinguishes local source-of-truth from external delivery mechanisms
+- acceptable delivery modes are defined
+- success/failure conditions are defined
+- the likely automation path is named clearly
+- the model avoids overcommitting to Google Drive as the only bridge
 
 Do not:
-- start a new feature package
-- switch to another active stream unless explicitly needed for your broader workflow
-- redesign the stream model
-- mix this with new process-system work beyond what is required for a clean pause
-
-INTEGRITY TRIGGER
-
-- level: `elevated`
-- reason: this package changes active-loop and stream-state surfaces to intentionally stop active UI work at a clean checkpoint
-- required checks:
-  - `npm run check:state-preflight` before closeout drafting
-  - `npm run check:state-postflight` before accepting the handoff
-- extra review:
-  - confirm the UI stream is paused, not abandoned
-  - confirm the bookmark-timeline milestone is preserved in local resume state
-  - confirm the live loop does not misleadingly imply active UI execution after the pause
+- implement the automation yet
+- build a full MCP server in this package
+- redesign the core loop again
+- add broad new process complexity
+- assume Google Drive will be the permanent solution
 
 WORK INSTRUCTIONS
 
-1. Inspect the current live state and confirm the mounted UI package and stream-local UI state are coherent before pausing:
-   - `.consync/state/active-stream.md`
-   - `.consync/state/next-action.md`
-   - `.consync/state/handoff.md`
-   - `.consync/state/snapshot.md`
-   - `.consync/orchestration/active_foreground_stream.txt`
-   - `.consync/streams/electron_ui/stream.md`
-   - `.consync/streams/electron_ui/state/next_action.md`
-   - `.consync/streams/electron_ui/state/snapshot.md`
+1. Create a new doc, preferably at:
 
-2. Run preflight and confirm the current UI package state is coherent before changing ownership or pause status.
+   `.consync/docs/handoff-delivery-bridge.md`
 
-3. Pause `electron_ui` cleanly.
-   Preserve enough stream-local state so later resumption is easy and unambiguous.
+2. In that doc, define the handoff-delivery problem clearly.
 
-4. Update stream-local UI state so it clearly records:
-   - the current milestone
-   - the likely next UI package:
-     - `add_note_or_session_event_markers_to_timeline`
-   - any brief resume guidance that will help later re-entry
+   At minimum, distinguish between:
+   - local truth
+     - what exists in the repo and is authoritative
+   - delivery bridge
+     - how that truth is transferred into ChatGPT or another AI session
+   - downstream assistant state
+     - what the receiving AI must know to continue correctly
 
-5. Update global state truthfully so the system does not appear to still be actively executing the just-finished UI package.
+3. Define the core source-of-truth principle.
 
-6. If your current operating model requires a still-active owner even when product work is paused, make that state explicit and truthful rather than implied.
-   Prefer clarity over pretending the UI stream is still “live.”
+   Make explicit that:
+   - `.consync/state/handoff.md` remains the local authoritative closeout artifact
+   - any bridge mechanism is a transport layer, not the source of truth
+   - external mirrors or uploads must not become the canonical state by accident
 
-7. Refresh snapshot/re-entry surfaces only as needed so the stopped state is easy to understand later.
+4. Define acceptable delivery modes.
 
-8. Keep wording explicit and boring.
+   At minimum, include categories such as:
+   - manual copy/paste
+   - local generated export or bundle
+   - uploaded file handoff
+   - synced cloud document/file mirror
+   - future MCP or direct tool-based delivery
 
-DESIGN INTENT
+5. Define the strengths, weaknesses, and risk profile of each mode.
+   Keep it practical.
+   Include the current Google Drive frustration honestly as an example of partial bridge reliability.
 
-This package should make it easy to answer:
-- Is UI work still active right now?
-- What was the last meaningful UI milestone?
-- Where should we pick up next time?
-- Is the system in a clean stopped state?
+6. Define what “successful handoff delivery” means.
+
+   At minimum:
+   - the receiving AI can identify the current package or last completed package
+   - the receiving AI can identify active stream and current system state
+   - the receiving AI can continue without reconstructing truth manually from many files
+   - the delivery path does not silently fork or mutate the source of truth
+
+7. Define bridge failure modes.
+
+   Examples:
+   - stale uploaded copy
+   - partial upload/mirror failure
+   - missing stream context
+   - multiple conflicting copies
+   - handoff delivered without snapshot/runbook context when needed
+   - human forced to summarize manually from memory
+
+8. Define the preferred near-term automation path.
+
+   This should likely include:
+   - generating a small exportable handoff bundle or conversation-bootstrap payload locally
+   - keeping local repo artifacts canonical
+   - avoiding dependency on a flaky cloud mirror as the only transport
+   - leaving room for future direct delivery through MCP or similar tooling
+
+9. Define the minimal bundle needed for reliable delivery.
+
+   Decide what should travel together, such as:
+   - latest handoff
+   - current snapshot
+   - maybe runbook pointer or compact bootstrap metadata
+   Keep it small and operational.
+
+10. Add one or two small pointers from relevant docs if useful, such as:
+   - `runbook.md`
+   - `snapshot.md`
+   - process/operator docs
+
+   Keep pointers minimal.
+
+CONTENT REQUIREMENTS
+
+The new bridge doc should clearly answer:
+
+- What is the authoritative local handoff artifact?
+- What is the delivery bridge responsible for?
+- What counts as a successful handoff into ChatGPT?
+- What delivery modes exist today?
+- What are the failure modes?
+- What is the preferred near-term automation path?
+- Why should transport remain separate from source of truth?
+
+It should also explicitly state that:
+
+- delivery reliability is now a first-class process concern
+- a flaky transport layer can reintroduce drift even when local state is clean
+- the goal is to reduce human rehydration burden without duplicating authority across systems
 
 CONSTRAINTS
 
-- keep the package administrative and small
-- do not lose the bookmark-lane milestone
-- do not leave stale “active package” language around if the stream is paused
-- do not invent a new process mode unless the current model truly requires it
-- avoid unrelated source-code changes
+- keep the model compact
+- no implementation in this package
+- do not treat Google Drive as required infrastructure
+- do not blur source-of-truth and transport concerns
+- avoid introducing a heavy integration architecture too early
 
 VERIFICATION
 
-1. Run `npm run check:state-preflight` before closeout drafting.
-2. Confirm the global and stream-local UI surfaces are coherent before the pause.
-3. Confirm after the pause that the system no longer misleadingly suggests active UI execution.
-4. Confirm the UI stream-local state preserves:
-   - the bookmark-lane milestone
-   - the likely next package
-   - enough resume context to restart later without guesswork
-5. Run `npm run check:state-postflight` after writing the handoff.
-6. Confirm the stopped state is easier to explain than the previous live state.
+1. Read the new bridge doc end to end and confirm it makes the delivery problem easier to explain.
+2. Confirm the doc clearly separates local truth from transport.
+3. Confirm the acceptable delivery modes are practical and not overdesigned.
+4. Confirm the bridge failure modes match the real pain you are seeing.
+5. Confirm the preferred near-term automation path is realistic and does not depend on unreliable infrastructure.
+6. If any pointers are added, confirm they are minimal and accurate.
 
 HANDOFF REQUIREMENTS
 
@@ -113,8 +163,6 @@ Include:
 - PACKAGE
 - STATUS
 - SUMMARY
-- STREAM PAUSE RESULT
-- ACTIVE STREAM STATE
 - FILES CREATED
 - FILES MODIFIED
 - VERIFICATION
@@ -123,6 +171,6 @@ Include:
 
 For `NEXT SUGGESTED PACKAGE`, recommend:
 
-`resume_electron_ui_stream_for_second_real_timeline_lane`
+`define_exportable_handoff_bundle_for_ai_rehydration`
 
-and describe it as the restart package that resumes the UI stream from the bookmark-lane milestone and begins making one additional timeline lane real, likely notes or session events.
+and describe it as the next narrow process package that defines the exact minimal artifact bundle and output shape to generate locally for reliable delivery into ChatGPT before building any actual automation.

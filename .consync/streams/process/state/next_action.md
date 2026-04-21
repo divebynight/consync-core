@@ -2,12 +2,12 @@ STATUS: active
 
 Mounted next step:
 
-- `pause_electron_ui_stream_at_timeline_bookmark_milestone`
+- `define_handoff_delivery_bridge_and_automation_path`
 
 Focus:
 
-- hold the live loop explicitly while `electron_ui` is paused
-- keep the stopped UI state truthful instead of implying active execution
-- preserve enough process context that later workflow decisions can be made intentionally
+- define the delivery bridge between local handoff truth and ChatGPT rehydration
+- keep transport separate from source of truth
+- name the preferred near-term automation path without implementing it yet
 
 Keep this stream narrow. Do not expand into orchestration bloat or broad documentation scanning.

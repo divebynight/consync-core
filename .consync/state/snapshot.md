@@ -3,8 +3,8 @@
 ## System Status
 
 - repo state is currently clean enough to run a new package
-- the most recent completed package bound real current-session bookmark markers into the timeline bookmark lane
-- the current package pauses `electron_ui` cleanly at that milestone so the stream can be resumed later without ambiguity
+- the most recent completed package paused `electron_ui` cleanly at the timeline bookmark milestone and preserved a clear resume checkpoint
+- the current package defines the handoff-delivery bridge so local truth and external transport stop being blurred together
 - the process phase remains definition-focused here and still does not implement broader repo-wide validation
 
 ## Active Stream
@@ -21,33 +21,34 @@
 
 ## Current Package
 
-- type: `FEATURE`
-- package: `pause_electron_ui_stream_at_timeline_bookmark_milestone`
+- type: `PROCESS`
+- package: `define_handoff_delivery_bridge_and_automation_path`
 
 ## Current Goal / Focus
 
-Pause the `electron_ui` stream cleanly at the bookmark-lane milestone so work can stop intentionally and resume later from a truthful checkpoint.
+Define a reliable bridge for delivering local handoff truth into ChatGPT so clean repo state does not get lost at the transport boundary.
 
-The current package should stay compact and administrative: preserve the current UI milestone, remove stale active-package implications, and keep resume guidance explicit.
+The current package should stay compact and definition-focused: clarify local authority, acceptable delivery modes, bridge failure modes, and the preferred near-term automation path.
 
 ## Current Loop State
 
-- the live loop remains singular, but `electron_ui` is now paused at a clean milestone rather than left looking actively in progress
-- `process` is the explicit caretaker owner of the global loop while UI work is stopped
-- the mounted package now records the clean pause rather than implying active UI execution
+- the live loop remains singular, with `process` acting as the explicit caretaker owner while UI work is paused
+- the mounted package now defines how handoff truth should move from the local repo into a new AI session
+- the bridge work stays definition-only and does not yet implement automation
 
 ## Known Tensions Or Pending Decisions
 
 - `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
 - the stopped state should remain easy to explain without implying active UI execution
+- handoff delivery into ChatGPT is still a weak bridge point even when local repo state is clean
 - bootstrap docs should remain thin and connective rather than turning into a new meta-framework
 - future returns to ordinary UI work should happen intentionally, not implicitly
 
 ## Next Likely Packages
 
-- `resume_electron_ui_stream_for_second_real_timeline_lane`
-- a restart package that resumes the UI stream from the bookmark-lane milestone and begins making one additional timeline lane real, likely notes or session events
-- a later narrow UI follow-up after the second real lane lands cleanly
+- `define_exportable_handoff_bundle_for_ai_rehydration`
+- a narrow process package that defines the minimal artifact bundle and output shape to generate locally for reliable AI rehydration
+- a later implementation package that builds the chosen local export path without making transport authoritative
 
 ## Bootstrap Note For New AI Conversations
 
