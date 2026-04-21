@@ -46,6 +46,24 @@ For each package:
 6. refresh `snapshot.md`
 7. only then prepare the next package
 
+## Stream Rules
+
+Fixed streams: `process`, `electron_ui`. These are labels, not a lifecycle framework.
+
+- `active-stream.md` is the only declaration of which stream owns the live loop
+- only one stream is active at a time
+- stream status (`active` or `paused`) lives in that stream's `stream.md`
+
+A stream is pause-safe when:
+- `handoff.md` is complete for the last package
+- `snapshot.md` is current
+- a brief pause note is written in that stream's `stream.md`
+
+To switch streams:
+1. update `active-stream.md`
+2. update the `status` field in each affected `stream.md`
+3. update `snapshot.md`
+
 ## Trigger Level Use
 
 The live package should expose its integrity trigger level inside `next-action.md`.

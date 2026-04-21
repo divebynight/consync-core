@@ -5,4 +5,4 @@
 - status: active
 - owner: human
 - mode: system
-- summary: active caretaker owner of the live loop while the electron_ui stream is paused at the bookmark-lane milestone
+- summary: active caretaker owner of the live loop; current package is simplify_consync_state_and_docs_structure

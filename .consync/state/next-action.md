@@ -1,13 +1,33 @@
 TYPE: PROCESS
-PACKAGE: define_handoff_delivery_bridge_and_automation_path
+PACKAGE: simplify_consync_state_and_docs_structure
+
+INTEGRITY TRIGGER
+
+- level: `heavy`
+- why: this package deletes files, removes an entire folder, and restructures the governance docs that the integrity checker reads; multiple state and governance surfaces are being changed simultaneously
+- preflight checks:
+   - `npm run check:state-preflight`
+- postflight checks:
+   - `npm run check:state-postflight`
+- extra review required:
+   - confirm the integrity checker still passes after all deletions
+   - confirm no deleted file is referenced by stateIntegrityCheck.js
+   - confirm snapshot.md and active-stream.md are still accurate after the migration
 
 GOAL
 
-Define a reliable handoff-delivery bridge between the local Consync repo and ChatGPT so the system no longer depends on inconsistent manual copy/paste behavior or partially working Google Drive handoff patterns.
+Reduce the `.consync/` directory to the minimal structure required to run the next-action → handoff loop. Remove all duplicated state surfaces, non-essential docs, and planning artifacts that were acting as a parallel system memory. Leave the repo self-sufficient and readable without any external conversation context.
 
 WHY
 
-The core loop, integrity checks, stream model, and trigger-aware process are now strong enough to support normal work. The current weak point is delivery of live handoff context into ChatGPT.
+The system has drifted from its guiding principle. It now contains:
+- four files declaring which stream is active, one already wrong
+- per-stream state/ directories that mirror global state files but were never reliably maintained
+- an orchestration/ folder with no enforcement backing it
+- a package_plan.md being maintained as live control state despite being out of sync
+- 15 docs describing the process of managing the process, most unread directly by anyone
+
+The fix is removal. The four core runtime files are sufficient. Everything else either supports them or goes away.
 
 Right now:
 - the repo may be in a coherent state locally

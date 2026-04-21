@@ -20,15 +20,9 @@ const REQUIRED_HANDOFF_SECTIONS = [
 ];
 
 const REQUIRED_SNAPSHOT_SECTIONS = [
-  "## System Status",
   "## Active Stream",
-  "## Previous Or Paused Streams",
   "## Current Package",
-  "## Current Goal / Focus",
-  "## Current Loop State",
-  "## Known Tensions Or Pending Decisions",
   "## Next Likely Packages",
-  "## Bootstrap Note For New AI Conversations",
 ];
 
 function readRequiredFile(rootPath, relativePath, failures) {
@@ -150,87 +144,27 @@ function parseStreamDoc(text) {
   };
 }
 
-function parseStreamLocalNextAction(text) {
-  const mountedPackageMatch = text.match(/`([^`]+)`/);
-
-  return {
-    status: extractField(text, "STATUS"),
-    mountedPackage: mountedPackageMatch ? mountedPackageMatch[1] : null,
-    text,
-  };
-}
-
-function snapshotSuggestsPaused(text) {
-  const normalized = text.toLowerCase();
-  return (
-    normalized.includes("the stream is paused cleanly") ||
-    normalized.includes("this stream is intentionally paused") ||
-    normalized.includes("stream is paused cleanly rather than active") ||
-    normalized.includes("stream is intentionally paused and ready to resume")
-  );
-}
-
-function snapshotHasResumeContext(text) {
-  const normalized = text.toLowerCase();
-  return (
-    normalized.includes("what matters next") ||
-    normalized.includes("next likely step") ||
-    normalized.includes("resume from this preserved state") ||
-    normalized.includes("ready to resume later")
-  );
-}
-
-function evaluateStreamLocalState(rootPath, activeStream, nextAction, failures) {
+function evaluateStreamLocalState(rootPath, activeStream, failures) {
   const streamsToCheck = [activeStream.activeStream, ...activeStream.pausedStreams].filter(Boolean);
 
   for (const streamName of streamsToCheck) {
     const relativeRoot = path.join(STREAMS_ROOT, streamName);
     const streamDocText = readRequiredFile(rootPath, path.join(relativeRoot, "stream.md"), failures);
-    const streamNextActionText = readRequiredFile(rootPath, path.join(relativeRoot, "state", "next_action.md"), failures);
-    const streamSnapshotText = readRequiredFile(rootPath, path.join(relativeRoot, "state", "snapshot.md"), failures);
-    const streamHandoffText = readRequiredFile(rootPath, path.join(relativeRoot, "state", "handoff.md"), failures);
 
-    if (!streamDocText || !streamNextActionText || !streamSnapshotText || !streamHandoffText) {
+    if (!streamDocText) {
       continue;
     }
 
     const streamDoc = parseStreamDoc(streamDocText);
-    const localNextAction = parseStreamLocalNextAction(streamNextActionText);
     const isActiveStream = streamName === activeStream.activeStream;
     const expectedStatus = isActiveStream ? "active" : "paused";
 
     if (streamDoc.id && streamDoc.id !== streamName) {
-      failures.push(`stream-local id mismatch for ${streamName}: ${streamDoc.id} != ${streamName}`);
+      failures.push(`stream id mismatch for ${streamName}: ${streamDoc.id} != ${streamName}`);
     }
 
     if (streamDoc.status !== expectedStatus) {
       failures.push(`stream ${streamName} status mismatch: expected ${expectedStatus}, found ${streamDoc.status || "unreadable"}`);
-    }
-
-    if (localNextAction.status !== expectedStatus) {
-      failures.push(`stream ${streamName} local next action status mismatch: expected ${expectedStatus}, found ${localNextAction.status || "unreadable"}`);
-    }
-
-    if (isActiveStream) {
-      if (!localNextAction.text.trim()) {
-        failures.push(`active stream ${streamName} is missing readable local next action context`);
-      }
-
-      if (localNextAction.mountedPackage && nextAction.packageName && localNextAction.mountedPackage !== nextAction.packageName) {
-        failures.push(`active stream ${streamName} local package mismatch: ${localNextAction.mountedPackage} != ${nextAction.packageName}`);
-      }
-
-      if (snapshotSuggestsPaused(streamSnapshotText)) {
-        failures.push(`active stream ${streamName} snapshot reads as paused`);
-      }
-    } else {
-      if (!snapshotHasResumeContext(streamSnapshotText)) {
-        failures.push(`paused stream ${streamName} is missing readable local resume context`);
-      }
-
-      if (!snapshotSuggestsPaused(streamSnapshotText)) {
-        failures.push(`paused stream ${streamName} snapshot does not read as paused`);
-      }
     }
   }
 }
@@ -291,7 +225,7 @@ function evaluateStateIntegrity(rootPath, mode) {
     failures.push("live owner note does not name the active stream explicitly");
   }
 
-  evaluateStreamLocalState(rootPath, activeStream, nextAction, failures);
+  evaluateStreamLocalState(rootPath, activeStream, failures);
 
   if (normalizedMode === "preflight") {
     if (
@@ -340,7 +274,7 @@ function evaluateStateIntegrity(rootPath, mode) {
     handoffPackage: handoff.packageName || "unreadable",
     systemState,
     nextSafeAction,
-    streamLocalStatus: failures.some(item => item.includes("stream ") || item.includes("paused stream ") || item.includes("active stream ") || item.includes("stream-local ")) ? "FAIL" : "PASS",
+    streamLocalStatus: failures.some(item => item.includes("stream ") || item.includes("stream id ")) ? "FAIL" : "PASS",
     failures,
   };
 }
