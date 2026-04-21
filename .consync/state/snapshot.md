@@ -3,51 +3,51 @@
 ## System Status
 
 - repo state is currently clean enough to run a new package
-- the most recent completed package wired the trigger model into the live loop so operators can see the trigger level and required checks directly during package execution
-- the current package performs the stream switch back to `electron_ui` so ordinary product work can resume under the integrity-aware loop
+- the most recent completed package bound real current-session bookmark markers into the timeline bookmark lane
+- the current package pauses `electron_ui` cleanly at that milestone so the stream can be resumed later without ambiguity
 - the process phase remains definition-focused here and still does not implement broader repo-wide validation
 
 ## Active Stream
 
-- recorded active stream: `electron_ui`
-- recorded foreground stream: `electron_ui`
-- the global live loop is now intentionally owned by `electron_ui`
+- recorded active stream: `process`
+- recorded foreground stream: `process`
+- the global live loop is now intentionally owned by `process`
 
 ## Previous Or Paused Streams
 
-- previous stream: `process`
-- paused streams: `process`
+- previous stream: `electron_ui`
+- paused streams: `electron_ui`
 - supporting streams: none
 
 ## Current Package
 
 - type: `FEATURE`
-- package: `bind_bookmark_markers_into_session_timeline`
+- package: `pause_electron_ui_stream_at_timeline_bookmark_milestone`
 
 ## Current Goal / Focus
 
-Replace one placeholder bookmark lane in the Creative Timeline shell with real current-session bookmark markers so the timeline starts reflecting actual session data.
+Pause the `electron_ui` stream cleanly at the bookmark-lane milestone so work can stop intentionally and resume later from a truthful checkpoint.
 
-The current package should stay compact and renderer-focused: bind one timeline lane to real bookmark data while keeping waveform rendering and deeper timeline interaction out of scope.
+The current package should stay compact and administrative: preserve the current UI milestone, remove stale active-package implications, and keep resume guidance explicit.
 
 ## Current Loop State
 
-- the live loop remains singular, and ownership is now intentionally switched back to `electron_ui`
-- `process` is paused cleanly with preserved stream-local resume state
-- the mounted package is now the first normal UI slice under the integrity-aware loop and should remain `light`
+- the live loop remains singular, but `electron_ui` is now paused at a clean milestone rather than left looking actively in progress
+- `process` is the explicit caretaker owner of the global loop while UI work is stopped
+- the mounted package now records the clean pause rather than implying active UI execution
 
 ## Known Tensions Or Pending Decisions
 
 - `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
-- the stream switch should preserve the new trigger-aware loop without making ordinary UI work feel heavy
+- the stopped state should remain easy to explain without implying active UI execution
 - bootstrap docs should remain thin and connective rather than turning into a new meta-framework
-- future returns to `process` should happen intentionally, not implicitly
+- future returns to ordinary UI work should happen intentionally, not implicitly
 
 ## Next Likely Packages
 
-- `bind_bookmark_markers_into_session_timeline`
-- the first normal `electron_ui` package under the integrity-aware loop, replacing one placeholder timeline lane with real current-session bookmark markers
-- a later narrow UI follow-up after bookmark markers land cleanly under `light` validation
+- `resume_electron_ui_stream_for_second_real_timeline_lane`
+- a restart package that resumes the UI stream from the bookmark-lane milestone and begins making one additional timeline lane real, likely notes or session events
+- a later narrow UI follow-up after the second real lane lands cleanly
 
 ## Bootstrap Note For New AI Conversations
 

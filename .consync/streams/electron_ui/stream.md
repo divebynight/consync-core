@@ -2,7 +2,7 @@
 
 - id: electron_ui
 - title: Electron UI Behavior + Testing
-- status: active
+- status: paused
 - owner: human
 - mode: build
-- summary: active owner of the live loop again so normal UI work can resume under the integrity-aware validation model
+- summary: paused cleanly at the first real timeline bookmark-lane milestone so UI work can resume later from a defined checkpoint

@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-electron_ui
+process
 
 PREVIOUS STREAM
 
-process
+electron_ui
 
 SWITCH REASON
 
-The process integrity phase is now coherent enough to pause cleanly, so the live loop is intentionally returning to `electron_ui` for normal product work under the new integrity-aware operating model.
+The bookmark-lane milestone is complete, so `electron_ui` is being paused cleanly. The live loop still requires one active owner, so `process` now holds the foreground execution surface explicitly while UI work is stopped.
 
 PAUSED STREAMS
 
-- process
+- electron_ui
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md` while `electron_ui` is paused at the timeline-bookmark milestone.
 
 The global live loop stays singular even while other streams remain durable and resumable.

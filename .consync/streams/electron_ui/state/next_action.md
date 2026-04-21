@@ -1,13 +1,13 @@
-STATUS: active
+STATUS: paused
 
-Mounted next step:
+Next likely step when this stream resumes:
 
-- `bind_bookmark_markers_into_session_timeline`
+- `add_note_or_session_event_markers_to_timeline`
 
 Focus:
 
-- replace one placeholder bookmark lane with real current-session bookmark markers
-- keep the timeline shell shallow and display-only
-- protect existing non-timeline behavior with focused UI verification
+- preserve the bookmark-lane milestone as the current resume checkpoint
+- make one additional timeline lane real next, likely notes or session events
+- resume from the preserved UI snapshot rather than reconstructing context from chat memory
 
-Keep this stream narrow. Do not broaden into waveform rendering, playback, or richer timeline interaction.
+Keep this stream narrow. Do not broaden into new UI feature work during the pause package.

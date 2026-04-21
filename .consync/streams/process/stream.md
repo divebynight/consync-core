@@ -2,7 +2,7 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: paused
+- status: active
 - owner: human
 - mode: system
-- summary: paused cleanly after wiring the integrity-aware loop so process refinement can resume later without blocking ordinary UI work
+- summary: active caretaker owner of the live loop while the electron_ui stream is paused at the bookmark-lane milestone

@@ -2,18 +2,18 @@
 
 What just happened:
 
-- the integrity trigger model is now wired into the live loop, runbook, and package template surfaces
-- the current process slice is the formal switch back to `electron_ui`
-- this stream should pause cleanly after handing the live loop back to UI work
+- the integrity-aware loop remains in place after the first real UI timeline lane landed cleanly
+- the current process slice now serves as the explicit caretaker owner while `electron_ui` is paused at a clean milestone
+- the live loop no longer needs to pretend that UI work is still actively executing
 
 Current state:
 
-- the stream is paused cleanly rather than active
-- the integrity-aware loop is now stable enough to support ordinary product work
-- `electron_ui` is active again and owns the global live loop
+- the stream is active as the explicit foreground owner of the global loop
+- `electron_ui` is paused cleanly rather than abandoned
+- the integrity-aware loop remains stable while no ordinary UI package is actively executing
 
 What matters next:
 
 - preserve enough local state that future process refinement can resume without reconstructing context
-- return to this stream only when a concrete integrity or governance gap appears
-- avoid expanding into broader doc scanning, scheduler logic, or agent framework work during the switch
+- keep the paused UI milestone easy to explain and easy to resume later
+- avoid expanding into broader doc scanning, scheduler logic, or agent framework work during the stopped state

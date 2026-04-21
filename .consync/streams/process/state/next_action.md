@@ -1,13 +1,13 @@
-STATUS: paused
+STATUS: active
 
-Next likely step when this stream resumes:
+Mounted next step:
 
-- `resume_electron_ui_stream_with_integrity_aware_loop`
+- `pause_electron_ui_stream_at_timeline_bookmark_milestone`
 
 Focus:
 
-- preserve the integrity-aware loop guidance without reopening broad process redesign
-- resume from the preserved process-stream snapshot rather than reconstructing context from chat memory
-- revisit process refinement only when a concrete new integrity gap appears
+- hold the live loop explicitly while `electron_ui` is paused
+- keep the stopped UI state truthful instead of implying active execution
+- preserve enough process context that later workflow decisions can be made intentionally
 
 Keep this stream narrow. Do not expand into orchestration bloat or broad documentation scanning.
