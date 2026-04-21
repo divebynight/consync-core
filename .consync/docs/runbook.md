@@ -46,9 +46,19 @@ For each package:
 6. refresh `snapshot.md`
 7. only then prepare the next package
 
-## Stream Rules
+## Commands vs Agents
 
-Fixed streams: `process`, `electron_ui`. These are labels, not a lifecycle framework.
+Use a core command when the operation is deterministic and success is checkable:
+- `state-integrity-check` — reads files, evaluates rules, returns PASS or FAIL
+- `new-guid`, `sandbox-scan` — explicit input, predictable output, no judgment required
+
+Use an agent when judgment is required before an operation should happen:
+- `gatekeeper mount` — reads repo state, evaluates a request, decides whether mounting is appropriate
+- Agents decide. Commands execute. State files record committed truth.
+
+Do not use an agent to do what a command already does deterministically.
+
+## Stream Rules
 
 - `active-stream.md` is the only declaration of which stream owns the live loop
 - only one stream is active at a time
