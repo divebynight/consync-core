@@ -5,6 +5,7 @@
   "scripts": {
     "check:state-postflight": "node src/index.js state-integrity-check postflight",
     "check:state-preflight": "node src/index.js state-integrity-check preflight",
+    "gatekeeper:mount": "node src/index.js gatekeeper mount",
     "check:handoff-contract": "node scripts/check-handoff-contract.js",
     "probe:audio-session": "cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js",
     "start:desktop": "electron-forge start",

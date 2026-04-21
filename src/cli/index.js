@@ -13,6 +13,7 @@ const { runSystemCheckCommand } = require("../commands/system-check");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
 const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check");
 const { runPortableCommand } = require("../commands/portable");
+const { runGatekeeperCommand } = require("../commands/gatekeeper");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -153,6 +154,11 @@ async function main() {
 
   if (command === "portable") {
     runPortableCommand(parsePortableOptions(process.argv.slice(3)));
+    return;
+  }
+
+  if (command === "gatekeeper") {
+    await runGatekeeperCommand(process.argv[3], process.argv.slice(4));
     return;
   }
 

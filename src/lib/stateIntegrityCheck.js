@@ -282,4 +282,7 @@ function evaluateStateIntegrity(rootPath, mode) {
 module.exports = {
   CORE_STATE_FILES,
   evaluateStateIntegrity,
+  parseActiveStream,
+  parseNextAction,
+  parseHandoff,
 };
