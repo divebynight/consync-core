@@ -546,20 +546,22 @@ body {
   padding: 16px;
   border-radius: 16px;
   border: 1px solid rgba(60, 44, 30, 0.08);
-  background: rgba(255, 255, 255, 0.58);
+  border-left: 3px solid rgba(140, 76, 31, 0.22);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .waveform-heading {
-  margin: 0 0 10px;
-  font-size: 0.88rem;
+  margin: 0 0 6px;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8c4c1f;
 }
 
 .waveform-artifact {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-size: 0.84rem;
+  font-weight: 500;
   color: #52453b;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -569,14 +571,15 @@ body {
 .waveform-bars {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
-  height: 52px;
+  gap: 4px;
+  height: 64px;
+  border-bottom: 1.5px solid rgba(140, 76, 31, 0.18);
 }
 
 .waveform-bar {
   flex: 1;
   min-width: 4px;
-  background: rgba(140, 76, 31, 0.55);
+  background: rgba(140, 76, 31, 0.68);
   border-radius: 2px 2px 0 0;
 }
 

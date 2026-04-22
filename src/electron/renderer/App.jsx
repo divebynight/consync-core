@@ -334,7 +334,7 @@ function WaveformPanel({ selectedDetail }) {
               <div
                 className="waveform-bar"
                 key={index}
-                style={{ height: `${Math.round(amplitude * 48)}px` }}
+                style={{ height: `${Math.round(amplitude * 56)}px` }}
               />
             ))}
           </div>
