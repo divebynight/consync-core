@@ -126,11 +126,22 @@ function inferStreamFromRequest(requestText, activeStreamName) {
     electron_ui: ["electron", "ui", "renderer", "timeline", "bookmark", "search", "desktop", "window", "react", "app"],
   };
 
+  // Short generic signals that produce false positives as substrings (e.g. "ui" inside "guid")
+  // are matched with word boundaries instead of plain substring inclusion.
+  const wordBoundarySignals = new Set(["ui"]);
+
+  function signalMatches(signal, text) {
+    if (wordBoundarySignals.has(signal)) {
+      return new RegExp(`\\b${signal}\\b`).test(text);
+    }
+    return text.includes(signal);
+  }
+
   const matched = [];
 
   for (const streamName of FIXED_STREAMS) {
     const signals = streamSignals[streamName];
-    if (signals.some(signal => lower.includes(signal))) {
+    if (signals.some(signal => signalMatches(signal, lower))) {
       matched.push(streamName);
     }
   }

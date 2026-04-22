@@ -56,7 +56,7 @@ function makeState({ activeStreamName = "process", packageStatus = "closed", han
 
 function testMountReadyToMount() {
   const state = makeState({ packageStatus: "closed" });
-  const result = evaluateReadiness(state, "implement the validation logic in the core library handler module");
+  const result = evaluateReadiness(state, "implement the new guid validation logic in src/lib/guid.js");
 
   assert.strictEqual(result.decision, "READY_TO_MOUNT", `expected READY_TO_MOUNT, got ${result.decision}`);
   assert.ok(result.proposedPackage, "expected a proposedPackage");
@@ -78,7 +78,7 @@ function testMountRefuseOpenPackage() {
 
 function testMountRefuseStreamStatusNotActive() {
   const state = makeState({ packageStatus: "closed", streamStatus: "paused" });
-  const result = evaluateReadiness(state, "implement the validation logic in the core library handler module");
+  const result = evaluateReadiness(state, "implement the new guid validation logic in src/lib/guid.js");
 
   assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
   assert.ok(result.reason.includes("status"), `unexpected reason: ${result.reason}`);
@@ -90,7 +90,7 @@ function testMountRefuseMissingActiveStream() {
   const state = makeState({ packageStatus: "closed" });
   state.activeStreamText = null;
   state.activeStreamName = null;
-  const result = evaluateReadiness(state, "implement the validation logic in the core library handler module");
+  const result = evaluateReadiness(state, "implement the new guid validation logic in src/lib/guid.js");
 
   assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
 
@@ -120,7 +120,7 @@ function testMountNeedsClarificationStreamMismatch() {
 function testMountNeedsDecomposition() {
   const state = makeState({ packageStatus: "closed" });
   // Two clear action verbs connected by "and"
-  const result = evaluateReadiness(state, "implement the validation handler and write the integration tests for the new format");
+  const result = evaluateReadiness(state, "implement the guid validation in src/lib and update the test harness to verify the new format");
 
   assert.strictEqual(result.decision, "NEEDS_DECOMPOSITION", `expected NEEDS_DECOMPOSITION, got ${result.decision}: ${result.reason}`);
 

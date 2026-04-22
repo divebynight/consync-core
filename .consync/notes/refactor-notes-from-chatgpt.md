@@ -8,6 +8,11 @@ Consync checkpoint:
 - gatekeeper mount implemented and working
 - cleanup package closed in handoff but still mounted in next-action
 - preflight FAIL is expected due to stale mounted package
+
+Gatekeeper tests (add_gatekeeper_mount_close_tests):
+- all 12 decision tests pass (7 mount, 5 close) with no file I/O
+- latent bug: `inferStreamFromRequest` uses `"ui"` as a substring signal, which false-positives on words like `"guid"`, `"build"`, `"suite"` — needs word-boundary matching
+- fix is deferred to a separate package; do not mix into the test package
 - next step: use gatekeeper mount to advance next-action to the next package
 - remaining gatekeeper work: close, switch, tests
 
