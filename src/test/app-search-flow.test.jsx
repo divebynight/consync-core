@@ -141,6 +141,23 @@ describe("App search flow", () => {
     expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
   });
 
+  it("renders real session event markers in the session events lane", async () => {
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue(timelineBookmarkSessionState),
+    });
+
+    render(<App />);
+
+    const sessionEventsLane = await screen.findByLabelText("Session Events markers");
+    const sessionEventsTrack = sessionEventsLane.closest(".timeline-track");
+
+    expect(sessionEventsTrack).toBeTruthy();
+    expect(within(sessionEventsLane).getByText("Current focus")).toBeTruthy();
+    expect(within(sessionEventsLane).getByText("84s in 20260405T154039301Z.json")).toBeTruthy();
+    expect(within(sessionEventsTrack).getByText("1 markers")).toBeTruthy();
+    expect(within(sessionEventsLane).queryByText("Re-entry window")).toBeNull();
+  });
+
   it("adds a new real bookmark marker to the lane after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi

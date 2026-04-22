@@ -9,4 +9,4 @@
 
 ## Pause Checkpoint
 
-Last open package at pause: simplify_consync_state_and_docs_structure.
+Last package before pause: `simplify_consync_state_and_docs_structure` — already closed (PASS) before stream switched.

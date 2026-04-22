@@ -78,28 +78,54 @@ function getBookmarkTimelineMarkers(sessionState) {
   });
 }
 
-function getSessionTimelineTracks(sessionState) {
-  const currentPosition = sessionState ? sessionState.currentPositionSeconds : 84;
-  const currentFile = sessionState ? sessionState.currentFile : "session-loading.json";
+function getSessionEventMarkers(sessionState) {
+  if (!sessionState) {
+    return [
+      {
+        label: "Current focus",
+        detail: "Waiting for current session state",
+        start: 62,
+        span: 20,
+      },
+      {
+        label: "Re-entry window",
+        detail: "Recent search and selection flow",
+        start: 18,
+        span: 16,
+      },
+    ];
+  }
 
+  const bookmarks = Array.isArray(sessionState.bookmarks) ? sessionState.bookmarks : [];
+  const maxBookmarkTime = bookmarks.reduce((highestTime, bookmark) => {
+    if (typeof bookmark.timeSeconds !== "number" || Number.isNaN(bookmark.timeSeconds)) {
+      return highestTime;
+    }
+
+    return Math.max(highestTime, bookmark.timeSeconds);
+  }, 0);
+
+  const timelineWindowSeconds = Math.max(sessionState.currentPositionSeconds || 0, maxBookmarkTime, 120);
+  const rawStart = timelineWindowSeconds > 0
+    ? (sessionState.currentPositionSeconds / timelineWindowSeconds) * 88
+    : 0;
+
+  return [
+    {
+      label: "Current focus",
+      detail: `${sessionState.currentPositionSeconds}s in ${sessionState.currentFile}`,
+      start: clampTimelinePercent(rawStart),
+      span: 20,
+    },
+  ];
+}
+
+function getSessionTimelineTracks(sessionState) {
   return [
     {
       label: "Session Events",
       tone: "events",
-      markers: [
-        {
-          label: "Current focus",
-          detail: `${currentPosition}s in ${currentFile}`,
-          start: 62,
-          span: 20,
-        },
-        {
-          label: "Re-entry window",
-          detail: "Recent search and selection flow",
-          start: 18,
-          span: 16,
-        },
-      ],
+      markers: getSessionEventMarkers(sessionState),
     },
     {
       label: "Bookmarks",
@@ -154,7 +180,7 @@ function SessionTimelineShell({ sessionState }) {
         <p className="eyebrow timeline-eyebrow">Creative Timeline</p>
         <h2>Session Timeline</h2>
         <p className="timeline-copy">
-          A first-pass creative session surface with a real bookmark lane and placeholder tracks for events, notes, and audio cues.
+          A creative session surface with real bookmark and session event lanes, plus placeholder tracks for notes and audio cues.
         </p>
       </div>
 
