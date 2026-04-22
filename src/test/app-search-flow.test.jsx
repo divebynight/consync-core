@@ -498,4 +498,50 @@ describe("App search flow", () => {
     expect(screen.getByText("Click a result row to inspect one match more closely.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reveal in Finder" }).disabled).toBe(true);
   });
+
+  it("shows waveform empty state when no item is selected", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    expect(screen.getByLabelText("Waveform display")).toBeTruthy();
+    expect(screen.getByText("Select a result to preview waveform")).toBeTruthy();
+  });
+
+  it("renders waveform bars when a search result is selected", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+
+    const waveformPanel = screen.getByLabelText("Waveform display");
+
+    expect(waveformPanel).toBeTruthy();
+    expect(screen.getByLabelText("Waveform for exports/cover-notes.md")).toBeTruthy();
+    expect(waveformPanel.querySelectorAll(".waveform-bar").length).toBe(20);
+    expect(screen.queryByText("Select a result to preview waveform")).toBeNull();
+  });
+
+  it("waveform updates when selection changes", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+
+    expect(screen.getByLabelText("Waveform for exports/cover-notes.md")).toBeTruthy();
+    expect(screen.queryByLabelText("Waveform for captures/moss-study.jpg")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
+
+    expect(screen.getByLabelText("Waveform for captures/moss-study.jpg")).toBeTruthy();
+    expect(screen.queryByLabelText("Waveform for exports/cover-notes.md")).toBeNull();
+  });
 });

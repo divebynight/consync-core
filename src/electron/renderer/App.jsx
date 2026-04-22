@@ -6,6 +6,7 @@ import {
   getMockSearchSummaryRows,
   getSelectedMockSearchDetail,
 } from "./mock-search-panel.mjs";
+import { getMockWaveformData } from "./mock-waveform-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
@@ -313,7 +314,35 @@ function MockSearchResult({ searchResult, selectedMatchKey, onRevealSelectedMatc
           {selectedDetail ? selectedDetail.note : "Click a result row to inspect one match more closely."}
         </p>
       </section>
+
+      <WaveformPanel selectedDetail={selectedDetail} />
     </div>
+  );
+}
+
+function WaveformPanel({ selectedDetail }) {
+  const amplitudes = getMockWaveformData(selectedDetail);
+
+  return (
+    <section className="waveform-panel" aria-label="Waveform display">
+      <h3 className="waveform-heading">Waveform</h3>
+      {selectedDetail ? (
+        <>
+          <p className="waveform-artifact">{selectedDetail.artifactPath}</p>
+          <div className="waveform-bars" role="img" aria-label={`Waveform for ${selectedDetail.artifactPath}`}>
+            {amplitudes.map((amplitude, index) => (
+              <div
+                className="waveform-bar"
+                key={index}
+                style={{ height: `${Math.round(amplitude * 48)}px` }}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="empty-state">Select a result to preview waveform</p>
+      )}
+    </section>
   );
 }
 
