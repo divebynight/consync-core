@@ -1,6 +1,7 @@
 const assert = require("node:assert");
 const { evaluateReadiness } = require("../lib/gatekeeperMount");
 const { detectCloseMode } = require("../lib/gatekeeperClose");
+const { evaluateSwitch } = require("../lib/gatekeeperSwitch");
 
 // ---------------------------------------------------------------------------
 // State builder helpers
@@ -196,6 +197,106 @@ function testCloseModeRefuseNoMountedPackage() {
 }
 
 // ---------------------------------------------------------------------------
+// evaluateSwitch — switch decision tests
+// ---------------------------------------------------------------------------
+
+function makeSwitchState({ activeStreamName = "process", packageStatus = "closed", handoffStatus = "PASS", targetStreamDoc = null } = {}) {
+  const base = makeState({ activeStreamName, packageStatus, handoffStatus });
+  base._targetStreamDocText = targetStreamDoc;
+  return base;
+}
+
+const PAUSED_STREAM_DOC = [
+  "# Stream",
+  "",
+  "- id: electron_ui",
+  "- status: paused",
+  "- summary: paused cleanly",
+  "",
+].join("\n");
+
+const ACTIVE_STREAM_DOC = [
+  "# Stream",
+  "",
+  "- id: electron_ui",
+  "- status: active",
+  "- summary: active",
+  "",
+].join("\n");
+
+function testSwitchReadyToSwitch() {
+  const state = makeSwitchState({ targetStreamDoc: PAUSED_STREAM_DOC });
+  const result = evaluateSwitch(state, "electron_ui");
+
+  assert.strictEqual(result.decision, "READY_TO_SWITCH", `expected READY_TO_SWITCH, got ${result.decision}`);
+  assert.strictEqual(result.fromStream, "process");
+  assert.strictEqual(result.toStream, "electron_ui");
+  assert.deepStrictEqual(result.warnings, []);
+
+  console.log("  PASS testSwitchReadyToSwitch");
+}
+
+function testSwitchReadyToSwitchWarnDesync() {
+  // Target doc says active but active-stream.md says process is active
+  const state = makeSwitchState({ targetStreamDoc: ACTIVE_STREAM_DOC });
+  const result = evaluateSwitch(state, "electron_ui");
+
+  assert.strictEqual(result.decision, "READY_TO_SWITCH", `expected READY_TO_SWITCH, got ${result.decision}`);
+  assert.ok(result.warnings.length > 0, "expected a desync warning");
+
+  console.log("  PASS testSwitchReadyToSwitchWarnDesync");
+}
+
+function testSwitchRefuseOpenPackage() {
+  const state = makeSwitchState({ packageStatus: "open", handoffStatus: "PASS", targetStreamDoc: PAUSED_STREAM_DOC });
+  const result = evaluateSwitch(state, "electron_ui");
+
+  assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
+  assert.ok(result.reason.includes("still open"), `unexpected reason: ${result.reason}`);
+
+  console.log("  PASS testSwitchRefuseOpenPackage");
+}
+
+function testSwitchRefuseSameStream() {
+  const state = makeSwitchState({ targetStreamDoc: PAUSED_STREAM_DOC });
+  const result = evaluateSwitch(state, "process"); // process is already active
+
+  assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
+  assert.ok(result.reason.includes("already the active stream"), `unexpected reason: ${result.reason}`);
+
+  console.log("  PASS testSwitchRefuseSameStream");
+}
+
+function testSwitchRefuseUnknownTarget() {
+  const state = makeSwitchState({ targetStreamDoc: PAUSED_STREAM_DOC });
+  const result = evaluateSwitch(state, "nonexistent_stream");
+
+  assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
+  assert.ok(result.reason.includes("not a recognised stream"), `unexpected reason: ${result.reason}`);
+
+  console.log("  PASS testSwitchRefuseUnknownTarget");
+}
+
+function testSwitchRefuseMissingTargetDoc() {
+  const state = makeSwitchState({ targetStreamDoc: null });
+  const result = evaluateSwitch(state, "electron_ui");
+
+  assert.strictEqual(result.decision, "REFUSE", `expected REFUSE, got ${result.decision}`);
+  assert.ok(result.reason.includes("missing"), `unexpected reason: ${result.reason}`);
+
+  console.log("  PASS testSwitchRefuseMissingTargetDoc");
+}
+
+function testSwitchNeedsClarificationNoTarget() {
+  const state = makeSwitchState();
+  const result = evaluateSwitch(state, "");
+
+  assert.strictEqual(result.decision, "NEEDS_CLARIFICATION", `expected NEEDS_CLARIFICATION, got ${result.decision}`);
+
+  console.log("  PASS testSwitchNeedsClarificationNoTarget");
+}
+
+// ---------------------------------------------------------------------------
 // Runner
 // ---------------------------------------------------------------------------
 
@@ -215,6 +316,15 @@ function main() {
   testCloseModeBHandoffFail();
   testCloseModeRefuseNoActiveStream();
   testCloseModeRefuseNoMountedPackage();
+
+  console.log("evaluateSwitch (switch decisions):");
+  testSwitchReadyToSwitch();
+  testSwitchReadyToSwitchWarnDesync();
+  testSwitchRefuseOpenPackage();
+  testSwitchRefuseSameStream();
+  testSwitchRefuseUnknownTarget();
+  testSwitchRefuseMissingTargetDoc();
+  testSwitchNeedsClarificationNoTarget();
 
   console.log("PASS");
 }

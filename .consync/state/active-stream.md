@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-process
+electron_ui
 
 PREVIOUS STREAM
 
-electron_ui
+process
 
 SWITCH REASON
 
-The bookmark-lane milestone is complete, so `electron_ui` is being paused cleanly. The live loop still requires one active owner, so `process` now holds the foreground execution surface explicitly while UI work is stopped.
+Resuming electron_ui to continue UI work after gatekeeper packages
 
 PAUSED STREAMS
 
-- electron_ui
+- process
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md` while `electron_ui` is paused at the timeline-bookmark milestone.
+Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
 The global live loop stays singular even while other streams remain durable and resumable.

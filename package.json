@@ -7,6 +7,7 @@
     "check:state-preflight": "node src/index.js state-integrity-check preflight",
     "gatekeeper:mount": "node src/index.js gatekeeper mount",
     "gatekeeper:close": "node src/index.js gatekeeper close",
+    "gatekeeper:switch": "node src/index.js gatekeeper switch",
     "check:handoff-contract": "node scripts/check-handoff-contract.js",
     "probe:audio-session": "cd sandbox/probes/audio-session-capture/workdir && node ../capture-session.js",
     "start:desktop": "electron-forge start",

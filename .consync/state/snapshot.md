@@ -2,7 +2,7 @@
 
 ## Active Stream
 
-- recorded active stream: `process`
+- recorded active stream: `electron_ui`
 - recorded foreground stream: `process`
 
 ## Previous Or Paused Streams

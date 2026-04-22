@@ -193,26 +193,38 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
 // Interactive helpers
 // ---------------------------------------------------------------------------
 
-async function promptConfirmation(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+// Creates a prompt session that works for both TTY and piped input.
+// Lines arriving before ask() is called are queued; lines arriving after
+// are handed to the waiting resolver. This avoids the readline race where
+// piped input is consumed before a second question callback is registered.
+function makePromptSession() {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: false });
+  const lineQueue = [];
+  const waiters = [];
 
-  return new Promise(resolve => {
-    rl.question(question, answer => {
-      rl.close();
-      resolve(answer.trim().toLowerCase());
-    });
+  rl.on("line", line => {
+    if (waiters.length > 0) {
+      waiters.shift()(line.trim());
+    } else {
+      lineQueue.push(line.trim());
+    }
   });
-}
 
-async function promptLine(question) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-  return new Promise(resolve => {
-    rl.question(question, answer => {
+  return {
+    ask(question) {
+      process.stdout.write(question);
+      return new Promise(resolve => {
+        if (lineQueue.length > 0) {
+          resolve(lineQueue.shift());
+        } else {
+          waiters.push(resolve);
+        }
+      });
+    },
+    close() {
       rl.close();
-      resolve(answer.trim());
-    });
-  });
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +274,9 @@ async function runGatekeeperClose(rootPath) {
     console.log("    .consync/state/next-action.md");
     console.log("");
 
-    const answer = await promptConfirmation("CONFIRM? (yes / no): ");
+    const session = makePromptSession();
+    const answer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
+    session.close();
 
     if (answer !== "yes") {
       console.log("Aborted. No files written.");
@@ -290,18 +304,22 @@ async function runGatekeeperClose(rootPath) {
   console.log(`PACKAGE: ${closeMode.packageName}`);
   console.log("");
 
-  const statusInput = await promptLine("STATUS (PASS / FAIL): ");
+  const session = makePromptSession();
+
+  const statusInput = await session.ask("STATUS (PASS / FAIL): ");
   const status = statusInput.toUpperCase();
 
   if (status !== "PASS" && status !== "FAIL") {
+    session.close();
     console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
     process.exitCode = 1;
     return;
   }
 
-  const summary = await promptLine("SUMMARY (one line): ");
+  const summary = await session.ask("SUMMARY (one line): ");
 
   if (!summary) {
+    session.close();
     console.log("Summary is required. Aborted.");
     process.exitCode = 1;
     return;
@@ -321,11 +339,12 @@ async function runGatekeeperClose(rootPath) {
   console.log("    .consync/state/next-action.md");
   console.log("");
 
-  const answer = await promptConfirmation("CONFIRM? (yes / no): ");
+  const confirmAnswer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
+  session.close();
 
-  if (answer !== "yes") {
+  if (confirmAnswer !== "yes") {
     console.log("Aborted. No files written.");
-    if (answer !== "no") process.exitCode = 1;
+    if (confirmAnswer !== "no") process.exitCode = 1;
     return;
   }
 

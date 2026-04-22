@@ -2,7 +2,11 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: active
+- status: paused
 - owner: human
 - mode: system
-- summary: active — last package: simplify_consync_state_and_docs_structure (PASS)
+- summary: paused — switched to electron_ui
+
+## Pause Checkpoint
+
+Last open package at pause: simplify_consync_state_and_docs_structure.
