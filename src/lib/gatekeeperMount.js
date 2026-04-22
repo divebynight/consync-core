@@ -607,4 +607,5 @@ module.exports = {
   runGatekeeperMount,
   readGatekeeperState,
   evaluateReadiness,
+  updateStreamSummary,
 };

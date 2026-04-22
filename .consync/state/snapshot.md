@@ -11,8 +11,7 @@
 
 ## Current Package
 
-- type: `PROCESS`
-- package: `simplify_consync_state_and_docs_structure`
+- none
 
 ## Current Goal / Focus
 
