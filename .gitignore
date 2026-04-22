@@ -11,3 +11,12 @@ sandbox/current/*.json
 .consync/state/history/events.log
 
 sandbox/probes/audio-session-capture/workdir/*
+
+# Consync runtime state (do not track)
+.consync/state/next-action.md
+.consync/state/snapshot.md
+.consync/state/active-stream.md
+
+# Optional: if you later add logs/history
+.consync/state/history/
+.consync/packets/
