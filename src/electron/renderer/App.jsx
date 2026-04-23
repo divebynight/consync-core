@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
 import {
   getMockSearchDetailRows,
@@ -6,7 +6,6 @@ import {
   getMockSearchSummaryRows,
   getSelectedMockSearchDetail,
 } from "./mock-search-panel.mjs";
-import { getMockWaveformData } from "./mock-waveform-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function StatusRow({ label, value }) {
@@ -178,10 +177,10 @@ function SessionTimelineShell({ sessionState }) {
   return (
     <article className="panel session-timeline-panel">
       <div className="timeline-heading">
-        <p className="eyebrow timeline-eyebrow">Creative Timeline</p>
+        <p className="eyebrow timeline-eyebrow">Timeline View</p>
         <h2>Session Timeline</h2>
         <p className="timeline-copy">
-          A creative session surface with real bookmark and session event lanes, plus placeholder tracks for notes and audio cues.
+          The earlier timeline experiment remains available here with real bookmark and session event lanes, plus placeholder tracks for notes and audio cues.
         </p>
       </div>
 
@@ -228,9 +227,6 @@ function getDesktopBridge() {
 
   if (
     !desktopBridge ||
-    typeof desktopBridge.getBackendSummary !== "function" ||
-    typeof desktopBridge.getBridgeStatus !== "function" ||
-    typeof desktopBridge.getConsyncSummary !== "function" ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
@@ -314,42 +310,75 @@ function MockSearchResult({ searchResult, selectedMatchKey, onRevealSelectedMatc
           {selectedDetail ? selectedDetail.note : "Click a result row to inspect one match more closely."}
         </p>
       </section>
-
-      <WaveformPanel selectedDetail={selectedDetail} />
     </div>
   );
 }
 
-function WaveformPanel({ selectedDetail }) {
-  const amplitudes = getMockWaveformData(selectedDetail);
+function NavigationButton({ active, children, onClick }) {
+  return (
+    <button
+      className={`workspace-nav-button${active ? " workspace-nav-button-active" : ""}`}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
+function InspectorPanel({ searchResult, selectedMatchKey, sessionState }) {
+  const selectedDetail = getSelectedMockSearchDetail(searchResult, selectedMatchKey);
+  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
+    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+    : null;
 
   return (
-    <section className="waveform-panel" aria-label="Waveform display">
-      <h3 className="waveform-heading">Waveform</h3>
+    <aside className="workspace-column workspace-inspector">
+      <div className="column-heading">
+        <p className="eyebrow">Inspector</p>
+        <h2>Details</h2>
+      </div>
+
       {selectedDetail ? (
-        <>
-          <p className="waveform-artifact">{selectedDetail.artifactPath}</p>
-          <div className="waveform-bars" role="img" aria-label={`Waveform for ${selectedDetail.artifactPath}`}>
-            {amplitudes.map((amplitude, index) => (
-              <div
-                className="waveform-bar"
-                key={index}
-                style={{ height: `${Math.round(amplitude * 56)}px` }}
-              />
-            ))}
-          </div>
-        </>
+        <article className="panel panel-secondary">
+          <h3>Selected Result</h3>
+          <StatusRow label="Selection" value={selectedDetail.artifactPath} />
+          <StatusRow label="Session" value={selectedDetail.sessionTitle} />
+          <StatusRow label="Anchor" value={selectedDetail.anchorPath} />
+          <StatusRow label="Tags" value={selectedDetail.tags.length > 0 ? selectedDetail.tags.join(", ") : "none"} />
+          <p className="inspector-note">{selectedDetail.note}</p>
+        </article>
+      ) : latestBookmark ? (
+        <article className="panel panel-secondary">
+          <h3>Latest Bookmark</h3>
+          <StatusRow label="Time" value={`${latestBookmark.timeSeconds}s`} />
+          <StatusRow label="Note" value={latestBookmark.note || "none"} />
+          <p className="inspector-note">
+            Resume from this note, or use search first if you want to inspect related files before continuing.
+          </p>
+        </article>
       ) : (
-        <p className="empty-state">Select a result to preview waveform</p>
+        <article className="panel panel-secondary">
+          <h3>No Selection Yet</h3>
+          <p className="empty-state">
+            Pick a search result or save a bookmark to populate this inspector with something concrete.
+          </p>
+        </article>
       )}
-    </section>
+
+      <article className="panel panel-secondary">
+        <h3>Next Moves</h3>
+        <ul className="paused-list">
+          <li>Continue the current session from the latest file.</li>
+          <li>Save a bookmark before changing direction.</li>
+          <li>Run a search to inspect related notes and assets.</li>
+        </ul>
+      </article>
+    </aside>
   );
 }
 
 export function App() {
-  const [backendSummary, setBackendSummary] = useState(null);
-  const [bridgeStatus, setBridgeStatus] = useState(null);
-  const [consyncSummary, setConsyncSummary] = useState(null);
   const [note, setNote] = useState("");
   const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
   const [searchQuery, setSearchQuery] = useState("moss");
@@ -358,6 +387,10 @@ export function App() {
   const [sessionState, setSessionState] = useState(null);
   const [sessionErrorMessage, setSessionErrorMessage] = useState(null);
   const [searchErrorMessage, setSearchErrorMessage] = useState(null);
+  const [activeView, setActiveView] = useState("workspace");
+  const searchSectionRef = useRef(null);
+  const bookmarkSectionRef = useRef(null);
+  const resumeSectionRef = useRef(null);
 
   function clearSearchInteractionState() {
     setSearchResult(null);
@@ -365,25 +398,23 @@ export function App() {
     setSearchErrorMessage(null);
   }
 
+  function scrollToSection(sectionRef) {
+    if (sectionRef.current) {
+      sectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const [nextBackendSummary, nextBridgeStatus, nextConsyncSummary, nextSessionState] = await Promise.all([
-        desktopBridge.getBackendSummary(),
-        desktopBridge.getBridgeStatus(),
-        desktopBridge.getConsyncSummary(),
-        desktopBridge.getSessionState(),
-      ]);
+      const nextSessionState = await desktopBridge.getSessionState();
 
       if (cancelled) {
         return;
       }
 
-      setBackendSummary(nextBackendSummary);
-      setBridgeStatus(nextBridgeStatus);
-      setConsyncSummary(nextConsyncSummary);
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
     }
@@ -467,167 +498,206 @@ export function App() {
   }
 
   const sessionRows = getSessionPanelRows(sessionState);
+  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
+    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+    : null;
+  const lastActivityTime = latestBookmark
+    ? `${latestBookmark.timeSeconds}s`
+    : (sessionState ? `${sessionState.currentPositionSeconds}s` : "loading");
 
   return (
     <main className="shell">
-      <section className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Consync Desktop Capture</p>
-          <h1>Bridge proof with incremental real session values.</h1>
-          <p className="lead">
-            This shell now surfaces a small set of real session details carried through preload into
-            the renderer so each narrow UI step stays easy to verify before broader work continues.
-          </p>
-        </div>
-      </section>
-
-      <section className="workspace-shell">
-        {sessionErrorMessage ? (
-          <section className="panel session-error-panel">
-            <h2>Session Error</h2>
-            <p className="empty-state">{sessionErrorMessage}</p>
-          </section>
-        ) : null}
-
-        <section className="timeline-stage">
-          <SessionTimelineShell sessionState={sessionState} />
-        </section>
-
-        <section className="support-region" aria-label="Supporting session panels">
-          <div className="support-region-heading">
-            <p className="eyebrow support-eyebrow">Support Panels</p>
-            <h2>Search, capture, and session context</h2>
-            <p className="support-copy">
-              The timeline holds the main session story while these panels stay available for search,
-              bookmark capture, and inspection.
-            </p>
+      <section className="workspace-layout">
+        <aside className="workspace-column workspace-sidebar">
+          <div className="column-heading">
+            <p className="eyebrow">Consync</p>
+            <h1>Workspace</h1>
           </div>
 
-          <section className="panel-grid support-panel-grid">
-            <article className="panel panel-secondary">
-          <h2>Bridge Status</h2>
-          <StatusRow label="Status" value={bridgeStatus ? bridgeStatus.status : "loading"} />
-          <StatusRow label="Surface" value={bridgeStatus ? bridgeStatus.surface : "loading"} />
-          <StatusRow label="Version" value={bridgeStatus ? bridgeStatus.version : "loading"} />
-            </article>
+          <article className="panel panel-secondary">
+            <h2>Views</h2>
+            <div className="workspace-nav">
+              <NavigationButton active={activeView === "workspace"} onClick={() => setActiveView("workspace")}>
+                Workspace Summary
+              </NavigationButton>
+              <NavigationButton active={activeView === "timeline"} onClick={() => setActiveView("timeline")}>
+                Timeline View
+              </NavigationButton>
+            </div>
+          </article>
 
-            <article className="panel panel-secondary">
-          <h2>Backend Summary</h2>
-          <StatusRow label="Platform" value={backendSummary ? backendSummary.platform : "loading"} />
-          <StatusRow label="Current dir" value={backendSummary ? backendSummary.cwd : "loading"} />
-            </article>
+          <article className="panel panel-secondary">
+            <h2>Current Session</h2>
+            <StatusRow label="Current file" value={sessionState ? sessionState.currentFile : "loading"} />
+            <StatusRow label="Bookmarks" value={sessionState ? sessionState.bookmarks.length : "loading"} />
+            <StatusRow label="Latest note" value={latestBookmark ? latestBookmark.note : "none"} />
+          </article>
+        </aside>
 
-            <article className="panel panel-secondary">
-          <h2>Consync Summary</h2>
-          <StatusRow
-            label="Session dir"
-            value={consyncSummary ? (consyncSummary.sessionDirectoryExists ? "present" : "missing") : "loading"}
-          />
-          <StatusRow
-            label="Session count"
-            value={consyncSummary ? consyncSummary.sessionCount : "loading"}
-          />
-            </article>
+        <section className="workspace-column workspace-main">
+          <div className="column-heading">
+            <p className="eyebrow">Primary View</p>
+            <h2>{activeView === "timeline" ? "Session Timeline" : "Session Summary"}</h2>
+          </div>
 
-            <article className="panel panel-secondary">
-          <h2>Session</h2>
-          {sessionRows.map(row => (
-            <StatusRow key={row.label} label={row.label} value={row.value} />
-          ))}
-            </article>
-
-            <article className="panel panel-secondary panel-capture">
-          <h2>Save Bookmark</h2>
-          <form className="bookmark-form" onSubmit={handleCreateBookmark}>
-            <label className="bookmark-label" htmlFor="bookmark-note">
-              Bookmark note for this session
-            </label>
-            <input
-              id="bookmark-note"
-              className="bookmark-input"
-              value={note}
-              onChange={event => setNote(event.target.value)}
-              placeholder="Add a short note to save in this session"
-              type="text"
-            />
-            <button className="bookmark-button" disabled={!note.trim()} type="submit">
-              Save Bookmark
-            </button>
-          </form>
-            </article>
-
-            <article className="panel panel-wide panel-secondary panel-search-workspace">
-          <h2>Mock Search</h2>
-          <form className="search-form" onSubmit={handleRunMockSearch}>
-            <label className="bookmark-label" htmlFor="mock-search-root">
-              Root to search
-            </label>
-            <input
-              id="mock-search-root"
-              className="bookmark-input"
-              value={searchRoot}
-              onChange={event => {
-                setSearchRoot(event.target.value);
-                clearSearchInteractionState();
-              }}
-              placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
-              type="text"
-            />
-            <label className="bookmark-label" htmlFor="mock-search-query">
-              Theme query
-            </label>
-            <input
-              id="mock-search-query"
-              className="bookmark-input"
-              value={searchQuery}
-              onChange={event => {
-                setSearchQuery(event.target.value);
-                clearSearchInteractionState();
-              }}
-              placeholder="Search bookmarked context such as moss"
-              type="text"
-            />
-            <button className="bookmark-button" disabled={!searchRoot.trim() || !searchQuery.trim()} type="submit">
-              Run Mock Search
-            </button>
-          </form>
-
-          {searchErrorMessage ? (
-            <section className="panel panel-inline panel-secondary search-error-panel">
-              <h3>Search Error</h3>
-              <p className="empty-state">{searchErrorMessage}</p>
+          {sessionErrorMessage ? (
+            <section className="panel session-error-panel">
+              <h2>Session Error</h2>
+              <p className="empty-state">{sessionErrorMessage}</p>
             </section>
           ) : null}
 
-          {searchResult ? (
-            <MockSearchResult
-              onRevealSelectedMatch={handleRevealSelectedMatch}
-              onSelectMatch={handleSelectMockSearchMatch}
-              searchResult={searchResult}
-              selectedMatchKey={selectedMatchKey}
-            />
+          {activeView === "timeline" ? (
+            <section className="timeline-stage">
+              <SessionTimelineShell sessionState={sessionState} />
+            </section>
           ) : (
-            <p className="empty-state">Enter a root and query to preview the grouped mock search flow in the desktop shell.</p>
-          )}
-            </article>
+            <section className="workspace-stack">
+              <article className="panel resume-panel" ref={resumeSectionRef}>
+                <div className="resume-panel-header">
+                  <div>
+                    <h3>Resume Session</h3>
+                    <p className="resume-panel-copy">Start here.</p>
+                  </div>
+                </div>
 
-            <article className="panel panel-wide panel-secondary panel-bookmarks">
-          <h2>Bookmarks</h2>
-          {sessionState && sessionState.bookmarks.length > 0 ? (
-            <ul className="bookmark-list">
-              {sessionState.bookmarks.map((bookmark, index) => (
-                <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                  <span className="bookmark-time">{bookmark.timeSeconds}s</span>
-                  <span className="bookmark-note">{bookmark.note}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
+                <div className="panel-grid workspace-summary-grid">
+                  <div className="panel panel-secondary">
+                    <StatusRow label="Current file" value={sessionState ? sessionState.currentFile : "loading"} />
+                    <StatusRow label="Latest note" value={latestBookmark ? latestBookmark.note : "none"} />
+                    <StatusRow label="Last activity" value={lastActivityTime} />
+                  </div>
+                </div>
+
+                <div className="resume-action-row">
+                  <button
+                    className="bookmark-button"
+                    onClick={() => scrollToSection(resumeSectionRef)}
+                    type="button"
+                  >
+                    Resume
+                  </button>
+                  <button
+                    className="bookmark-button bookmark-button-secondary"
+                    onClick={() => setActiveView("timeline")}
+                    type="button"
+                  >
+                    Open Timeline
+                  </button>
+                  <button
+                    className="bookmark-button bookmark-button-secondary"
+                    onClick={() => scrollToSection(searchSectionRef)}
+                    type="button"
+                  >
+                    Search
+                  </button>
+                  <button
+                    className="bookmark-button bookmark-button-secondary"
+                    onClick={() => scrollToSection(bookmarkSectionRef)}
+                    type="button"
+                  >
+                    View Bookmarks
+                  </button>
+                </div>
+              </article>
+
+              <article className="panel">
+                <h3>Save Bookmark</h3>
+                <form className="bookmark-form" onSubmit={handleCreateBookmark}>
+                  <label className="bookmark-label" htmlFor="bookmark-note">
+                    Bookmark note for this session
+                  </label>
+                  <input
+                    id="bookmark-note"
+                    className="bookmark-input"
+                    value={note}
+                    onChange={event => setNote(event.target.value)}
+                    placeholder="Add a short note to save in this session"
+                    type="text"
+                  />
+                  <button className="bookmark-button" disabled={!note.trim()} type="submit">
+                    Save Bookmark
+                  </button>
+                </form>
+              </article>
+
+              <article className="panel" ref={searchSectionRef}>
+                <h3>Search Related Work</h3>
+                <form className="search-form" onSubmit={handleRunMockSearch}>
+                  <label className="bookmark-label" htmlFor="mock-search-root">
+                    Root to search
+                  </label>
+                  <input
+                    id="mock-search-root"
+                    className="bookmark-input"
+                    value={searchRoot}
+                    onChange={event => {
+                      setSearchRoot(event.target.value);
+                      clearSearchInteractionState();
+                    }}
+                    placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
+                    type="text"
+                  />
+                  <label className="bookmark-label" htmlFor="mock-search-query">
+                    Theme query
+                  </label>
+                  <input
+                    id="mock-search-query"
+                    className="bookmark-input"
+                    value={searchQuery}
+                    onChange={event => {
+                      setSearchQuery(event.target.value);
+                      clearSearchInteractionState();
+                    }}
+                    placeholder="Search bookmarked context such as moss"
+                    type="text"
+                  />
+                  <button className="bookmark-button" disabled={!searchRoot.trim() || !searchQuery.trim()} type="submit">
+                    Run Mock Search
+                  </button>
+                </form>
+
+                {searchErrorMessage ? (
+                  <section className="panel panel-inline panel-secondary search-error-panel">
+                    <h3>Search Error</h3>
+                    <p className="empty-state">{searchErrorMessage}</p>
+                  </section>
+                ) : null}
+
+                {searchResult ? (
+                  <MockSearchResult
+                    onRevealSelectedMatch={handleRevealSelectedMatch}
+                    onSelectMatch={handleSelectMockSearchMatch}
+                    searchResult={searchResult}
+                    selectedMatchKey={selectedMatchKey}
+                  />
+                ) : (
+                  <p className="empty-state">
+                    Enter a root and query to preview the grouped mock search flow in the desktop shell.
+                  </p>
+                )}
+              </article>
+
+              <article className="panel" ref={bookmarkSectionRef}>
+                <h3>Bookmarks</h3>
+                {sessionState && sessionState.bookmarks.length > 0 ? (
+                  <ul className="bookmark-list">
+                    {sessionState.bookmarks.map((bookmark, index) => (
+                      <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
+                        <span className="bookmark-time">{bookmark.timeSeconds}s</span>
+                        <span className="bookmark-note">{bookmark.note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
+                )}
+              </article>
+            </section>
           )}
-            </article>
-          </section>
         </section>
+
+        <InspectorPanel searchResult={searchResult} selectedMatchKey={selectedMatchKey} sessionState={sessionState} />
       </section>
     </main>
   );

@@ -109,26 +109,27 @@ describe("App search flow", () => {
     window.consyncDesktop = createDesktopBridge();
   });
 
-  it("renders a creative session timeline shell with placeholder tracks", async () => {
+  it("renders a workspace summary by default and keeps timeline behind a view toggle", async () => {
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: "Session Timeline" })).toBeTruthy();
-    expect(screen.getByText("Session Events")).toBeTruthy();
-    expect(screen.getByLabelText("Bookmarks markers")).toBeTruthy();
-    expect(screen.getByText("Notes")).toBeTruthy();
-    expect(screen.getByText("Audio Cues")).toBeTruthy();
-    expect(screen.getByText("Current focus")).toBeTruthy();
-    expect(screen.getByText("First bookmark pending")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Workspace" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Session Summary" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Save Bookmark" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Session Timeline" })).toBeNull();
   });
 
-  it("renders real current-session bookmark markers in the bookmark lane", async () => {
+  it("renders real current-session bookmark markers when timeline view is opened", async () => {
+    const user = userEvent.setup();
     window.consyncDesktop = createDesktopBridge({
       getSessionState: vi.fn().mockResolvedValue(timelineBookmarkSessionState),
     });
 
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: "Session Timeline" })).toBeTruthy();
+    await user.click(await screen.findByRole("button", { name: "Timeline View" }));
+
+    expect((await screen.findAllByRole("heading", { name: "Session Timeline" })).length).toBeGreaterThan(0);
     const bookmarkLane = await screen.findByLabelText("Bookmarks markers");
     const bookmarkTrack = bookmarkLane.closest(".timeline-track");
 
@@ -141,12 +142,15 @@ describe("App search flow", () => {
     expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
   });
 
-  it("renders real session event markers in the session events lane", async () => {
+  it("renders real session event markers when timeline view is opened", async () => {
+    const user = userEvent.setup();
     window.consyncDesktop = createDesktopBridge({
       getSessionState: vi.fn().mockResolvedValue(timelineBookmarkSessionState),
     });
 
     render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Timeline View" }));
 
     const sessionEventsLane = await screen.findByLabelText("Session Events markers");
     const sessionEventsTrack = sessionEventsLane.closest(".timeline-track");
@@ -158,7 +162,7 @@ describe("App search flow", () => {
     expect(within(sessionEventsLane).queryByText("Re-entry window")).toBeNull();
   });
 
-  it("adds a new real bookmark marker to the lane after bookmark capture", async () => {
+  it("adds a new bookmark to the workspace surfaces after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi
       .fn()
@@ -188,18 +192,17 @@ describe("App search flow", () => {
 
     render(<App />);
 
-    const bookmarkLane = await screen.findByLabelText("Bookmarks markers");
-
-    expect(within(bookmarkLane).getByText("First bookmark pending")).toBeTruthy();
+    expect(await screen.findByText("No bookmarks saved for this session yet. Drop one to create the first entry.")).toBeTruthy();
 
     await user.type(screen.getByLabelText("Bookmark note for this session"), "Bridge motif");
     await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
 
     await waitFor(() => {
-      expect(within(bookmarkLane).getByText("Bridge motif")).toBeTruthy();
+      expect(screen.getAllByText("Bridge motif").length).toBeGreaterThan(0);
     });
-    expect(within(bookmarkLane).getByText("48s bookmark")).toBeTruthy();
-    expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Latest Bookmark" })).toBeTruthy();
+    expect(screen.getAllByText("48s").length).toBeGreaterThan(0);
+    expect(screen.queryByText("No bookmarks saved for this session yet. Drop one to create the first entry.")).toBeNull();
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {
@@ -220,10 +223,10 @@ describe("App search flow", () => {
         "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
       )
     ).toBeTruthy();
-    expect(screen.getAllByText("Greenhouse Poster Session")).toHaveLength(2);
-    expect(screen.getAllByText("2026/april/greenhouse-poster")).toHaveLength(2);
-    expect(screen.getByText("moss, poster, texture")).toBeTruthy();
-    expect(screen.getAllByText("Moss texture reference for poster lighting")).toHaveLength(2);
+    expect(screen.getAllByText("Greenhouse Poster Session").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("2026/april/greenhouse-poster").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("moss, poster, texture").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Moss texture reference for poster lighting").length).toBeGreaterThanOrEqual(2);
     expect(window.consyncDesktop.revealSearchResult).not.toHaveBeenCalled();
   });
 
@@ -304,21 +307,21 @@ describe("App search flow", () => {
     await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
 
     expect(
-      screen.getByText(
+      screen.getAllByText(
         "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
-      )
-    ).toBeTruthy();
+      ).length
+    ).toBeGreaterThan(0);
     expect(screen.queryByText("Click a result row to inspect one match more closely.")).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Reveal in Finder" }));
 
     expect(await screen.findByText("Reveal failed for test")).toBeTruthy();
     expect(
-      screen.getByText(
+      screen.getAllByText(
         "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
-      )
-    ).toBeTruthy();
-    expect(screen.getAllByText("Greenhouse Poster Session")).toHaveLength(2);
+      ).length
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText("Greenhouse Poster Session").length).toBeGreaterThanOrEqual(2);
     expect(window.consyncDesktop.revealSearchResult).toHaveBeenCalledWith(
       "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"
     );
@@ -499,35 +502,18 @@ describe("App search flow", () => {
     expect(screen.getByRole("button", { name: "Reveal in Finder" }).disabled).toBe(true);
   });
 
-  it("shows waveform empty state when no item is selected", async () => {
+  it("keeps waveform out of the default workspace search flow", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
-    expect(screen.getByLabelText("Waveform display")).toBeTruthy();
-    expect(screen.getByText("Select a result to preview waveform")).toBeTruthy();
-  });
-
-  it("renders waveform bars when a search result is selected", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
-    await screen.findByText("Balcony Zine Session");
-
-    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
-
-    const waveformPanel = screen.getByLabelText("Waveform display");
-
-    expect(waveformPanel).toBeTruthy();
-    expect(screen.getByLabelText("Waveform for exports/cover-notes.md")).toBeTruthy();
-    expect(waveformPanel.querySelectorAll(".waveform-bar").length).toBe(20);
+    expect(screen.queryByLabelText("Waveform display")).toBeNull();
     expect(screen.queryByText("Select a result to preview waveform")).toBeNull();
   });
 
-  it("waveform updates when selection changes", async () => {
+  it("updates the inspector when a search result is selected", async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -536,12 +522,30 @@ describe("App search flow", () => {
 
     await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
 
-    expect(screen.getByLabelText("Waveform for exports/cover-notes.md")).toBeTruthy();
-    expect(screen.queryByLabelText("Waveform for captures/moss-study.jpg")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Selected Result" })).toBeTruthy();
+    expect(screen.getAllByText("Moss motif for cover transition").length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText("Waveform display")).toBeNull();
+  });
+
+  it("updates the inspector when selection changes", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
+    await screen.findByText("Balcony Zine Session");
+
+    await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
+
+    const selectedResultPanel = screen.getByRole("heading", { name: "Selected Result" }).closest("article");
+
+    expect(selectedResultPanel).toBeTruthy();
+    expect(within(selectedResultPanel).getByText("Moss motif for cover transition")).toBeTruthy();
+    expect(within(selectedResultPanel).queryByText("Moss texture reference for poster lighting")).toBeNull();
 
     await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
 
-    expect(screen.getByLabelText("Waveform for captures/moss-study.jpg")).toBeTruthy();
-    expect(screen.queryByLabelText("Waveform for exports/cover-notes.md")).toBeNull();
+    expect(within(selectedResultPanel).getByText("Moss texture reference for poster lighting")).toBeTruthy();
+    expect(within(selectedResultPanel).queryByText("Moss motif for cover transition")).toBeNull();
+    expect(screen.queryByLabelText("Waveform display")).toBeNull();
   });
 });

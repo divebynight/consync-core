@@ -1,6 +1,7 @@
 const { runNewGuidCommand } = require("../commands/new-guid");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
+const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
 const { runSandboxScanCommand } = require("../commands/sandbox-scan");
 const { runSandboxVerifyCommand } = require("../commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("../commands/sandbox-describe");
@@ -80,6 +81,22 @@ function parseStateIntegrityCheckOptions(argv) {
   };
 }
 
+function parseHandoffBundleOptions(argv) {
+  if (argv.length === 0) {
+    return {
+      full: false,
+    };
+  }
+
+  if (argv.length === 1 && argv[0] === "--full") {
+    return {
+      full: true,
+    };
+  }
+
+  throw new Error("Usage: handoff-bundle [--full]");
+}
+
 async function main() {
   const command = process.argv[2];
 
@@ -95,6 +112,11 @@ async function main() {
 
   if (command === "show-guid") {
     runShowGuidCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "handoff-bundle") {
+    runHandoffBundleCommand(parseHandoffBundleOptions(process.argv.slice(3)));
     return;
   }
 

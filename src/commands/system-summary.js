@@ -4,6 +4,7 @@ function runSystemSummaryCommand() {
   console.log("- new-guid");
   console.log("- list-guid");
   console.log("- show-guid");
+  console.log("- handoff-bundle");
   console.log("- sandbox-scan");
   console.log("- sandbox-verify");
   console.log("- sandbox-describe");
