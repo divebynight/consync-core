@@ -5,6 +5,7 @@
   "scripts": {
     "check:state-postflight": "node src/index.js state-integrity-check postflight",
     "check:state-preflight": "node src/index.js state-integrity-check preflight",
+    "check:reentry": "node src/index.js reentry-check",
     "gatekeeper:mount": "node src/index.js gatekeeper mount",
     "gatekeeper:close": "node src/index.js gatekeeper close",
     "gatekeeper:switch": "node src/index.js gatekeeper switch",

@@ -14,6 +14,7 @@ const { runSystemSummaryCommand } = require("../commands/system-summary");
 const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check");
 const { runPortableCommand } = require("../commands/portable");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
+const { runReentryCheckCommand } = require("../commands/reentry-check");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -159,6 +160,11 @@ async function main() {
 
   if (command === "gatekeeper") {
     await runGatekeeperCommand(process.argv[3], process.argv.slice(4));
+    return;
+  }
+
+  if (command === "reentry-check") {
+    await runReentryCheckCommand();
     return;
   }
 
