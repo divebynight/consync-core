@@ -42,12 +42,15 @@ Start from current repo truth:
 7. Append a concise work-log entry only if user-facing feature behavior changed.
 8. Run available Consync integrity checks.
 9. Do not ignore or bypass failing tests or integrity checks.
-10. Prepare an accurate commit message grounded in the diff, tests run, and work-log entry if present.
-11. Commit only if:
+10. Review changed files and confirm the intended closeout surface before staging.
+11. Stage only the intended closeout changes.
+12. Prepare an accurate commit message grounded in the diff, tests run, and work-log entry if present.
+13. Commit only if:
     - relevant tests pass
     - integrity checks pass
     - docs and work-log are updated if needed
-12. Do not push.
+14. Make the git commit as the final closeout step.
+15. Do not push.
 
 ## Integrity Checks
 
@@ -74,13 +77,17 @@ Do not:
 
 Prepare a commit message only after verification is complete.
 
+Successful closeout must persist the completed work with a git commit after verification and work-log/state updates are complete.
+
+A closeout is not complete until intended changes are committed.
+
 The message should match:
 
 - what actually changed
 - which surfaces were verified
 - whether the work-log changed
 
-If verification is incomplete or failing, stop at a closeout report and do not commit.
+If verification is incomplete or failing, stop at a closeout report and do not stage or commit.
 
 ## Output Format
 
