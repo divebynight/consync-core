@@ -21,3 +21,15 @@ Observation:
 
 Notes:
 - The stricter handoff-contract checker is unchanged, so package-to-handoff matching rules outside the state integrity path still remain explicit.
+
+## 2026-04-24 — Ingestion Gatekeeper
+
+- Added a reusable ingestion-gatekeeper workflow for deciding whether external context belongs in Consync and where it should go.
+- Added a runbook pointer so future intake can be classified before notes, plans, or discussions are written into the system.
+- Established conservative placement rules for future plans, process observations, completed behavior, and off-topic material.
+
+Observation:
+- Consync can now preserve useful outside context without treating every conversation as durable truth. Intake decisions are lighter and more deliberate.
+
+Notes:
+- Raw discussion storage is still optional and should be used only when the material is worth preserving but not yet shaped enough for a durable doc.
