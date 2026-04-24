@@ -448,6 +448,17 @@ body {
   gap: 8px;
 }
 
+.bookmark-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bookmark-section {
+  display: grid;
+  gap: 8px;
+}
+
 .search-form {
   display: grid;
   gap: 8px;

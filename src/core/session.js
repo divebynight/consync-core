@@ -75,14 +75,6 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
     throw new Error("Bookmark note text is required.");
   }
 
-  if (typeof input.timeSeconds !== "number" || Number.isNaN(input.timeSeconds) || input.timeSeconds < 0) {
-    throw new Error("Bookmark timeSeconds must be a non-negative number.");
-  }
-
-  if (typeof input.timeLabel !== "string" || !input.timeLabel.trim()) {
-    throw new Error("Bookmark timeLabel is required.");
-  }
-
   if (typeof input.filePath !== "string" || !input.filePath.trim()) {
     throw new Error("Bookmark filePath is required.");
   }
@@ -91,12 +83,26 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
     throw new Error("Bookmark createdAt is required.");
   }
 
+  const hasNullTime = input.timeSeconds === null || input.timeSeconds === undefined;
+
+  if (!hasNullTime && (typeof input.timeSeconds !== "number" || Number.isNaN(input.timeSeconds) || input.timeSeconds < 0)) {
+    throw new Error("Bookmark timeSeconds must be null or a non-negative number.");
+  }
+
+  if (hasNullTime) {
+    if (input.timeLabel !== null && input.timeLabel !== undefined) {
+      throw new Error("Bookmark timeLabel must be null when timeSeconds is null.");
+    }
+  } else if (typeof input.timeLabel !== "string" || !input.timeLabel.trim()) {
+    throw new Error("Bookmark timeLabel is required when timeSeconds is present.");
+  }
+
   return {
     createdAt: input.createdAt.trim(),
     filePath: input.filePath.trim(),
     note: input.note.trim(),
-    timeLabel: input.timeLabel.trim(),
-    timeSeconds: input.timeSeconds,
+    timeLabel: hasNullTime ? null : input.timeLabel.trim(),
+    timeSeconds: hasNullTime ? null : input.timeSeconds,
   };
 }
 

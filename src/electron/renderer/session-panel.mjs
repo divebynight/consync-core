@@ -15,6 +15,10 @@ function getBookmarkTimeValue(bookmark) {
     return bookmark.timeLabel.trim();
   }
 
+  if (bookmark.timeSeconds === null || bookmark.timeSeconds === undefined) {
+    return "file note";
+  }
+
   return `${bookmark.timeSeconds}s`;
 }
 

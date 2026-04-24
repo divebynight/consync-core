@@ -175,7 +175,60 @@ describe("App search flow", () => {
     expect(within(sessionEventsLane).queryByText("Re-entry window")).toBeNull();
   });
 
-  it("adds a new audio note to the workspace surfaces after bookmark capture", async () => {
+  it("adds a file-level note through the shared bookmark system", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-23T17:30:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "Bridge motif",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState,
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    expect(await screen.findByText("sample.mp3")).toBeTruthy();
+    await user.type(screen.getByLabelText("Note text"), "Bridge motif");
+    await user.click(screen.getByRole("button", { name: "Add Note" }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Bridge motif").length).toBeGreaterThan(0);
+    });
+    expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: "/tmp/sample.mp3",
+      note: "Bridge motif",
+      timeLabel: null,
+      timeSeconds: null,
+    }));
+    expect(screen.getByRole("heading", { name: "Latest Bookmark" })).toBeTruthy();
+    expect(screen.getAllByText("File note").length).toBeGreaterThan(0);
+  });
+
+  it("adds a new time-based bookmark to the workspace surfaces after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi
       .fn()
@@ -232,7 +285,67 @@ describe("App search flow", () => {
     }));
     expect(screen.getByRole("heading", { name: "Latest Bookmark" })).toBeTruthy();
     expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
-    expect(screen.queryByText("No notes saved for this audio file yet.")).toBeNull();
+    expect(screen.queryByText("No time-based markers saved for this audio file yet.")).toBeNull();
+  });
+
+  it("renders file notes and timeline markers separately for the selected audio file", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-23T17:30:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "File level thought",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+          {
+            createdAt: "2026-04-23T18:00:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "Marker later",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+          {
+            createdAt: "2026-04-23T17:45:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "Marker earlier",
+            timeLabel: "00:12",
+            timeSeconds: 12,
+          },
+          {
+            createdAt: "2026-04-23T17:40:00.000Z",
+            filePath: "/tmp/other.mp3",
+            note: "Other file marker",
+            timeLabel: "00:10",
+            timeSeconds: 10,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    expect((await screen.findAllByText("sample.mp3")).length).toBeGreaterThan(0);
+    const fileNotesHeading = screen.getByRole("heading", { name: "File Notes" });
+    expect(fileNotesHeading).toBeTruthy();
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    expect(timelineMarkersHeading).toBeTruthy();
+    const fileNotesSection = fileNotesHeading.closest("section");
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+    expect(within(fileNotesSection).getByText("File level thought")).toBeTruthy();
+    expect(within(timelineMarkersSection).getByText("Marker earlier")).toBeTruthy();
+    expect(within(timelineMarkersSection).getByText("Marker later")).toBeTruthy();
+    expect(screen.queryByText("Other file marker")).toBeNull();
+
+    const markerTimes = within(timelineMarkersSection).getAllByText(/00:/).map(node => node.textContent);
+    expect(markerTimes.indexOf("00:12")).toBeLessThan(markerTimes.indexOf("00:42"));
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {

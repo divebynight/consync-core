@@ -52,6 +52,13 @@ function main() {
 
     const firstState = createBookmark("First note");
     const secondState = createBookmark({
+      createdAt: "2026-04-23T17:30:00.000Z",
+      filePath: "/tmp/sample.mp3",
+      note: "File note",
+      timeLabel: null,
+      timeSeconds: null,
+    });
+    const thirdState = createBookmark({
       createdAt: "2026-04-23T18:00:00.000Z",
       filePath: "/tmp/sample.mp3",
       note: "Second note",
@@ -62,6 +69,7 @@ function main() {
 
     assert.strictEqual(firstState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(secondState.artifactCount, getSessionArtifactCount());
+    assert.strictEqual(thirdState.artifactCount, getSessionArtifactCount());
 
     assert.deepStrictEqual(firstState.bookmarks, [
       {
@@ -79,6 +87,30 @@ function main() {
       },
       {
         id: "bookmark-2",
+        createdAt: "2026-04-23T17:30:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "File note",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+    ]);
+
+    assert.deepStrictEqual(thirdState.bookmarks, [
+      {
+        id: "bookmark-1",
+        note: "First note",
+        timeSeconds: 84,
+      },
+      {
+        id: "bookmark-2",
+        createdAt: "2026-04-23T17:30:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "File note",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+      {
+        id: "bookmark-3",
         createdAt: "2026-04-23T18:00:00.000Z",
         filePath: "/tmp/sample.mp3",
         note: "Second note",
@@ -95,6 +127,14 @@ function main() {
       },
       {
         id: "bookmark-2",
+        createdAt: "2026-04-23T17:30:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "File note",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+      {
+        id: "bookmark-3",
         createdAt: "2026-04-23T18:00:00.000Z",
         filePath: "/tmp/sample.mp3",
         note: "Second note",

@@ -25,6 +25,10 @@ function getBookmarkTimeLabel(bookmark) {
     return bookmark.timeLabel.trim();
   }
 
+  if (bookmark.timeSeconds === null || bookmark.timeSeconds === undefined) {
+    return "File note";
+  }
+
   return `${bookmark.timeSeconds}s`;
 }
 
@@ -56,6 +60,29 @@ function getAudioErrorMessage(audioElement) {
     default:
       return "Unable to load audio file in player.";
   }
+}
+
+function splitBookmarksByTiming(bookmarks) {
+  const fileNotes = [];
+  const timelineMarkers = [];
+
+  for (const bookmark of Array.isArray(bookmarks) ? bookmarks : []) {
+    if (bookmark.timeSeconds === null || bookmark.timeSeconds === undefined) {
+      fileNotes.push(bookmark);
+      continue;
+    }
+
+    if (typeof bookmark.timeSeconds === "number" && !Number.isNaN(bookmark.timeSeconds)) {
+      timelineMarkers.push(bookmark);
+    }
+  }
+
+  timelineMarkers.sort((left, right) => left.timeSeconds - right.timeSeconds);
+
+  return {
+    fileNotes,
+    timelineMarkers,
+  };
 }
 
 function StatusRow({ label, value }) {
@@ -521,6 +548,32 @@ export function App() {
     }
   }
 
+  async function handleCreateFileNote(event) {
+    event.preventDefault();
+
+    if (!selectedAudioFile || !note.trim()) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
+        createdAt: new Date().toISOString(),
+        filePath: selectedAudioFile.filePath,
+        note: note.trim(),
+        timeLabel: null,
+        timeSeconds: null,
+      });
+
+      setSessionState(nextSessionState);
+      setSessionErrorMessage(null);
+      setAudioErrorMessage(null);
+      setNote("");
+    } catch (error) {
+      setSessionErrorMessage(error.message);
+    }
+  }
+
   async function handleSelectAudioFile() {
     try {
       const desktopBridge = getDesktopBridge();
@@ -600,6 +653,7 @@ export function App() {
   const selectedAudioBookmarks = sessionState && selectedAudioFile
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
+  const selectedAudioBookmarkGroups = splitBookmarksByTiming(selectedAudioBookmarks);
   const latestBookmark = selectedAudioBookmarks.length > 0
     ? selectedAudioBookmarks[selectedAudioBookmarks.length - 1]
     : sessionState && sessionState.bookmarks.length > 0
@@ -782,26 +836,78 @@ export function App() {
                           placeholder="Add a short note for this moment"
                           type="text"
                         />
-                        <button className="bookmark-button" disabled={!note.trim()} type="submit">
-                          Save note at current time
-                        </button>
+                        <div className="bookmark-action-row">
+                          <button
+                            className="bookmark-button bookmark-button-secondary"
+                            disabled={!selectedAudioFile || !note.trim()}
+                            onClick={handleCreateFileNote}
+                            type="button"
+                          >
+                            Add Note
+                          </button>
+                          <button className="bookmark-button" disabled={!selectedAudioFile || !note.trim()} type="submit">
+                            Save note at current time
+                          </button>
+                        </div>
                       </form>
 
-                      {selectedAudioBookmarks.length > 0 ? (
-                        <ul className="bookmark-list">
-                          {selectedAudioBookmarks.map((bookmark, index) => (
-                            <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                              <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                              <span className="bookmark-note">{bookmark.note}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="empty-state">No notes saved for this audio file yet.</p>
-                      )}
+                      <section className="bookmark-section">
+                        <h4>File Notes</h4>
+                        {selectedAudioBookmarkGroups.fileNotes.length > 0 ? (
+                          <ul className="bookmark-list">
+                            {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
+                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
+                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                <span className="bookmark-note">{bookmark.note}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="empty-state">No file notes saved for this audio file yet.</p>
+                        )}
+                      </section>
+
+                      <section className="bookmark-section">
+                        <h4>Timeline Markers</h4>
+                        {selectedAudioBookmarkGroups.timelineMarkers.length > 0 ? (
+                          <ul className="bookmark-list">
+                            {selectedAudioBookmarkGroups.timelineMarkers.map((bookmark, index) => (
+                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
+                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                <span className="bookmark-note">{bookmark.note}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="empty-state">No time-based markers saved for this audio file yet.</p>
+                        )}
+                      </section>
                     </div>
                   ) : (
-                    <p className="empty-state">Choose one local `.mp3` to start a lightweight audio-note session.</p>
+                    <div className="audio-note-stack">
+                      <form className="bookmark-form" onSubmit={handleCreateBookmark}>
+                        <label className="bookmark-label" htmlFor="bookmark-note">
+                          Note text
+                        </label>
+                        <input
+                          id="bookmark-note"
+                          className="bookmark-input"
+                          value={note}
+                          onChange={event => setNote(event.target.value)}
+                          placeholder="Choose an mp3 before attaching a note"
+                          type="text"
+                        />
+                        <div className="bookmark-action-row">
+                          <button className="bookmark-button bookmark-button-secondary" disabled type="button">
+                            Add Note
+                          </button>
+                          <button className="bookmark-button" disabled type="submit">
+                            Save note at current time
+                          </button>
+                        </div>
+                      </form>
+                      <p className="empty-state">Choose one local `.mp3` to start a lightweight audio-note session.</p>
+                    </div>
                   )}
                 </article>
               ) : null}
@@ -873,16 +979,40 @@ export function App() {
                   ) : (
                     <p className="empty-state">Choose an audio file first to review its saved notes.</p>
                   )}
-                  {selectedAudioBookmarks.length > 0 ? (
-                    <ul className="bookmark-list">
-                      {selectedAudioBookmarks.map((bookmark, index) => (
-                        <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                          <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                          <span className="bookmark-note">{bookmark.note}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : selectedAudioFile ? <p className="empty-state">No notes saved for this audio file yet.</p> : null}
+                  {selectedAudioFile ? (
+                    <div className="audio-note-stack">
+                      <section className="bookmark-section">
+                        <h4>File Notes</h4>
+                        {selectedAudioBookmarkGroups.fileNotes.length > 0 ? (
+                          <ul className="bookmark-list">
+                            {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
+                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
+                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                <span className="bookmark-note">{bookmark.note}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="empty-state">No file notes saved for this audio file yet.</p>
+                        )}
+                      </section>
+                      <section className="bookmark-section">
+                        <h4>Timeline Markers</h4>
+                        {selectedAudioBookmarkGroups.timelineMarkers.length > 0 ? (
+                          <ul className="bookmark-list">
+                            {selectedAudioBookmarkGroups.timelineMarkers.map((bookmark, index) => (
+                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
+                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                <span className="bookmark-note">{bookmark.note}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="empty-state">No time-based markers saved for this audio file yet.</p>
+                        )}
+                      </section>
+                    </div>
+                  ) : null}
                 </article>
               ) : null}
             </section>
