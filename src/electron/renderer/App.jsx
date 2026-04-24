@@ -366,13 +366,11 @@ function InspectorPanel({ searchResult, selectedMatchKey, sessionState }) {
         </article>
       )}
 
-      <article className="panel panel-secondary">
-        <h3>Next Moves</h3>
-        <ul className="paused-list">
-          <li>Continue the current session from the latest file.</li>
-          <li>Save a bookmark before changing direction.</li>
-          <li>Run a search to inspect related notes and assets.</li>
-        </ul>
+      <article className="panel panel-secondary inspector-hint-panel">
+        <h3>Hint</h3>
+        <p className="inspector-note">
+          Use the center actions to switch between resuming, searching, and reviewing bookmarks.
+        </p>
       </article>
     </aside>
   );
@@ -388,8 +386,7 @@ export function App() {
   const [sessionErrorMessage, setSessionErrorMessage] = useState(null);
   const [searchErrorMessage, setSearchErrorMessage] = useState(null);
   const [activeView, setActiveView] = useState("workspace");
-  const searchSectionRef = useRef(null);
-  const bookmarkSectionRef = useRef(null);
+  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("capture");
   const resumeSectionRef = useRef(null);
 
   function clearSearchInteractionState() {
@@ -572,7 +569,11 @@ export function App() {
                 <div className="resume-action-row">
                   <button
                     className="bookmark-button"
-                    onClick={() => scrollToSection(resumeSectionRef)}
+                    onClick={() => {
+                      setActiveView("workspace");
+                      setActiveWorkspaceSection("capture");
+                      scrollToSection(resumeSectionRef);
+                    }}
                     type="button"
                   >
                     Resume
@@ -586,14 +587,20 @@ export function App() {
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
-                    onClick={() => scrollToSection(searchSectionRef)}
+                    onClick={() => {
+                      setActiveView("workspace");
+                      setActiveWorkspaceSection("search");
+                    }}
                     type="button"
                   >
                     Search
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
-                    onClick={() => scrollToSection(bookmarkSectionRef)}
+                    onClick={() => {
+                      setActiveView("workspace");
+                      setActiveWorkspaceSection("bookmarks");
+                    }}
                     type="button"
                   >
                     View Bookmarks
@@ -601,98 +608,104 @@ export function App() {
                 </div>
               </article>
 
-              <article className="panel">
-                <h3>Save Bookmark</h3>
-                <form className="bookmark-form" onSubmit={handleCreateBookmark}>
-                  <label className="bookmark-label" htmlFor="bookmark-note">
-                    Bookmark note for this session
-                  </label>
-                  <input
-                    id="bookmark-note"
-                    className="bookmark-input"
-                    value={note}
-                    onChange={event => setNote(event.target.value)}
-                    placeholder="Add a short note to save in this session"
-                    type="text"
-                  />
-                  <button className="bookmark-button" disabled={!note.trim()} type="submit">
-                    Save Bookmark
-                  </button>
-                </form>
-              </article>
+              {activeWorkspaceSection === "capture" ? (
+                <article className="panel">
+                  <h3>Save Bookmark</h3>
+                  <form className="bookmark-form" onSubmit={handleCreateBookmark}>
+                    <label className="bookmark-label" htmlFor="bookmark-note">
+                      Bookmark note for this session
+                    </label>
+                    <input
+                      id="bookmark-note"
+                      className="bookmark-input"
+                      value={note}
+                      onChange={event => setNote(event.target.value)}
+                      placeholder="Add a short note to save in this session"
+                      type="text"
+                    />
+                    <button className="bookmark-button" disabled={!note.trim()} type="submit">
+                      Save Bookmark
+                    </button>
+                  </form>
+                </article>
+              ) : null}
 
-              <article className="panel" ref={searchSectionRef}>
-                <h3>Search Related Work</h3>
-                <form className="search-form" onSubmit={handleRunMockSearch}>
-                  <label className="bookmark-label" htmlFor="mock-search-root">
-                    Root to search
-                  </label>
-                  <input
-                    id="mock-search-root"
-                    className="bookmark-input"
-                    value={searchRoot}
-                    onChange={event => {
-                      setSearchRoot(event.target.value);
-                      clearSearchInteractionState();
-                    }}
-                    placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
-                    type="text"
-                  />
-                  <label className="bookmark-label" htmlFor="mock-search-query">
-                    Theme query
-                  </label>
-                  <input
-                    id="mock-search-query"
-                    className="bookmark-input"
-                    value={searchQuery}
-                    onChange={event => {
-                      setSearchQuery(event.target.value);
-                      clearSearchInteractionState();
-                    }}
-                    placeholder="Search bookmarked context such as moss"
-                    type="text"
-                  />
-                  <button className="bookmark-button" disabled={!searchRoot.trim() || !searchQuery.trim()} type="submit">
-                    Run Mock Search
-                  </button>
-                </form>
+              {activeWorkspaceSection === "search" ? (
+                <article className="panel">
+                  <h3>Search Related Work</h3>
+                  <form className="search-form" onSubmit={handleRunMockSearch}>
+                    <label className="bookmark-label" htmlFor="mock-search-root">
+                      Root to search
+                    </label>
+                    <input
+                      id="mock-search-root"
+                      className="bookmark-input"
+                      value={searchRoot}
+                      onChange={event => {
+                        setSearchRoot(event.target.value);
+                        clearSearchInteractionState();
+                      }}
+                      placeholder="Choose a root such as sandbox/fixtures/nested-anchor-trial"
+                      type="text"
+                    />
+                    <label className="bookmark-label" htmlFor="mock-search-query">
+                      Theme query
+                    </label>
+                    <input
+                      id="mock-search-query"
+                      className="bookmark-input"
+                      value={searchQuery}
+                      onChange={event => {
+                        setSearchQuery(event.target.value);
+                        clearSearchInteractionState();
+                      }}
+                      placeholder="Search bookmarked context such as moss"
+                      type="text"
+                    />
+                    <button className="bookmark-button" disabled={!searchRoot.trim() || !searchQuery.trim()} type="submit">
+                      Run Mock Search
+                    </button>
+                  </form>
 
-                {searchErrorMessage ? (
-                  <section className="panel panel-inline panel-secondary search-error-panel">
-                    <h3>Search Error</h3>
-                    <p className="empty-state">{searchErrorMessage}</p>
-                  </section>
-                ) : null}
+                  {searchErrorMessage ? (
+                    <section className="panel panel-inline panel-secondary search-error-panel">
+                      <h3>Search Error</h3>
+                      <p className="empty-state">{searchErrorMessage}</p>
+                    </section>
+                  ) : null}
 
-                {searchResult ? (
-                  <MockSearchResult
-                    onRevealSelectedMatch={handleRevealSelectedMatch}
-                    onSelectMatch={handleSelectMockSearchMatch}
-                    searchResult={searchResult}
-                    selectedMatchKey={selectedMatchKey}
-                  />
-                ) : (
-                  <p className="empty-state">
-                    Enter a root and query to preview the grouped mock search flow in the desktop shell.
-                  </p>
-                )}
-              </article>
+                  {searchResult ? (
+                    <MockSearchResult
+                      onRevealSelectedMatch={handleRevealSelectedMatch}
+                      onSelectMatch={handleSelectMockSearchMatch}
+                      searchResult={searchResult}
+                      selectedMatchKey={selectedMatchKey}
+                    />
+                  ) : (
+                    <p className="empty-state">
+                      Enter a root and query to preview the grouped mock search flow in the desktop shell.
+                    </p>
+                  )}
+                </article>
+              ) : null}
 
-              <article className="panel" ref={bookmarkSectionRef}>
-                <h3>Bookmarks</h3>
-                {sessionState && sessionState.bookmarks.length > 0 ? (
-                  <ul className="bookmark-list">
-                    {sessionState.bookmarks.map((bookmark, index) => (
-                      <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                        <span className="bookmark-time">{bookmark.timeSeconds}s</span>
-                        <span className="bookmark-note">{bookmark.note}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
-                )}
-              </article>
+              {activeWorkspaceSection === "bookmarks" ? (
+                <article className="panel">
+                  <h3>Bookmarks</h3>
+                  {sessionState && sessionState.bookmarks.length > 0 ? (
+                    <ul className="bookmark-list">
+                      {sessionState.bookmarks.map((bookmark, index) => (
+                        <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
+                          <span className="bookmark-time">{bookmark.timeSeconds}s</span>
+                          <span className="bookmark-note">{bookmark.note}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
+                  )}
+                </article>
+              ) : null}
             </section>
           )}
         </section>

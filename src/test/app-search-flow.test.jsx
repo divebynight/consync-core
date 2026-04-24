@@ -103,6 +103,10 @@ function createDesktopBridge(overrides = {}) {
   };
 }
 
+async function openSearchSection(user) {
+  await user.click(screen.getByRole("button", { name: "Search" }));
+}
+
 describe("App search flow", () => {
   beforeEach(() => {
     cleanup();
@@ -192,7 +196,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("No bookmarks saved for this session yet. Drop one to create the first entry.")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Save Bookmark" })).toBeTruthy();
 
     await user.type(screen.getByLabelText("Bookmark note for this session"), "Bridge motif");
     await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
@@ -209,6 +213,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
     expect(await screen.findByText("Balcony Zine Session")).toBeTruthy();
@@ -234,6 +239,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -261,6 +267,7 @@ describe("App search flow", () => {
 
     expect(screen.queryByRole("button", { name: "Reveal in Finder" })).toBeNull();
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -294,6 +301,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -331,6 +339,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -349,6 +358,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
     await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
@@ -373,6 +383,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
     await user.click(screen.getByRole("button", { name: /captures\/moss-study\.jpg/i }));
@@ -401,6 +412,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
     expect(await screen.findByRole("heading", { name: "Search Error" })).toBeTruthy();
@@ -417,6 +429,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
     expect(await screen.findByText("Search failed for test")).toBeTruthy();
@@ -439,6 +452,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
     expect(await screen.findByText("Search failed for test")).toBeTruthy();
@@ -461,6 +475,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
     await user.click(screen.getByRole("button", { name: /exports\/cover-notes\.md/i }));
@@ -495,6 +510,7 @@ describe("App search flow", () => {
 
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
 
     expect(await screen.findByText("No bookmarked matches found for this root and query.")).toBeTruthy();
@@ -506,6 +522,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -517,6 +534,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 
@@ -531,6 +549,7 @@ describe("App search flow", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await openSearchSection(user);
     await user.click(screen.getByRole("button", { name: "Run Mock Search" }));
     await screen.findByText("Balcony Zine Session");
 

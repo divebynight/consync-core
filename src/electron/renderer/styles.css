@@ -27,42 +27,43 @@ body {
   min-height: 100vh;
   max-width: 1460px;
   margin: 0 auto;
-  padding: 44px 40px 72px;
+  padding: 22px 24px 36px;
 }
 
 .eyebrow {
-  margin: 0 0 12px;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
+  margin: 0 0 6px;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8d8af8;
+  color: #8087a8;
 }
 
 .shell h1 {
   margin: 0;
-  font-size: clamp(2.25rem, 3vw, 3.25rem);
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  color: #f8faff;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #dfe5f7;
+  font-weight: 600;
 }
 
 .lead {
   margin: 0;
-  font-size: 0.98rem;
-  line-height: 1.55;
+  font-size: 0.84rem;
+  line-height: 1.45;
   color: #9ea7bd;
 }
 
 .workspace-layout {
   display: grid;
   grid-template-columns: minmax(220px, 260px) minmax(0, 1.6fr) minmax(260px, 320px);
-  gap: 28px;
+  gap: 16px;
   align-items: start;
 }
 
 .workspace-column {
   display: grid;
-  gap: 20px;
+  gap: 12px;
 }
 
 .workspace-main {
@@ -71,12 +72,13 @@ body {
 
 .workspace-stack {
   display: grid;
-  gap: 26px;
+  gap: 14px;
 }
 
 .column-heading {
   display: grid;
-  gap: 4px;
+  gap: 1px;
+  margin-bottom: 2px;
 }
 
 .column-heading h2,
@@ -91,13 +93,13 @@ body {
 }
 
 .resume-panel {
-  gap: 20px;
-  padding: 30px;
+  gap: 14px;
+  padding: 18px;
   border-color: rgba(116, 118, 255, 0.26);
   background:
     linear-gradient(180deg, rgba(31, 38, 58, 0.98) 0%, rgba(22, 28, 44, 0.98) 100%);
   box-shadow:
-    0 28px 60px rgba(0, 0, 0, 0.38),
+    0 8px 18px rgba(0, 0, 0, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 0 0 1px rgba(109, 104, 255, 0.08);
 }
@@ -110,43 +112,44 @@ body {
 }
 
 .resume-panel h3 {
-  font-size: 1.45rem;
-  letter-spacing: -0.03em;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
 }
 
 .resume-panel-copy {
-  margin: 6px 0 0;
+  margin: 2px 0 0;
+  font-size: 0.76rem;
   color: #9fa7c0;
 }
 
 .resume-action-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .workspace-nav {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .workspace-nav-button {
   width: 100%;
-  padding: 14px 15px;
+  padding: 9px 10px;
   border: 1px solid rgba(108, 120, 153, 0.16);
-  border-radius: 16px;
+  border-radius: 8px;
   background: rgba(19, 24, 36, 0.86);
   color: #d8ddef;
   font: inherit;
+  font-size: 0.82rem;
   text-align: left;
   cursor: pointer;
-  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+  transition: border-color 120ms ease, background 120ms ease;
 }
 
 .workspace-nav-button:hover {
   border-color: rgba(109, 104, 255, 0.4);
   background: rgba(28, 34, 50, 0.96);
-  transform: translateY(-1px);
 }
 
 .workspace-nav-button-active {
@@ -164,8 +167,7 @@ body {
   background: rgba(13, 18, 30, 0.74);
   border-color: rgba(104, 117, 156, 0.18);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 16px 30px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .timeline-stage {
@@ -185,62 +187,63 @@ body {
 
 .support-copy {
   margin: 0;
+  font-size: 0.8rem;
   color: #8f97ae;
-  line-height: 1.55;
+  line-height: 1.4;
 }
 
 .panel-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 10px;
 }
 
 .panel {
-  padding: 26px;
+  padding: 14px;
   border: 1px solid rgba(104, 117, 156, 0.14);
-  border-radius: 24px;
+  border-radius: 8px;
   background: rgba(20, 25, 37, 0.92);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(10px);
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .panel-secondary {
   background: rgba(24, 30, 44, 0.94);
   border-color: rgba(104, 117, 156, 0.12);
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .panel-inline {
-  margin-top: 16px;
-  padding: 18px;
-  border-radius: 18px;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
 }
 
 .panel h2 {
-  margin: 0 0 18px;
-  font-size: 1.28rem;
-  letter-spacing: -0.03em;
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
 .panel-secondary h2 {
-  font-size: 1.08rem;
+  font-size: 0.88rem;
   color: #eef2ff;
 }
 
 .panel h3 {
-  margin-bottom: 14px;
-  font-size: 1.14rem;
-  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
 .panel h4 {
-  margin-bottom: 14px;
-  font-size: 0.96rem;
+  margin-bottom: 10px;
+  font-size: 0.82rem;
   color: #eef2ff;
+  font-weight: 600;
 }
 
 .session-error-panel {
@@ -250,21 +253,19 @@ body {
 
 .session-timeline-panel {
   display: grid;
-  gap: 24px;
-  padding: 34px 34px 30px;
-  border-radius: 30px;
+  gap: 16px;
+  padding: 18px 18px 16px;
+  border-radius: 8px;
   border-color: rgba(94, 108, 149, 0.2);
   background:
     linear-gradient(180deg, rgba(18, 24, 36, 0.98) 0%, rgba(16, 21, 33, 0.96) 100%),
     linear-gradient(90deg, rgba(94, 108, 149, 0.08) 1px, transparent 1px);
-  box-shadow:
-    0 28px 52px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .timeline-heading {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .timeline-eyebrow {
@@ -274,9 +275,9 @@ body {
 
 .timeline-heading h2 {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
+  font-size: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: #f5f7ff;
 }
 
@@ -284,8 +285,8 @@ body {
   margin: 0;
   max-width: 760px;
   color: #98a2bc;
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .timeline-ruler {
@@ -293,7 +294,7 @@ body {
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   padding: 2px 10px 0;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6f7b97;
@@ -301,12 +302,12 @@ body {
 
 .timeline-tracks {
   display: grid;
-  gap: 18px;
+  gap: 12px;
 }
 
 .timeline-track {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .timeline-track-meta {
@@ -325,13 +326,13 @@ body {
 }
 
 .timeline-track-label {
-  font-size: 0.96rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #f4f7ff;
 }
 
 .timeline-track-subtitle {
-  font-size: 0.78rem;
+  font-size: 0.66rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #77819b;
@@ -340,7 +341,7 @@ body {
 .timeline-lane {
   position: relative;
   min-height: 88px;
-  border-radius: 22px;
+  border-radius: 8px;
   border: 1px solid rgba(91, 105, 143, 0.16);
   background:
     linear-gradient(90deg, rgba(90, 104, 145, 0.08) 1px, transparent 1px),
@@ -354,12 +355,12 @@ body {
   position: absolute;
   top: 14px;
   bottom: 14px;
-  min-width: 92px;
-  padding: 11px 13px;
-  border-radius: 16px;
+  min-width: 84px;
+  padding: 8px 10px;
+  border-radius: 8px;
   display: grid;
-  gap: 4px;
-  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
+  gap: 3px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
 }
 
 .timeline-marker-events {
@@ -379,22 +380,22 @@ body {
 }
 
 .timeline-marker-label {
-  font-size: 0.84rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #f5f7ff;
 }
 
 .timeline-marker-detail {
-  font-size: 0.75rem;
-  line-height: 1.35;
+  font-size: 0.66rem;
+  line-height: 1.25;
   color: #c0c8df;
 }
 
 .status-row {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
+  gap: 10px;
+  padding: 8px 0;
   border-top: 1px solid rgba(102, 113, 145, 0.14);
 }
 
@@ -409,7 +410,7 @@ body {
 
 .status-label {
   color: #7f8aa3;
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -418,27 +419,29 @@ body {
   font-weight: 600;
   color: #f4f7ff;
   text-align: right;
+  font-size: 0.78rem;
 }
 
 .paused-list {
   margin: 0;
   padding-left: 18px;
   color: #b1bad1;
-  line-height: 1.7;
+  line-height: 1.5;
+  font-size: 0.78rem;
 }
 
 .bookmark-form {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .search-form {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .bookmark-label {
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #7f8aa3;
@@ -446,13 +449,14 @@ body {
 
 .bookmark-input {
   width: 100%;
-  padding: 13px 14px;
+  padding: 9px 10px;
   border: 1px solid rgba(104, 117, 156, 0.18);
-  border-radius: 14px;
+  border-radius: 6px;
   background: rgba(13, 18, 30, 0.84);
   font: inherit;
   color: #eef2ff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  font-size: 0.82rem;
 }
 
 .bookmark-input:focus {
@@ -463,27 +467,27 @@ body {
 
 .bookmark-button {
   width: fit-content;
-  padding: 11px 18px;
+  padding: 7px 10px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #6366f1 0%, #4f7cff 100%);
   color: #f8faff;
   font: inherit;
+  font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 12px 22px rgba(79, 92, 255, 0.24);
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+  box-shadow: 0 2px 8px rgba(79, 92, 255, 0.18);
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .bookmark-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 28px rgba(79, 92, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(79, 92, 255, 0.22);
 }
 
 .bookmark-button-secondary {
   border: 1px solid rgba(107, 120, 156, 0.22);
   background: rgba(18, 24, 36, 0.92);
-  color: #dce2f5;
+  color: #bac3da;
   box-shadow: none;
 }
 
@@ -497,20 +501,20 @@ body {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .bookmark-item {
   display: grid;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: 16px;
+  gap: 3px;
+  padding: 9px 10px;
+  border-radius: 6px;
   background: rgba(15, 20, 31, 0.86);
   border: 1px solid rgba(104, 117, 156, 0.12);
 }
 
 .bookmark-time {
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8c92ff;
@@ -518,40 +522,43 @@ body {
 
 .bookmark-note {
   color: #eef2ff;
+  font-size: 0.8rem;
 }
 
 .empty-state {
   margin: 0;
   color: #8e98af;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .mock-search-results {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
 .mock-search-summary {
-  border-radius: 16px;
+  border-radius: 6px;
   border: 1px solid rgba(104, 117, 156, 0.12);
   background: rgba(14, 20, 31, 0.86);
-  padding: 16px;
+  padding: 10px;
 }
 
 .mock-search-groups {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .mock-search-group {
-  border-radius: 18px;
+  border-radius: 6px;
   border: 1px solid rgba(104, 117, 156, 0.12);
   background: rgba(15, 20, 31, 0.86);
-  padding: 16px;
+  padding: 10px;
 }
 
 .mock-search-group-header {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .mock-search-group-label,
@@ -563,7 +570,7 @@ body {
 }
 
 .mock-search-group-label {
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8c92ff;
@@ -572,13 +579,14 @@ body {
 .mock-search-group-anchor {
   margin-top: 4px;
   color: #8b95ae;
+  font-size: 0.76rem;
 }
 
 .mock-search-match-list {
   margin: 0;
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   padding: 0;
 }
 
@@ -588,12 +596,12 @@ body {
 
 .mock-search-match {
   width: 100%;
-  border-radius: 16px;
+  border-radius: 6px;
   border: 1px solid rgba(104, 117, 156, 0.12);
   background: rgba(19, 25, 38, 0.92);
-  padding: 14px;
+  padding: 10px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
   text-align: left;
   cursor: pointer;
   font: inherit;
@@ -610,20 +618,22 @@ body {
 .mock-search-artifact {
   color: #f3f6ff;
   font-weight: 600;
+  font-size: 0.78rem;
 }
 
 .mock-search-note {
   color: #b5bfd7;
+  font-size: 0.76rem;
 }
 
 .mock-search-tags {
-  font-size: 0.88rem;
+  font-size: 0.72rem;
   color: #7f8aa3;
 }
 
 .mock-search-detail-panel {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .mock-search-detail-actions {
@@ -633,29 +643,32 @@ body {
 
 .mock-search-detail-panel h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.84rem;
   color: #eef2ff;
 }
 
 .mock-search-detail-copy {
   margin: 0;
-  padding: 14px 16px;
-  border-radius: 16px;
+  padding: 10px;
+  border-radius: 6px;
   border: 1px solid rgba(104, 117, 156, 0.12);
   background: rgba(14, 20, 31, 0.86);
   color: #c5cce0;
-  line-height: 1.5;
+  line-height: 1.4;
+  font-size: 0.76rem;
 }
 
 .search-entry-copy,
 .inspector-note {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   color: #9fa7c0;
+  font-size: 0.76rem;
+  line-height: 1.45;
 }
 
 .search-error-panel h3 {
   margin: 0 0 8px;
-  font-size: 0.98rem;
+  font-size: 0.82rem;
   color: #f4f7ff;
 }
 
@@ -677,15 +690,15 @@ body {
   }
 
   .shell {
-    padding: 32px 20px;
+    padding: 18px 14px 28px;
   }
 
   .panel {
-    padding: 20px;
+    padding: 12px;
   }
 
   .session-timeline-panel {
-    padding: 24px 20px 22px;
+    padding: 14px 12px 12px;
   }
 
   .timeline-stage::before {
