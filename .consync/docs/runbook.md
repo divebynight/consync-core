@@ -11,6 +11,12 @@ Use it to answer two questions fast:
 
 This file is not the full spec. It is the practical decision layer above the deeper docs.
 
+## Source Of Truth Boundary
+
+- `.consync/` is the authoritative Consync process layer for state, docs, streams, prompts, skills, and gatekeeping workflows.
+- `.github/` is a thin Copilot/GitHub adapter layer and should point back to `.consync` for authoritative process behavior.
+- `AGENTS.md` is the Codex entry point and should direct Codex back to `.consync` rather than duplicating the full process model.
+
 ## How To Start A Session
 
 Read these files in order:

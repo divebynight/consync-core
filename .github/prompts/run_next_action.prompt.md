@@ -1,3 +1,9 @@
+Authoritative workflow note:
+
+- `.consync/` is the source of truth for Consync execution workflow.
+- Use `.consync/state/*` and `.consync/docs/runbook.md` as authoritative.
+- Treat this file as a GitHub/Copilot adapter only.
+
 Read the file at:
 
 .consync/state/next-action.md

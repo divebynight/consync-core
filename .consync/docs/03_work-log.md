@@ -33,3 +33,15 @@ Observation:
 
 Notes:
 - Raw discussion storage is still optional and should be used only when the material is worth preserving but not yet shaped enough for a durable doc.
+
+## 2026-04-24 — Source-Of-Truth Boundaries
+
+- Established `.consync/` as the authoritative Consync process layer for state, docs, prompts, skills, and gatekeeping workflows.
+- Added `AGENTS.md` as the Codex entry point and updated `.github` guidance to behave as a thin Copilot/GitHub adapter layer.
+- Repointed GitHub-facing prompts back to `.consync` so workflow authority is clearer and less duplicated.
+
+Observation:
+- Consync now has a cleaner process boundary: `.consync` defines how the system works, while tool-specific surfaces point back to it instead of competing with it.
+
+Notes:
+- Existing `.github/agents/*` files were left in place for now; the boundary is clarified first so later cleanup can be based on actual usage.

@@ -1,12 +1,18 @@
 # run_closeout.prompt.md
 
+Authoritative workflow note:
+
+- `.consync/` is the source of truth for Consync closeout behavior.
+- Use `.consync/.agents/skills/closeout-agent.md` as the authoritative closeout workflow.
+- Treat this file as a GitHub/Copilot adapter only.
+
 Read the current handoff state:
 
 .consync/state/handoff.md
 
-Execute the closeout process defined in:
+Read the authoritative workflow at:
 
-.github/prompts/complete_work_packet.prompt.md
+.consync/.agents/skills/closeout-agent.md
 
 ---
 
@@ -19,7 +25,7 @@ Finalize the most recent Work Packet using the existing handoff.
 ## Behavior
 
 - Use handoff.md as the source of truth
-- Apply the closeout rules from complete_work_packet.prompt.md
+- Apply the closeout rules from `.consync/.agents/skills/closeout-agent.md`
 - Do not modify source files
 - Do not re-run tests
 - Do not introduce new work

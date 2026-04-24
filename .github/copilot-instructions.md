@@ -1,5 +1,13 @@
 # Copilot Instructions — Consync Core
 
+## Authority Boundary
+
+`.consync/` is the authoritative Consync process layer.
+
+Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/.agents/skills/*` as the source of truth for workflow behavior.
+
+Treat `.github/` as a thin Copilot/GitHub adapter layer only.
+
 ## Purpose
 
 This project is the local-first foundation of Consync.
@@ -37,9 +45,9 @@ Do not build for hypothetical future features unless explicitly asked.
 
 ## How to Approach Work
 
-Implement only the task described in `.consync/state/history/agent-handoff.md`.
+Implement only the task described by the current authoritative `.consync/state/*` files.
 
-Use `.consync/state/history/consync_v1_spec.md` as the higher-level source of truth.
+Use `.consync/docs/runbook.md` as the practical process entrypoint.
 
 When working:
 1. keep scope narrow
