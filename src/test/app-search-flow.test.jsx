@@ -211,7 +211,7 @@ describe("App search flow", () => {
     expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Choose MP3" }));
-    expect(await screen.findByText("sample.mp3")).toBeTruthy();
+    expect((await screen.findAllByText("sample.mp3")).length).toBeGreaterThan(0);
     await user.type(screen.getByLabelText("Note text"), "Bridge motif");
     await user.click(screen.getByRole("button", { name: "Add Note" }));
 
@@ -264,7 +264,7 @@ describe("App search flow", () => {
     expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
 
     await user.click(screen.getByRole("button", { name: "Choose MP3" }));
-    expect(await screen.findByText("sample.mp3")).toBeTruthy();
+    expect((await screen.findAllByText("sample.mp3")).length).toBeGreaterThan(0);
 
     const audioPlayer = document.querySelector("audio");
     expect(audioPlayer).toBeTruthy();
@@ -464,6 +464,60 @@ describe("App search flow", () => {
     expect(audioPlayer.currentTime).toBe(12);
     expect(screen.getAllByText("00:12").length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: /file note/i })).toBeNull();
+  });
+
+  it("tracks recent audio files and switches context without reopening the picker", async () => {
+    const user = userEvent.setup();
+    const selectAudioFile = vi
+      .fn()
+      .mockResolvedValueOnce({
+        audioSrc: "data:audio/mpeg;base64,Zmlyc3Q=",
+        canceled: false,
+        fileName: "first.mp3",
+        filePath: "/tmp/first.mp3",
+        fileUrl: "file:///tmp/first.mp3",
+        ok: true,
+      })
+      .mockResolvedValueOnce({
+        audioSrc: "data:audio/mpeg;base64,c2Vjb25k",
+        canceled: false,
+        fileName: "second.mp3",
+        filePath: "/tmp/second.mp3",
+        fileUrl: "file:///tmp/second.mp3",
+        ok: true,
+      });
+
+    window.consyncDesktop = createDesktopBridge({
+      selectAudioFile,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText("Open an mp3 to start a quick recent-files list.")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    expect((await screen.findAllByText("first.mp3")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    expect((await screen.findAllByText("second.mp3")).length).toBeGreaterThan(0);
+
+    const recentAudioHeading = screen.getByRole("heading", { name: "Recent Audio" });
+    const recentAudioPanel = recentAudioHeading.closest("article");
+    const recentButtons = within(recentAudioPanel).getAllByRole("button");
+
+    expect(recentButtons[0].textContent).toBe("second.mp3");
+    expect(recentButtons[1].textContent).toBe("first.mp3");
+
+    const audioPlayer = document.querySelector("audio");
+    audioPlayer.currentTime = 37;
+    fireEvent.timeUpdate(audioPlayer);
+    expect(screen.getAllByText("00:37").length).toBeGreaterThan(0);
+
+    await user.click(within(recentAudioPanel).getByRole("button", { name: "first.mp3" }));
+
+    expect(selectAudioFile).toHaveBeenCalledTimes(2);
+    expect((await screen.findAllByText("first.mp3")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:00").length).toBeGreaterThan(0);
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {

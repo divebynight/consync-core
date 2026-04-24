@@ -113,6 +113,17 @@ function getActiveTimelineMarkerIndex(timelineMarkers, currentTimeSeconds) {
   return activeIndex;
 }
 
+function addRecentAudioFile(recentFiles, nextFile, maxItems = 8) {
+  if (!nextFile || typeof nextFile.filePath !== "string" || !nextFile.filePath.trim()) {
+    return Array.isArray(recentFiles) ? recentFiles : [];
+  }
+
+  const normalizedRecentFiles = Array.isArray(recentFiles) ? recentFiles : [];
+  const dedupedRecentFiles = normalizedRecentFiles.filter(file => file.filePath !== nextFile.filePath);
+
+  return [nextFile, ...dedupedRecentFiles].slice(0, maxItems);
+}
+
 function StatusRow({ label, value }) {
   return (
     <div className="status-row">
@@ -498,6 +509,7 @@ export function App() {
   const [searchResult, setSearchResult] = useState(null);
   const [selectedMatchKey, setSelectedMatchKey] = useState(null);
   const [selectedAudioFile, setSelectedAudioFile] = useState(null);
+  const [recentAudioFiles, setRecentAudioFiles] = useState([]);
   const [audioCurrentTimeSeconds, setAudioCurrentTimeSeconds] = useState(0);
   const [sessionState, setSessionState] = useState(null);
   const [sessionErrorMessage, setSessionErrorMessage] = useState(null);
@@ -576,6 +588,29 @@ export function App() {
     }
   }
 
+  function setSelectedAudioContext(nextFile) {
+    if (!nextFile) {
+      return;
+    }
+
+    const isJSDOM = typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent || "");
+
+    if (audioPlayerRef.current && !isJSDOM) {
+      try {
+        audioPlayerRef.current.pause();
+      } catch (_error) {
+        // JSDOM does not implement media pause; ignore in non-browser test contexts.
+      }
+    }
+
+    setSelectedAudioFile(nextFile);
+    setRecentAudioFiles(currentRecentFiles => addRecentAudioFile(currentRecentFiles, nextFile));
+    setAudioCurrentTimeSeconds(0);
+    setAudioErrorMessage(null);
+    setNote("");
+    setActiveWorkspaceSection("audio");
+  }
+
   async function handleCreateFileNote(event) {
     event.preventDefault();
 
@@ -619,13 +654,14 @@ export function App() {
         fileName: selectedFile.fileName,
         fileUrl: selectedFile.fileUrl,
       });
-      setSelectedAudioFile(selectedFile);
-      setAudioCurrentTimeSeconds(0);
-      setAudioErrorMessage(null);
-      setActiveWorkspaceSection("audio");
+      setSelectedAudioContext(selectedFile);
     } catch (error) {
       setAudioErrorMessage(error.message);
     }
+  }
+
+  function handleSelectRecentAudioFile(recentFile) {
+    setSelectedAudioContext(recentFile);
   }
 
   async function handleRunMockSearch(event) {
@@ -732,6 +768,27 @@ export function App() {
             <StatusRow label="Bookmarks" value={sessionState ? sessionState.bookmarks.length : "loading"} />
             <StatusRow label="Latest note" value={latestBookmark ? latestBookmark.note : "none"} />
           </article>
+
+          <article className="panel panel-secondary">
+            <h2>Recent Audio</h2>
+            {recentAudioFiles.length > 0 ? (
+              <div className="workspace-nav">
+                {recentAudioFiles.map(recentFile => (
+                  <button
+                    className={`workspace-nav-button${selectedAudioFile && selectedAudioFile.filePath === recentFile.filePath ? " workspace-nav-button-active" : ""}`}
+                    key={recentFile.filePath}
+                    onClick={() => handleSelectRecentAudioFile(recentFile)}
+                    title={recentFile.fileName}
+                    type="button"
+                  >
+                    <span className="recent-audio-label">{recentFile.fileName}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-state">Open an mp3 to start a quick recent-files list.</p>
+            )}
+          </article>
         </aside>
 
         <section className="workspace-column workspace-main">
@@ -833,6 +890,7 @@ export function App() {
                       </div>
 
                       <audio
+                        key={selectedAudioFile.filePath}
                         ref={audioPlayerRef}
                         className="audio-player"
                         controls
