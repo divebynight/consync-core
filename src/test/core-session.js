@@ -51,7 +51,13 @@ function main() {
     });
 
     const firstState = createBookmark("First note");
-    const secondState = createBookmark("Second note");
+    const secondState = createBookmark({
+      createdAt: "2026-04-23T18:00:00.000Z",
+      filePath: "/tmp/sample.mp3",
+      note: "Second note",
+      timeLabel: "00:42",
+      timeSeconds: 42,
+    });
     const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
 
     assert.strictEqual(firstState.artifactCount, getSessionArtifactCount());
@@ -73,8 +79,11 @@ function main() {
       },
       {
         id: "bookmark-2",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: "/tmp/sample.mp3",
         note: "Second note",
-        timeSeconds: 84,
+        timeLabel: "00:42",
+        timeSeconds: 42,
       },
     ]);
 
@@ -86,8 +95,11 @@ function main() {
       },
       {
         id: "bookmark-2",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: "/tmp/sample.mp3",
         note: "Second note",
-        timeSeconds: 84,
+        timeLabel: "00:42",
+        timeSeconds: 42,
       },
     ]);
   });

@@ -8,6 +8,56 @@ import {
 } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
+function formatTimeLabel(totalSeconds) {
+  const normalizedSeconds = Math.max(0, Math.floor(totalSeconds || 0));
+  const minutes = Math.floor(normalizedSeconds / 60);
+  const seconds = normalizedSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getBookmarkTimeLabel(bookmark) {
+  if (!bookmark) {
+    return "none";
+  }
+
+  if (typeof bookmark.timeLabel === "string" && bookmark.timeLabel.trim()) {
+    return bookmark.timeLabel.trim();
+  }
+
+  return `${bookmark.timeSeconds}s`;
+}
+
+function getFileName(filePath) {
+  if (!filePath || typeof filePath !== "string") {
+    return "none";
+  }
+
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const pathSegments = normalizedPath.split("/");
+
+  return pathSegments[pathSegments.length - 1] || normalizedPath;
+}
+
+function getAudioErrorMessage(audioElement) {
+  if (!audioElement || !audioElement.error) {
+    return "Unable to load audio file in player.";
+  }
+
+  switch (audioElement.error.code) {
+    case 1:
+      return "Audio load was aborted.";
+    case 2:
+      return "Network-style audio load failed.";
+    case 3:
+      return "Audio decode failed.";
+    case 4:
+      return "Audio format is unsupported by the player.";
+    default:
+      return "Unable to load audio file in player.";
+  }
+}
+
 function StatusRow({ label, value }) {
   return (
     <div className="status-row">
@@ -229,6 +279,7 @@ function getDesktopBridge() {
     !desktopBridge ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
+    typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function"
   ) {
@@ -326,10 +377,18 @@ function NavigationButton({ active, children, onClick }) {
   );
 }
 
-function InspectorPanel({ searchResult, selectedMatchKey, sessionState }) {
+function InspectorPanel({ searchResult, selectedAudioFile, selectedMatchKey, sessionState }) {
   const selectedDetail = getSelectedMockSearchDetail(searchResult, selectedMatchKey);
-  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
-    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+  const selectedAudioBookmarks = sessionState && selectedAudioFile
+    ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
+    : [];
+  const latestBookmark = selectedAudioBookmarks.length > 0
+    ? selectedAudioBookmarks[selectedAudioBookmarks.length - 1]
+    : sessionState && sessionState.bookmarks.length > 0
+      ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+      : null;
+  const bookmarkSummaryLabel = latestBookmark && latestBookmark.filePath
+    ? getFileName(latestBookmark.filePath)
     : null;
 
   return (
@@ -351,7 +410,8 @@ function InspectorPanel({ searchResult, selectedMatchKey, sessionState }) {
       ) : latestBookmark ? (
         <article className="panel panel-secondary">
           <h3>Latest Bookmark</h3>
-          <StatusRow label="Time" value={`${latestBookmark.timeSeconds}s`} />
+          {bookmarkSummaryLabel ? <StatusRow label="Audio file" value={bookmarkSummaryLabel} /> : null}
+          <StatusRow label="Time" value={getBookmarkTimeLabel(latestBookmark)} />
           <StatusRow label="Note" value={latestBookmark.note || "none"} />
           <p className="inspector-note">
             Resume from this note, or use search first if you want to inspect related files before continuing.
@@ -382,11 +442,15 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState("moss");
   const [searchResult, setSearchResult] = useState(null);
   const [selectedMatchKey, setSelectedMatchKey] = useState(null);
+  const [selectedAudioFile, setSelectedAudioFile] = useState(null);
+  const [audioCurrentTimeSeconds, setAudioCurrentTimeSeconds] = useState(0);
   const [sessionState, setSessionState] = useState(null);
   const [sessionErrorMessage, setSessionErrorMessage] = useState(null);
+  const [audioErrorMessage, setAudioErrorMessage] = useState(null);
   const [searchErrorMessage, setSearchErrorMessage] = useState(null);
   const [activeView, setActiveView] = useState("workspace");
-  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("capture");
+  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
+  const audioPlayerRef = useRef(null);
   const resumeSectionRef = useRef(null);
 
   function clearSearchInteractionState() {
@@ -430,18 +494,56 @@ export function App() {
   async function handleCreateBookmark(event) {
     event.preventDefault();
 
-    if (!note.trim()) {
+    if (!selectedAudioFile || !note.trim()) {
       return;
     }
 
     try {
       const desktopBridge = getDesktopBridge();
-      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, note.trim());
+      const currentTimeSeconds = Math.max(
+        0,
+        Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : audioCurrentTimeSeconds)
+      );
+      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
+        createdAt: new Date().toISOString(),
+        filePath: selectedAudioFile.filePath,
+        note: note.trim(),
+        timeLabel: formatTimeLabel(currentTimeSeconds),
+        timeSeconds: currentTimeSeconds,
+      });
       setSessionState(nextSessionState);
+      setAudioCurrentTimeSeconds(currentTimeSeconds);
       setSessionErrorMessage(null);
+      setAudioErrorMessage(null);
       setNote("");
     } catch (error) {
       setSessionErrorMessage(error.message);
+    }
+  }
+
+  async function handleSelectAudioFile() {
+    try {
+      const desktopBridge = getDesktopBridge();
+      const selectedFile = await desktopBridge.selectAudioFile();
+
+      if (!selectedFile.ok) {
+        if (!selectedFile.canceled) {
+          throw new Error(selectedFile.output);
+        }
+
+        return;
+      }
+
+      console.info("Consync audio file selected", {
+        fileName: selectedFile.fileName,
+        fileUrl: selectedFile.fileUrl,
+      });
+      setSelectedAudioFile(selectedFile);
+      setAudioCurrentTimeSeconds(0);
+      setAudioErrorMessage(null);
+      setActiveWorkspaceSection("audio");
+    } catch (error) {
+      setAudioErrorMessage(error.message);
     }
   }
 
@@ -495,11 +597,16 @@ export function App() {
   }
 
   const sessionRows = getSessionPanelRows(sessionState);
-  const latestBookmark = sessionState && sessionState.bookmarks.length > 0
-    ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
-    : null;
+  const selectedAudioBookmarks = sessionState && selectedAudioFile
+    ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
+    : [];
+  const latestBookmark = selectedAudioBookmarks.length > 0
+    ? selectedAudioBookmarks[selectedAudioBookmarks.length - 1]
+    : sessionState && sessionState.bookmarks.length > 0
+      ? sessionState.bookmarks[sessionState.bookmarks.length - 1]
+      : null;
   const lastActivityTime = latestBookmark
-    ? `${latestBookmark.timeSeconds}s`
+    ? getBookmarkTimeLabel(latestBookmark)
     : (sessionState ? `${sessionState.currentPositionSeconds}s` : "loading");
 
   return (
@@ -571,7 +678,7 @@ export function App() {
                     className="bookmark-button"
                     onClick={() => {
                       setActiveView("workspace");
-                      setActiveWorkspaceSection("capture");
+                      setActiveWorkspaceSection("audio");
                       scrollToSection(resumeSectionRef);
                     }}
                     type="button"
@@ -608,25 +715,94 @@ export function App() {
                 </div>
               </article>
 
-              {activeWorkspaceSection === "capture" ? (
+              {activeWorkspaceSection === "audio" ? (
                 <article className="panel">
-                  <h3>Save Bookmark</h3>
-                  <form className="bookmark-form" onSubmit={handleCreateBookmark}>
-                    <label className="bookmark-label" htmlFor="bookmark-note">
-                      Bookmark note for this session
-                    </label>
-                    <input
-                      id="bookmark-note"
-                      className="bookmark-input"
-                      value={note}
-                      onChange={event => setNote(event.target.value)}
-                      placeholder="Add a short note to save in this session"
-                      type="text"
-                    />
-                    <button className="bookmark-button" disabled={!note.trim()} type="submit">
-                      Save Bookmark
+                  <div className="audio-panel-header">
+                    <div>
+                      <h3>Audio Notes</h3>
+                      <p className="empty-state">Load one local mp3, listen in place, and save notes at the current playback time.</p>
+                    </div>
+                    <button className="bookmark-button bookmark-button-secondary" onClick={handleSelectAudioFile} type="button">
+                      Choose MP3
                     </button>
-                  </form>
+                  </div>
+
+                  {audioErrorMessage ? <p className="empty-state">{audioErrorMessage}</p> : null}
+
+                  {selectedAudioFile ? (
+                    <div className="audio-note-stack">
+                      <div className="mock-search-summary">
+                        <StatusRow label="Selected file" value={selectedAudioFile.fileName} />
+                        <StatusRow label="Current time" value={formatTimeLabel(audioCurrentTimeSeconds)} />
+                      </div>
+
+                      <audio
+                        ref={audioPlayerRef}
+                        className="audio-player"
+                        controls
+                        onLoadedMetadata={() => {
+                          const nextCurrentTimeSeconds = Math.max(0, Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0));
+
+                          console.info("Consync audio metadata loaded", {
+                            duration: audioPlayerRef.current ? audioPlayerRef.current.duration : null,
+                            fileName: selectedAudioFile.fileName,
+                            fileUrl: selectedAudioFile.fileUrl,
+                          });
+                          setAudioCurrentTimeSeconds(nextCurrentTimeSeconds);
+                          setAudioErrorMessage(null);
+                        }}
+                        onError={() => {
+                          const nextErrorMessage = getAudioErrorMessage(audioPlayerRef.current);
+
+                          console.error("Consync audio playback error", {
+                            errorCode: audioPlayerRef.current && audioPlayerRef.current.error
+                              ? audioPlayerRef.current.error.code
+                              : null,
+                            fileName: selectedAudioFile.fileName,
+                            fileUrl: selectedAudioFile.fileUrl,
+                          });
+                          setAudioErrorMessage(nextErrorMessage);
+                        }}
+                        onTimeUpdate={() => {
+                          setAudioCurrentTimeSeconds(Math.max(0, Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0)));
+                        }}
+                        preload="metadata"
+                        src={selectedAudioFile.audioSrc || selectedAudioFile.fileUrl}
+                      />
+
+                      <form className="bookmark-form" onSubmit={handleCreateBookmark}>
+                        <label className="bookmark-label" htmlFor="bookmark-note">
+                          Note text
+                        </label>
+                        <input
+                          id="bookmark-note"
+                          className="bookmark-input"
+                          value={note}
+                          onChange={event => setNote(event.target.value)}
+                          placeholder="Add a short note for this moment"
+                          type="text"
+                        />
+                        <button className="bookmark-button" disabled={!note.trim()} type="submit">
+                          Save note at current time
+                        </button>
+                      </form>
+
+                      {selectedAudioBookmarks.length > 0 ? (
+                        <ul className="bookmark-list">
+                          {selectedAudioBookmarks.map((bookmark, index) => (
+                            <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
+                              <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                              <span className="bookmark-note">{bookmark.note}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="empty-state">No notes saved for this audio file yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="empty-state">Choose one local `.mp3` to start a lightweight audio-note session.</p>
+                  )}
                 </article>
               ) : null}
 
@@ -692,25 +868,33 @@ export function App() {
               {activeWorkspaceSection === "bookmarks" ? (
                 <article className="panel">
                   <h3>Bookmarks</h3>
-                  {sessionState && sessionState.bookmarks.length > 0 ? (
+                  {selectedAudioFile ? (
+                    <p className="empty-state">Showing notes for {selectedAudioFile.fileName}.</p>
+                  ) : (
+                    <p className="empty-state">Choose an audio file first to review its saved notes.</p>
+                  )}
+                  {selectedAudioBookmarks.length > 0 ? (
                     <ul className="bookmark-list">
-                      {sessionState.bookmarks.map((bookmark, index) => (
+                      {selectedAudioBookmarks.map((bookmark, index) => (
                         <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                          <span className="bookmark-time">{bookmark.timeSeconds}s</span>
+                          <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
                           <span className="bookmark-note">{bookmark.note}</span>
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="empty-state">No bookmarks saved for this session yet. Drop one to create the first entry.</p>
-                  )}
+                  ) : selectedAudioFile ? <p className="empty-state">No notes saved for this audio file yet.</p> : null}
                 </article>
               ) : null}
             </section>
           )}
         </section>
 
-        <InspectorPanel searchResult={searchResult} selectedMatchKey={selectedMatchKey} sessionState={sessionState} />
+        <InspectorPanel
+          searchResult={searchResult}
+          selectedAudioFile={selectedAudioFile}
+          selectedMatchKey={selectedMatchKey}
+          sessionState={sessionState}
+        />
       </section>
     </main>
   );

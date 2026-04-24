@@ -2,6 +2,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const {
   createDesktopPingResponse,
   getDesktopBackendSummary,
@@ -37,10 +38,7 @@ function withTemporarySessionDir(run) {
   );
 
   process.env.CONSYNC_SESSION_DIR = temporarySessionDir;
-
-  try {
-    run({ artifactPath });
-  } finally {
+  const cleanup = () => {
     if (originalSessionDir === undefined) {
       delete process.env.CONSYNC_SESSION_DIR;
     } else {
@@ -48,6 +46,20 @@ function withTemporarySessionDir(run) {
     }
 
     fs.rmSync(temporarySessionDir, { force: true, recursive: true });
+  };
+
+  try {
+    const result = run({ artifactPath, temporarySessionDir });
+
+    if (result && typeof result.then === "function") {
+      return result.finally(cleanup);
+    }
+
+    cleanup();
+    return result;
+  } catch (error) {
+    cleanup();
+    throw error;
   }
 }
 
@@ -85,7 +97,7 @@ function testCoreSurface() {
     platform: process.platform,
   });
   assert.deepStrictEqual(shellInfo.pausedWork, [
-    "audio playback",
+    "audio waveform",
     "timeline sync",
     "renderer filesystem access",
   ]);
@@ -136,17 +148,28 @@ function testMainWindowOptions() {
   assert.strictEqual(windowOptions.webPreferences.sandbox, true);
 }
 
-function testIpcRegistration() {
-  withTemporarySessionDir(({ artifactPath }) => {
+async function testIpcRegistration() {
+  await withTemporarySessionDir(async ({ artifactPath, temporarySessionDir }) => {
     resetSessionState();
     const handlers = new Map();
     const revealedPaths = [];
+    const audioPath = path.join(temporarySessionDir, "sample.mp3");
+
+    fs.writeFileSync(audioPath, "audio");
 
     registerDesktopIpcHandlers({
       handle(channel, handler) {
         handlers.set(channel, handler);
       },
     }, {
+      dialogLike: {
+        async showOpenDialog() {
+          return {
+            canceled: false,
+            filePaths: [audioPath],
+          };
+        },
+      },
       shellLike: {
         showItemInFolder(targetPath) {
           revealedPaths.push(targetPath);
@@ -162,14 +185,22 @@ function testIpcRegistration() {
     assert.ok(handlers.has(IPC_CHANNELS.ping));
     assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
     assert.ok(handlers.has(IPC_CHANNELS.getConsyncSummary));
+    assert.ok(handlers.has(IPC_CHANNELS.selectAudioFile));
 
     const backendSummary = handlers.get(IPC_CHANNELS.getBackendSummary)();
     const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
     const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
     const sessionState = handlers.get(IPC_CHANNELS.getSessionState)();
+    const selectedAudioFile = await handlers.get(IPC_CHANNELS.selectAudioFile)();
     const revealResult = handlers.get(IPC_CHANNELS.revealSearchResult)(null, "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md");
     const mockSearch = handlers.get(IPC_CHANNELS.runMockSearch)(null, "sandbox/fixtures/nested-anchor-trial", "moss");
-    const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, "Bridge bookmark");
+    const updatedSessionState = handlers.get(IPC_CHANNELS.createBookmark)(null, {
+      createdAt: "2026-04-23T18:00:00.000Z",
+      filePath: audioPath,
+      note: "Bridge bookmark",
+      timeLabel: "00:42",
+      timeSeconds: 42,
+    });
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
@@ -179,6 +210,14 @@ function testIpcRegistration() {
     assert.strictEqual(sessionState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(sessionState.currentFile, getLatestSessionFileName());
     assert.strictEqual(sessionState.currentPositionSeconds, 84);
+    assert.deepStrictEqual(selectedAudioFile, {
+      audioSrc: "data:audio/mpeg;base64,YXVkaW8=",
+      canceled: false,
+      fileName: "sample.mp3",
+      filePath: audioPath,
+      fileUrl: pathToFileURL(audioPath).href,
+      ok: true,
+    });
     assert.deepStrictEqual(revealResult, {
       ok: true,
       requestedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/exports/cover-notes.md",
@@ -196,15 +235,21 @@ function testIpcRegistration() {
     assert.deepStrictEqual(updatedSessionState.bookmarks, [
       {
         id: "bookmark-1",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: audioPath,
         note: "Bridge bookmark",
-        timeSeconds: 84,
+        timeLabel: "00:42",
+        timeSeconds: 42,
       },
     ]);
     assert.deepStrictEqual(persistedArtifact.bookmarks, [
       {
         id: "bookmark-1",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: audioPath,
         note: "Bridge bookmark",
-        timeSeconds: 84,
+        timeLabel: "00:42",
+        timeSeconds: 42,
       },
     ]);
     assert.deepStrictEqual(pingResponse, {
@@ -278,6 +323,17 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.selectAudioFile) {
+        return Promise.resolve({
+          audioSrc: "data:audio/mpeg;base64,c2FtcGxl",
+          canceled: false,
+          fileName: "sample.mp3",
+          filePath: "/tmp/sample.mp3",
+          fileUrl: "file:///tmp/sample.mp3",
+          ok: true,
+        });
+      }
+
       if (channel === IPC_CHANNELS.revealSearchResult) {
         return Promise.resolve({
           ok: true,
@@ -296,8 +352,7 @@ async function testPreloadBridge() {
           bookmarks: [
             {
               id: "bookmark-1",
-              note: args[0],
-              timeSeconds: 84,
+              ...args[0],
             },
           ],
           currentFile: getLatestSessionFileName(),
@@ -313,9 +368,16 @@ async function testPreloadBridge() {
     const consyncSummary = await bridge.getConsyncSummary();
     const shellInfo = await bridge.getShellInfo();
     const sessionState = await bridge.getSessionState();
+    const selectedAudioFile = await bridge.selectAudioFile();
     const revealResult = await bridge.revealSearchResult("sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg");
     const mockSearch = await bridge.runMockSearch("sandbox/fixtures/nested-anchor-trial", "moss");
-    const bookmarkState = await bridge.createBookmark("renderer bookmark");
+    const bookmarkState = await bridge.createBookmark({
+      createdAt: "2026-04-23T18:00:00.000Z",
+      filePath: "/tmp/sample.mp3",
+      note: "renderer bookmark",
+      timeLabel: "00:42",
+      timeSeconds: 42,
+    });
     const pingResponse = await bridge.ping("renderer-ready");
 
     assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
@@ -332,6 +394,14 @@ async function testPreloadBridge() {
       currentFile: getLatestSessionFileName(),
       currentPositionSeconds: 84,
     });
+    assert.deepStrictEqual(selectedAudioFile, {
+      audioSrc: "data:audio/mpeg;base64,c2FtcGxl",
+      canceled: false,
+      fileName: "sample.mp3",
+      filePath: "/tmp/sample.mp3",
+      fileUrl: "file:///tmp/sample.mp3",
+      ok: true,
+    });
     assert.deepStrictEqual(revealResult, {
       ok: true,
       requestedPath: "sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg",
@@ -345,8 +415,11 @@ async function testPreloadBridge() {
       bookmarks: [
         {
           id: "bookmark-1",
+          createdAt: "2026-04-23T18:00:00.000Z",
+          filePath: "/tmp/sample.mp3",
           note: "renderer bookmark",
-          timeSeconds: 84,
+          timeLabel: "00:42",
+          timeSeconds: 42,
         },
       ],
       currentFile: getLatestSessionFileName(),
@@ -358,9 +431,21 @@ async function testPreloadBridge() {
       { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
       { channel: IPC_CHANNELS.getShellInfo, args: [] },
       { channel: IPC_CHANNELS.getSessionState, args: [] },
+      { channel: IPC_CHANNELS.selectAudioFile, args: [] },
       { channel: IPC_CHANNELS.revealSearchResult, args: ["sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/captures/moss-study.jpg"] },
       { channel: IPC_CHANNELS.runMockSearch, args: ["sandbox/fixtures/nested-anchor-trial", "moss"] },
-      { channel: IPC_CHANNELS.createBookmark, args: ["renderer bookmark"] },
+      {
+        channel: IPC_CHANNELS.createBookmark,
+        args: [
+          {
+            createdAt: "2026-04-23T18:00:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "renderer bookmark",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+        ],
+      },
       { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
     ]);
   });
@@ -371,7 +456,7 @@ async function main() {
   testMainWindowOptions();
   testPreloadBridgeIsolation();
   testSessionCoreSurface();
-  testIpcRegistration();
+  await testIpcRegistration();
   await testPreloadBridge();
   console.log("PASS");
 }

@@ -2,8 +2,8 @@ const { IPC_CHANNELS } = require("../shared/ipc-channels");
 
 function createDesktopBridge(invoke) {
   return {
-    createBookmark(note) {
-      return invoke(IPC_CHANNELS.createBookmark, note);
+    createBookmark(bookmark) {
+      return invoke(IPC_CHANNELS.createBookmark, bookmark);
     },
     getConsyncSummary() {
       return invoke(IPC_CHANNELS.getConsyncSummary);
@@ -16,6 +16,9 @@ function createDesktopBridge(invoke) {
     },
     getSessionState() {
       return invoke(IPC_CHANNELS.getSessionState);
+    },
+    selectAudioFile() {
+      return invoke(IPC_CHANNELS.selectAudioFile);
     },
     revealSearchResult(targetPath) {
       return invoke(IPC_CHANNELS.revealSearchResult, targetPath);

@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../electron/renderer/App.jsx";
 
@@ -97,6 +97,14 @@ function createDesktopBridge(overrides = {}) {
       latestBookmark: null,
     }),
     createBookmark: vi.fn().mockResolvedValue({ ok: true }),
+    selectAudioFile: vi.fn().mockResolvedValue({
+      audioSrc: "data:audio/mpeg;base64,c2FtcGxl",
+      canceled: false,
+      fileName: "sample.mp3",
+      filePath: "/tmp/sample.mp3",
+      fileUrl: "file:///tmp/sample.mp3",
+      ok: true,
+    }),
     revealSearchResult: vi.fn().mockResolvedValue({ ok: true, output: "revealed" }),
     runMockSearch: vi.fn().mockResolvedValue(mockSearchResult),
     ...overrides,
@@ -119,7 +127,8 @@ describe("App search flow", () => {
     expect(await screen.findByRole("heading", { name: "Workspace" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Session Summary" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Save Bookmark" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Choose MP3" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Session Timeline" })).toBeNull();
   });
 
@@ -166,7 +175,7 @@ describe("App search flow", () => {
     expect(within(sessionEventsLane).queryByText("Re-entry window")).toBeNull();
   });
 
-  it("adds a new bookmark to the workspace surfaces after bookmark capture", async () => {
+  it("adds a new audio note to the workspace surfaces after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi
       .fn()
@@ -181,7 +190,10 @@ describe("App search flow", () => {
         artifactCount: 5,
         bookmarks: [
           {
+            createdAt: "2026-04-23T18:00:00.000Z",
+            filePath: "/tmp/sample.mp3",
             note: "Bridge motif",
+            timeLabel: "00:42",
             timeSeconds: 48,
           },
         ],
@@ -196,17 +208,31 @@ describe("App search flow", () => {
 
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: "Save Bookmark" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
 
-    await user.type(screen.getByLabelText("Bookmark note for this session"), "Bridge motif");
-    await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    expect(await screen.findByText("sample.mp3")).toBeTruthy();
+
+    const audioPlayer = document.querySelector("audio");
+    expect(audioPlayer).toBeTruthy();
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+
+    await user.type(screen.getByLabelText("Note text"), "Bridge motif");
+    await user.click(screen.getByRole("button", { name: "Save note at current time" }));
 
     await waitFor(() => {
       expect(screen.getAllByText("Bridge motif").length).toBeGreaterThan(0);
     });
+    expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: "/tmp/sample.mp3",
+      note: "Bridge motif",
+      timeLabel: "00:42",
+      timeSeconds: 42,
+    }));
     expect(screen.getByRole("heading", { name: "Latest Bookmark" })).toBeTruthy();
-    expect(screen.getAllByText("48s").length).toBeGreaterThan(0);
-    expect(screen.queryByText("No bookmarks saved for this session yet. Drop one to create the first entry.")).toBeNull();
+    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+    expect(screen.queryByText("No notes saved for this audio file yet.")).toBeNull();
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {
@@ -494,8 +520,12 @@ describe("App search flow", () => {
 
     render(<App />);
 
-    await user.type(screen.getByLabelText("Bookmark note for this session"), "note");
-    await user.click(screen.getByRole("button", { name: "Save Bookmark" }));
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    const audioPlayer = document.querySelector("audio");
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+    await user.type(screen.getByLabelText("Note text"), "note");
+    await user.click(screen.getByRole("button", { name: "Save note at current time" }));
 
     expect(await screen.findByRole("heading", { name: "Session Error" })).toBeTruthy();
     expect(await screen.findByText("Bookmark failed for test")).toBeTruthy();

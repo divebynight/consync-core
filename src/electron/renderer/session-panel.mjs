@@ -6,6 +6,18 @@ function getLatestBookmark(bookmarks) {
   return bookmarks[bookmarks.length - 1];
 }
 
+function getBookmarkTimeValue(bookmark) {
+  if (!bookmark) {
+    return "none";
+  }
+
+  if (typeof bookmark.timeLabel === "string" && bookmark.timeLabel.trim()) {
+    return bookmark.timeLabel.trim();
+  }
+
+  return `${bookmark.timeSeconds}s`;
+}
+
 export function getSessionPanelRows(sessionState) {
   if (!sessionState) {
     return [
@@ -26,6 +38,6 @@ export function getSessionPanelRows(sessionState) {
     { label: "Position", value: `${sessionState.currentPositionSeconds}s` },
     { label: "Bookmarks", value: sessionState.bookmarks.length },
     { label: "Latest note", value: latestBookmark ? latestBookmark.note : "none" },
-    { label: "Latest time", value: latestBookmark ? `${latestBookmark.timeSeconds}s` : "none" },
+    { label: "Latest time", value: getBookmarkTimeValue(latestBookmark) },
   ];
 }

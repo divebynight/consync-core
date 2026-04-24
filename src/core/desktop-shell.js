@@ -10,7 +10,7 @@ function getDesktopShellInfo() {
     bridge: "preload-ipc",
     sharedCorePath: "src/core",
     pausedWork: [
-      "audio playback",
+      "audio waveform",
       "timeline sync",
       "renderer filesystem access",
     ],

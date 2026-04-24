@@ -4,6 +4,8 @@ node_modules/
 .vite/
 out/
 
+*.mp3
+
 # Generated sandbox artifacts
 sandbox/current/*.json
 

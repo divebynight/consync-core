@@ -1,4 +1,4 @@
-export async function createBookmarkAndReadSessionState(desktopBridge, note) {
-  await desktopBridge.createBookmark(note);
+export async function createBookmarkAndReadSessionState(desktopBridge, bookmark) {
+  await desktopBridge.createBookmark(bookmark);
   return desktopBridge.getSessionState();
 }
