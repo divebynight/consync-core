@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-electron_ui
+process
 
 PREVIOUS STREAM
 
-process
+electron_ui
 
 SWITCH REASON
 
-Resuming electron_ui to continue UI work after gatekeeper packages
+Switching to process to document and close out the reusable closeout-agent workflow after approved UI work
 
 PAUSED STREAMS
 
-- process
+- electron_ui
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
 The global live loop stays singular even while other streams remain durable and resumable.

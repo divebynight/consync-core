@@ -214,6 +214,51 @@ function main() {
       "",
       "SUMMARY",
       "",
+      "Current package already closed.",
+      "",
+      "FILES CREATED",
+      "",
+      "- none",
+      "",
+      "FILES MODIFIED",
+      "",
+      "- none",
+      "",
+      "COMMANDS TO RUN",
+      "",
+      "- node src/index.js state-integrity-check preflight",
+      "",
+      "HUMAN VERIFICATION",
+      "",
+      "1. Confirm the sections exist.",
+      "",
+      "VERIFICATION NOTES",
+      "",
+      "- Checked manually.",
+      "",
+    ].join("\n")
+  );
+
+  const stalePreflight = evaluateStateIntegrity(rootPath, "preflight");
+  assert.strictEqual(stalePreflight.ok, false);
+  assert(
+    stalePreflight.failures.some(item => item.includes("mounted next-action already matches a PASS handoff and appears stale")),
+    "expected stale same-package PASS handoff failure"
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/state/handoff.md",
+    [
+      "TYPE: PROCESS",
+      "PACKAGE: sample_current_package",
+      "",
+      "STATUS",
+      "",
+      "PASS",
+      "",
+      "SUMMARY",
+      "",
       "Current package closed.",
       "",
       "FILES CREATED",
@@ -242,6 +287,56 @@ function main() {
   const postflight = evaluateStateIntegrity(rootPath, "postflight");
   assert.strictEqual(postflight.ok, true);
   assert.strictEqual(postflight.status, "PASS");
+  assert.strictEqual(
+    postflight.nextSafeAction,
+    "accept closeout for sample_current_package and mount the next package intentionally"
+  );
+
+  writeFile(
+    rootPath,
+    ".consync/state/handoff.md",
+    [
+      "TYPE: FEATURE",
+      "PACKAGE: previous_completed_package",
+      "",
+      "STATUS",
+      "",
+      "PASS",
+      "",
+      "SUMMARY",
+      "",
+      "Previous package closed.",
+      "",
+      "FILES CREATED",
+      "",
+      "- none",
+      "",
+      "FILES MODIFIED",
+      "",
+      "- none",
+      "",
+      "COMMANDS TO RUN",
+      "",
+      "- node src/index.js state-integrity-check postflight",
+      "",
+      "HUMAN VERIFICATION",
+      "",
+      "1. Confirm the sections exist.",
+      "",
+      "VERIFICATION NOTES",
+      "",
+      "- Checked manually.",
+      "",
+    ].join("\n")
+  );
+
+  const transitionedPostflight = evaluateStateIntegrity(rootPath, "postflight");
+  assert.strictEqual(transitionedPostflight.ok, true);
+  assert.strictEqual(transitionedPostflight.status, "PASS");
+  assert.strictEqual(
+    transitionedPostflight.nextSafeAction,
+    "last completed handoff previous_completed_package is coherent; mounted package sample_current_package is now live"
+  );
 
   writeFile(
     rootPath,

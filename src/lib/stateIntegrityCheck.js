@@ -243,14 +243,6 @@ function evaluateStateIntegrity(rootPath, mode) {
     for (const section of missingHandoffSections) {
       failures.push(`handoff missing section: ${section}`);
     }
-
-    if (nextAction.type && handoff.type && nextAction.type !== handoff.type) {
-      failures.push(`TYPE mismatch: next-action=${nextAction.type}, handoff=${handoff.type}`);
-    }
-
-    if (nextAction.packageName && handoff.packageName && nextAction.packageName !== handoff.packageName) {
-      failures.push(`PACKAGE mismatch: next-action=${nextAction.packageName}, handoff=${handoff.packageName}`);
-    }
   }
 
   const ok = failures.length === 0;
@@ -262,7 +254,11 @@ function evaluateStateIntegrity(rootPath, mode) {
   }
 
   if (ok && normalizedMode === "postflight") {
-    nextSafeAction = `accept closeout for ${handoff.packageName} and mount the next package intentionally`;
+    if (nextAction.packageName && handoff.packageName && nextAction.packageName === handoff.packageName) {
+      nextSafeAction = `accept closeout for ${handoff.packageName} and mount the next package intentionally`;
+    } else {
+      nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; mounted package ${nextAction.packageName} is now live`;
+    }
   }
 
   return {

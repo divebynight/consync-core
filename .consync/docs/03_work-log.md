@@ -9,3 +9,15 @@ Observation:
 
 Notes:
 - Recent audio is still in-memory only, so it resets when the app restarts.
+
+## 2026-04-24 — Closeout Workflow + Transitioned State Checks
+
+- Added a reusable closeout-agent workflow for verifying tests, docs, integrity, and commit readiness after approved work.
+- Added a runbook pointer so future operators can invoke the closeout workflow without relying on chat memory.
+- Updated state integrity checks so transitioned state can be valid when the last handoff is complete and a new package is already mounted.
+
+Observation:
+- Consync closeout now behaves more like a real operating loop: completed work can stay recorded in handoff while the next package becomes live without tripping postflight unnecessarily.
+
+Notes:
+- The stricter handoff-contract checker is unchanged, so package-to-handoff matching rules outside the state integrity path still remain explicit.

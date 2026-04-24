@@ -2,11 +2,11 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: paused
+- status: active
 - owner: human
 - mode: system
-- summary: paused — switched to electron_ui
+- summary: active — mounted package: create_a_reusable_closeout_agent_workflow
 
 ## Pause Checkpoint
 
-Last package before pause: `simplify_consync_state_and_docs_structure` — already closed (PASS) before stream switched.
+Current package: `create_a_reusable_closeout_agent_workflow` — verify the new closeout workflow, keep docs narrow, and prepare for a real closeout run without changing product behavior.

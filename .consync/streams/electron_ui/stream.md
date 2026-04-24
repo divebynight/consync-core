@@ -2,10 +2,10 @@
 
 - id: electron_ui
 - title: Electron UI Behavior + Testing
-- status: active
+- status: paused
 - owner: human
 - mode: build
-- summary: active — last package: add_a_second_timeline_lane_to_the_electron_ui_renderer (PASS)
+- summary: paused — last package: add_a_second_timeline_lane_to_the_electron_ui_renderer (PASS)
 
 ## Pause Checkpoint
 

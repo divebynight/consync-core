@@ -54,6 +54,7 @@ Use a core command when the operation is deterministic and success is checkable:
 
 Use an agent when judgment is required before an operation should happen:
 - `gatekeeper mount` — reads repo state, evaluates a request, decides whether mounting is appropriate
+- use `.consync/.agents/skills/closeout-agent.md` after human approval of completed work to verify tests, docs, integrity, and commit readiness
 - Agents decide. Commands execute. State files record committed truth.
 
 Do not use an agent to do what a command already does deterministically.
