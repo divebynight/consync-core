@@ -348,6 +348,124 @@ describe("App search flow", () => {
     expect(markerTimes.indexOf("00:12")).toBeLessThan(markerTimes.indexOf("00:42"));
   });
 
+  it("highlights the nearest timeline marker at or before the current playback time", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-23T17:45:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker earlier",
+            timeLabel: "00:12",
+            timeSeconds: 12,
+          },
+          {
+            createdAt: "2026-04-23T18:00:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Marker later",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+    const audioPlayer = document.querySelector("audio");
+    const markerEarlierItem = within(timelineMarkersSection).getByText("Marker earlier").closest(".bookmark-item");
+    const markerLaterItem = within(timelineMarkersSection).getByText("Marker later").closest(".bookmark-item");
+
+    expect(markerEarlierItem.className.includes("bookmark-item-active")).toBe(false);
+    expect(markerLaterItem.className.includes("bookmark-item-active")).toBe(false);
+
+    audioPlayer.currentTime = 18;
+    fireEvent.timeUpdate(audioPlayer);
+
+    expect(markerEarlierItem.className.includes("bookmark-item-active")).toBe(true);
+    expect(markerLaterItem.className.includes("bookmark-item-active")).toBe(false);
+
+    audioPlayer.currentTime = 52;
+    fireEvent.timeUpdate(audioPlayer);
+
+    expect(markerEarlierItem.className.includes("bookmark-item-active")).toBe(false);
+    expect(markerLaterItem.className.includes("bookmark-item-active")).toBe(true);
+
+    audioPlayer.currentTime = 6;
+    fireEvent.timeUpdate(audioPlayer);
+
+    expect(markerEarlierItem.className.includes("bookmark-item-active")).toBe(false);
+    expect(markerLaterItem.className.includes("bookmark-item-active")).toBe(false);
+  });
+
+  it("seeks the audio player when a timeline marker is clicked", async () => {
+    const user = userEvent.setup();
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-23T17:45:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker earlier",
+            timeLabel: "00:12",
+            timeSeconds: 12,
+          },
+          {
+            createdAt: "2026-04-23T18:00:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Marker later",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+          {
+            createdAt: "2026-04-23T17:30:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-3",
+            note: "File note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Choose MP3" }));
+    const audioPlayer = document.querySelector("audio");
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+
+    expect(screen.getByText("00:00")).toBeTruthy();
+
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker later/i }));
+
+    expect(audioPlayer.currentTime).toBe(42);
+    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker earlier/i }));
+
+    expect(audioPlayer.currentTime).toBe(12);
+    expect(screen.getAllByText("00:12").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /file note/i })).toBeNull();
+  });
+
   it("renders grouped results and keeps selection separate from reveal", async () => {
     const user = userEvent.setup();
     render(<App />);

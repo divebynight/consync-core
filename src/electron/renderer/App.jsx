@@ -85,6 +85,34 @@ function splitBookmarksByTiming(bookmarks) {
   };
 }
 
+function getActiveTimelineMarkerIndex(timelineMarkers, currentTimeSeconds) {
+  if (!Array.isArray(timelineMarkers) || timelineMarkers.length === 0) {
+    return -1;
+  }
+
+  if (typeof currentTimeSeconds !== "number" || Number.isNaN(currentTimeSeconds) || currentTimeSeconds < 0) {
+    return -1;
+  }
+
+  let activeIndex = -1;
+
+  for (let index = 0; index < timelineMarkers.length; index += 1) {
+    const marker = timelineMarkers[index];
+
+    if (typeof marker.timeSeconds !== "number" || Number.isNaN(marker.timeSeconds)) {
+      continue;
+    }
+
+    if (marker.timeSeconds > currentTimeSeconds) {
+      break;
+    }
+
+    activeIndex = index;
+  }
+
+  return activeIndex;
+}
+
 function StatusRow({ label, value }) {
   return (
     <div className="status-row">
@@ -649,11 +677,25 @@ export function App() {
     }
   }
 
+  function handleSeekToMarker(timeSeconds) {
+    if (!audioPlayerRef.current || typeof timeSeconds !== "number" || Number.isNaN(timeSeconds)) {
+      return;
+    }
+
+    audioPlayerRef.current.currentTime = timeSeconds;
+    setAudioCurrentTimeSeconds(Math.max(0, Math.floor(timeSeconds)));
+    setAudioErrorMessage(null);
+  }
+
   const sessionRows = getSessionPanelRows(sessionState);
   const selectedAudioBookmarks = sessionState && selectedAudioFile
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
   const selectedAudioBookmarkGroups = splitBookmarksByTiming(selectedAudioBookmarks);
+  const activeTimelineMarkerIndex = getActiveTimelineMarkerIndex(
+    selectedAudioBookmarkGroups.timelineMarkers,
+    audioCurrentTimeSeconds
+  );
   const latestBookmark = selectedAudioBookmarks.length > 0
     ? selectedAudioBookmarks[selectedAudioBookmarks.length - 1]
     : sessionState && sessionState.bookmarks.length > 0
@@ -872,9 +914,18 @@ export function App() {
                         {selectedAudioBookmarkGroups.timelineMarkers.length > 0 ? (
                           <ul className="bookmark-list">
                             {selectedAudioBookmarkGroups.timelineMarkers.map((bookmark, index) => (
-                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{bookmark.note}</span>
+                              <li
+                                className={`bookmark-item${index === activeTimelineMarkerIndex ? " bookmark-item-active" : ""}`}
+                                key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}
+                              >
+                                <button
+                                  className="bookmark-marker-button"
+                                  onClick={() => handleSeekToMarker(bookmark.timeSeconds)}
+                                  type="button"
+                                >
+                                  <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                  <span className="bookmark-note">{bookmark.note}</span>
+                                </button>
                               </li>
                             ))}
                           </ul>
@@ -1001,9 +1052,18 @@ export function App() {
                         {selectedAudioBookmarkGroups.timelineMarkers.length > 0 ? (
                           <ul className="bookmark-list">
                             {selectedAudioBookmarkGroups.timelineMarkers.map((bookmark, index) => (
-                              <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}>
-                                <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{bookmark.note}</span>
+                              <li
+                                className={`bookmark-item${index === activeTimelineMarkerIndex ? " bookmark-item-active" : ""}`}
+                                key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}
+                              >
+                                <button
+                                  className="bookmark-marker-button"
+                                  onClick={() => handleSeekToMarker(bookmark.timeSeconds)}
+                                  type="button"
+                                >
+                                  <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                  <span className="bookmark-note">{bookmark.note}</span>
+                                </button>
                               </li>
                             ))}
                           </ul>

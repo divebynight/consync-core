@@ -542,6 +542,36 @@ body {
   border: 1px solid rgba(104, 117, 156, 0.12);
 }
 
+.bookmark-marker-button {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bookmark-marker-button:hover .bookmark-time,
+.bookmark-marker-button:hover .bookmark-note {
+  color: #f4f7ff;
+}
+
+.bookmark-item-active {
+  border-color: rgba(99, 102, 241, 0.52);
+  box-shadow:
+    inset 0 0 0 1px rgba(99, 102, 241, 0.14),
+    0 0 0 1px rgba(99, 102, 241, 0.08);
+}
+
+.bookmark-item-active .bookmark-time,
+.bookmark-item-active .bookmark-note {
+  color: #f4f7ff;
+}
+
 .bookmark-time {
   font-size: 0.68rem;
   letter-spacing: 0.08em;
