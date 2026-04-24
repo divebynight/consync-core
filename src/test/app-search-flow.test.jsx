@@ -520,6 +520,93 @@ describe("App search flow", () => {
     expect(screen.getAllByText("00:00").length).toBeGreaterThan(0);
   });
 
+  it("drops a timestamp marker with B and focuses the note input without interrupting playback", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            note: "",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const createBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark,
+      getSessionState,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const audioPlayer = document.querySelector("audio");
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+
+    fireEvent.keyDown(window, { key: "b" });
+
+    await waitFor(() => {
+      expect(createBookmark).toHaveBeenCalledWith({
+        createdAt: expect.any(String),
+        filePath: "/tmp/sample.mp3",
+        note: "",
+        timeLabel: "00:42",
+        timeSeconds: 42,
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Untitled marker")).toBeTruthy();
+    });
+
+    const noteInput = screen.getByLabelText("Note text");
+    await waitFor(() => {
+      expect(document.activeElement).toBe(noteInput);
+    });
+
+    expect(audioPlayer.currentTime).toBe(42);
+    const markerItem = screen.getByText("Untitled marker").closest(".bookmark-item");
+    expect(markerItem.className.includes("bookmark-item-active")).toBe(true);
+  });
+
+  it("does not drop a marker with B while typing in the note input", async () => {
+    const user = userEvent.setup();
+    const createBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const noteInput = screen.getByLabelText("Note text");
+    await user.click(noteInput);
+    await user.keyboard("b");
+
+    expect(createBookmark).not.toHaveBeenCalled();
+    expect(noteInput.value).toBe("b");
+  });
+
   it("renders grouped results and keeps selection separate from reveal", async () => {
     const user = userEvent.setup();
     render(<App />);

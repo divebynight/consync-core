@@ -45,3 +45,32 @@ Observation:
 
 Notes:
 - Existing `.github/agents/*` files were left in place for now; the boundary is clarified first so later cleanup can be based on actual usage.
+
+### audio_hotkey_marker_drop
+
+SUMMARY
+- Added a `B` hotkey to drop a timestamp marker at the current playback time without interrupting playback.
+- The marker is set as active and the note input is focused immediately.
+- The implementation reuses the existing bookmark/marker flow instead of introducing a new system.
+
+FILES
+- src/electron/renderer/App.jsx
+- src/core/session.js
+- src/test/app-search-flow.test.jsx
+- src/test/core-session.js
+
+TESTS
+- node src/test/core-session.js → PASS
+- npm run test:ui-search → PASS
+
+FRICTION
+- After pressing `B`, the note input stays focused, requiring manual blur to continue rapid marker capture.
+- This behavior is logical but introduces slight friction for fast “listen + mark” workflows.
+
+DECISION
+- Keep current behavior.
+- This implementation prioritizes immediate note-taking after marker creation.
+- Revisit if rapid capture becomes a primary workflow or conflicts with future features.
+
+FOLLOW-UP
+- Consider allowing the focused note input to edit the just-dropped marker directly.

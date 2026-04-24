@@ -65,11 +65,19 @@ function main() {
       timeLabel: "00:42",
       timeSeconds: 42,
     });
+    const fourthState = createBookmark({
+      createdAt: "2026-04-24T12:00:00.000Z",
+      filePath: "/tmp/sample.mp3",
+      note: "",
+      timeLabel: "00:48",
+      timeSeconds: 48,
+    });
     const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
 
     assert.strictEqual(firstState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(secondState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(thirdState.artifactCount, getSessionArtifactCount());
+    assert.strictEqual(fourthState.artifactCount, getSessionArtifactCount());
 
     assert.deepStrictEqual(firstState.bookmarks, [
       {
@@ -119,6 +127,38 @@ function main() {
       },
     ]);
 
+    assert.deepStrictEqual(fourthState.bookmarks, [
+      {
+        id: "bookmark-1",
+        note: "First note",
+        timeSeconds: 84,
+      },
+      {
+        id: "bookmark-2",
+        createdAt: "2026-04-23T17:30:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "File note",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+      {
+        id: "bookmark-3",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "Second note",
+        timeLabel: "00:42",
+        timeSeconds: 42,
+      },
+      {
+        id: "bookmark-4",
+        createdAt: "2026-04-24T12:00:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "",
+        timeLabel: "00:48",
+        timeSeconds: 48,
+      },
+    ]);
+
     assert.deepStrictEqual(persistedArtifact.bookmarks, [
       {
         id: "bookmark-1",
@@ -140,6 +180,14 @@ function main() {
         note: "Second note",
         timeLabel: "00:42",
         timeSeconds: 42,
+      },
+      {
+        id: "bookmark-4",
+        createdAt: "2026-04-24T12:00:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "",
+        timeLabel: "00:48",
+        timeSeconds: 48,
       },
     ]);
   });

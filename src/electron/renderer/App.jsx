@@ -32,6 +32,18 @@ function getBookmarkTimeLabel(bookmark) {
   return `${bookmark.timeSeconds}s`;
 }
 
+function getBookmarkDisplayNote(bookmark) {
+  if (bookmark && typeof bookmark.note === "string" && bookmark.note.trim()) {
+    return bookmark.note.trim();
+  }
+
+  if (bookmark && bookmark.timeSeconds !== null && bookmark.timeSeconds !== undefined) {
+    return "Untitled marker";
+  }
+
+  return "Untitled note";
+}
+
 function getFileName(filePath) {
   if (!filePath || typeof filePath !== "string") {
     return "none";
@@ -111,6 +123,20 @@ function getActiveTimelineMarkerIndex(timelineMarkers, currentTimeSeconds) {
   }
 
   return activeIndex;
+}
+
+function isTypingTarget(target) {
+  if (!target || typeof target !== "object") {
+    return false;
+  }
+
+  const tagName = typeof target.tagName === "string" ? target.tagName.toLowerCase() : "";
+
+  if (tagName === "input" || tagName === "textarea" || tagName === "select") {
+    return true;
+  }
+
+  return typeof target.isContentEditable === "boolean" ? target.isContentEditable : false;
 }
 
 function addRecentAudioFile(recentFiles, nextFile, maxItems = 8) {
@@ -518,6 +544,7 @@ export function App() {
   const [activeView, setActiveView] = useState("workspace");
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
   const audioPlayerRef = useRef(null);
+  const bookmarkNoteInputRef = useRef(null);
   const resumeSectionRef = useRef(null);
 
   function clearSearchInteractionState() {
@@ -586,6 +613,32 @@ export function App() {
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
+  }
+
+  async function createTimestampMarker(noteText = "") {
+    if (!selectedAudioFile) {
+      return false;
+    }
+
+    const desktopBridge = getDesktopBridge();
+    const currentTimeSeconds = Math.max(
+      0,
+      Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : audioCurrentTimeSeconds)
+    );
+    const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
+      createdAt: new Date().toISOString(),
+      filePath: selectedAudioFile.filePath,
+      note: noteText,
+      timeLabel: formatTimeLabel(currentTimeSeconds),
+      timeSeconds: currentTimeSeconds,
+    });
+
+    setSessionState(nextSessionState);
+    setAudioCurrentTimeSeconds(currentTimeSeconds);
+    setSessionErrorMessage(null);
+    setAudioErrorMessage(null);
+
+    return true;
   }
 
   function setSelectedAudioContext(nextFile) {
@@ -663,6 +716,57 @@ export function App() {
   function handleSelectRecentAudioFile(recentFile) {
     setSelectedAudioContext(recentFile);
   }
+
+  useEffect(() => {
+    function handleMarkerHotkey(event) {
+      if (event.defaultPrevented || event.repeat) {
+        return;
+      }
+
+      if (event.key !== "b" && event.key !== "B") {
+        return;
+      }
+
+      if (isTypingTarget(event.target)) {
+        return;
+      }
+
+      if (!selectedAudioFile || activeView !== "workspace" || activeWorkspaceSection !== "audio" || !audioPlayerRef.current) {
+        return;
+      }
+
+      createTimestampMarker("")
+        .then(created => {
+          if (!created) {
+            return;
+          }
+
+          setNote("");
+
+          if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+            window.requestAnimationFrame(() => {
+              if (bookmarkNoteInputRef.current) {
+                bookmarkNoteInputRef.current.focus();
+              }
+            });
+            return;
+          }
+
+          if (bookmarkNoteInputRef.current) {
+            bookmarkNoteInputRef.current.focus();
+          }
+        })
+        .catch(error => {
+          setSessionErrorMessage(error.message);
+        });
+    }
+
+    window.addEventListener("keydown", handleMarkerHotkey);
+
+    return () => {
+      window.removeEventListener("keydown", handleMarkerHotkey);
+    };
+  }, [activeView, activeWorkspaceSection, audioCurrentTimeSeconds, selectedAudioFile]);
 
   async function handleRunMockSearch(event) {
     event.preventDefault();
@@ -931,6 +1035,7 @@ export function App() {
                         <input
                           id="bookmark-note"
                           className="bookmark-input"
+                          ref={bookmarkNoteInputRef}
                           value={note}
                           onChange={event => setNote(event.target.value)}
                           placeholder="Add a short note for this moment"
@@ -958,7 +1063,7 @@ export function App() {
                             {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
                               <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
                                 <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{bookmark.note}</span>
+                                <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
                               </li>
                             ))}
                           </ul>
@@ -982,7 +1087,7 @@ export function App() {
                                   type="button"
                                 >
                                   <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                  <span className="bookmark-note">{bookmark.note}</span>
+                                  <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
                                 </button>
                               </li>
                             ))}
@@ -1097,7 +1202,7 @@ export function App() {
                             {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
                               <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
                                 <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{bookmark.note}</span>
+                                <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
                               </li>
                             ))}
                           </ul>
@@ -1120,7 +1225,7 @@ export function App() {
                                   type="button"
                                 >
                                   <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                  <span className="bookmark-note">{bookmark.note}</span>
+                                  <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
                                 </button>
                               </li>
                             ))}

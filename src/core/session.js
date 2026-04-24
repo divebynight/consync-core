@@ -71,10 +71,6 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
     throw new Error("Bookmark input must be a note string or structured bookmark payload.");
   }
 
-  if (typeof input.note !== "string" || !input.note.trim()) {
-    throw new Error("Bookmark note text is required.");
-  }
-
   if (typeof input.filePath !== "string" || !input.filePath.trim()) {
     throw new Error("Bookmark filePath is required.");
   }
@@ -90,11 +86,21 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
   }
 
   if (hasNullTime) {
+    if (typeof input.note !== "string" || !input.note.trim()) {
+      throw new Error("Bookmark note text is required when timeSeconds is null.");
+    }
+
     if (input.timeLabel !== null && input.timeLabel !== undefined) {
       throw new Error("Bookmark timeLabel must be null when timeSeconds is null.");
     }
-  } else if (typeof input.timeLabel !== "string" || !input.timeLabel.trim()) {
-    throw new Error("Bookmark timeLabel is required when timeSeconds is present.");
+  } else {
+    if (typeof input.note !== "string") {
+      throw new Error("Bookmark note text must be a string.");
+    }
+
+    if (typeof input.timeLabel !== "string" || !input.timeLabel.trim()) {
+      throw new Error("Bookmark timeLabel is required when timeSeconds is present.");
+    }
   }
 
   return {
