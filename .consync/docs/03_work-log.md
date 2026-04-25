@@ -113,3 +113,50 @@ FOLLOW-UP
 - Consider adding a clear “exit edit mode” action (e.g., `Esc`).
 - Consider a future capture mode or alternate interaction for rapid marker dropping while editing.
 - Consider a visible “editing marker” state to clarify that Enter updates an existing marker.
+
+### audio_timing_and_hotkey_flow
+
+SUMMARY
+- Added millisecond precision to playback time and marker labels.
+- Introduced a playback clock near the audio player to display precise timing.
+- Refined hotkey marker flow:
+  - `B` captures timestamp
+  - note input focuses
+  - Enter updates the same marker
+  - Enter exits edit mode
+- Ensured timestamps are owned by the hotkey event, not by the save action.
+
+FILES
+- src/electron/renderer/App.jsx
+- src/electron/renderer/styles.css
+- src/core/session.js
+- src/electron/renderer/bookmark-flow.mjs
+- src/electron/shared/ipc-channels.js
+- src/electron/preload/bridge.js
+- src/electron/main/ipc.js
+- src/test/app-search-flow.test.jsx
+- src/test/core-session.js
+- src/test/renderer-bookmark-flow.js
+- src/test/desktop-scaffold.js
+
+TESTS
+- npm run test:ui-search → PASS
+- node src/test/core-session.js → PASS
+- node src/test/renderer-bookmark-flow.js → PASS
+
+FRICTION
+- Native audio player displays time in whole seconds while Consync displays milliseconds.
+- Duplicate time displays (player + custom clock) create slight visual redundancy.
+- Pressing `B` while input is focused inserts `b`, which is correct but slightly conflicts with rapid capture expectations.
+
+DECISION
+- Keep native audio controls unchanged.
+- Use Consync-owned playback clock for millisecond precision.
+- Do not build a custom audio player at this stage.
+- Prioritize stability and iteration speed over UI consolidation.
+
+FOLLOW-UP
+- Evaluate whether both time displays are needed or if one should become primary.
+- Consider a visible “editing marker” state.
+- Consider future UX improvements for rapid capture (e.g., Esc to exit edit mode, capture mode, or alternate hotkey behavior).
+- Potential future features: quick delete, undo last marker.

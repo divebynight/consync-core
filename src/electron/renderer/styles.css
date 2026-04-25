@@ -532,6 +532,27 @@ body {
   min-width: 0;
 }
 
+.audio-player-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 2px 0;
+}
+
+.audio-player-readout-label {
+  color: #8f98b3;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.audio-player-readout-value {
+  color: #eef2ff;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
 .bookmark-list {
   margin: 0;
   padding: 0;

@@ -9,16 +9,26 @@ import {
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 function formatTimeLabel(totalSeconds) {
-  const normalizedSeconds = Math.max(0, Math.floor(totalSeconds || 0));
-  const minutes = Math.floor(normalizedSeconds / 60);
-  const seconds = normalizedSeconds % 60;
+  const normalizedMilliseconds = Math.max(0, Math.round((Number(totalSeconds) || 0) * 1000));
+  const minutes = Math.floor(normalizedMilliseconds / 60000);
+  const seconds = Math.floor((normalizedMilliseconds % 60000) / 1000);
+  const milliseconds = normalizedMilliseconds % 1000;
 
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
+}
+
+function normalizeCapturedTimeSeconds(totalSeconds) {
+  const normalizedMilliseconds = Math.max(0, Math.round((Number(totalSeconds) || 0) * 1000));
+  return normalizedMilliseconds / 1000;
 }
 
 function getBookmarkTimeLabel(bookmark) {
   if (!bookmark) {
     return "none";
+  }
+
+  if (typeof bookmark.timeSeconds === "number" && Number.isFinite(bookmark.timeSeconds)) {
+    return formatTimeLabel(bookmark.timeSeconds);
   }
 
   if (typeof bookmark.timeLabel === "string" && bookmark.timeLabel.trim()) {
@@ -29,7 +39,7 @@ function getBookmarkTimeLabel(bookmark) {
     return "File note";
   }
 
-  return `${bookmark.timeSeconds}s`;
+  return formatTimeLabel(bookmark.timeSeconds);
 }
 
 function getBookmarkDisplayNote(bookmark) {
@@ -213,7 +223,7 @@ function getBookmarkTimelineMarkers(sessionState) {
 
     return {
       label: getBookmarkMarkerLabel(bookmark, index),
-      detail: `${bookmarkTime}s bookmark`,
+      detail: `${formatTimeLabel(bookmarkTime)} bookmark`,
       start: clampTimelinePercent(rawStart),
       span: 12,
     };
@@ -255,7 +265,7 @@ function getSessionEventMarkers(sessionState) {
   return [
     {
       label: "Current focus",
-      detail: `${sessionState.currentPositionSeconds}s in ${sessionState.currentFile}`,
+      detail: `${formatTimeLabel(sessionState.currentPositionSeconds)} in ${sessionState.currentFile}`,
       start: clampTimelinePercent(rawStart),
       span: 20,
     },
@@ -554,6 +564,23 @@ export function App() {
     setActiveEditableMarkerId(markerId || null);
   }
 
+  function finalizeEditableMarkerSession() {
+    setNote("");
+    setEditableMarker(null);
+
+    if (bookmarkNoteInputRef.current && typeof bookmarkNoteInputRef.current.blur === "function") {
+      bookmarkNoteInputRef.current.blur();
+
+      if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(() => {
+          if (bookmarkNoteInputRef.current && typeof bookmarkNoteInputRef.current.blur === "function") {
+            bookmarkNoteInputRef.current.blur();
+          }
+        });
+      }
+    }
+  }
+
   function clearSearchInteractionState() {
     setSearchResult(null);
     setSelectedMatchKey(null);
@@ -593,20 +620,37 @@ export function App() {
   }, []);
 
   async function handleCreateBookmark(event) {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
 
-    if (!selectedAudioFile || !note.trim()) {
+    if (!selectedAudioFile) {
       return;
     }
 
     try {
-      const desktopBridge = getDesktopBridge();
-      const nextSessionState = activeEditableMarkerIdRef.current
-        ? await updateBookmarkAndReadSessionState(desktopBridge, {
-          id: activeEditableMarkerIdRef.current,
-          note: note.trim(),
-        })
-        : (await createTimestampMarker(note.trim())).nextSessionState;
+      if (activeEditableMarkerIdRef.current) {
+        if (note.trim()) {
+          const desktopBridge = getDesktopBridge();
+          const nextSessionState = await updateBookmarkAndReadSessionState(desktopBridge, {
+            id: activeEditableMarkerIdRef.current,
+            note: note.trim(),
+          });
+
+          setSessionState(nextSessionState);
+          setSessionErrorMessage(null);
+          setAudioErrorMessage(null);
+        }
+
+        finalizeEditableMarkerSession();
+        return;
+      }
+
+      if (!note.trim()) {
+        return;
+      }
+
+      const nextSessionState = (await createTimestampMarker(note.trim())).nextSessionState;
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
@@ -623,9 +667,8 @@ export function App() {
     }
 
     const desktopBridge = getDesktopBridge();
-    const currentTimeSeconds = Math.max(
-      0,
-      Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : audioCurrentTimeSeconds)
+    const currentTimeSeconds = normalizeCapturedTimeSeconds(
+      audioPlayerRef.current ? audioPlayerRef.current.currentTime : audioCurrentTimeSeconds
     );
     const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
       createdAt: new Date().toISOString(),
@@ -725,6 +768,15 @@ export function App() {
 
   function handleSelectRecentAudioFile(recentFile) {
     setSelectedAudioContext(recentFile);
+  }
+
+  function handleNoteInputKeyDown(event) {
+    if (event.key !== "Enter" || !activeEditableMarkerIdRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    handleCreateBookmark();
   }
 
   useEffect(() => {
@@ -835,7 +887,7 @@ export function App() {
     }
 
     audioPlayerRef.current.currentTime = timeSeconds;
-    setAudioCurrentTimeSeconds(Math.max(0, Math.floor(timeSeconds)));
+    setAudioCurrentTimeSeconds(normalizeCapturedTimeSeconds(timeSeconds));
     setAudioErrorMessage(null);
     setEditableMarker(null);
   }
@@ -856,7 +908,7 @@ export function App() {
       : null;
   const lastActivityTime = latestBookmark
     ? getBookmarkTimeLabel(latestBookmark)
-    : (sessionState ? `${sessionState.currentPositionSeconds}s` : "loading");
+    : (sessionState ? formatTimeLabel(sessionState.currentPositionSeconds) : "loading");
 
   return (
     <main className="shell">
@@ -1012,7 +1064,9 @@ export function App() {
                         className="audio-player"
                         controls
                         onLoadedMetadata={() => {
-                          const nextCurrentTimeSeconds = Math.max(0, Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0));
+                          const nextCurrentTimeSeconds = normalizeCapturedTimeSeconds(
+                            audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0
+                          );
 
                           console.info("Consync audio metadata loaded", {
                             duration: audioPlayerRef.current ? audioPlayerRef.current.duration : null,
@@ -1035,11 +1089,18 @@ export function App() {
                           setAudioErrorMessage(nextErrorMessage);
                         }}
                         onTimeUpdate={() => {
-                          setAudioCurrentTimeSeconds(Math.max(0, Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0)));
+                          setAudioCurrentTimeSeconds(
+                            normalizeCapturedTimeSeconds(audioPlayerRef.current ? audioPlayerRef.current.currentTime : 0)
+                          );
                         }}
                         preload="metadata"
                         src={selectedAudioFile.audioSrc || selectedAudioFile.fileUrl}
                       />
+
+                      <div className="audio-player-readout" role="status">
+                        <span className="audio-player-readout-label">Playback clock</span>
+                        <span className="audio-player-readout-value">{formatTimeLabel(audioCurrentTimeSeconds)}</span>
+                      </div>
 
                       <form className="bookmark-form" onSubmit={handleCreateBookmark}>
                         <label className="bookmark-label" htmlFor="bookmark-note">
@@ -1051,6 +1112,7 @@ export function App() {
                           ref={bookmarkNoteInputRef}
                           value={note}
                           onChange={event => setNote(event.target.value)}
+                          onKeyDown={handleNoteInputKeyDown}
                           placeholder="Add a short note for this moment"
                           type="text"
                         />

@@ -149,8 +149,8 @@ describe("App search flow", () => {
     expect(bookmarkTrack).toBeTruthy();
     expect(within(bookmarkLane).getByText("Moss entry")).toBeTruthy();
     expect(within(bookmarkLane).getByText("Lantern pivot")).toBeTruthy();
-    expect(within(bookmarkLane).getByText("18s bookmark")).toBeTruthy();
-    expect(within(bookmarkLane).getByText("72s bookmark")).toBeTruthy();
+    expect(within(bookmarkLane).getByText("00:18.000 bookmark")).toBeTruthy();
+    expect(within(bookmarkLane).getByText("01:12.000 bookmark")).toBeTruthy();
     expect(within(bookmarkTrack).getByText("2 markers")).toBeTruthy();
     expect(within(bookmarkLane).queryByText("First bookmark pending")).toBeNull();
   });
@@ -170,7 +170,7 @@ describe("App search flow", () => {
 
     expect(sessionEventsTrack).toBeTruthy();
     expect(within(sessionEventsLane).getByText("Current focus")).toBeTruthy();
-    expect(within(sessionEventsLane).getByText("84s in 20260405T154039301Z.json")).toBeTruthy();
+    expect(within(sessionEventsLane).getByText("01:24.000 in 20260405T154039301Z.json")).toBeTruthy();
     expect(within(sessionEventsTrack).getByText("1 markers")).toBeTruthy();
     expect(within(sessionEventsLane).queryByText("Re-entry window")).toBeNull();
   });
@@ -280,12 +280,30 @@ describe("App search flow", () => {
     expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
       filePath: "/tmp/sample.mp3",
       note: "Bridge motif",
-      timeLabel: "00:42",
+      timeLabel: "00:42.000",
       timeSeconds: 42,
     }));
     expect(screen.getByRole("heading", { name: "Latest Bookmark" })).toBeTruthy();
-    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:42.000").length).toBeGreaterThan(0);
     expect(screen.queryByText("No time-based markers saved for this audio file yet.")).toBeNull();
+  });
+
+  it("shows a millisecond playback readout near the native audio player", async () => {
+    const user = userEvent.setup();
+
+    window.consyncDesktop = createDesktopBridge();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const audioPlayer = document.querySelector("audio");
+    audioPlayer.currentTime = 42.456;
+    fireEvent.timeUpdate(audioPlayer);
+
+    const playbackClock = screen.getByRole("status");
+    expect(within(playbackClock).getByText("Playback clock")).toBeTruthy();
+    expect(within(playbackClock).getByText("00:42.456")).toBeTruthy();
   });
 
   it("renders file notes and timeline markers separately for the selected audio file", async () => {
@@ -305,21 +323,21 @@ describe("App search flow", () => {
             createdAt: "2026-04-23T18:00:00.000Z",
             filePath: "/tmp/sample.mp3",
             note: "Marker later",
-            timeLabel: "00:42",
+            timeLabel: "00:42.000",
             timeSeconds: 42,
           },
           {
             createdAt: "2026-04-23T17:45:00.000Z",
             filePath: "/tmp/sample.mp3",
             note: "Marker earlier",
-            timeLabel: "00:12",
+            timeLabel: "00:12.000",
             timeSeconds: 12,
           },
           {
             createdAt: "2026-04-23T17:40:00.000Z",
             filePath: "/tmp/other.mp3",
             note: "Other file marker",
-            timeLabel: "00:10",
+            timeLabel: "00:10.000",
             timeSeconds: 10,
           },
         ],
@@ -345,7 +363,7 @@ describe("App search flow", () => {
     expect(screen.queryByText("Other file marker")).toBeNull();
 
     const markerTimes = within(timelineMarkersSection).getAllByText(/00:/).map(node => node.textContent);
-    expect(markerTimes.indexOf("00:12")).toBeLessThan(markerTimes.indexOf("00:42"));
+    expect(markerTimes.indexOf("00:12.000")).toBeLessThan(markerTimes.indexOf("00:42.000"));
   });
 
   it("highlights the nearest timeline marker at or before the current playback time", async () => {
@@ -452,17 +470,17 @@ describe("App search flow", () => {
     const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
     const timelineMarkersSection = timelineMarkersHeading.closest("section");
 
-    expect(screen.getByText("00:00")).toBeTruthy();
+    expect(screen.getAllByText("00:00.000").length).toBeGreaterThan(0);
 
     await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker later/i }));
 
     expect(audioPlayer.currentTime).toBe(42);
-    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:42.000").length).toBeGreaterThan(0);
 
     await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker earlier/i }));
 
     expect(audioPlayer.currentTime).toBe(12);
-    expect(screen.getAllByText("00:12").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:12.000").length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: /file note/i })).toBeNull();
   });
 
@@ -511,13 +529,13 @@ describe("App search flow", () => {
     const audioPlayer = document.querySelector("audio");
     audioPlayer.currentTime = 37;
     fireEvent.timeUpdate(audioPlayer);
-    expect(screen.getAllByText("00:37").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:37.000").length).toBeGreaterThan(0);
 
     await user.click(within(recentAudioPanel).getByRole("button", { name: "first.mp3" }));
 
     expect(selectAudioFile).toHaveBeenCalledTimes(2);
     expect((await screen.findAllByText("first.mp3")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("00:00").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:00.000").length).toBeGreaterThan(0);
   });
 
   it("drops a timestamp marker with B and focuses the note input without interrupting playback", async () => {
@@ -538,7 +556,7 @@ describe("App search flow", () => {
             createdAt: "2026-04-24T19:15:00.000Z",
             filePath: "/tmp/sample.mp3",
             note: "",
-            timeLabel: "00:42",
+            timeLabel: "00:42.000",
             timeSeconds: 42,
           },
         ],
@@ -568,7 +586,7 @@ describe("App search flow", () => {
         createdAt: expect.any(String),
         filePath: "/tmp/sample.mp3",
         note: "",
-        timeLabel: "00:42",
+        timeLabel: "00:42.000",
         timeSeconds: 42,
       });
     });
@@ -606,7 +624,7 @@ describe("App search flow", () => {
             filePath: "/tmp/sample.mp3",
             id: "bookmark-1",
             note: "",
-            timeLabel: "00:42",
+            timeLabel: "00:42.000",
             timeSeconds: 42,
           },
         ],
@@ -622,7 +640,7 @@ describe("App search flow", () => {
             filePath: "/tmp/sample.mp3",
             id: "bookmark-1",
             note: "uniquenote",
-            timeLabel: "00:42",
+            timeLabel: "00:42.000",
             timeSeconds: 42,
           },
         ],
@@ -668,7 +686,7 @@ describe("App search flow", () => {
 
     expect(createBookmark).toHaveBeenCalledTimes(1);
     expect(updateBookmark).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("00:42.000").length).toBeGreaterThan(0);
     expect(screen.getAllByText("uniquenote").length).toBeGreaterThan(0);
     expect(screen.queryByText("Untitled marker")).toBeNull();
 
@@ -677,7 +695,187 @@ describe("App search flow", () => {
     const markerButtons = within(timelineMarkersSection).getAllByRole("button");
 
     expect(markerButtons).toHaveLength(1);
-    expect(within(markerButtons[0]).getByText("00:42")).toBeTruthy();
+    expect(within(markerButtons[0]).getByText("00:42.000")).toBeTruthy();
+  });
+
+  it("blurs the note input after Enter so B can drop another marker", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "",
+            timeLabel: "00:42.000",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "first note",
+            timeLabel: "00:42.000",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 6,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "first note",
+            timeLabel: "00:42.000",
+            timeSeconds: 42,
+          },
+          {
+            createdAt: "2026-04-24T19:16:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "",
+            timeLabel: "00:57.000",
+            timeSeconds: 57,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const createBookmark = vi.fn().mockResolvedValue({ ok: true });
+    const updateBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark,
+      getSessionState,
+      updateBookmark,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const audioPlayer = document.querySelector("audio");
+    const noteInput = screen.getByLabelText("Note text");
+
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+    fireEvent.keyDown(window, { key: "b" });
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(noteInput);
+    });
+
+    await user.type(noteInput, "first note");
+    audioPlayer.currentTime = 57;
+    fireEvent.timeUpdate(audioPlayer);
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(updateBookmark).toHaveBeenCalledWith({
+        id: "bookmark-1",
+        note: "first note",
+      });
+    });
+
+    expect(document.activeElement).not.toBe(noteInput);
+
+    fireEvent.keyDown(window, { key: "b" });
+
+    await waitFor(() => {
+      expect(createBookmark).toHaveBeenCalledTimes(2);
+    });
+
+    expect(createBookmark).toHaveBeenLastCalledWith({
+      createdAt: expect.any(String),
+      filePath: "/tmp/sample.mp3",
+      note: "",
+      timeLabel: "00:57.000",
+      timeSeconds: 57,
+    });
+  });
+
+  it("finalizes an empty hotkey marker on Enter and exits edit mode", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "",
+            timeLabel: "00:42.000",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const createBookmark = vi.fn().mockResolvedValue({ ok: true });
+    const updateBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark,
+      getSessionState,
+      updateBookmark,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const audioPlayer = document.querySelector("audio");
+    const noteInput = screen.getByLabelText("Note text");
+
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+    fireEvent.keyDown(window, { key: "b" });
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(noteInput);
+    });
+
+    await user.keyboard("{Enter}");
+
+    expect(updateBookmark).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(noteInput);
+    });
+    expect(screen.getByText("Untitled marker")).toBeTruthy();
   });
 
   it("does not drop a marker with B while typing in the note input", async () => {
