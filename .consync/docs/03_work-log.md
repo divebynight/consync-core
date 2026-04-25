@@ -251,3 +251,27 @@ DECISION
 
 FOLLOW-UP
 - Add new e2e cases only from the listed coverage areas as future UI behavior is expanded or hardened.
+
+### marker_undo_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to protect `Cmd+Z` marker undo behavior in the real audio workspace.
+- Uses real keyboard interaction against the live UI instead of state simulation, so the create → create → undo flow is verified end to end.
+- Extends the coverage map with the next required behavior after the foundational hotkey marker flow.
+
+FILES
+- src/test/e2e/audio-marker-undo.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS
+
+FRICTION
+- The real hotkey loop has an important nuance: creating two markers reliably requires `B → Enter → B → Enter`, because `B` focuses the note input and a second raw `B` should not create another marker while typing.
+
+DECISION
+- Keep the test aligned with the actual supported keyboard workflow rather than forcing a simplified shortcut path.
+- Treat this as behavior coverage, not a UI change.
+
+FOLLOW-UP
+- Add the next e2e cases from the coverage map one user flow at a time, starting with delete or empty-marker behavior.
