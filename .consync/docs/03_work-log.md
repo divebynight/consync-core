@@ -374,6 +374,31 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### recent_audio_list_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify that after loading the deterministic fixture audio, the file appears in the Recent Audio sidebar list.
+- Asserts empty-state message visible before load, then after Choose MP3: file button appears in the Recent Audio section, carries the `workspace-nav-button-active` class (currently selected), and the empty-state message is gone.
+- Updated `.consync/docs/ui-e2e-coverage-map.md`: Recent Audio moved from Partially Covered to Covered, test list updated to 12 tests, recommended next tests updated.
+
+FILES
+- src/test/e2e/audio-recent-audio.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS (12/12 tests)
+- npm run verify:full → PASS
+
+FRICTION
+- None. The section heading locator (`getByRole("heading").locator("..")`) cleanly scopes all assertions to the Recent Audio panel.
+
+DECISION
+- Assert the active-state class on the button because the state is set synchronously alongside `setRecentAudioFiles` — it is stable and meaningful, not just cosmetic.
+
+FOLLOW-UP
+- Next e2e candidates: Search Panel (real Electron flow for mock search form).
+
 ### marker_timestamp_accuracy_e2e
 
 SUMMARY

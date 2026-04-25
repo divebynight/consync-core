@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-25)
-Suite: `src/test/e2e/` — 11 tests, 11 passing
+Suite: `src/test/e2e/` — 12 tests, 12 passing
 
 ---
 
@@ -20,6 +20,7 @@ Suite: `src/test/e2e/` — 11 tests, 11 passing
 | `audio-seek-to-marker.spec.js` | Clicking seek to marker positions the audio player at the marker timestamp | regression |
 | `audio-file-note.spec.js` | Creates a file note that appears in the File Notes section and not in Timeline Markers | regression |
 | `audio-marker-timestamp.spec.js` | Marker timestamp label matches the expected MM:SS.mmm format for the captured position | regression |
+| `audio-recent-audio.spec.js` | Fixture file appears in Recent Audio list after loading via Choose MP3 | smoke |
 
 ---
 
@@ -39,6 +40,7 @@ Suite: `src/test/e2e/` — 11 tests, 11 passing
 | Seek to marker | ✅ Full | click seek button → playback clock matches marker timestamp |
 | File Notes (non-timeline bookmarks) | ✅ Full | Add Note path, `timeSeconds: null` bookmark, File Notes section, not in Timeline Markers |
 | Marker timestamp label accuracy | ✅ Full | `MM:SS.mmm` format verified; captured `currentTime` matches rendered label |
+| Recent audio list | ✅ Full | file appears after load, active state class set, empty-state message gone |
 
 ---
 
@@ -47,7 +49,6 @@ Suite: `src/test/e2e/` — 11 tests, 11 passing
 | Surface | Gap | Notes |
 |---|---|---|
 | Active marker highlight | ☐ Not asserted | `bookmark-item-active` class applied during playback; not asserted in any test |
-| Recent audio list | ☐ Not asserted | `recentAudioFiles` state updates on file load; UI renders file buttons; no test asserts them |
 
 ---
 
@@ -66,12 +67,7 @@ Suite: `src/test/e2e/` — 11 tests, 11 passing
 
 ## Recommended Next Tests (Prioritized)
 
-### 1. Recent Audio List
-- Priority: MEDIUM
-- Why: `recentAudioFiles` is UI state that updates on every file load. Not verified end to end.
-- Flow: Load fixture → assert file name appears in Recent Audio sidebar list.
-
-### 2. Search Panel
+### 1. Search Panel
 - Priority: MEDIUM (deferred)
 - Why: Mock search flow is tested in `test:ui-search` (jsdom/vitest) but not in real Electron e2e.
 - Flow: Fill search form → run search → assert group/result rows → click result → assert inspector.
