@@ -398,6 +398,29 @@ DECISION
 FOLLOW-UP
 - Reference the ladder by level name in future handoffs and closeout prompts.
 
+### multiple_marker_ordering_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify multiple marker creation and stable insertion order.
+- Creates 3 named markers via the real hotkey flow and asserts all are visible in correct order using `li.bookmark-item` row selectors.
+- Extends the core marker lifecycle coverage beyond the single-marker and undo/delete cases.
+
+FILES
+- src/test/e2e/audio-multiple-markers.spec.js
+
+TESTS
+- npm run test:e2e → PASS (8 tests)
+
+FRICTION
+- None.
+
+DECISION
+- Keep assertions based on insertion order (nth(0/1/2) + toContainText) rather than timestamps, which are non-deterministic in test conditions.
+
+FOLLOW-UP
+- This test can serve as a base for a future "marker order preserved after reload" case once audio path persistence is added.
+- Next coverage candidates: timestamp accuracy, or a combined create + seek flow.
+
 ### audio_playback_toggle_e2e
 
 SUMMARY
