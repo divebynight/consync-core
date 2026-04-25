@@ -227,3 +227,27 @@ FOLLOW-UP
 - Consider enlarging or repositioning the delete control if marker density increases.
 - Consider a slightly more structured row action area in the future.
 - Evaluate whether visual affordances (hover state, spacing) should improve click confidence.
+
+### ui_e2e_coverage_map
+
+SUMMARY
+- Added an authoritative UI e2e coverage map to define the intended Playwright coverage surface for Consync.
+- Connects the new Playwright/Electron test harness to future UI work so features expand against a visible plan instead of ad-hoc tests.
+- Establishes the current “must not break” interaction set, with the audio hotkey marker flow as the foundation path.
+
+FILES
+- .consync/docs/ui-e2e-coverage.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- None
+
+FRICTION
+- Coverage planning is now explicit, but most identified user flows are still intentionally uncovered and will need to be added one by one.
+
+DECISION
+- Keep the map minimal and authoritative.
+- Use it to guide future Playwright additions without broadening scope or adding shallow tests.
+
+FOLLOW-UP
+- Add new e2e cases only from the listed coverage areas as future UI behavior is expanded or hardened.
