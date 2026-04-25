@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-25)
-Suite: `src/test/e2e/` — 9 tests, 9 passing
+Suite: `src/test/e2e/` — 10 tests, 10 passing
 
 ---
 
@@ -18,6 +18,7 @@ Suite: `src/test/e2e/` — 9 tests, 9 passing
 | `audio-multiple-markers.spec.js` | Creates multiple markers and renders them in stable insertion order | regression |
 | `audio-playback-toggle.spec.js` | Toggles playback on and off through the visible native audio control | smoke |
 | `audio-seek-to-marker.spec.js` | Clicking seek to marker positions the audio player at the marker timestamp | regression |
+| `audio-file-note.spec.js` | Creates a file note that appears in the File Notes section and not in Timeline Markers | regression |
 
 ---
 
@@ -35,6 +36,7 @@ Suite: `src/test/e2e/` — 9 tests, 9 passing
 | Audio path restoration after reload | ✅ Full | `lastAudioFile` restored from main-process memory |
 | Native playback toggle | ✅ Smoke | play + pause through visible native control, DOM media state |
 | Seek to marker | ✅ Full | click seek button → playback clock matches marker timestamp |
+| File Notes (non-timeline bookmarks) | ✅ Full | Add Note path, `timeSeconds: null` bookmark, File Notes section, not in Timeline Markers |
 
 ---
 
@@ -52,7 +54,6 @@ Suite: `src/test/e2e/` — 9 tests, 9 passing
 
 | Surface | Notes |
 |---|---|
-| File Notes (non-timeline bookmarks) | `Add Note` button path exists; `timeSeconds: null` bookmark type not covered by any test |
 | Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
 | Search panel | Mock search form, run search, group display, result selection, Reveal in Finder |
 | Inspector panel | Bookmark summary and selected result surfaces |
@@ -64,17 +65,12 @@ Suite: `src/test/e2e/` — 9 tests, 9 passing
 
 ## Recommended Next Tests (Prioritized)
 
-### 1. File Note (non-timeline bookmark)
-- Priority: HIGH
-- Why: Second bookmark type; separate list section in UI; currently zero coverage.
-- Flow: Load audio → fill note → click `Add Note` → assert note appears in File Notes section.
-
-### 2. Timestamp Accuracy
+### 1. Timestamp Accuracy
 - Priority: MEDIUM
 - Why: Clock and marker label rely on millisecond precision. No test checks the format or value.
 - Flow: Load audio → create marker → assert label matches `MM:SS.mmm` format.
 
-### 3. Recent Audio List
+### 2. Recent Audio List
 - Priority: MEDIUM
 - Why: `recentAudioFiles` is UI state that updates on every file load. Not verified end to end.
 - Flow: Load fixture → assert file name appears in Recent Audio sidebar list.

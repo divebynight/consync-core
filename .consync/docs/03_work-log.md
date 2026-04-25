@@ -374,6 +374,31 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### audio_file_note_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify the file-level note (non-timeline bookmark) path.
+- Test fills the note input, clicks "Add Note", and asserts: (1) input clears, (2) note appears in the File Notes section with a "File note" time label, (3) note does not appear in the Timeline Markers section.
+- Updated `.consync/docs/ui-e2e-coverage-map.md`: File Notes moved from Untested to Covered, test list updated to 10 tests, recommended next tests renumbered.
+
+FILES
+- src/test/e2e/audio-file-note.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS (10/10 tests)
+- npm run verify:full → PASS
+
+FRICTION
+- None. The `Add Note` button is a `type="button"` with a unique visible label; no workarounds needed.
+
+DECISION
+- Assert "File note" text label (from `getBookmarkTimeLabel` when `timeSeconds === null`) as the primary discriminator between file notes and timeline markers.
+
+FOLLOW-UP
+- Next e2e candidates: Timestamp accuracy (marker label format `MM:SS.mmm`), Recent Audio List.
+
 ### seek_to_marker_e2e
 
 SUMMARY
