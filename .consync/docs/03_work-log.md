@@ -347,3 +347,27 @@ DECISION
 
 FOLLOW-UP
 - Continue from the coverage map with timestamp-accuracy behavior or other remaining uncovered flows.
+
+### audio_playback_toggle_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify that the visible native playback control can start and then pause loaded audio.
+- Uses the deterministic fixture seam and real user interactions only: `Choose MP3` plus native control clicks.
+- Protects the playback-toggle path even though the current UI does not expose a dedicated visible play/pause indicator.
+
+FILES
+- src/test/e2e/audio-playback-toggle.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS
+
+FRICTION
+- The current UI does not expose a stable visible play/pause state, so the test relies on the real DOM media element state after interacting with the visible native control.
+
+DECISION
+- Keep the coverage focused on real interaction and stable behavior rather than adding test-only UI.
+- Use DOM media state as the strongest available assertion until a user-facing play/pause indicator exists.
+
+FOLLOW-UP
+- If playback status becomes more important in the workspace, consider a small renderer-owned visible state near the playback clock.
