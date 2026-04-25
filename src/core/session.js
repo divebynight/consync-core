@@ -131,6 +131,20 @@ function normalizeBookmarkUpdatePayload(input) {
   };
 }
 
+function normalizeBookmarkDeletePayload(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Bookmark delete input must be a structured bookmark delete payload.");
+  }
+
+  if (typeof input.id !== "string" || !input.id.trim()) {
+    throw new Error("Bookmark delete id is required.");
+  }
+
+  return {
+    id: input.id.trim(),
+  };
+}
+
 function syncSessionState() {
   const latestSessionArtifact = readLatestSessionArtifact();
 
@@ -234,6 +248,36 @@ function updateBookmark(input) {
   return cloneSessionState();
 }
 
+function deleteBookmark(input) {
+  const latestSessionArtifactPath = getLatestSessionArtifactPath();
+
+  if (!latestSessionArtifactPath) {
+    throw new Error("No current session artifact is available for bookmark writes.");
+  }
+
+  const latestSessionArtifact = readLatestSessionArtifact();
+  const existingBookmarks = getArtifactBookmarks(latestSessionArtifact);
+  const bookmarkDelete = normalizeBookmarkDeletePayload(input);
+  const bookmarkIndex = existingBookmarks.findIndex(bookmark => bookmark.id === bookmarkDelete.id);
+
+  if (bookmarkIndex === -1) {
+    throw new Error(`Bookmark ${bookmarkDelete.id} was not found.`);
+  }
+
+  const updatedBookmarks = existingBookmarks.filter(bookmark => bookmark.id !== bookmarkDelete.id);
+
+  fs.writeFileSync(
+    latestSessionArtifactPath,
+    JSON.stringify({
+      ...latestSessionArtifact,
+      bookmarks: updatedBookmarks,
+    }, null, 2) + "\n"
+  );
+
+  syncSessionState();
+  return cloneSessionState();
+}
+
 function resetSessionState() {
   sessionState = createInitialSessionState();
 }
@@ -241,6 +285,7 @@ function resetSessionState() {
 module.exports = {
   createBookmark,
   createInitialSessionState,
+  deleteBookmark,
   getSessionArtifactCount,
   getLatestSessionArtifactPath,
   getLatestSessionFileName,

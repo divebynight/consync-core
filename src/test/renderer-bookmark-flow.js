@@ -8,7 +8,11 @@ async function loadBookmarkFlowModule() {
 }
 
 async function main() {
-  const { createBookmarkAndReadSessionState, updateBookmarkAndReadSessionState } = await loadBookmarkFlowModule();
+  const {
+    createBookmarkAndReadSessionState,
+    deleteBookmarkAndReadSessionState,
+    updateBookmarkAndReadSessionState,
+  } = await loadBookmarkFlowModule();
   const calls = [];
   const bookmark = {
     createdAt: "2026-04-23T18:00:00.000Z",
@@ -120,6 +124,45 @@ async function main() {
         note: "updated bookmark",
       },
     ],
+    currentFile: "20260405T154039301Z.json",
+    currentPositionSeconds: 84,
+  });
+
+  const deletedSessionState = await deleteBookmarkAndReadSessionState(
+    {
+      async deleteBookmark(payload) {
+        calls.push({ method: "deleteBookmark", payload });
+        return {
+          ok: true,
+        };
+      },
+      async getSessionState() {
+        calls.push({ method: "getSessionState:delete" });
+        return {
+          artifactCount: 4,
+          bookmarks: [],
+          currentFile: "20260405T154039301Z.json",
+          currentPositionSeconds: 84,
+        };
+      },
+    },
+    {
+      id: "bookmark-1",
+    }
+  );
+
+  assert.deepStrictEqual(calls.slice(4), [
+    {
+      method: "deleteBookmark",
+      payload: {
+        id: "bookmark-1",
+      },
+    },
+    { method: "getSessionState:delete" },
+  ]);
+  assert.deepStrictEqual(deletedSessionState, {
+    artifactCount: 4,
+    bookmarks: [],
     currentFile: "20260405T154039301Z.json",
     currentPositionSeconds: 84,
   });

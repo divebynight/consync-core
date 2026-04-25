@@ -13,6 +13,7 @@ const {
 } = require("../core/desktop-shell");
 const {
   createBookmark,
+  deleteBookmark,
   getSessionArtifactCount,
   getLatestSessionFileName,
   getSessionState,
@@ -183,6 +184,7 @@ async function testIpcRegistration() {
     assert.ok(handlers.has(IPC_CHANNELS.revealSearchResult));
     assert.ok(handlers.has(IPC_CHANNELS.runMockSearch));
     assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
+    assert.ok(handlers.has(IPC_CHANNELS.deleteBookmark));
     assert.ok(handlers.has(IPC_CHANNELS.updateBookmark));
     assert.ok(handlers.has(IPC_CHANNELS.ping));
     assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
@@ -206,6 +208,9 @@ async function testIpcRegistration() {
     const rewrittenSessionState = handlers.get(IPC_CHANNELS.updateBookmark)(null, {
       id: "bookmark-1",
       note: "Updated bookmark",
+    });
+    const deletedSessionState = handlers.get(IPC_CHANNELS.deleteBookmark)(null, {
+      id: "bookmark-1",
     });
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -258,16 +263,8 @@ async function testIpcRegistration() {
         timeSeconds: 42,
       },
     ]);
-    assert.deepStrictEqual(persistedArtifact.bookmarks, [
-      {
-        id: "bookmark-1",
-        createdAt: "2026-04-23T18:00:00.000Z",
-        filePath: audioPath,
-        note: "Updated bookmark",
-        timeLabel: "00:42",
-        timeSeconds: 42,
-      },
-    ]);
+    assert.deepStrictEqual(deletedSessionState.bookmarks, []);
+    assert.deepStrictEqual(persistedArtifact.bookmarks, []);
     assert.deepStrictEqual(pingResponse, {
       ok: true,
       message: "pong:from-renderer",
@@ -281,6 +278,9 @@ function testSessionCoreSurface() {
 
     const sessionState = getSessionState();
     const updatedSessionState = createBookmark("First bookmark");
+    const deletedSessionState = deleteBookmark({
+      id: "bookmark-1",
+    });
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
     assert.deepStrictEqual(sessionState, {
@@ -301,13 +301,13 @@ function testSessionCoreSurface() {
         },
       ],
     });
-    assert.deepStrictEqual(persistedArtifact.bookmarks, [
-      {
-        id: "bookmark-1",
-        note: "First bookmark",
-        timeSeconds: 84,
-      },
-    ]);
+    assert.deepStrictEqual(deletedSessionState, {
+      artifactCount: getSessionArtifactCount(),
+      currentFile: getLatestSessionFileName(),
+      currentPositionSeconds: 84,
+      bookmarks: [],
+    });
+    assert.deepStrictEqual(persistedArtifact.bookmarks, []);
   });
 }
 
@@ -383,6 +383,13 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.deleteBookmark) {
+        return Promise.resolve({
+          id: args[0].id,
+          ok: true,
+        });
+      }
+
       return Promise.resolve({ ok: true, args });
     });
 
@@ -404,6 +411,9 @@ async function testPreloadBridge() {
     const updatedBookmarkState = await bridge.updateBookmark({
       id: "bookmark-1",
       note: "Updated renderer bookmark",
+    });
+    const deletedBookmarkState = await bridge.deleteBookmark({
+      id: "bookmark-1",
     });
     const pingResponse = await bridge.ping("renderer-ready");
 
@@ -456,6 +466,10 @@ async function testPreloadBridge() {
       id: "bookmark-1",
       note: "Updated renderer bookmark",
     });
+    assert.deepStrictEqual(deletedBookmarkState, {
+      id: "bookmark-1",
+      ok: true,
+    });
     assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
     assert.deepStrictEqual(invokedChannels, [
       { channel: IPC_CHANNELS.getBackendSummary, args: [] },
@@ -483,6 +497,14 @@ async function testPreloadBridge() {
           {
             id: "bookmark-1",
             note: "Updated renderer bookmark",
+          },
+        ],
+      },
+      {
+        channel: IPC_CHANNELS.deleteBookmark,
+        args: [
+          {
+            id: "bookmark-1",
           },
         ],
       },

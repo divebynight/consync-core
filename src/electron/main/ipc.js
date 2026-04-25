@@ -11,6 +11,7 @@ const {
 } = require("../../core/desktop-shell");
 const {
   createBookmark,
+  deleteBookmark,
   getSessionState,
   updateBookmark,
 } = require("../../core/session");
@@ -87,6 +88,7 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   ipcMainLike.handle(IPC_CHANNELS.revealSearchResult, (_event, targetPath) => revealDesktopPath(targetPath, { shellLike }));
   ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => runDesktopMockSearch(rootPath, query));
   ipcMainLike.handle(IPC_CHANNELS.createBookmark, (_event, bookmark) => createBookmark(bookmark));
+  ipcMainLike.handle(IPC_CHANNELS.deleteBookmark, (_event, bookmarkDelete) => deleteBookmark(bookmarkDelete));
   ipcMainLike.handle(IPC_CHANNELS.updateBookmark, (_event, bookmarkUpdate) => updateBookmark(bookmarkUpdate));
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
 }

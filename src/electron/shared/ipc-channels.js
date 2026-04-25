@@ -1,6 +1,7 @@
 const IPC_CHANNELS = {
   getBackendSummary: "desktop:get-backend-summary",
   createBookmark: "desktop:create-bookmark",
+  deleteBookmark: "desktop:delete-bookmark",
   updateBookmark: "desktop:update-bookmark",
   getConsyncSummary: "desktop:get-consync-summary",
   getShellInfo: "desktop:get-shell-info",

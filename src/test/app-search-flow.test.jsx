@@ -97,6 +97,7 @@ function createDesktopBridge(overrides = {}) {
       latestBookmark: null,
     }),
     createBookmark: vi.fn().mockResolvedValue({ ok: true }),
+    deleteBookmark: vi.fn().mockResolvedValue({ ok: true }),
     selectAudioFile: vi.fn().mockResolvedValue({
       audioSrc: "data:audio/mpeg;base64,c2FtcGxl",
       canceled: false,
@@ -896,6 +897,159 @@ describe("App search flow", () => {
 
     expect(createBookmark).not.toHaveBeenCalled();
     expect(noteInput.value).toBe("b");
+  });
+
+  it("removes the most recently created marker with Cmd+Z in LIFO order", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker one",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+          {
+            createdAt: "2026-04-24T19:11:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Marker two",
+            timeLabel: "00:20.000",
+            timeSeconds: 20,
+          },
+          {
+            createdAt: "2026-04-24T19:12:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-3",
+            note: "Marker three",
+            timeLabel: "00:30.000",
+            timeSeconds: 30,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker one",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+          {
+            createdAt: "2026-04-24T19:11:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Marker two",
+            timeLabel: "00:20.000",
+            timeSeconds: 20,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker one",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const deleteBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      deleteBookmark,
+      getSessionState,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+
+    expect(within(timelineMarkersSection).getByText("Marker one")).toBeTruthy();
+    expect(within(timelineMarkersSection).getByText("Marker two")).toBeTruthy();
+    expect(within(timelineMarkersSection).getByText("Marker three")).toBeTruthy();
+
+    fireEvent.keyDown(window, { key: "z", metaKey: true });
+
+    await waitFor(() => {
+      expect(deleteBookmark).toHaveBeenCalledWith({ id: "bookmark-3" });
+    });
+    await waitFor(() => {
+      expect(within(timelineMarkersSection).queryByText("Marker three")).toBeNull();
+    });
+
+    fireEvent.keyDown(window, { key: "z", metaKey: true });
+
+    await waitFor(() => {
+      expect(deleteBookmark).toHaveBeenNthCalledWith(2, { id: "bookmark-2" });
+    });
+    await waitFor(() => {
+      expect(within(timelineMarkersSection).queryByText("Marker two")).toBeNull();
+    });
+
+    expect(within(timelineMarkersSection).getByText("Marker one")).toBeTruthy();
+  });
+
+  it("does not remove markers with Cmd+Z while typing in the note input", async () => {
+    const user = userEvent.setup();
+    const deleteBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      deleteBookmark,
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:12:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-3",
+            note: "Marker three",
+            timeLabel: "00:30.000",
+            timeSeconds: 30,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const noteInput = screen.getByLabelText("Note text");
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+    await user.click(noteInput);
+    await user.keyboard("{Meta>}z{/Meta}");
+
+    expect(deleteBookmark).not.toHaveBeenCalled();
+    expect(within(timelineMarkersSection).getByText("Marker three")).toBeTruthy();
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {

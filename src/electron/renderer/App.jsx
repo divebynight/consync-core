@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createBookmarkAndReadSessionState, updateBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
+import {
+  createBookmarkAndReadSessionState,
+  deleteBookmarkAndReadSessionState,
+  updateBookmarkAndReadSessionState,
+} from "./bookmark-flow.mjs";
 import {
   getMockSearchDetailRows,
   getMockSearchSelectionKey,
@@ -105,6 +109,27 @@ function splitBookmarksByTiming(bookmarks) {
     fileNotes,
     timelineMarkers,
   };
+}
+
+function getLatestTimelineMarkerForFile(bookmarks, filePath) {
+  if (!Array.isArray(bookmarks) || !filePath) {
+    return null;
+  }
+
+  for (let index = bookmarks.length - 1; index >= 0; index -= 1) {
+    const bookmark = bookmarks[index];
+
+    if (
+      bookmark &&
+      bookmark.filePath === filePath &&
+      typeof bookmark.timeSeconds === "number" &&
+      Number.isFinite(bookmark.timeSeconds)
+    ) {
+      return bookmark;
+    }
+  }
+
+  return null;
 }
 
 function getActiveTimelineMarkerIndex(timelineMarkers, currentTimeSeconds) {
@@ -381,6 +406,7 @@ function getDesktopBridge() {
     !desktopBridge ||
     typeof desktopBridge.getSessionState !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
+    typeof desktopBridge.deleteBookmark !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function"
@@ -779,13 +805,45 @@ export function App() {
     handleCreateBookmark();
   }
 
+  async function handleUndoLastMarker() {
+    if (!selectedAudioFile || !sessionState) {
+      return;
+    }
+
+    const latestTimelineMarker = getLatestTimelineMarkerForFile(sessionState.bookmarks, selectedAudioFile.filePath);
+
+    if (!latestTimelineMarker || !latestTimelineMarker.id) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await deleteBookmarkAndReadSessionState(desktopBridge, {
+        id: latestTimelineMarker.id,
+      });
+
+      setSessionState(nextSessionState);
+      setSessionErrorMessage(null);
+      setAudioErrorMessage(null);
+
+      if (activeEditableMarkerIdRef.current === latestTimelineMarker.id) {
+        finalizeEditableMarkerSession();
+      }
+    } catch (error) {
+      setSessionErrorMessage(error.message);
+    }
+  }
+
   useEffect(() => {
     function handleMarkerHotkey(event) {
       if (event.defaultPrevented || event.repeat) {
         return;
       }
 
-      if (event.key !== "b" && event.key !== "B") {
+      const isMarkerHotkey = event.key === "b" || event.key === "B";
+      const isUndoHotkey = (event.key === "z" || event.key === "Z") && event.metaKey && !event.shiftKey && !event.altKey;
+
+      if (!isMarkerHotkey && !isUndoHotkey) {
         return;
       }
 
@@ -794,6 +852,12 @@ export function App() {
       }
 
       if (!selectedAudioFile || activeView !== "workspace" || activeWorkspaceSection !== "audio" || !audioPlayerRef.current) {
+        return;
+      }
+
+      if (isUndoHotkey) {
+        event.preventDefault();
+        handleUndoLastMarker();
         return;
       }
 
@@ -830,7 +894,7 @@ export function App() {
     return () => {
       window.removeEventListener("keydown", handleMarkerHotkey);
     };
-  }, [activeView, activeWorkspaceSection, audioCurrentTimeSeconds, selectedAudioFile]);
+  }, [activeView, activeWorkspaceSection, audioCurrentTimeSeconds, selectedAudioFile, sessionState]);
 
   async function handleRunMockSearch(event) {
     event.preventDefault();

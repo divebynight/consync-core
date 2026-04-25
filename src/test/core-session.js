@@ -4,6 +4,7 @@ const os = require("node:os");
 const path = require("node:path");
 const {
   createBookmark,
+  deleteBookmark,
   getSessionArtifactCount,
   getLatestSessionArtifactPath,
   getLatestSessionFileName,
@@ -77,6 +78,9 @@ function main() {
       id: "bookmark-4",
       note: "Hotkey marker note",
     });
+    const sixthState = deleteBookmark({
+      id: "bookmark-3",
+    });
     const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
 
     assert.strictEqual(firstState.artifactCount, getSessionArtifactCount());
@@ -84,6 +88,7 @@ function main() {
     assert.strictEqual(thirdState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(fourthState.artifactCount, getSessionArtifactCount());
     assert.strictEqual(fifthState.artifactCount, getSessionArtifactCount());
+    assert.strictEqual(sixthState.artifactCount, getSessionArtifactCount());
 
     assert.deepStrictEqual(firstState.bookmarks, [
       {
@@ -197,7 +202,7 @@ function main() {
       },
     ]);
 
-    assert.deepStrictEqual(persistedArtifact.bookmarks, [
+    assert.deepStrictEqual(sixthState.bookmarks, [
       {
         id: "bookmark-1",
         note: "First note",
@@ -212,12 +217,28 @@ function main() {
         timeSeconds: null,
       },
       {
-        id: "bookmark-3",
-        createdAt: "2026-04-23T18:00:00.000Z",
+        id: "bookmark-4",
+        createdAt: "2026-04-24T12:00:00.000Z",
         filePath: "/tmp/sample.mp3",
-        note: "Second note",
-        timeLabel: "00:42",
-        timeSeconds: 42,
+        note: "Hotkey marker note",
+        timeLabel: "00:48",
+        timeSeconds: 48,
+      },
+    ]);
+
+    assert.deepStrictEqual(persistedArtifact.bookmarks, [
+      {
+        id: "bookmark-1",
+        note: "First note",
+        timeSeconds: 84,
+      },
+      {
+        id: "bookmark-2",
+        createdAt: "2026-04-23T17:30:00.000Z",
+        filePath: "/tmp/sample.mp3",
+        note: "File note",
+        timeLabel: null,
+        timeSeconds: null,
       },
       {
         id: "bookmark-4",

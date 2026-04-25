@@ -5,6 +5,9 @@ function createDesktopBridge(invoke) {
     createBookmark(bookmark) {
       return invoke(IPC_CHANNELS.createBookmark, bookmark);
     },
+    deleteBookmark(bookmarkDelete) {
+      return invoke(IPC_CHANNELS.deleteBookmark, bookmarkDelete);
+    },
     updateBookmark(bookmarkUpdate) {
       return invoke(IPC_CHANNELS.updateBookmark, bookmarkUpdate);
     },

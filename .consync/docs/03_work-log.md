@@ -160,3 +160,41 @@ FOLLOW-UP
 - Consider a visible “editing marker” state.
 - Consider future UX improvements for rapid capture (e.g., Esc to exit edit mode, capture mode, or alternate hotkey behavior).
 - Potential future features: quick delete, undo last marker.
+
+### undo_last_marker_hotkey
+
+SUMMARY
+- Added `Cmd+Z` support to remove the most recently created marker in the audio workspace.
+- Enables fast correction during rapid marker capture without requiring UI interaction.
+- Preserves normal text undo behavior when the note input is focused.
+
+FILES
+- src/core/session.js
+- src/electron/shared/ipc-channels.js
+- src/electron/preload/bridge.js
+- src/electron/main/ipc.js
+- src/electron/renderer/bookmark-flow.mjs
+- src/electron/renderer/App.jsx
+- src/test/core-session.js
+- src/test/renderer-bookmark-flow.js
+- src/test/desktop-scaffold.js
+- src/test/app-search-flow.test.jsx
+
+TESTS
+- npm run test:ui-search → PASS
+- node src/test/core-session.js → PASS
+- node src/test/renderer-bookmark-flow.js → PASS
+- node src/test/desktop-scaffold.js → PASS
+
+FRICTION
+- Undo currently applies only to marker creation and not to note edits or other actions, which may create an expectation mismatch with typical undo behavior.
+
+DECISION
+- Keep undo scoped to “last marker created” only.
+- Do not introduce a full undo stack at this stage.
+- Prioritize speed and simplicity over completeness.
+
+FOLLOW-UP
+- Evaluate whether note edits should ever be included in undo behavior.
+- Consider adding redo (`Cmd+Shift+Z`) if undo scope expands.
+- Future feature: delete specific marker via UI.
