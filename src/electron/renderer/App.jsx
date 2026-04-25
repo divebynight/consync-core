@@ -834,6 +834,29 @@ export function App() {
     }
   }
 
+  async function handleDeleteMarker(bookmarkId) {
+    if (!bookmarkId) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await deleteBookmarkAndReadSessionState(desktopBridge, {
+        id: bookmarkId,
+      });
+
+      setSessionState(nextSessionState);
+      setSessionErrorMessage(null);
+      setAudioErrorMessage(null);
+
+      if (activeEditableMarkerIdRef.current === bookmarkId) {
+        finalizeEditableMarkerSession();
+      }
+    } catch (error) {
+      setSessionErrorMessage(error.message);
+    }
+  }
+
   useEffect(() => {
     function handleMarkerHotkey(event) {
       if (event.defaultPrevented || event.repeat) {
@@ -1220,14 +1243,25 @@ export function App() {
                                 className={`bookmark-item${index === activeTimelineMarkerIndex ? " bookmark-item-active" : ""}`}
                                 key={`${bookmark.id || "bookmark"}-${bookmark.timeSeconds}-${bookmark.note || "note"}-${index}`}
                               >
-                                <button
-                                  className="bookmark-marker-button"
-                                  onClick={() => handleSeekToMarker(bookmark.timeSeconds)}
-                                  type="button"
-                                >
-                                  <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                  <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
-                                </button>
+                                <div className="bookmark-marker-row">
+                                  <button
+                                    aria-label={`Seek to marker ${getBookmarkDisplayNote(bookmark)}`}
+                                    className="bookmark-marker-button"
+                                    onClick={() => handleSeekToMarker(bookmark.timeSeconds)}
+                                    type="button"
+                                  >
+                                    <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
+                                    <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                  </button>
+                                  <button
+                                    aria-label={`Delete marker ${getBookmarkDisplayNote(bookmark)}`}
+                                    className="bookmark-delete-button"
+                                    onClick={() => handleDeleteMarker(bookmark.id)}
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
                               </li>
                             ))}
                           </ul>

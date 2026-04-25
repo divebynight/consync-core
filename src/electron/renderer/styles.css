@@ -570,6 +570,13 @@ body {
   border: 1px solid rgba(104, 117, 156, 0.12);
 }
 
+.bookmark-marker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
 .bookmark-marker-button {
   display: grid;
   gap: 3px;
@@ -586,6 +593,24 @@ body {
 .bookmark-marker-button:hover .bookmark-time,
 .bookmark-marker-button:hover .bookmark-note {
   color: #f4f7ff;
+}
+
+.bookmark-delete-button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(104, 117, 156, 0.18);
+  border-radius: 5px;
+  background: rgba(18, 24, 36, 0.92);
+  color: #9ea8c3;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bookmark-delete-button:hover {
+  border-color: rgba(244, 99, 99, 0.42);
+  color: #fca5a5;
 }
 
 .bookmark-item-active {

@@ -473,12 +473,12 @@ describe("App search flow", () => {
 
     expect(screen.getAllByText("00:00.000").length).toBeGreaterThan(0);
 
-    await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker later/i }));
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: "Seek to marker Marker later" }));
 
     expect(audioPlayer.currentTime).toBe(42);
     expect(screen.getAllByText("00:42.000").length).toBeGreaterThan(0);
 
-    await user.click(within(timelineMarkersSection).getByRole("button", { name: /marker earlier/i }));
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: "Seek to marker Marker earlier" }));
 
     expect(audioPlayer.currentTime).toBe(12);
     expect(screen.getAllByText("00:12.000").length).toBeGreaterThan(0);
@@ -693,7 +693,7 @@ describe("App search flow", () => {
 
     const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
     const timelineMarkersSection = timelineMarkersHeading.closest("section");
-    const markerButtons = within(timelineMarkersSection).getAllByRole("button");
+    const markerButtons = within(timelineMarkersSection).getAllByRole("button", { name: /seek to marker/i });
 
     expect(markerButtons).toHaveLength(1);
     expect(within(markerButtons[0]).getByText("00:42.000")).toBeTruthy();
@@ -1050,6 +1050,163 @@ describe("App search flow", () => {
 
     expect(deleteBookmark).not.toHaveBeenCalled();
     expect(within(timelineMarkersSection).getByText("Marker three")).toBeTruthy();
+  });
+
+  it("deletes only the clicked middle marker from the timeline marker list", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker one",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+          {
+            createdAt: "2026-04-24T19:11:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Marker two",
+            timeLabel: "00:20.000",
+            timeSeconds: 20,
+          },
+          {
+            createdAt: "2026-04-24T19:12:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-3",
+            note: "Marker three",
+            timeLabel: "00:30.000",
+            timeSeconds: 30,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Marker one",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+          {
+            createdAt: "2026-04-24T19:12:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-3",
+            note: "Marker three",
+            timeLabel: "00:30.000",
+            timeSeconds: 30,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const deleteBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      deleteBookmark,
+      getSessionState,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: "Delete marker Marker two" }));
+
+    await waitFor(() => {
+      expect(deleteBookmark).toHaveBeenCalledWith({ id: "bookmark-2" });
+    });
+    await waitFor(() => {
+      expect(within(timelineMarkersSection).queryByText("Marker two")).toBeNull();
+    });
+
+    expect(within(timelineMarkersSection).getByText("Marker one")).toBeTruthy();
+    expect(within(timelineMarkersSection).getByText("Marker three")).toBeTruthy();
+  });
+
+  it("deletes only the clicked marker when multiple markers share the same timestamp", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "Same time A",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+          {
+            createdAt: "2026-04-24T19:10:01.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Same time B",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:10:01.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-2",
+            note: "Same time B",
+            timeLabel: "00:10.000",
+            timeSeconds: 10,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const deleteBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      deleteBookmark,
+      getSessionState,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+
+    await user.click(within(timelineMarkersSection).getByRole("button", { name: "Delete marker Same time A" }));
+
+    await waitFor(() => {
+      expect(deleteBookmark).toHaveBeenCalledWith({ id: "bookmark-1" });
+    });
+    await waitFor(() => {
+      expect(within(timelineMarkersSection).queryByText("Same time A")).toBeNull();
+    });
+
+    expect(within(timelineMarkersSection).getByText("Same time B")).toBeTruthy();
   });
 
   it("renders grouped results and keeps selection separate from reveal", async () => {

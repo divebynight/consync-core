@@ -198,3 +198,32 @@ FOLLOW-UP
 - Evaluate whether note edits should ever be included in undo behavior.
 - Consider adding redo (`Cmd+Shift+Z`) if undo scope expands.
 - Future feature: delete specific marker via UI.
+
+### delete_specific_marker_ui
+
+SUMMARY
+- Added a per-marker delete control (`×`) to each marker row.
+- Allows direct removal of individual markers without affecting others.
+- Deletion operates by marker ID, not timestamp.
+
+FILES
+- src/electron/renderer/App.jsx
+- src/electron/renderer/styles.css
+- src/test/app-search-flow.test.jsx
+
+TESTS
+- npm run test:ui-search → PASS
+
+FRICTION
+- The delete control is small and may be harder to target as marker density increases.
+- Immediate deletion (no confirmation) could lead to accidental removal if misclicked.
+
+DECISION
+- Keep deletion immediate and lightweight.
+- Rely on `Cmd+Z` as the safety net.
+- Avoid confirmation dialogs to preserve speed and flow.
+
+FOLLOW-UP
+- Consider enlarging or repositioning the delete control if marker density increases.
+- Consider a slightly more structured row action area in the future.
+- Evaluate whether visual affordances (hover state, spacing) should improve click confidence.
