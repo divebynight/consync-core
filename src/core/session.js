@@ -112,6 +112,25 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
   };
 }
 
+function normalizeBookmarkUpdatePayload(input) {
+  if (!input || typeof input !== "object") {
+    throw new Error("Bookmark update input must be a structured bookmark update payload.");
+  }
+
+  if (typeof input.id !== "string" || !input.id.trim()) {
+    throw new Error("Bookmark update id is required.");
+  }
+
+  if (typeof input.note !== "string") {
+    throw new Error("Bookmark update note must be a string.");
+  }
+
+  return {
+    id: input.id.trim(),
+    note: input.note.trim(),
+  };
+}
+
 function syncSessionState() {
   const latestSessionArtifact = readLatestSessionArtifact();
 
@@ -178,6 +197,43 @@ function createBookmark(input) {
   return cloneSessionState();
 }
 
+function updateBookmark(input) {
+  const latestSessionArtifactPath = getLatestSessionArtifactPath();
+
+  if (!latestSessionArtifactPath) {
+    throw new Error("No current session artifact is available for bookmark writes.");
+  }
+
+  const latestSessionArtifact = readLatestSessionArtifact();
+  const existingBookmarks = getArtifactBookmarks(latestSessionArtifact);
+  const bookmarkUpdate = normalizeBookmarkUpdatePayload(input);
+  const bookmarkIndex = existingBookmarks.findIndex(bookmark => bookmark.id === bookmarkUpdate.id);
+
+  if (bookmarkIndex === -1) {
+    throw new Error(`Bookmark ${bookmarkUpdate.id} was not found.`);
+  }
+
+  const updatedBookmarks = existingBookmarks.map((bookmark, index) => (
+    index === bookmarkIndex
+      ? {
+        ...bookmark,
+        note: bookmarkUpdate.note,
+      }
+      : bookmark
+  ));
+
+  fs.writeFileSync(
+    latestSessionArtifactPath,
+    JSON.stringify({
+      ...latestSessionArtifact,
+      bookmarks: updatedBookmarks,
+    }, null, 2) + "\n"
+  );
+
+  syncSessionState();
+  return cloneSessionState();
+}
+
 function resetSessionState() {
   sessionState = createInitialSessionState();
 }
@@ -190,4 +246,5 @@ module.exports = {
   getLatestSessionFileName,
   getSessionState,
   resetSessionState,
+  updateBookmark,
 };

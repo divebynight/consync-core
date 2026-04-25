@@ -587,6 +587,99 @@ describe("App search flow", () => {
     expect(markerItem.className.includes("bookmark-item-active")).toBe(true);
   });
 
+  it("updates the hotkey-created marker note instead of creating a duplicate marker", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-24T19:15:00.000Z",
+            filePath: "/tmp/sample.mp3",
+            id: "bookmark-1",
+            note: "uniquenote",
+            timeLabel: "00:42",
+            timeSeconds: 42,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+    const createBookmark = vi.fn().mockResolvedValue({ ok: true });
+    const updateBookmark = vi.fn().mockResolvedValue({ ok: true });
+
+    window.consyncDesktop = createDesktopBridge({
+      createBookmark,
+      getSessionState,
+      updateBookmark,
+    });
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Choose MP3" }));
+
+    const audioPlayer = document.querySelector("audio");
+    audioPlayer.currentTime = 42;
+    fireEvent.timeUpdate(audioPlayer);
+
+    fireEvent.keyDown(window, { key: "b" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Untitled marker")).toBeTruthy();
+    });
+
+    const noteInput = screen.getByLabelText("Note text");
+    await user.type(noteInput, "uniquenote");
+    audioPlayer.currentTime = 57;
+    fireEvent.timeUpdate(audioPlayer);
+    await user.keyboard("{Enter}");
+
+    await waitFor(() => {
+      expect(updateBookmark).toHaveBeenCalledWith({
+        id: "bookmark-1",
+        note: "uniquenote",
+      });
+    });
+
+    expect(createBookmark).toHaveBeenCalledTimes(1);
+    expect(updateBookmark).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText("00:42").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("uniquenote").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Untitled marker")).toBeNull();
+
+    const timelineMarkersHeading = screen.getByRole("heading", { name: "Timeline Markers" });
+    const timelineMarkersSection = timelineMarkersHeading.closest("section");
+    const markerButtons = within(timelineMarkersSection).getAllByRole("button");
+
+    expect(markerButtons).toHaveLength(1);
+    expect(within(markerButtons[0]).getByText("00:42")).toBeTruthy();
+  });
+
   it("does not drop a marker with B while typing in the note input", async () => {
     const user = userEvent.setup();
     const createBookmark = vi.fn().mockResolvedValue({ ok: true });

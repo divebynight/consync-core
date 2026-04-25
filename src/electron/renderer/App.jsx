@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
+import { createBookmarkAndReadSessionState, updateBookmarkAndReadSessionState } from "./bookmark-flow.mjs";
 import {
   getMockSearchDetailRows,
   getMockSearchSelectionKey,
@@ -543,9 +543,16 @@ export function App() {
   const [searchErrorMessage, setSearchErrorMessage] = useState(null);
   const [activeView, setActiveView] = useState("workspace");
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
+  const [activeEditableMarkerId, setActiveEditableMarkerId] = useState(null);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
+  const activeEditableMarkerIdRef = useRef(null);
   const resumeSectionRef = useRef(null);
+
+  function setEditableMarker(markerId) {
+    activeEditableMarkerIdRef.current = markerId || null;
+    setActiveEditableMarkerId(markerId || null);
+  }
 
   function clearSearchInteractionState() {
     setSearchResult(null);
@@ -594,22 +601,17 @@ export function App() {
 
     try {
       const desktopBridge = getDesktopBridge();
-      const currentTimeSeconds = Math.max(
-        0,
-        Math.floor(audioPlayerRef.current ? audioPlayerRef.current.currentTime : audioCurrentTimeSeconds)
-      );
-      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
-        createdAt: new Date().toISOString(),
-        filePath: selectedAudioFile.filePath,
-        note: note.trim(),
-        timeLabel: formatTimeLabel(currentTimeSeconds),
-        timeSeconds: currentTimeSeconds,
-      });
+      const nextSessionState = activeEditableMarkerIdRef.current
+        ? await updateBookmarkAndReadSessionState(desktopBridge, {
+          id: activeEditableMarkerIdRef.current,
+          note: note.trim(),
+        })
+        : (await createTimestampMarker(note.trim())).nextSessionState;
       setSessionState(nextSessionState);
-      setAudioCurrentTimeSeconds(currentTimeSeconds);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
       setNote("");
+      setEditableMarker(null);
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -638,7 +640,13 @@ export function App() {
     setSessionErrorMessage(null);
     setAudioErrorMessage(null);
 
-    return true;
+    const nextBookmarks = Array.isArray(nextSessionState.bookmarks) ? nextSessionState.bookmarks : [];
+    const createdMarker = nextBookmarks[nextBookmarks.length - 1] || null;
+
+    return {
+      createdMarker,
+      nextSessionState,
+    };
   }
 
   function setSelectedAudioContext(nextFile) {
@@ -661,6 +669,7 @@ export function App() {
     setAudioCurrentTimeSeconds(0);
     setAudioErrorMessage(null);
     setNote("");
+    setEditableMarker(null);
     setActiveWorkspaceSection("audio");
   }
 
@@ -685,6 +694,7 @@ export function App() {
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
       setNote("");
+      setEditableMarker(null);
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -736,11 +746,13 @@ export function App() {
       }
 
       createTimestampMarker("")
-        .then(created => {
-          if (!created) {
+        .then(result => {
+          if (!result || !result.nextSessionState) {
             return;
           }
 
+          setSessionState(result.nextSessionState);
+          setEditableMarker(result.createdMarker ? result.createdMarker.id || null : null);
           setNote("");
 
           if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
@@ -825,6 +837,7 @@ export function App() {
     audioPlayerRef.current.currentTime = timeSeconds;
     setAudioCurrentTimeSeconds(Math.max(0, Math.floor(timeSeconds)));
     setAudioErrorMessage(null);
+    setEditableMarker(null);
   }
 
   const sessionRows = getSessionPanelRows(sessionState);

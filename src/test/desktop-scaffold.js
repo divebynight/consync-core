@@ -17,6 +17,7 @@ const {
   getLatestSessionFileName,
   getSessionState,
   resetSessionState,
+  updateBookmark,
 } = require("../core/session");
 const { IPC_CHANNELS } = require("../electron/shared/ipc-channels");
 const { registerDesktopIpcHandlers } = require("../electron/main/ipc");
@@ -182,6 +183,7 @@ async function testIpcRegistration() {
     assert.ok(handlers.has(IPC_CHANNELS.revealSearchResult));
     assert.ok(handlers.has(IPC_CHANNELS.runMockSearch));
     assert.ok(handlers.has(IPC_CHANNELS.createBookmark));
+    assert.ok(handlers.has(IPC_CHANNELS.updateBookmark));
     assert.ok(handlers.has(IPC_CHANNELS.ping));
     assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
     assert.ok(handlers.has(IPC_CHANNELS.getConsyncSummary));
@@ -200,6 +202,10 @@ async function testIpcRegistration() {
       note: "Bridge bookmark",
       timeLabel: "00:42",
       timeSeconds: 42,
+    });
+    const rewrittenSessionState = handlers.get(IPC_CHANNELS.updateBookmark)(null, {
+      id: "bookmark-1",
+      note: "Updated bookmark",
     });
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
@@ -242,12 +248,22 @@ async function testIpcRegistration() {
         timeSeconds: 42,
       },
     ]);
+    assert.deepStrictEqual(rewrittenSessionState.bookmarks, [
+      {
+        id: "bookmark-1",
+        createdAt: "2026-04-23T18:00:00.000Z",
+        filePath: audioPath,
+        note: "Updated bookmark",
+        timeLabel: "00:42",
+        timeSeconds: 42,
+      },
+    ]);
     assert.deepStrictEqual(persistedArtifact.bookmarks, [
       {
         id: "bookmark-1",
         createdAt: "2026-04-23T18:00:00.000Z",
         filePath: audioPath,
-        note: "Bridge bookmark",
+        note: "Updated bookmark",
         timeLabel: "00:42",
         timeSeconds: 42,
       },
@@ -360,6 +376,13 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.updateBookmark) {
+        return Promise.resolve({
+          id: args[0].id,
+          note: args[0].note,
+        });
+      }
+
       return Promise.resolve({ ok: true, args });
     });
 
@@ -377,6 +400,10 @@ async function testPreloadBridge() {
       note: "renderer bookmark",
       timeLabel: "00:42",
       timeSeconds: 42,
+    });
+    const updatedBookmarkState = await bridge.updateBookmark({
+      id: "bookmark-1",
+      note: "Updated renderer bookmark",
     });
     const pingResponse = await bridge.ping("renderer-ready");
 
@@ -425,6 +452,10 @@ async function testPreloadBridge() {
       currentFile: getLatestSessionFileName(),
       currentPositionSeconds: 84,
     });
+    assert.deepStrictEqual(updatedBookmarkState, {
+      id: "bookmark-1",
+      note: "Updated renderer bookmark",
+    });
     assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
     assert.deepStrictEqual(invokedChannels, [
       { channel: IPC_CHANNELS.getBackendSummary, args: [] },
@@ -443,6 +474,15 @@ async function testPreloadBridge() {
             note: "renderer bookmark",
             timeLabel: "00:42",
             timeSeconds: 42,
+          },
+        ],
+      },
+      {
+        channel: IPC_CHANNELS.updateBookmark,
+        args: [
+          {
+            id: "bookmark-1",
+            note: "Updated renderer bookmark",
           },
         ],
       },

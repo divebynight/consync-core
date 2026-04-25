@@ -74,3 +74,42 @@ DECISION
 
 FOLLOW-UP
 - Consider allowing the focused note input to edit the just-dropped marker directly.
+
+### bind_note_input_to_active_marker
+
+SUMMARY
+- Bound the note input to the marker created by the `B` hotkey so typing and pressing Enter updates that same marker instead of creating a duplicate at a later timestamp.
+- The marker timestamp is now owned by the hotkey event, not the save action.
+
+FILES
+- src/electron/renderer/App.jsx
+- src/core/session.js
+- src/electron/renderer/bookmark-flow.mjs
+- src/electron/shared/ipc-channels.js
+- src/electron/preload/bridge.js
+- src/electron/main/ipc.js
+- src/test/app-search-flow.test.jsx
+- src/test/core-session.js
+- src/test/renderer-bookmark-flow.js
+- src/test/desktop-scaffold.js
+
+TESTS
+- node src/test/core-session.js → PASS
+- node src/test/renderer-bookmark-flow.js → PASS
+- node src/test/desktop-scaffold.js → PASS
+- npm run test:ui-search → PASS
+
+FRICTION
+- After pressing `B`, the note input remains focused.
+- Pressing `B` again inserts the character `b` instead of dropping another marker.
+- This is correct for text input behavior but introduces friction for rapid “listen + mark” workflows.
+
+DECISION
+- Keep current behavior.
+- Prioritize safe text editing over rapid repeated marker capture while input is focused.
+- Treat this as a UX tradeoff rather than a bug.
+
+FOLLOW-UP
+- Consider adding a clear “exit edit mode” action (e.g., `Esc`).
+- Consider a future capture mode or alternate interaction for rapid marker dropping while editing.
+- Consider a visible “editing marker” state to clarify that Enter updates an existing marker.

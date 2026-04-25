@@ -12,6 +12,7 @@ const {
 const {
   createBookmark,
   getSessionState,
+  updateBookmark,
 } = require("../../core/session");
 const { IPC_CHANNELS } = require("../shared/ipc-channels");
 
@@ -86,6 +87,7 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   ipcMainLike.handle(IPC_CHANNELS.revealSearchResult, (_event, targetPath) => revealDesktopPath(targetPath, { shellLike }));
   ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => runDesktopMockSearch(rootPath, query));
   ipcMainLike.handle(IPC_CHANNELS.createBookmark, (_event, bookmark) => createBookmark(bookmark));
+  ipcMainLike.handle(IPC_CHANNELS.updateBookmark, (_event, bookmarkUpdate) => updateBookmark(bookmarkUpdate));
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
 }
 
