@@ -374,6 +374,31 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### marker_timestamp_accuracy_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify that the visible marker timestamp label matches the expected `MM:SS.mmm` format and the captured audio position.
+- Sets audio to `duration * 0.5`, reads actual `currentTime` back from the DOM, computes the expected label using the same `formatTimeLabel` formula as the app, waits for the playback clock to match, creates a marker via the `B` hotkey, and asserts the `.bookmark-time` span equals the expected label.
+- Updated `.consync/docs/ui-e2e-coverage-map.md`: timestamp accuracy moved from Partially Covered to Covered, test list updated to 11 tests, recommended next tests renumbered.
+
+FILES
+- src/test/e2e/audio-marker-timestamp.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS (11/11 tests)
+- npm run verify:full → PASS
+
+FRICTION
+- None. Reading `el.currentTime` after assignment ensures the browser-clamped value is used as the expected value, not the requested target.
+
+DECISION
+- Replicate `formatTimeLabel` inline in the test rather than importing it from production code. This makes the test a contract check: if the app's format changes, the test breaks deliberately.
+
+FOLLOW-UP
+- Next e2e candidates: Recent Audio List, Search Panel.
+
 ### audio_file_note_e2e
 
 SUMMARY
