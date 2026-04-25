@@ -5,6 +5,7 @@ node_modules/
 out/
 
 *.mp3
+test-results/
 
 # Generated sandbox artifacts
 sandbox/current/*.json

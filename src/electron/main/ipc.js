@@ -1,4 +1,5 @@
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const {
@@ -16,6 +17,25 @@ const {
   updateBookmark,
 } = require("../../core/session");
 const { IPC_CHANNELS } = require("../shared/ipc-channels");
+
+const E2E_AUDIO_FIXTURE_BASE64 = "UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+
+function getE2eSelectedAudioFile() {
+  if (process.env.CONSYNC_E2E_AUDIO_FIXTURE !== "1") {
+    return null;
+  }
+
+  const fixturePath = path.join(os.tmpdir(), "consync-playwright-fixture.mp3");
+
+  return {
+    audioSrc: `data:audio/wav;base64,${E2E_AUDIO_FIXTURE_BASE64}`,
+    canceled: false,
+    fileName: "playwright-fixture.mp3",
+    filePath: fixturePath,
+    fileUrl: pathToFileURL(fixturePath).href,
+    ok: true,
+  };
+}
 
 function resolveSelectedAudioFile(selection, options = {}) {
   const fsModule = options.fsModule || fs;
@@ -75,6 +95,12 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   ipcMainLike.handle(IPC_CHANNELS.getShellInfo, () => getDesktopShellInfo());
   ipcMainLike.handle(IPC_CHANNELS.getSessionState, () => getSessionState());
   ipcMainLike.handle(IPC_CHANNELS.selectAudioFile, async () => {
+    const e2eSelectedAudioFile = getE2eSelectedAudioFile();
+
+    if (e2eSelectedAudioFile) {
+      return e2eSelectedAudioFile;
+    }
+
     const selection = await dialogLike.showOpenDialog({
       filters: [
         { name: "MP3 Audio", extensions: ["mp3"] },
