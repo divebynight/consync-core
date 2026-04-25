@@ -323,3 +323,27 @@ DECISION
 
 FOLLOW-UP
 - Continue filling the coverage map one user flow at a time, with fixture-load and timestamp-accuracy behavior as likely next additions.
+
+### audio_load_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify the fixture-based audio load step itself.
+- Confirms the real `Choose MP3` interaction loads the deterministic fixture without using the native file picker.
+- Verifies the UI is ready for follow-on marker work by checking visible load-state surfaces only.
+
+FILES
+- src/test/e2e/audio-load.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS
+
+FRICTION
+- The load flow depends on the deterministic fixture seam and Electron/Playwright harness staying aligned, so this test is as much infrastructure protection as UI coverage.
+
+DECISION
+- Keep the assertions user-facing and minimal: file name, playback UI, playback clock, and timeline markers visibility.
+- Do not expand this test into marker interaction coverage.
+
+FOLLOW-UP
+- Continue from the coverage map with timestamp-accuracy behavior or other remaining uncovered flows.
