@@ -7,6 +7,7 @@ const IPC_CHANNELS = {
   getShellInfo: "desktop:get-shell-info",
   getSessionState: "desktop:get-session-state",
   selectAudioFile: "desktop:select-audio-file",
+  getLastAudioFile: "desktop:get-last-audio-file",
   revealSearchResult: "desktop:reveal-search-result",
   runMockSearch: "desktop:run-mock-search",
   ping: "desktop:ping",

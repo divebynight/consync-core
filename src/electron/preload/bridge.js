@@ -23,6 +23,9 @@ function createDesktopBridge(invoke) {
     getSessionState() {
       return invoke(IPC_CHANNELS.getSessionState);
     },
+    getLastAudioFile() {
+      return invoke(IPC_CHANNELS.getLastAudioFile);
+    },
     selectAudioFile() {
       return invoke(IPC_CHANNELS.selectAudioFile);
     },

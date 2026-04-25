@@ -68,14 +68,16 @@ test("marker created through the audio UI persists after reloading the Electron 
     // Step 4: Reload the Electron window
     await window.reload();
 
-    // After reload the renderer re-initialises. The session state (including
-    // bookmarks) is fetched from the main process via IPC on mount. The audio
-    // file is renderer-only state and must be re-selected.
+    // After reload the renderer re-initialises. Session state (bookmarks) is
+    // fetched from the main process via IPC on mount. The audio file path is
+    // restored from the main process memory via getLastAudioFile, so no
+    // re-selection is required.
 
-    // Step 5a: Re-load the fixture audio (audio path is not persisted)
-    await loadFixtureAudio(window);
+    // Step 5: Verify the audio file is auto-restored (no Choose MP3 needed)
+    await expect(window.getByText("Selected file")).toBeVisible();
+    await expect(window.getByRole("button", { name: "playwright-fixture.mp3" })).toBeVisible();
 
-    // Step 5b: Verify the marker persists in the timeline markers section
+    // Step 6: Verify the marker persists in the timeline markers section
     const timelineMarkersSectionAfterReload = window.getByRole("heading", { name: "Timeline Markers" }).locator("..");
     await expect(timelineMarkersSectionAfterReload.getByText("persistence check marker")).toBeVisible();
   } finally {

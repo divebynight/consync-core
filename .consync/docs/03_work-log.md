@@ -374,6 +374,38 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### audio_reload_persistence
+
+SUMMARY
+- Added main-process memory for the last successfully loaded audio file via a new `getLastAudioFile` IPC channel.
+- On renderer mount, `getLastAudioFile` is called alongside `getSessionState`; if a previous audio file exists it is auto-restored without user interaction.
+- Updated `audio-marker-persist-reload.spec.js` to assert auto-restore after reload instead of requiring re-selection via `Choose MP3`.
+- Discovered that preload changes require a `vite build --config vite.preload.config.mjs` step before e2e tests see the updated bridge. Added `build:preload` npm script and updated `verify:full` to run it before `test:e2e`.
+
+FILES
+- src/electron/shared/ipc-channels.js
+- src/electron/main/ipc.js
+- src/electron/preload/bridge.js
+- src/electron/renderer/App.jsx
+- src/test/e2e/audio-marker-persist-reload.spec.js
+- vite.preload.config.mjs
+- package.json
+
+TESTS
+- npm run test:e2e → PASS (8 tests)
+
+FRICTION
+- Preload is compiled to `.vite/build/preload.js` and not hot-reloaded by the Vite dev server.
+- Any future changes to `src/electron/preload/bridge.js` require `npm run build:preload` before e2e tests reflect them.
+
+DECISION
+- Store `lastAudioFileResult` in main-process memory only (survives renderer reload, resets on full app restart).
+- Keep persistence minimal: no disk write, no new session field.
+- Encode the preload build requirement in `verify:full` rather than relying on developer memory.
+
+FOLLOW-UP
+- If full app restart persistence is needed later, `lastAudioFile` could be written to the session artifact JSON.
+
 ### sdc_implementation_template
 
 SUMMARY

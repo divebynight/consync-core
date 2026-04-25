@@ -14,6 +14,7 @@
     "start:desktop": "electron-forge start",
     "package:desktop": "electron-forge package",
     "make:desktop": "electron-forge make",
+    "build:preload": "vite build --config vite.preload.config.mjs",
     "test:e2e": "playwright test",
     "test:ui-search": "vitest run --environment jsdom src/test/app-search-flow.test.jsx",
     "test:handoff-contract": "node src/test/handoff-contract-checker.js",
@@ -25,7 +26,7 @@
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test": "npm run test:unit && npm run test:integration",
-    "verify:full": "npm run check:state-preflight && npm test && npm run test:e2e && npm run check:state-postflight"
+    "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"
   },
   "version": "0.0.11",
   "devDependencies": {

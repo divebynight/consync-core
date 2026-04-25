@@ -90,14 +90,18 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   const shellLike = options.shellLike || require("electron").shell;
   const dialogLike = options.dialogLike || require("electron").dialog;
 
+  let lastAudioFileResult = null;
+
   ipcMainLike.handle(IPC_CHANNELS.getBackendSummary, () => getDesktopBackendSummary());
   ipcMainLike.handle(IPC_CHANNELS.getConsyncSummary, () => getDesktopConsyncSummary());
   ipcMainLike.handle(IPC_CHANNELS.getShellInfo, () => getDesktopShellInfo());
   ipcMainLike.handle(IPC_CHANNELS.getSessionState, () => getSessionState());
+  ipcMainLike.handle(IPC_CHANNELS.getLastAudioFile, () => lastAudioFileResult);
   ipcMainLike.handle(IPC_CHANNELS.selectAudioFile, async () => {
     const e2eSelectedAudioFile = getE2eSelectedAudioFile();
 
     if (e2eSelectedAudioFile) {
+      lastAudioFileResult = e2eSelectedAudioFile;
       return e2eSelectedAudioFile;
     }
 
@@ -109,7 +113,13 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
       title: "Select Audio Note Source",
     });
 
-    return resolveSelectedAudioFile(selection, options);
+    const result = resolveSelectedAudioFile(selection, options);
+
+    if (result.ok) {
+      lastAudioFileResult = result;
+    }
+
+    return result;
   });
   ipcMainLike.handle(IPC_CHANNELS.revealSearchResult, (_event, targetPath) => revealDesktopPath(targetPath, { shellLike }));
   ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => runDesktopMockSearch(rootPath, query));

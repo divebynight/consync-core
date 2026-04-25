@@ -405,6 +405,7 @@ function getDesktopBridge() {
   if (
     !desktopBridge ||
     typeof desktopBridge.getSessionState !== "function" ||
+    typeof desktopBridge.getLastAudioFile !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
     typeof desktopBridge.deleteBookmark !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
@@ -624,7 +625,10 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const nextSessionState = await desktopBridge.getSessionState();
+      const [nextSessionState, lastAudioFile] = await Promise.all([
+        desktopBridge.getSessionState(),
+        desktopBridge.getLastAudioFile(),
+      ]);
 
       if (cancelled) {
         return;
@@ -632,6 +636,10 @@ export function App() {
 
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
+
+      if (lastAudioFile && lastAudioFile.ok) {
+        setSelectedAudioContext(lastAudioFile);
+      }
     }
 
     loadDesktopState().catch(error => {
