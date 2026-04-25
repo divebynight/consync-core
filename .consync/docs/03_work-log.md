@@ -374,6 +374,31 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### seek_to_marker_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify that clicking the "Seek to marker" button repositions the audio player at the marker's recorded timestamp.
+- Test positions audio at 50% of the fixture's actual duration using `currentTime` evaluate, creates a named marker, moves the clock to 0, clicks the seek button, and asserts the playback clock returns to the marker's displayed timestamp.
+- The expected clock value is read directly from the rendered marker row label, making the assertion self-consistent regardless of fixture duration.
+- Updated `.consync/docs/ui-e2e-coverage-map.md`: seek-to-marker moved from Partially Covered to Covered, test list updated to 9 tests.
+
+FILES
+- src/test/e2e/audio-seek-to-marker.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+
+TESTS
+- npm run test:e2e → PASS (9 tests)
+
+FRICTION
+- The fixture audio is very short (~0.1s), so hardcoded timestamps would always be clamped to the fixture boundary. Reading the expected value from the rendered marker label avoids this entirely.
+
+DECISION
+- Use `audio.duration * 0.5` as the seek target rather than a fixed value.
+- Assert against the marker row's own `.bookmark-time` label, not a hardcoded string.
+
+FOLLOW-UP
+- Next e2e candidates: File Note (non-timeline bookmark), timestamp accuracy.
+
 ### ui_e2e_coverage_map_audit
 
 SUMMARY

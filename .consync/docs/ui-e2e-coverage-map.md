@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
-Audited: 2026-04-25
-Suite: `src/test/e2e/` — 8 tests, 8 passing
+Audited: 2026-04-25 (updated 2026-04-25)
+Suite: `src/test/e2e/` — 9 tests, 9 passing
 
 ---
 
@@ -17,6 +17,7 @@ Suite: `src/test/e2e/` — 8 tests, 8 passing
 | `audio-marker-undo.spec.js` | Removes the most recently created marker with Cmd+Z in the audio workspace | regression |
 | `audio-multiple-markers.spec.js` | Creates multiple markers and renders them in stable insertion order | regression |
 | `audio-playback-toggle.spec.js` | Toggles playback on and off through the visible native audio control | smoke |
+| `audio-seek-to-marker.spec.js` | Clicking seek to marker positions the audio player at the marker timestamp | regression |
 
 ---
 
@@ -33,6 +34,7 @@ Suite: `src/test/e2e/` — 8 tests, 8 passing
 | Marker persistence after reload | ✅ Full | bookmarks rehydrated from disk on mount |
 | Audio path restoration after reload | ✅ Full | `lastAudioFile` restored from main-process memory |
 | Native playback toggle | ✅ Smoke | play + pause through visible native control, DOM media state |
+| Seek to marker | ✅ Full | click seek button → playback clock matches marker timestamp |
 
 ---
 
@@ -41,7 +43,6 @@ Suite: `src/test/e2e/` — 8 tests, 8 passing
 | Surface | Gap | Notes |
 |---|---|---|
 | Playback timestamp accuracy | ☐ Not asserted | audio-playback-toggle confirms play/pause but does not assert millisecond clock |
-| Seek to marker (× seek button) | ☐ Not asserted | `handleSeekToMarker` exists in App.jsx; `Seek to marker` button is rendered but no test clicks it |
 | Active marker highlight | ☐ Not asserted | `bookmark-item-active` class applied during playback; not asserted in any test |
 | Recent audio list | ☐ Not asserted | `recentAudioFiles` state updates on file load; UI renders file buttons; no test asserts them |
 
@@ -63,27 +64,22 @@ Suite: `src/test/e2e/` — 8 tests, 8 passing
 
 ## Recommended Next Tests (Prioritized)
 
-### 1. Seek to Marker
-- Priority: HIGH
-- Why: Core audio navigation feature; `Seek to marker` button exists in every marker test but is never clicked.
-- Flow: Create marker → click `Seek to marker` → assert playback clock reflects seek position.
-
-### 2. File Note (non-timeline bookmark)
+### 1. File Note (non-timeline bookmark)
 - Priority: HIGH
 - Why: Second bookmark type; separate list section in UI; currently zero coverage.
 - Flow: Load audio → fill note → click `Add Note` → assert note appears in File Notes section.
 
-### 3. Timestamp Accuracy
+### 2. Timestamp Accuracy
 - Priority: MEDIUM
 - Why: Clock and marker label rely on millisecond precision. No test checks the format or value.
 - Flow: Load audio → create marker → assert label matches `MM:SS.mmm` format.
 
-### 4. Recent Audio List
+### 3. Recent Audio List
 - Priority: MEDIUM
 - Why: `recentAudioFiles` is UI state that updates on every file load. Not verified end to end.
 - Flow: Load fixture → assert file name appears in Recent Audio sidebar list.
 
-### 5. Search Panel
+### 4. Search Panel
 - Priority: MEDIUM (deferred)
 - Why: Mock search flow is tested in `test:ui-search` (jsdom/vitest) but not in real Electron e2e.
 - Flow: Fill search form → run search → assert group/result rows → click result → assert inspector.
