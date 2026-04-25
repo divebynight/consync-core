@@ -374,6 +374,31 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### ui_e2e_coverage_map_audit
+
+SUMMARY
+- Created `.consync/docs/ui-e2e-coverage-map.md` as a current-state audit of the 8 passing Playwright/Electron e2e tests.
+- Maps each test to a coverage category (smoke, regression, integration).
+- Documents covered surfaces (audio load, hotkey marker, empty marker, ordering, delete, undo, persistence, reload, playback toggle), partially covered surfaces (seek, active highlight, recent audio, timestamp accuracy), and untested surfaces (file notes, timeline view, search panel, inspector, sidebar, error states).
+- Prioritizes 5 next e2e candidates: seek-to-marker, file note, timestamp accuracy, recent audio list, search panel.
+- Old `.consync/docs/ui-e2e-coverage.md` retained as historical record.
+
+FILES
+- .consync/docs/ui-e2e-coverage-map.md
+
+TESTS
+- None (docs only)
+
+FRICTION
+- None.
+
+DECISION
+- Keep the old coverage.md as a historical artifact rather than deleting it.
+- New map is the authoritative coverage reference going forward.
+
+FOLLOW-UP
+- Use the prioritized list to guide next e2e additions one test at a time.
+
 ### audio_reload_persistence
 
 SUMMARY

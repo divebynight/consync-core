@@ -1,0 +1,98 @@
+# UI e2e Coverage Map
+
+Audited: 2026-04-25
+Suite: `src/test/e2e/` — 8 tests, 8 passing
+
+---
+
+## Current Test List
+
+| File | Test Name | Category |
+|---|---|---|
+| `audio-hotkey-marker.spec.js` | Persists typed note text for the hotkey marker Enter flow in Electron | regression |
+| `audio-empty-marker.spec.js` | Preserves empty markers and allows the next hotkey marker after Enter | regression |
+| `audio-load.spec.js` | Loads the deterministic fixture audio through the Choose MP3 flow | smoke |
+| `audio-marker-delete.spec.js` | Removes only the targeted middle marker with the row delete button | regression |
+| `audio-marker-persist-reload.spec.js` | Marker and audio state persist after reloading the Electron window | integration |
+| `audio-marker-undo.spec.js` | Removes the most recently created marker with Cmd+Z in the audio workspace | regression |
+| `audio-multiple-markers.spec.js` | Creates multiple markers and renders them in stable insertion order | regression |
+| `audio-playback-toggle.spec.js` | Toggles playback on and off through the visible native audio control | smoke |
+
+---
+
+## Covered UI Surfaces
+
+| Surface | Coverage | Notes |
+|---|---|---|
+| Audio load via Choose MP3 | ✅ Full | fixture seam, file name, audio element, playback clock |
+| Hotkey marker creation (`B`) | ✅ Full | real keyboard, note input focus, note saved |
+| Empty marker creation | ✅ Full | `Untitled marker` label, edit mode exit, next `B` creates new marker |
+| Marker ordering (multiple) | ✅ Full | 3 markers in stable insertion order |
+| Marker delete (× button) | ✅ Full | targeted row delete, others remain |
+| Marker undo (Cmd+Z) | ✅ Full | removes most recent only |
+| Marker persistence after reload | ✅ Full | bookmarks rehydrated from disk on mount |
+| Audio path restoration after reload | ✅ Full | `lastAudioFile` restored from main-process memory |
+| Native playback toggle | ✅ Smoke | play + pause through visible native control, DOM media state |
+
+---
+
+## Partially Covered UI Surfaces
+
+| Surface | Gap | Notes |
+|---|---|---|
+| Playback timestamp accuracy | ☐ Not asserted | audio-playback-toggle confirms play/pause but does not assert millisecond clock |
+| Seek to marker (× seek button) | ☐ Not asserted | `handleSeekToMarker` exists in App.jsx; `Seek to marker` button is rendered but no test clicks it |
+| Active marker highlight | ☐ Not asserted | `bookmark-item-active` class applied during playback; not asserted in any test |
+| Recent audio list | ☐ Not asserted | `recentAudioFiles` state updates on file load; UI renders file buttons; no test asserts them |
+
+---
+
+## Untested UI Surfaces
+
+| Surface | Notes |
+|---|---|
+| File Notes (non-timeline bookmarks) | `Add Note` button path exists; `timeSeconds: null` bookmark type not covered by any test |
+| Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
+| Search panel | Mock search form, run search, group display, result selection, Reveal in Finder |
+| Inspector panel | Bookmark summary and selected result surfaces |
+| Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
+| Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
+| Error states | Audio load error, session error panel — no test covers failure paths |
+
+---
+
+## Recommended Next Tests (Prioritized)
+
+### 1. Seek to Marker
+- Priority: HIGH
+- Why: Core audio navigation feature; `Seek to marker` button exists in every marker test but is never clicked.
+- Flow: Create marker → click `Seek to marker` → assert playback clock reflects seek position.
+
+### 2. File Note (non-timeline bookmark)
+- Priority: HIGH
+- Why: Second bookmark type; separate list section in UI; currently zero coverage.
+- Flow: Load audio → fill note → click `Add Note` → assert note appears in File Notes section.
+
+### 3. Timestamp Accuracy
+- Priority: MEDIUM
+- Why: Clock and marker label rely on millisecond precision. No test checks the format or value.
+- Flow: Load audio → create marker → assert label matches `MM:SS.mmm` format.
+
+### 4. Recent Audio List
+- Priority: MEDIUM
+- Why: `recentAudioFiles` is UI state that updates on every file load. Not verified end to end.
+- Flow: Load fixture → assert file name appears in Recent Audio sidebar list.
+
+### 5. Search Panel
+- Priority: MEDIUM (deferred)
+- Why: Mock search flow is tested in `test:ui-search` (jsdom/vitest) but not in real Electron e2e.
+- Flow: Fill search form → run search → assert group/result rows → click result → assert inspector.
+
+---
+
+## Notes
+
+- All tests use `CONSYNC_E2E_AUDIO_FIXTURE=1` and a deterministic temp session dir.
+- Preload changes require `npm run build:preload` before e2e reflects them.
+- Run `npm run test:e2e` for UI_CHECK, `npm run verify:full` for FULL_VERIFY.
+- See `.consync/docs/verification-ladder.md` for level definitions.
