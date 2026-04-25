@@ -348,6 +348,32 @@ DECISION
 FOLLOW-UP
 - Continue from the coverage map with timestamp-accuracy behavior or other remaining uncovered flows.
 
+### marker_persist_reload_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to verify that a marker created through the real audio UI persists after reloading the Electron window.
+- Confirms that `createBookmark` writes the marker to the session artifact JSON on disk and that the renderer re-hydrates bookmarks from disk on mount after `window.reload()`.
+- Re-selects the audio fixture via `Choose MP3` after reload because audio file path is renderer-only state and is not persisted.
+
+FILES
+- src/test/e2e/audio-marker-persist-reload.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS (7 tests)
+
+FRICTION
+- Audio file path is in-memory renderer state, so it must be re-selected after any reload.
+- The test documents this limitation explicitly rather than hiding it behind a skip or mock.
+
+DECISION
+- Keep the test faithful to real reload behavior.
+- Do not fake persistence where it does not exist.
+- Treat the re-select step as accurate coverage of the current app model, not test noise.
+
+FOLLOW-UP
+- If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
+
 ### audio_playback_toggle_e2e
 
 SUMMARY
