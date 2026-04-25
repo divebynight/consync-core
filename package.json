@@ -24,7 +24,8 @@
     "verify": "node src/test/verify.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
-    "test": "npm run test:unit && npm run test:integration"
+    "test": "npm run test:unit && npm run test:integration",
+    "verify:full": "npm run check:state-preflight && npm test && npm run test:e2e && npm run check:state-postflight"
   },
   "version": "0.0.11",
   "devDependencies": {

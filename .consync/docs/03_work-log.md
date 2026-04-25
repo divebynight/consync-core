@@ -374,6 +374,30 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### verification_ladder
+
+SUMMARY
+- Added `.consync/docs/verification-ladder.md` defining three explicit verification levels: FAST_CHECK, UI_CHECK, and FULL_VERIFY.
+- Added `verify:full` npm script chaining `check:state-preflight`, `npm test`, `npm run test:e2e`, and `check:state-postflight` in order.
+- Provides a shared vocabulary for agents and humans to agree on verification scope without ambiguity.
+
+FILES
+- .consync/docs/verification-ladder.md
+- package.json
+
+TESTS
+- None (docs and process only)
+
+FRICTION
+- None.
+
+DECISION
+- Keep levels simple and map directly to existing commands.
+- Do not introduce new tooling or test behavior.
+
+FOLLOW-UP
+- Reference the ladder by level name in future handoffs and closeout prompts.
+
 ### audio_playback_toggle_e2e
 
 SUMMARY
