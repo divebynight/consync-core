@@ -374,6 +374,30 @@ DECISION
 FOLLOW-UP
 - If audio file path persistence is added to the session artifact or a local store, the re-select step can be removed from this test.
 
+### sdc_implementation_template
+
+SUMMARY
+- Added `.consync/templates/sdc-implementation-task.md` as a reusable copy-paste SDC template for future implementation tasks.
+- Template includes all required sections: MODE, TOOL, CONTEXT, TASK, GOAL, CONSTRAINTS, EXPECTED CHANGES, VERIFICATION, OUTPUT CONTRACT.
+- References FAST_CHECK, UI_CHECK, and FULL_VERIFY ladder levels; defaults closeout to FULL_VERIFY.
+- Provides pointers to the verification ladder doc and closeout-agent skill.
+
+FILES
+- .consync/templates/sdc-implementation-task.md
+
+TESTS
+- None (docs and process only)
+
+FRICTION
+- None.
+
+DECISION
+- Keep the template minimal and copy-paste friendly.
+- Do not split into multiple variant templates at this stage.
+
+FOLLOW-UP
+- A process/docs-only variant can be added later if the pattern diverges enough to warrant a separate template.
+
 ### verification_ladder
 
 SUMMARY
