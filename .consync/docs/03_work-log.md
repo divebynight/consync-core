@@ -275,3 +275,27 @@ DECISION
 
 FOLLOW-UP
 - Add the next e2e cases from the coverage map one user flow at a time, starting with delete or empty-marker behavior.
+
+### marker_delete_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to protect the per-marker delete (`×`) flow in the real audio workspace.
+- Verifies deletion by targeted row action rather than timestamp assumptions, so only the clicked marker is removed.
+- This extends coverage across the core marker lifecycle and helps complete create / edit / undo / delete behavior protection.
+
+FILES
+- src/test/e2e/audio-marker-delete.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS
+
+FRICTION
+- The test relies on the supported hotkey/finalize loop to create visible markers first, which keeps it faithful to real usage but makes the setup a little longer than a direct state-driven test.
+
+DECISION
+- Keep the test scoped to one real delete flow only.
+- Verify deletion through row-local UI action, not internal IDs or direct session mutation.
+
+FOLLOW-UP
+- Continue adding coverage from the map one user flow at a time, with empty-marker and fixture-load behavior as likely next candidates.
