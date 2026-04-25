@@ -299,3 +299,27 @@ DECISION
 
 FOLLOW-UP
 - Continue adding coverage from the map one user flow at a time, with empty-marker and fixture-load behavior as likely next candidates.
+
+### empty_marker_e2e
+
+SUMMARY
+- Added a Playwright Electron e2e test to protect empty marker behavior in the real audio workspace.
+- Verifies that empty input preserves the marker, defaults the visible label to `Untitled marker`, and exits edit mode correctly.
+- Confirms the next `B -> Enter` creates a second marker instead of reusing the previous one.
+
+FILES
+- src/test/e2e/audio-empty-marker.spec.js
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run test:e2e → PASS
+
+FRICTION
+- This flow is simple in the UI, but it is easy to regress because it depends on both marker persistence and clean exit from edit mode.
+
+DECISION
+- Keep this covered through real keyboard interaction only.
+- Treat visible `Untitled marker` output as the authoritative user-facing assertion.
+
+FOLLOW-UP
+- Continue filling the coverage map one user flow at a time, with fixture-load and timestamp-accuracy behavior as likely next additions.
