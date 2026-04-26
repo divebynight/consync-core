@@ -648,3 +648,28 @@ DECISION
 
 FOLLOW-UP
 - Consider updating existing packet examples to reference v3 once teams verify it works in practice.
+
+### search_panel_smoke_e2e
+
+SUMMARY
+- Added `src/test/e2e/search-panel-smoke.spec.js` — smoke coverage for the Search Panel.
+- Test navigates to the Search Panel via the "Search" button in the resume panel.
+- Asserts: heading "Search Related Work" visible, root input visible, query input visible, "Run Mock Search" button visible.
+- Updated `ui-e2e-coverage-map.md` to reflect the new test and move search panel navigation to covered surfaces.
+
+FILES
+- src/test/e2e/search-panel-smoke.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npx playwright test src/test/e2e/search-panel-smoke.spec.js → PASS
+
+FRICTION
+- None.
+
+DECISION
+- Search button in the resume panel is the only visible navigation path to the Search Panel. Test uses it directly rather than state manipulation.
+
+FOLLOW-UP
+- Input coverage (typing + running a search) will be covered in the next packet: search_panel_input_e2e.

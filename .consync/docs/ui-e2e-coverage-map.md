@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-25)
-Suite: `src/test/e2e/` — 12 tests, 12 passing
+Suite: `src/test/e2e/` — 13 tests, 13 passing
 
 ---
 
@@ -21,6 +21,7 @@ Suite: `src/test/e2e/` — 12 tests, 12 passing
 | `audio-file-note.spec.js` | Creates a file note that appears in the File Notes section and not in Timeline Markers | regression |
 | `audio-marker-timestamp.spec.js` | Marker timestamp label matches the expected MM:SS.mmm format for the captured position | regression |
 | `audio-recent-audio.spec.js` | Fixture file appears in Recent Audio list after loading via Choose MP3 | smoke |
+| `search-panel-smoke.spec.js` | Search panel is reachable and primary controls are visible | smoke |
 
 ---
 
@@ -41,6 +42,7 @@ Suite: `src/test/e2e/` — 12 tests, 12 passing
 | File Notes (non-timeline bookmarks) | ✅ Full | Add Note path, `timeSeconds: null` bookmark, File Notes section, not in Timeline Markers |
 | Marker timestamp label accuracy | ✅ Full | `MM:SS.mmm` format verified; captured `currentTime` matches rendered label |
 | Recent audio list | ✅ Full | file appears after load, active state class set, empty-state message gone |
+| Search panel navigation | ✅ Smoke | Search button click opens panel; heading, root input, query input, Run Mock Search button visible |
 
 ---
 
@@ -57,7 +59,7 @@ Suite: `src/test/e2e/` — 12 tests, 12 passing
 | Surface | Notes |
 |---|---|
 | Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
-| Search panel | Mock search form, run search, group display, result selection, Reveal in Finder |
+| Search panel (input + results) | Run search, group display, result selection, Reveal in Finder — navigation only smoke covered |
 | Inspector panel | Bookmark summary and selected result surfaces |
 | Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
 | Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
