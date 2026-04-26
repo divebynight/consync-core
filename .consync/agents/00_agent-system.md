@@ -2,6 +2,8 @@
 
 This document defines the basic invoked-agent structure for the current repo while preserving existing Consync behavior and integrity checks.
 
+A **Consync agent** is an invoked role with a bounded responsibility, defined inputs, and a required status output. Agents do not replace deterministic commands or runtime code. They decide, classify, verify, or summarize at specific handoff points in the work loop.
+
 ## Naming Boundary
 
 - **Consync** is the product currently represented by this repository and its local-first workflow surface.
@@ -12,7 +14,8 @@ This document defines the basic invoked-agent structure for the current repo whi
 ## Authority Boundary
 
 - `.consync/agents/` is the source of truth for invoked-agent roles and invocation order.
-- `.consync/.agents/skills/` may continue to hold executable or reusable skill workflows while this structure is introduced.
+- `.consync/.agents/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
+- If `.consync/agents/` and `.consync/.agents/skills/` appear to overlap, `.consync/agents/` defines the role and handoff point; `.consync/.agents/skills/` defines reusable procedure.
 - `.consync/docs/` remains the process documentation and reference surface.
 - `.consync/state/` remains authoritative live state and must not be edited manually outside the appropriate workflow.
 - `.github/` is an adapter layer only. It may point back to `.consync/agents/` and `.consync/docs/`, but it must not become a competing source of process truth.
@@ -21,26 +24,34 @@ This document defines the basic invoked-agent structure for the current repo whi
 
 1. **Preflight**
    - Establish current repo/process state before work begins.
-   - Confirm the packet can be safely attempted.
+   - Answer: can work safely start from this repo and process state?
+   - Invoke before intake or execution when a packet is mounted or a human asks to begin work.
 
 2. **Intake**
    - Classify the requested work and decide the correct surface.
+   - Answer: what kind of work is this, and which boundaries apply?
+   - Invoke after preflight passes and before implementation starts.
    - Preserve scope boundaries before implementation begins.
 
 3. **Execution/tool adapter**
    - Perform the requested implementation or invoke the tool-specific adapter needed to do it.
+   - This is a workflow phase, not currently a Consync agent.
+   - Do not treat it as an agent unless a dedicated agent definition is explicitly added later.
    - Keep runtime and process changes inside the declared packet scope.
 
 4. **Verify**
    - Run the smallest appropriate checks required by the changed surfaces.
+   - Invoke after execution changes are complete and before closeout.
    - Escalate to broader verification when source, state contracts, UI, or process integrity require it.
 
 5. **Closeout**
    - Summarize changed files, verification, risks, and commit readiness.
+   - Invoke after verify completes, or when failed verification must be reported as blocked.
    - Do not report a clean closeout if verification is failing.
 
 6. **Reentry**
    - Prepare the next operator or future session to resume safely.
+   - Invoke after closeout when context needs to be preserved for the next session or packet.
    - Preserve state handoff without inventing completed work.
 
 ## Status Meanings
