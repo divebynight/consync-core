@@ -4,6 +4,8 @@
 
 This runbook is the thin operating entrypoint for a new human, ChatGPT, or Copilot session.
 
+For AI tools requiring structured execution context, see: `.consync/docs/ai-context.md`
+
 Use it to answer two questions fast:
 
 1. How should Consync be operated right now?

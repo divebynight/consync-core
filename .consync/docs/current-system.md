@@ -13,3 +13,8 @@
   - See: `.consync/docs/feature-packet-execution.md`
 - Canonical example: search panel e2e coverage
   - See: `.consync/docs/examples/search-panel-feature-example.md`
+
+## AI Context
+
+- Primary entry point for AI tools interacting with Consync
+  - See: `.consync/docs/ai-context.md`
