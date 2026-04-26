@@ -55,7 +55,7 @@ This document is an observed inventory. It describes what exists and, where clea
 | `src/` | SOURCE | All production source code: CLI, commands, lib, Electron, renderer, tests |
 | `scripts/` | SOURCE | Project-level utility scripts (not CLI commands) |
 | `sandbox/` | SANDBOX | Fixture data, probe experiments, scan expectations, and GUID artifacts for development and manual verification |
-| `dev-harness/` | UNCERTAIN | Local HTTP development harness; contains a stub whiteboard server and empty fixtures folder |
+| `dev-harness/` | ~~UNCERTAIN~~ | ~~Local HTTP development harness~~ — **removed** in `cleanup-remove-dev-harness-v1` (2026-04-26) |
 | `test-results/` | BUILD | Playwright last-run output; generated artifact |
 | `node_modules/` | DEPS | Installed Node.js dependencies; managed by npm |
 | `.vite/` | BUILD | Vite build output; generated at build time |
@@ -173,10 +173,7 @@ Living context documents. Numbered prefix indicates intended reading order.
 
 ### `.consync/notes/`
 
-| File | Classification | Purpose |
-|---|---|---|
-| `refactor-notes-from-chatgpt.md` | UNCERTAIN | Raw working notes from a ChatGPT session; includes a latent bug note and summary of gatekeeper work; not a clean process artifact |
-| `image.png` | UNCERTAIN | Image referenced inline in `refactor-notes-from-chatgpt.md`; likely a screenshot from the ChatGPT session |
+**Removed** in `cleanup-remove-consync-notes-v1` (2026-04-26). Contained scratch session notes and an image; the only substantive content (a deferred bug note about `inferStreamFromRequest`) was confirmed fixed before removal.
 
 ---
 
@@ -331,11 +328,7 @@ Electron application structure.
 
 ## `dev-harness/` — Detail
 
-| File/Folder | Classification | Purpose |
-|---|---|---|
-| `server.js` | UNCERTAIN | A small HTTP server that reads and appends to a local `whiteboard.md` file; serves as a dev whiteboard over HTTP |
-| `artifacts/whiteboard.md` | UNCERTAIN | Stub whiteboard file; contains only the default template text; no real content present |
-| `fixtures/` | UNCERTAIN | Empty folder; no files present |
+**Removed** in `cleanup-remove-dev-harness-v1` (2026-04-26). Was an MCP-style local HTTP tool server (whiteboard read/write) with no active references, no real content, and no product dependency.
 
 ---
 
@@ -373,30 +366,19 @@ The following items are unclear, potentially redundant, generated, stale, or pos
 
 ### `dev-harness/server.js` and `dev-harness/artifacts/whiteboard.md`
 
-- **Current observed purpose:** A small local HTTP whiteboard server. The `whiteboard.md` file contains only stub template text with no real content.
-- **Why it might be removable:** The server is not referenced by any `package.json` script. The `fixtures/` folder inside `dev-harness/` is empty. No observed dependency from any other part of the codebase.
-- **Why it should remain:** It may have been used as an early dev scratch surface and could still serve that role manually. Removing it has no product risk.
-- **Recommendation:** REVIEW
-- **Risk:** Low. Not wired into any test or build. Removing it would have no observed effect on any other system surface.
+**Removed.** Executed in `cleanup-remove-dev-harness-v1` (2026-04-26). See `Deferred Cleanup Review (v1)` for findings.
 
 ---
 
 ### `dev-harness/fixtures/` (empty folder)
 
-- **Current observed purpose:** None observed. Empty.
-- **Why it might be removable:** No files, no references.
-- **Recommendation:** REMOVE CANDIDATE
-- **Risk:** Near zero. It is an empty folder.
+**Removed.** Executed in `cleanup-execution-safe-removals-v1` (2026-04-26).
 
 ---
 
 ### `.consync/notes/refactor-notes-from-chatgpt.md` and `.consync/notes/image.png`
 
-- **Current observed purpose:** Raw working notes from a ChatGPT session; includes a latent bug note about `inferStreamFromRequest` using `"ui"` as a substring signal, and a Copilot summary of in-progress gatekeeper state.
-- **Why it might be removable:** These are informal scratch notes, not a clean process artifact or decision record. The latent bug they reference may have since been addressed (or deferred) through later packages. The image is only meaningful in context of those notes.
-- **Why it should remain:** The bug note is potentially still valid (deferred to a separate package per the notes themselves). If it has not been addressed, removing the note removes the only documented record of that deferred fix.
-- **Recommendation:** REVIEW
-- **Risk:** Medium if the bug note is still live and has not been captured elsewhere. Low if the issue has been addressed or recorded in a more durable location.
+**Removed.** Executed in `cleanup-remove-consync-notes-v1` (2026-04-26). The `inferStreamFromRequest` bug described in those notes was confirmed fixed in `src/lib/gatekeeperMount.js` before removal. See `Deferred Cleanup Review (v1)` for findings.
 
 ---
 
@@ -479,11 +461,11 @@ The following items are unclear, potentially redundant, generated, stale, or pos
 
 ## Uncertain Areas
 
-1. **`dev-harness/`** — The server and whiteboard exist but are not wired into any script, test, or build path. Purpose unclear beyond early scratch use.
+1. ~~**`dev-harness/`**~~ — **Resolved.** Removed in `cleanup-remove-dev-harness-v1` (2026-04-26).
 
-2. **`.consync/notes/`** — The raw notes and image feel like ad-hoc session scratch material rather than a defined process surface. No other `.consync/` subfolder operates this way.
+2. ~~**`.consync/notes/`**~~ — **Resolved.** Removed in `cleanup-remove-consync-notes-v1` (2026-04-26).
 
-3. **`inferStreamFromRequest` latent bug** — Noted in `.consync/notes/refactor-notes-from-chatgpt.md` as deferred. No separate ticket or package plan observed that explicitly tracks this fix. Unknown if it has been resolved in later commits.
+3. ~~**`inferStreamFromRequest` latent bug**~~ — **Resolved.** Bug was confirmed fixed in `src/lib/gatekeeperMount.js` (word-boundary matching for short signals). Notes removed after confirmation.
 
 4. **Duplicate numbered files in `.consync/docs/` vs `.consync/artifacts/`** — `03_work-log.md` and `04_next-steps.md` appear in `docs/` but the numbered artifact sequence belongs in `artifacts/`. Whether these are exact duplicates or have diverged is not confirmed.
 
@@ -509,7 +491,7 @@ Items confirmed safe to remove. No source code, no active process content, no li
 
 **`.DS_Store` files — all instances**
 
-- Path: `./.DS_Store`, `./.consync/.DS_Store`, `./sandbox/fixtures/.DS_Store`, `./sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/.DS_Store`, `./sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/.DS_Store`, `./sandbox/probes/audio-session-capture/.DS_Store`, `./sandbox/probes/audio-session-capture/workdir/.DS_Store`, `./sandbox/probes/audio-session-capture/workdir/media/.DS_Store`, `./dev-harness/.DS_Store`
+- Path: `./.DS_Store`, `./.consync/.DS_Store`, `./sandbox/fixtures/.DS_Store`, `./sandbox/fixtures/nested-anchor-trial/2026/april/balcony-zine/.DS_Store`, `./sandbox/fixtures/nested-anchor-trial/2026/april/greenhouse-poster/.DS_Store`, `./sandbox/probes/audio-session-capture/.DS_Store`, `./sandbox/probes/audio-session-capture/workdir/.DS_Store`, `./sandbox/probes/audio-session-capture/workdir/media/.DS_Store`
 - Original Recommendation: REMOVE CANDIDATE
 - Final Decision: **REMOVE**
 - Reason: macOS Finder metadata. No project content. Already excluded by `.gitignore`. These files should not be in git at all.
@@ -537,9 +519,9 @@ Items that require human judgment before action. Not safe to remove without veri
 
 - Path: `./dev-harness/server.js`, `./dev-harness/artifacts/whiteboard.md`
 - Original Recommendation: REVIEW
-- Final Decision: **DEFER**
-- Reason: Server is not wired into any script, test, or build path. Whiteboard contains only stub content. Purpose is unclear. The human should confirm whether this was an active scratch tool or can be removed.
-- Risk Confirmation: Low. No test, build, or process path references it. Deferring until a human confirms intent.
+- Final Decision: **REMOVE** *(updated after deferred review)*
+- Executed: `cleanup-remove-dev-harness-v1` (2026-04-26)
+- Outcome: Entire `dev-harness/` folder removed. No references found.
 
 ---
 
@@ -547,9 +529,9 @@ Items that require human judgment before action. Not safe to remove without veri
 
 - Path: `./.consync/notes/refactor-notes-from-chatgpt.md`, `./.consync/notes/image.png`
 - Original Recommendation: REVIEW
-- Final Decision: **DEFER**
-- Reason: Contains a deferred bug note about `inferStreamFromRequest` using `"ui"` as a substring signal. That bug has not been confirmed resolved or formally tracked elsewhere. Removing these notes before that determination removes the only observed record of the issue.
-- Risk Confirmation: Deferred because the latent bug note may still be live. A human should confirm whether the fix was applied in a later commit or whether a package plan should be opened to track it before these notes are removed.
+- Final Decision: **REMOVE** *(updated after deferred review)*
+- Executed: `cleanup-remove-consync-notes-v1` (2026-04-26)
+- Outcome: `.consync/notes/` folder removed. Bug confirmed fixed before removal.
 
 ---
 
