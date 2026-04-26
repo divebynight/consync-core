@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-25)
-Suite: `src/test/e2e/` — 15 tests, 15 passing
+Suite: `src/test/e2e/` — 16 tests, 16 passing
 
 ---
 
@@ -24,6 +24,7 @@ Suite: `src/test/e2e/` — 15 tests, 15 passing
 | `search-panel-smoke.spec.js` | Search panel is reachable and primary controls are visible | smoke |
 | `search-panel-input.spec.js` | Search panel input values are preserved and run search produces stable grouped results | regression |
 | `inspector-empty-state.spec.js` | Inspector Panel renders empty state on initial load with no bookmarks | smoke |
+| `inspector-marker-selection.spec.js` | Clicking a timeline marker updates the Inspector Panel to show Selected Marker details | regression |
 
 ---
 
@@ -47,6 +48,7 @@ Suite: `src/test/e2e/` — 15 tests, 15 passing
 | Search panel navigation | ✅ Smoke | Search button click opens panel; heading, root input, query input, Run Mock Search button visible |
 | Search panel input + results | ✅ Full | fill inputs, run search, assert query value, group session titles, match artifact rows; click match row, assert inspector updates |
 | Inspector panel empty state | ✅ Smoke | No Selection Yet heading, empty-state copy, Hint panel — verified on cold load with empty session |
+| Inspector panel marker selection | ✅ Full | Click timeline marker seek button → Inspector transitions from Latest Bookmark to Selected Marker; note text confirmed |
 
 ---
 
@@ -64,7 +66,7 @@ Suite: `src/test/e2e/` — 15 tests, 15 passing
 |---|---|
 | Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
 | Search panel (Reveal in Finder) | Reveal in Finder path after selecting a match is not tested in e2e |
-| Inspector panel | Inspector Latest Bookmark state (requires session with pre-seeded bookmarks or audio loading) |
+| Inspector panel | Inspector Latest Bookmark state tested implicitly (session with bookmark, before marker click); dedicated assertion not yet written |
 | Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
 | Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
 | Error states | Audio load error, session error panel — no test covers failure paths |

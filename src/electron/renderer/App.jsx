@@ -506,11 +506,15 @@ function NavigationButton({ active, children, onClick }) {
   );
 }
 
-function InspectorPanel({ searchResult, selectedAudioFile, selectedMatchKey, sessionState }) {
+function InspectorPanel({ searchResult, selectedAudioFile, selectedBookmarkId, selectedMatchKey, sessionState }) {
   const selectedDetail = getSelectedMockSearchDetail(searchResult, selectedMatchKey);
   const selectedAudioBookmarks = sessionState && selectedAudioFile
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
+  const allBookmarks = sessionState && Array.isArray(sessionState.bookmarks) ? sessionState.bookmarks : [];
+  const selectedBookmark = selectedBookmarkId
+    ? allBookmarks.find(bookmark => bookmark.id === selectedBookmarkId) || null
+    : null;
   const latestBookmark = selectedAudioBookmarks.length > 0
     ? selectedAudioBookmarks[selectedAudioBookmarks.length - 1]
     : sessionState && sessionState.bookmarks.length > 0
@@ -535,6 +539,13 @@ function InspectorPanel({ searchResult, selectedAudioFile, selectedMatchKey, ses
           <StatusRow label="Anchor" value={selectedDetail.anchorPath} />
           <StatusRow label="Tags" value={selectedDetail.tags.length > 0 ? selectedDetail.tags.join(", ") : "none"} />
           <p className="inspector-note">{selectedDetail.note}</p>
+        </article>
+      ) : selectedBookmark ? (
+        <article className="panel panel-secondary">
+          <h3>Selected Marker</h3>
+          <StatusRow label="Time" value={getBookmarkTimeLabel(selectedBookmark)} />
+          <StatusRow label="Note" value={selectedBookmark.note || "none"} />
+          {selectedBookmark.filePath ? <StatusRow label="File" value={getFileName(selectedBookmark.filePath)} /> : null}
         </article>
       ) : latestBookmark ? (
         <article className="panel panel-secondary">
@@ -581,6 +592,7 @@ export function App() {
   const [activeView, setActiveView] = useState("workspace");
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
   const [activeEditableMarkerId, setActiveEditableMarkerId] = useState(null);
+  const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
   const activeEditableMarkerIdRef = useRef(null);
@@ -1255,7 +1267,7 @@ export function App() {
                                   <button
                                     aria-label={`Seek to marker ${getBookmarkDisplayNote(bookmark)}`}
                                     className="bookmark-marker-button"
-                                    onClick={() => handleSeekToMarker(bookmark.timeSeconds)}
+                                    onClick={() => { handleSeekToMarker(bookmark.timeSeconds); setSelectedBookmarkId(bookmark.id || null); }}
                                     type="button"
                                   >
                                     <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
@@ -1426,6 +1438,7 @@ export function App() {
         <InspectorPanel
           searchResult={searchResult}
           selectedAudioFile={selectedAudioFile}
+          selectedBookmarkId={selectedBookmarkId}
           selectedMatchKey={selectedMatchKey}
           sessionState={sessionState}
         />

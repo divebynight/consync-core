@@ -752,3 +752,31 @@ DECISION
 FOLLOW-UP
 - Inspector "Latest Bookmark" path: seed session JSON with a bookmark → assert Inspector shows Latest Bookmark heading and note text.
 - Inspector "Selected Result" path: already partially covered via search-panel-input.spec.js; a dedicated inspector spec could assert more detail.
+
+### inspector_marker_selection_behavior
+
+SUMMARY
+- Added minimal production behavior so clicking a timeline marker seek button updates the Inspector Panel.
+- Added `selectedBookmarkId` state to App; clicking the seek button now sets it alongside seeking audio.
+- Updated `InspectorPanel` to accept `selectedBookmarkId`, find the matching bookmark, and render a "Selected Marker" panel (distinct from "Latest Bookmark" and "No Selection Yet").
+- Added e2e spec verifying the state transition: Latest Bookmark → Selected Marker after click.
+
+FILES
+- src/electron/renderer/App.jsx
+- src/test/e2e/inspector-marker-selection.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npx playwright test src/test/e2e/inspector-marker-selection.spec.js → PASS
+- CI=true npm run verify:full → PASS (16 e2e tests)
+
+FRICTION
+- `getByText(note)` matched 4 elements (seek button aria-label, timeline marker label, inspector note rows). Fixed by scoping to `.workspace-inspector` locator.
+
+DECISION
+- Clicking seek button performs both seek AND inspector selection. Combined in one click action to match user mental model: clicking a marker means "I want to look at this marker," not just seek to it.
+
+FOLLOW-UP
+- Inspector "Latest Bookmark" dedicated test (pre-seeded session, no audio required).
+- Inspector "Selected Result" path: already covered implicitly in search-panel-input.spec.js.
