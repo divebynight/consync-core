@@ -558,6 +558,130 @@ Items that require human judgment before action. Not safe to remove without veri
 - Path: `./.consync/docs/03_work-log.md`, `./.consync/docs/04_next-steps.md`
 - Original Recommendation: REVIEW
 - Final Decision: **DEFER**
+- Reason: Possible duplicates of numbered artifacts in `.consync/artifacts/`. Content not confirmed identical. A human should compare before removing.
+- Risk Confirmation: Low. Ambiguity is the cost of keeping both; information loss is the cost of removing the wrong one.
+
+---
+
+**`.consync/artifacts/marker-capture-resume.md`**
+
+- Path: `./.consync/artifacts/marker-capture-resume.md`
+- Original Recommendation: REVIEW
+- Final Decision: **DEFER**
+- Reason: Feature is defined but not implemented. Status of implementation is not confirmed.
+- Risk Confirmation: Low to defer. Keeping a stale resume anchor is harmless. Removing an active one loses context.
+
+---
+
+### Intentional Keeps
+
+Items reviewed and confirmed to stay as-is.
+
+---
+
+**`.consync/artifacts/archive/`** — KEEP. Intentional historical archive. Low cost. No runtime or process dependency.
+
+**`.consync/streams/process/history/` and `.consync/streams/electron_ui/history/`** — KEEP. Scaffolded placeholders for a defined future use.
+
+**`.consync/packets/`** — KEEP. Append-only paper trail. Already gitignored. Consistent with traceability model.
+
+**`.consync/docs/work-manager-agent.md`** — KEEP. Explicit concept doc. No process or runtime dependency.
+
+**`sandbox/probes/audio-session-capture/workdir/`** — KEEP. Valid probe reference data. Already gitignored.
+
+---
+
+## Deferred Cleanup Review (v1)
+
+Captured: 2026-04-26
+
+This section records the findings from inspecting each deferred item. Content was read; no files were deleted, moved, merged, or renamed.
+
+---
+
+### `dev-harness/server.js` and `dev-harness/artifacts/whiteboard.md`
+
+**Observed content:**
+- `server.js` is a small HTTP server listening on port 3000. It exposes two tool calls over JSON POST: `read_whiteboard` and `append_whiteboard`. Both operate on `artifacts/whiteboard.md`.
+- `artifacts/whiteboard.md` contains only the default stub template text. No real content has been appended.
+
+**References from rest of repo:** None. `grep` across `src/`, `scripts/`, and `package.json` finds no reference to `dev-harness`, `server.js`, or `whiteboard`.
+
+**Assessment:** This is an MCP-style tool server stub — a local HTTP endpoint that exposes whiteboard read/write as tool calls, likely built as an early experiment for AI tool access to a shared scratch surface. It was never wired into any script, test, or build path, and the whiteboard has never been used. The `artifacts/` folder exists only to hold `whiteboard.md`.
+
+**Classification:** REMOVE CANDIDATE
+
+**Reason:** No references, no real content, no active use observed. The entire `dev-harness/` folder is inert.
+
+**Risk of removal:** Low. Nothing in the product, tests, or process depends on it. If a similar tool server is needed later, it can be rebuilt from scratch in minutes.
+
+**Recommended next packet:** `remove_dev_harness_folder` — remove `dev-harness/` entirely (server.js, artifacts/whiteboard.md, and the dev-harness folder itself). Docs-only confirm first, then a one-step removal.
+
+---
+
+### `.consync/notes/refactor-notes-from-chatgpt.md` and `.consync/notes/image.png`
+
+**Observed content:**
+- The notes file contains a ChatGPT session summary with a checkpoint of gatekeeper implementation state, a Copilot summary of `git status`, and a latent bug note: `inferStreamFromRequest` uses `"ui"` as a plain substring signal, which false-positives on words like `"guid"`, `"build"`, `"suite"`. The note says the fix is deferred to a separate package.
+- `image.png` is referenced as `![summary](image.png)` at the top of the notes file. It is likely a screenshot from the ChatGPT session.
+
+**Bug status check:** `inferStreamFromRequest` still exists in `src/lib/gatekeeperMount.js`. Inspecting the current implementation shows the fix **has been applied**: the function now uses a `wordBoundarySignals` set and applies word-boundary matching for short signals like `"ui"`. The bug noted in these scratch notes is resolved in the current source.
+
+**Assessment:** The latent bug has been fixed. The notes file's only non-trivial content — the bug note — is no longer live. The rest of the file is an ad-hoc session checkpoint that has no ongoing value. The image is meaningful only in the context of those notes.
+
+**Classification:** REMOVE CANDIDATE
+
+**Reason:** The bug described in the notes is confirmed fixed in `src/lib/gatekeeperMount.js`. The notes file is scratch material with no ongoing process value. The `.consync/notes/` folder has no defined process role and is not referenced by any process doc, runbook, or agent definition.
+
+**Risk of removal:** Low. The bug is fixed. No process or runtime dependency on this folder. Removing it does not affect any test, build, or system behavior.
+
+**Recommended next packet:** `remove_consync_notes_folder` — remove `.consync/notes/refactor-notes-from-chatgpt.md`, `.consync/notes/image.png`, and the `.consync/notes/` folder. One-step removal.
+
+---
+
+### `.consync/docs/03_work-log.md` and `.consync/docs/04_next-steps.md`
+
+**Observed content:**
+
+`.consync/docs/03_work-log.md` — This is a **live, actively updated work log** in the `docs/` surface. It contains detailed entries for recent completed packages including e2e test coverage work from 2026-04-26. Each entry records packet ID, summary, files changed, tests run, friction notes, and decisions. This is the work log that active development entries are being written to.
+
+`.consync/docs/04_next-steps.md` — This contains near-term package candidates and horizon notes for the audio workflow. It is brief and forward-looking.
+
+`.consync/artifacts/03_work-log.md` — The `artifacts/` version is an **older, shorter work log** from an earlier phase of the project (unified handoff workflow, list-guid, show-guid commands). It predates the e2e coverage work.
+
+**Assessment:** These are **not duplicates**. They serve different purposes:
+
+- `.consync/docs/03_work-log.md` is the **current active work log**, actively appended by development workflows. It is the live record.
+- `.consync/artifacts/03_work-log.md` is an **older artifact-level log** from the early CLI feature phase. It has not been updated recently.
+- `.consync/docs/04_next-steps.md` contains planning candidates that do not appear in the artifacts surface.
+
+The numbered prefix naming (`03_`, `04_`) creates visual ambiguity between `docs/` and `artifacts/`, but the contents are distinct and both have value.
+
+**Classification:** KEEP both; rename or re-clarify the relationship if ambiguity becomes a problem.
+
+**Reason:** `.consync/docs/03_work-log.md` is actively used. `.consync/artifacts/03_work-log.md` is historical. Neither is a duplicate of the other. Removing either would lose content.
+
+**Risk of removal:** Medium for `docs/03_work-log.md` — it is the live work log. Low for `artifacts/03_work-log.md` — it is historical, but still records real completed work from the early phase.
+
+**Recommended next packet:** None required for removal. If the numbered-prefix ambiguity is confusing, a future `clarify_work_log_naming` docs packet could rename or cross-reference them. Not urgent.
+
+---
+
+### `.consync/artifacts/marker-capture-resume.md`
+
+**Observed content:** States that the marker capture feature (`05_marker-capture.md`) is defined but not implemented. Identifies the next step as implementing the `mark` command only. Includes mental model constraints and a target interaction example (`m "note here"`).
+
+**Implementation status check:** `grep` across `src/commands/` and `src/index.js` finds no `mark` command, no reference to `marker-capture`, and no reference to `05_marker`. The feature has **not been implemented**.
+
+**Assessment:** The resume context is **still accurate**. The marker capture feature is defined in `.consync/artifacts/05_marker-capture.md` and has not been implemented. `marker-capture-resume.md` is a valid, live resume anchor for that deferred feature.
+
+**Classification:** KEEP
+
+**Reason:** The feature it describes is still pending. The file accurately represents current state. Removing it would lose the resume context for a defined but unstarted feature.
+
+**Risk of removal:** Low-medium. Removes the only explicit resume anchor for the marker capture feature. The feature definition in `05_marker-capture.md` would remain, but the scoped implementation guidance would be gone.
+
+**Recommended next packet:** None for cleanup. When the marker capture feature is ready to implement, this file is the correct starting point. After implementation, it can be archived or removed as part of that package's closeout.
 - Reason: These files share names with the numbered artifact sequence in `.consync/artifacts/`. Whether they are stale duplicates or have diverged in content is not confirmed. A human should compare them against their `artifacts/` counterparts and decide which to keep.
 - Risk Confirmation: Low risk to defer. Keeping both creates minor ambiguity but no system failure. Removing without confirming content match risks losing information.
 
