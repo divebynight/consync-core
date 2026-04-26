@@ -10,7 +10,27 @@ Invoke after execution changes are complete and before closeout.
 
 ## Binding Status
 
-Currently unbound. No command, prompt/process surface, runner, orchestrator, or automatic dispatcher is bound to this agent yet.
+Bound to the existing verification command surface documented in `.consync/docs/verification-ladder.md`.
+
+This is a command-based evidence contract, not a runner, orchestrator, automatic dispatcher, or subjective review agent.
+
+## Command Binding
+
+The Verify agent uses existing package scripts and verification levels only:
+
+- `npm run verify` for the repo's normal verification surface.
+- `npm test` for `FAST_CHECK`.
+- `npm run test:e2e` for `UI_CHECK`.
+- `npm run verify:full` for `FULL_VERIFY`.
+
+The packet, trigger level, or human instruction determines which existing command(s) to run. The Verify agent does not add new commands.
+
+## Evidence Reported
+
+- Commands run.
+- Pass/fail result for each command.
+- Relevant failing output or suspected failure cause.
+- Any required verification that was not run.
 
 ## Inputs
 
@@ -37,6 +57,9 @@ Currently unbound. No command, prompt/process surface, runner, orchestrator, or 
 
 ## Guardrails
 
+- Verify reports evidence; it does not decide by itself whether work is acceptable.
+- Preflight establishes whether work can safely start before execution.
+- Closeout uses Verify evidence, plus changed files and process requirements, to decide commit readiness or blocked status.
 - No clean `PASS` if any required verification fails.
 - Do not delete, skip, or weaken failing tests to get green results.
 - Do not claim unrun checks passed.

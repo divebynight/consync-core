@@ -43,6 +43,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 4. **Verify**
    - Run the smallest appropriate checks required by the changed surfaces.
    - Invoke after execution changes are complete and before closeout.
+   - Current concrete surface: existing verification commands documented in `.consync/docs/verification-ladder.md`.
    - Escalate to broader verification when source, state contracts, UI, or process integrity require it.
 
 5. **Closeout**
@@ -63,9 +64,12 @@ Agent execution bindings are incremental. A binding means an existing command, p
 Current bindings:
 
 - **Preflight agent** → `npm run check:state-preflight`
+- **Verify agent** → existing verification commands documented in `.consync/docs/verification-ladder.md`
 - **Closeout agent** → `.consync/.agents/skills/closeout-agent.md`
 
 The Closeout binding is a prompt/process binding, not a command binding. `.github/prompts/run_closeout.prompt.md` is an adapter for that workflow, not the authoritative Closeout agent definition.
+
+Verify is a command-based evidence contract. It reports commands run and outcomes; it does not decide by itself whether work is acceptable.
 
 No other agents are bound to concrete commands or prompt/process surfaces yet.
 
