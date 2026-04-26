@@ -625,3 +625,26 @@ DECISION
 
 FOLLOW-UP
 - If playback status becomes more important in the workspace, consider a small renderer-owned visible state near the playback clock.
+
+### work_packet_v3_template
+
+SUMMARY
+- Added `.consync/templates/work-packet-v3.md` — a reusable WORK_PACKET template with explicit idempotency detection.
+- Template defines three first-class outcomes: COMPLETE, ALREADY_COMPLETE, and STOPPED.
+- ALREADY_COMPLETE path checks for expected artifact, updated docs, work-log entry, and latest commit touching relevant files before performing any work.
+- No production code modified.
+
+FILES
+- .consync/templates/work-packet-v3.md
+
+TESTS
+- npm test → PASS
+
+FRICTION
+- None.
+
+DECISION
+- ALREADY_COMPLETE and STOPPED are first-class outcomes, not error states. This reflects observed agent behavior where re-running a completed packet should not duplicate work.
+
+FOLLOW-UP
+- Consider updating existing packet examples to reference v3 once teams verify it works in practice.
