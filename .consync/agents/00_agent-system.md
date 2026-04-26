@@ -14,11 +14,26 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 ## Authority Boundary
 
 - `.consync/agents/` is the source of truth for invoked-agent roles and invocation order.
+- `.consync/agents/entry-adapter.md` defines the manual Phase 2 input-classification adapter for recommending which existing agent a human should invoke next.
 - `.consync/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
 - If `.consync/agents/` and `.consync/skills/` appear to overlap, `.consync/agents/` defines the role and handoff point; `.consync/skills/` defines reusable procedure.
 - `.consync/docs/` remains the process documentation and reference surface.
 - `.consync/state/` remains authoritative live state and must not be edited manually outside the appropriate workflow.
 - `.github/` is an adapter layer only. It may point back to `.consync/agents/` and `.consync/docs/`, but it must not become a competing source of process truth.
+
+## Entry Adapter
+
+The Phase 2 Entry Adapter lives at `.consync/agents/entry-adapter.md`.
+
+It is a manual prompt/document layer that classifies incoming input and recommends the next manually invoked Consync agent:
+
+- New work request -> Intake
+- Before repo changes -> Preflight
+- Verification/evidence request -> Verify
+- Closeout/commit readiness -> Closeout
+- Stale/lost context or interrupted work -> Reentry
+
+The Entry Adapter is unbound and manual unless explicitly invoked. It does not execute agents, auto-dispatch, choose hidden workflows, modify repo state, collapse agent responsibilities, or act as a runner, dispatcher, or orchestrator.
 
 ## Invocation Order
 
@@ -79,7 +94,7 @@ Intake classifies only. It does not approve work, start work, modify files, or r
 
 Reentry reconstructs only. It is not authoritative over repo state, process state, or next work.
 
-No additional agents are defined or bound.
+No additional agents are defined or bound. The Entry Adapter is not an additional agent binding; it is a manual classification adapter that can recommend one existing agent for human invocation.
 
 ## Status Meanings
 

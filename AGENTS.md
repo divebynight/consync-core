@@ -12,6 +12,7 @@ Use these boundaries when working in this repo:
 
 ## Required Workflow Pointers
 
+- Use `.consync/agents/entry-adapter.md` only when incoming input needs manual classification before choosing which existing Consync agent to invoke. It recommends the next agent; it does not auto-dispatch, execute agents, or modify repo state.
 - Use the Closeout agent after human-approved completed work to verify tests, docs, integrity, and commit readiness. Its current bound process surface is `.consync/skills/closeout-agent.md`.
 - Use `.consync/skills/ingestion-gatekeeper.md` before adding external context so it is classified conservatively and placed in the right Consync surface.
 
