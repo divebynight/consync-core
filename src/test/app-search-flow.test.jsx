@@ -89,6 +89,7 @@ function createDesktopBridge(overrides = {}) {
       sessionDirectoryExists: true,
       sessionCount: 4,
     }),
+    getLastAudioFile: vi.fn().mockResolvedValue(null),
     getSessionState: vi.fn().mockResolvedValue({
       artifactCount: 4,
       bookmarks: [],
