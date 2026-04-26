@@ -69,14 +69,6 @@ Suite: `src/test/e2e/` — 14 tests, 14 passing
 
 ---
 
-## Recommended Next Tests (Prioritized)
-
-### 1. Search Panel
-- Priority: MEDIUM (deferred)
-- Why: Mock search flow is tested in `test:ui-search` (jsdom/vitest) but not in real Electron e2e.
-- Flow: Fill search form → run search → assert group/result rows → click result → assert inspector.
-
----
 
 ## Notes
 

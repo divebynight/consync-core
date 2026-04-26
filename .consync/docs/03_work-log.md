@@ -701,3 +701,27 @@ DECISION
 FOLLOW-UP
 - Reveal in Finder path is not covered in e2e; it invokes a native shell action that is harder to assert in Playwright.
 - Packet 3 (search_panel_coverage_closeout) will confirm the coverage map is accurate and run final FULL_VERIFY.
+
+### search_panel_coverage_closeout
+
+SUMMARY
+- Confirmed coverage map accuracy for the search_panel_e2e_coverage_v1 feature.
+- Removed the now-stale "Recommended Next Tests — Search Panel" section from `ui-e2e-coverage-map.md`.
+- Coverage map reflects 14 tests, 14 passing, with search panel navigation (smoke) and input + results (full) both documented.
+- No production code changed.
+
+FILES
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npm run verify:full → PASS (14 e2e tests)
+
+FRICTION
+- None.
+
+DECISION
+- Search panel coverage is complete for the current surface. Reveal in Finder remains untested (native shell, not practical to assert in e2e).
+
+FOLLOW-UP
+- Next coverage candidates: Timeline view, Inspector panel, or error states.
