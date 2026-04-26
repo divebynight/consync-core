@@ -4,6 +4,10 @@
 
 Confirm the repo and Consync process state are safe before a packet begins.
 
+## Invocation Point
+
+Invoke before intake or execution when a packet is mounted or a human asks to begin work.
+
 ## Inputs
 
 - Current user packet or task statement

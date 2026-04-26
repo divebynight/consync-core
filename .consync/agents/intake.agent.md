@@ -4,6 +4,10 @@
 
 Classify incoming work and route it to the correct Consync or ScaffoldAi surface before implementation.
 
+## Invocation Point
+
+Invoke after preflight passes and before implementation starts.
+
 ## Inputs
 
 - User request or packet

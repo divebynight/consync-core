@@ -4,6 +4,10 @@
 
 Run and interpret the checks required for the changed surfaces.
 
+## Invocation Point
+
+Invoke after execution changes are complete and before closeout.
+
 ## Inputs
 
 - Changed files

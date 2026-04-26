@@ -4,6 +4,10 @@
 
 Prepare completed work for safe handoff or commit readiness after implementation and verification.
 
+## Invocation Point
+
+Invoke after verify completes, or when failed verification must be reported as blocked.
+
 ## Inputs
 
 - `git status --short`

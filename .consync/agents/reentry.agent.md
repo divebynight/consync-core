@@ -4,6 +4,10 @@
 
 Make the next session safe to resume by preserving concise, accurate context.
 
+## Invocation Point
+
+Invoke after closeout when context needs to be preserved for the next session or packet.
+
 ## Inputs
 
 - Completed or blocked packet result
