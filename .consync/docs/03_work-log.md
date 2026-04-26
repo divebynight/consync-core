@@ -1,3 +1,33 @@
+## 2026-04-26 — timeline_empty_state_e2e
+
+PACKET_ID: timeline_empty_state_e2e
+
+SUMMARY
+- Added e2e smoke coverage for the Timeline View default state.
+- Navigates via "Open Timeline" button; asserts eyebrow label, Session Timeline panel heading, all four track lane labels (Session Events, Bookmarks, Notes, Audio Cues), and ruler start/end markers.
+- Assertions scoped to `.session-timeline-panel` to avoid strict mode violations from duplicate heading text and shared label text.
+
+FILES
+- src/test/e2e/timeline-empty-state.spec.js (created)
+- .consync/docs/ui-e2e-coverage-map.md (updated: 18 tests, new row, updated Untested entry)
+- .consync/docs/03_work-log.md (this entry)
+
+TESTS
+- npx playwright test timeline-empty-state.spec.js → PASS
+- CI=true npm run verify:full → PASS (18 tests, 18 passing)
+
+FRICTION
+- getByText/getByRole strict mode violations from duplicate "Session Timeline" h2 elements, shared "Bookmarks" and "Notes" text across surfaces.
+- Resolved by scoping to `.session-timeline-panel` and using `p.timeline-track-label` locator for track labels.
+
+DECISION
+- Coverage-only packet. No production changes.
+
+FOLLOW-UP
+- None.
+
+---
+
 ## 2026-04-26 — inspector_latest_bookmark_e2e
 
 PACKET_ID: inspector_latest_bookmark_e2e

@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-26)
-Suite: `src/test/e2e/` — 17 tests, 17 passing
+Suite: `src/test/e2e/` — 18 tests, 18 passing
 
 ---
 
@@ -26,6 +26,7 @@ Suite: `src/test/e2e/` — 17 tests, 17 passing
 | `inspector-empty-state.spec.js` | Inspector Panel renders empty state on initial load with no bookmarks | smoke |
 | `inspector-marker-selection.spec.js` | Clicking a timeline marker updates the Inspector Panel to show Selected Marker details | regression |
 | `inspector-latest-bookmark.spec.js` | Inspector Panel shows Latest Bookmark state when a bookmark exists and no marker is selected | smoke |
+| `timeline-empty-state.spec.js` | Timeline View renders default state with all track lanes visible | smoke |
 
 ---
 
@@ -51,6 +52,7 @@ Suite: `src/test/e2e/` — 17 tests, 17 passing
 | Inspector panel empty state | ✅ Smoke | No Selection Yet heading, empty-state copy, Hint panel — verified on cold load with empty session |
 | Inspector panel marker selection | ✅ Full | Click timeline marker seek button → Inspector transitions from Latest Bookmark to Selected Marker; note text confirmed |
 | Inspector panel latest bookmark | ✅ Smoke | Session with one seeded bookmark, no explicit selection → Latest Bookmark heading and note text confirmed |
+| Timeline View default state | ✅ Smoke | Navigate via Open Timeline button; assert eyebrow, Session Timeline heading, all 4 track lane labels, ruler start/end |
 
 ---
 
@@ -66,7 +68,7 @@ Suite: `src/test/e2e/` — 17 tests, 17 passing
 
 | Surface | Notes |
 |---|---|
-| Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
+| Timeline view (Session Timeline panel) | Lane content with bookmark entries is not tested |
 | Search panel (Reveal in Finder) | Reveal in Finder path after selecting a match is not tested in e2e |
 | Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
 | Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
