@@ -1,3 +1,31 @@
+## 2026-04-26 — inspector_latest_bookmark_e2e
+
+PACKET_ID: inspector_latest_bookmark_e2e
+
+SUMMARY
+- Added dedicated e2e smoke coverage for the Inspector Panel "Latest Bookmark" state.
+- Seeds a session with one bookmark; launches without audio load; asserts Latest Bookmark heading and note text are visible and "No Selection Yet" is absent.
+
+FILES
+- src/test/e2e/inspector-latest-bookmark.spec.js (created)
+- .consync/docs/ui-e2e-coverage-map.md (updated: 17 tests, new row added, removed from Untested)
+- .consync/docs/03_work-log.md (this entry)
+
+TESTS
+- npx playwright test inspector-latest-bookmark.spec.js → PASS
+- CI=true npm run verify:full → PASS (17 tests, 17 passing)
+
+FRICTION
+- None. Existing seam patterns (CONSYNC_SESSION_DIR, session fixture) applied directly.
+
+DECISION
+- Coverage-only packet. No production changes.
+
+FOLLOW-UP
+- None.
+
+---
+
 ## 2026-04-23 — Audio Note Workspace
 
 - Added an in-app audio review flow so a local MP3 can be opened, played, and annotated inside the workspace shell.
