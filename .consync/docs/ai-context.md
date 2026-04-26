@@ -153,3 +153,5 @@ This matters in multi-agent and multi-session workflows.
 ## Reference
 
 Canonical feature example: `.consync/docs/examples/search-panel-feature-example.md`
+
+Production-change packet rules (when source changes are allowed): `.consync/docs/production-change-packet-rules.md`

@@ -186,3 +186,4 @@ Return at minimum:
 
 See `.consync/docs/verification-ladder.md` for the full verification level definitions.
 See `.consync/.agents/skills/closeout-agent.md` for the closeout workflow.
+See `.consync/docs/production-change-packet-rules.md` for rules governing packets that modify production source.
