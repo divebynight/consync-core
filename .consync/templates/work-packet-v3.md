@@ -77,7 +77,7 @@ Before doing any work, check the following. If ALL pass, return STATUS: ALREADY_
      - [path/to/doc — confirm the relevant section reflects this feature]
 
   3. Work-log entry exists:
-     - .consync/state/work-log.md contains an entry for this task or PACKET_ID
+     - .consync/docs/03_work-log.md contains an entry for this task or PACKET_ID
 
   4. Latest commit touching relevant files:
      - Run: git log --oneline -- [relevant file paths]
@@ -114,7 +114,7 @@ Only enter this path if ALREADY_COMPLETE CHECK fails on one or more items.
   VERIFY LEVEL FOR THIS TASK: [FAST_CHECK | UI_CHECK | FULL_VERIFY]
 
   DOCUMENT:
-  - Append an entry to .consync/state/work-log.md describing what was done.
+  - Append an entry to .consync/docs/03_work-log.md describing what was done.
   - Update any doc files listed in ALLOWED FILES if their content is now stale.
   - Do not create new doc files unless explicitly listed in ALLOWED FILES.
 

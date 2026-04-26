@@ -8,7 +8,7 @@ Three levels of verification for use during development, review, and release.
 
 ### FAST_CHECK
 
-**When to use:** After logic-only changes to `src/lib/`, `src/commands/`, or `src/core/`. No UI or state contract changes.
+**When to use:** After logic-only changes to `src/lib/`, `src/commands/`, or `src/core/`, or after docs-only changes with no behavior change. No UI or state contract changes.
 
 **Command:**
 ```
