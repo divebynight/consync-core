@@ -1,7 +1,7 @@
 # System Integrity Snapshot
 
-Captured: 2026-04-25
-HEAD: `a118a18` — Formalize production change packet rules and add pointers
+Captured: 2026-04-25 (updated 2026-04-26)
+HEAD: `477c74b` — Add timeline marker inspector sync
 
 ---
 
@@ -11,9 +11,9 @@ HEAD: `a118a18` — Formalize production change packet rules and add pointers
 |---|---|---|
 | Unit + integration | `npm test` | ✅ PASS |
 | e2e (Playwright/Electron) | `npx playwright test` | ✅ PASS |
-| Full verify | `CI=true npm run verify:full` | ✅ PASS (last run: `dc37aee`) |
+| Full verify | `CI=true npm run verify:full` | ✅ PASS (last run: `477c74b`) |
 
-**e2e test count:** 16 tests, 16 passing
+**e2e test count:** 20 tests, 20 passing
 
 ---
 
@@ -38,6 +38,10 @@ HEAD: `a118a18` — Formalize production change packet rules and add pointers
 | Search panel input + results | ✅ Full |
 | Inspector panel empty state | ✅ Smoke |
 | Inspector panel marker selection | ✅ Full |
+| Inspector panel latest bookmark | ✅ Smoke |
+| Timeline View default state | ✅ Smoke |
+| Timeline View bookmark lane entry | ✅ Regression |
+| Timeline View → Inspector sync | ✅ Regression |
 
 ---
 
@@ -64,7 +68,7 @@ HEAD: `a118a18` — Formalize production change packet rules and add pointers
 
 ## Packet / Feature Workflow Status
 
-All work through `a118a18` is committed and clean. No active packet is in progress.
+All work through `477c74b` is committed and clean. No active packet is in progress.
 
 | Feature / Packet | Outcome | Commit |
 |---|---|---|
@@ -76,6 +80,11 @@ All work through `a118a18` is committed and clean. No active packet is in progre
 | Inspector marker selection behavior (production change) | COMPLETE | `dc37aee` |
 | Inspector e2e coverage closeout | COMPLETE | `f789616` |
 | Production change packet rules | COMPLETE | `a118a18` |
+| System integrity snapshot (v1) | COMPLETE | `ef97f80` |
+| Inspector latest bookmark e2e | COMPLETE | `4b051cf` |
+| Timeline empty state e2e | COMPLETE | `d4e2d1e` |
+| Timeline marker entry e2e | COMPLETE | `aed0b0c` |
+| Timeline → Inspector sync (production change) | COMPLETE | `477c74b` |
 
 ---
 
@@ -83,10 +92,9 @@ All work through `a118a18` is committed and clean. No active packet is in progre
 
 | Area | Description |
 |---|---|
-| Inspector Latest Bookmark | Tested implicitly (session with bookmark before marker click); no dedicated assertion for the Latest Bookmark render state |
 | Active marker highlight | `bookmark-item-active` class applied during playback but not asserted in any test |
 | Session sidebar | Current file, bookmark count, latest note — no e2e coverage |
-| Timeline view | Session Timeline panel not tested |
+| Timeline Session Events lane | Lane content is rendered but not asserted in any test |
 | Search → Reveal in Finder | Post-match action path not tested in e2e |
 | Recent audio persistence | Recent audio list is in-memory only; resets on full app restart |
 | Full cold-start path | Audio and bookmark state after a complete process restart (not just window reload) not tested |
@@ -96,7 +104,9 @@ All work through `a118a18` is committed and clean. No active packet is in progre
 
 ## Recommended Next Feature Candidate
 
-**Inspector Latest Bookmark — dedicated e2e assertion**
+**Session sidebar smoke coverage** (current file label, bookmark count)
+
+Rationale: The session sidebar shows the current file and bookmark count but has no e2e assertion. Low complexity, no production changes likely required, makes the main workspace state surface visible to the test suite.
 
 Rationale: The Latest Bookmark inspector state is exercised implicitly in `inspector-marker-selection.spec.js` (before the marker click), but is not the named subject of any test. It is a core inspector render path and the gap is small — a single smoke spec would close it. This is a coverage-only packet with no production changes required.
 
