@@ -673,3 +673,31 @@ DECISION
 
 FOLLOW-UP
 - Input coverage (typing + running a search) will be covered in the next packet: search_panel_input_e2e.
+
+### search_panel_input_e2e
+
+SUMMARY
+- Added `src/test/e2e/search-panel-input.spec.js` — input and results coverage for the Search Panel.
+- Test fills root and query inputs with stable fixture values, runs mock search, and asserts grouped results appear.
+- Asserts: input values preserved, query value visible in results, both session title group headers visible, both match artifact rows visible.
+- Clicks a match row and asserts the inspector "No Selection Yet" heading is replaced by the selection detail.
+- Updated `ui-e2e-coverage-map.md` to promote search panel to full coverage and add new test row.
+
+FILES
+- src/test/e2e/search-panel-input.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npx playwright test src/test/e2e/search-panel-input.spec.js → PASS
+
+FRICTION
+- Two "Sessions" text matches (sidebar heading + status row label) required removing ambiguous summary-row assertions in favour of asserting the unique session title group headers.
+- "Selection" appeared in both the status row label and the "No Selection Yet" heading, requiring the pre-click assertion to use the heading role.
+
+DECISION
+- Assert unique visible text from fixture data (session titles, artifact paths) rather than generic label text that appears in multiple surfaces.
+
+FOLLOW-UP
+- Reveal in Finder path is not covered in e2e; it invokes a native shell action that is harder to assert in Playwright.
+- Packet 3 (search_panel_coverage_closeout) will confirm the coverage map is accurate and run final FULL_VERIFY.
