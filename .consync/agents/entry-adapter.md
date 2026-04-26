@@ -21,6 +21,14 @@ It is not:
 - a hidden workflow selector
 - a replacement for any Consync agent
 
+## Invocation Rules
+
+- **MUST** return a classification and recommendation only.
+- **MUST** recommend a single existing agent or return `BLOCKED`.
+- **MUST NOT** execute, dispatch, or invoke the recommended agent.
+- **SHOULD** be used when incoming input is ambiguous or the correct next agent is unclear.
+- **MAY SKIP** when a human explicitly invokes a specific agent, command, or bound process surface.
+
 ## Inputs Handled
 
 The Entry Adapter handles these input types:

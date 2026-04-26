@@ -35,6 +35,14 @@ It is a manual prompt/document layer that classifies incoming input and recommen
 
 The Entry Adapter is unbound and manual unless explicitly invoked. It does not execute agents, auto-dispatch, choose hidden workflows, modify repo state, collapse agent responsibilities, or act as a runner, dispatcher, or orchestrator.
 
+## Manual Invocation Rules
+
+- **MUST** invoke agents manually. No orchestrator, runner, automatic dispatcher, or hidden agent pipeline exists.
+- **MUST** keep the Entry Adapter to classification and recommendation only; a human invokes the recommended agent.
+- **MUST** use Verify evidence before reporting clean closeout.
+- **SHOULD** use the Entry Adapter when incoming input is ambiguous or the correct next agent is unclear.
+- **MAY SKIP** the Entry Adapter when a human explicitly invokes a specific agent, command, or bound process surface.
+
 ## Invocation Order
 
 1. **Preflight**

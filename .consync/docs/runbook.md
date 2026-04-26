@@ -16,6 +16,8 @@ This file is not the full spec. It is the practical decision layer above the dee
 ## Source Of Truth Boundary
 
 - `.consync/` is the authoritative Consync process layer for state, docs, streams, prompts, skills, and gatekeeping workflows.
+- `.consync/agents/` defines agent roles, invocation points, binding status, and the manual Entry Adapter.
+- `.consync/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
 - `.github/` is a thin Copilot/GitHub adapter layer and should point back to `.consync` for authoritative process behavior.
 - `AGENTS.md` is the Codex entry point and should direct Codex back to `.consync` rather than duplicating the full process model.
 
@@ -60,13 +62,28 @@ Use a core command when the operation is deterministic and success is checkable:
 - `state-integrity-check` — reads files, evaluates rules, returns PASS or FAIL
 - `new-guid`, `sandbox-scan` — explicit input, predictable output, no judgment required
 
-Use an agent when judgment is required before an operation should happen:
-- `gatekeeper mount` — reads repo state, evaluates a request, decides whether mounting is appropriate
+Use an agent when bounded process judgment is required:
+- Preflight — checks whether repo and process state are safe before work begins
+- Intake — classifies new work and its boundaries before execution
+- Verify — runs and reports verification evidence
+- Closeout — summarizes changed files, verification, risks, and commit readiness
+- Reentry — reconstructs context after interruption, stale state, or unclear handoff
 - use the Closeout agent, currently bound to `.consync/skills/closeout-agent.md`, after human approval of completed work to verify tests, docs, integrity, and commit readiness
 - use `.consync/skills/ingestion-gatekeeper.md` before adding external context so it is classified conservatively and placed in the right Consync surface
 - Agents decide. Commands execute. State files record committed truth.
 
 Do not use an agent to do what a command already does deterministically.
+
+## Manual Agent Invocation Rules
+
+Consync uses manual, explicit agent invocation. There is no orchestrator, runner, automatic dispatcher, or hidden agent pipeline.
+
+The Entry Adapter classifies incoming input, recommends one existing agent, and stops. A human invokes the recommended agent.
+
+- **MUST** invoke agents manually.
+- **MUST** use Verify evidence before reporting clean closeout.
+- **SHOULD** use the Entry Adapter when the correct next agent is unclear.
+- **MAY SKIP** the Entry Adapter when the human explicitly invokes a specific agent or command.
 
 ## Entry Adapter — Real Usage Validation
 
@@ -248,7 +265,8 @@ The assistant should:
 - `.consync/docs/stream-and-state-interaction.md` for live-loop versus per-stream state
 - `.consync/docs/stream-switch-and-active-owner-rules.md` for switching and ownership
 - `.consync/docs/human-assisted-observation-closeout-rules.md` for manual observation packages
-- `.consync/docs/agent-routing-policy.md` and `.consync/docs/integrity-agent-loop.md` for optional agent use
+- `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
+- `.consync/agents/entry-adapter.md` for the manual input-classification adapter
 
 ## Feature Development
 
