@@ -8,6 +8,10 @@ Make the next session safe to resume by preserving concise, accurate context.
 
 Invoke after closeout when context needs to be preserved for the next session or packet.
 
+## Binding Status
+
+Currently unbound. No command, prompt/process surface, runner, orchestrator, or automatic dispatcher is bound to this agent yet.
+
 ## Inputs
 
 - Completed or blocked packet result

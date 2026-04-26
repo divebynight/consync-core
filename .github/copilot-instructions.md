@@ -4,7 +4,9 @@
 
 `.consync/` is the authoritative Consync process layer.
 
-Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/.agents/skills/*` as the source of truth for workflow behavior.
+Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
+
+`.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/.agents/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
 

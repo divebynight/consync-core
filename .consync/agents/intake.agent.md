@@ -8,6 +8,10 @@ Classify incoming work and route it to the correct Consync or ScaffoldAi surface
 
 Invoke after preflight passes and before implementation starts.
 
+## Binding Status
+
+Currently unbound. No command, prompt/process surface, runner, orchestrator, or automatic dispatcher is bound to this agent yet.
+
 ## Inputs
 
 - User request or packet

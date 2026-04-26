@@ -8,6 +8,10 @@ Run and interpret the checks required for the changed surfaces.
 
 Invoke after execution changes are complete and before closeout.
 
+## Binding Status
+
+Currently unbound. No command, prompt/process surface, runner, orchestrator, or automatic dispatcher is bound to this agent yet.
+
 ## Inputs
 
 - Changed files
