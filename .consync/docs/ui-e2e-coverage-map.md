@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-25)
-Suite: `src/test/e2e/` — 14 tests, 14 passing
+Suite: `src/test/e2e/` — 15 tests, 15 passing
 
 ---
 
@@ -23,6 +23,7 @@ Suite: `src/test/e2e/` — 14 tests, 14 passing
 | `audio-recent-audio.spec.js` | Fixture file appears in Recent Audio list after loading via Choose MP3 | smoke |
 | `search-panel-smoke.spec.js` | Search panel is reachable and primary controls are visible | smoke |
 | `search-panel-input.spec.js` | Search panel input values are preserved and run search produces stable grouped results | regression |
+| `inspector-empty-state.spec.js` | Inspector Panel renders empty state on initial load with no bookmarks | smoke |
 
 ---
 
@@ -45,6 +46,7 @@ Suite: `src/test/e2e/` — 14 tests, 14 passing
 | Recent audio list | ✅ Full | file appears after load, active state class set, empty-state message gone |
 | Search panel navigation | ✅ Smoke | Search button click opens panel; heading, root input, query input, Run Mock Search button visible |
 | Search panel input + results | ✅ Full | fill inputs, run search, assert query value, group session titles, match artifact rows; click match row, assert inspector updates |
+| Inspector panel empty state | ✅ Smoke | No Selection Yet heading, empty-state copy, Hint panel — verified on cold load with empty session |
 
 ---
 
@@ -62,7 +64,7 @@ Suite: `src/test/e2e/` — 14 tests, 14 passing
 |---|---|
 | Timeline view (Session Timeline panel) | Navigating to the timeline view and asserting lane content is not tested |
 | Search panel (Reveal in Finder) | Reveal in Finder path after selecting a match is not tested in e2e |
-| Inspector panel | Bookmark summary and selected result surfaces |
+| Inspector panel | Inspector Latest Bookmark state (requires session with pre-seeded bookmarks or audio loading) |
 | Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
 | Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
 | Error states | Audio load error, session error panel — no test covers failure paths |

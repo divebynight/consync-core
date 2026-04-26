@@ -725,3 +725,30 @@ DECISION
 
 FOLLOW-UP
 - Next coverage candidates: Timeline view, Inspector panel, or error states.
+
+### inspector_empty_state_e2e
+
+SUMMARY
+- Added a Playwright/Electron e2e spec verifying the Inspector Panel renders its empty state on initial load.
+- Inspector Panel is always visible in the right column — no navigation required.
+- Assertions: Details heading (h2), No Selection Yet heading (h3), empty-state copy, Hint panel heading (h3).
+- Session seeded with empty bookmarks to guarantee empty state.
+
+FILES
+- src/test/e2e/inspector-empty-state.spec.js
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- npx playwright test src/test/e2e/inspector-empty-state.spec.js → PASS
+- CI=true npm run verify:full → PASS (15 e2e tests)
+
+FRICTION
+- None. Inspector Panel is always in the DOM — no navigation or state setup beyond empty session needed.
+
+DECISION
+- Smoke coverage only. The "Latest Bookmark" inspector state requires audio loading (native file dialog, outside Playwright DOM control) or pre-seeded session bookmarks. Deferred to a follow-up packet with clear scope.
+
+FOLLOW-UP
+- Inspector "Latest Bookmark" path: seed session JSON with a bookmark → assert Inspector shows Latest Bookmark heading and note text.
+- Inspector "Selected Result" path: already partially covered via search-panel-input.spec.js; a dedicated inspector spec could assert more detail.
