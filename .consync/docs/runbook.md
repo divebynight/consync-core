@@ -68,6 +68,18 @@ Use an agent when judgment is required before an operation should happen:
 
 Do not use an agent to do what a command already does deterministically.
 
+## Entry Adapter — Real Usage Validation
+
+The Entry Adapter remains a manual prompt/document classification layer. These examples record real workflow uses and outcomes; they do not add automation, commands, orchestration, dispatch, or runtime behavior.
+
+| INPUT | INPUT_TYPE | RECOMMENDED_AGENT | WAS_CORRECT | NOTES |
+| --- | --- | --- | --- | --- |
+| `MODE: IMPLEMENT PACKET_ID: entry-adapter-real-usage-v1` requesting this runbook validation section. | `new_work_request` | Intake | yes | Manually invoked Intake-style classification by treating the request as a docs-only packet with no code, commands, automation, or agent contract changes. Outcome: proceeded with a scoped runbook edit. |
+| Before editing `.consync/docs/runbook.md`, confirm the repo and process state are safe to work from. | `before_repo_changes` | Preflight | yes | Manually invoked Preflight through `npm run check:state-preflight`. Outcome: PASS before modifying the runbook. |
+| Run the required checks for this packet and report evidence. | `verification_evidence_request` | Verify | yes | Manually invoked Verify by running the required verification surface for this packet. Outcome: command evidence is recorded in the packet output. |
+| `MODE: CLOSEOUT PACKET_ID: entry-adapter-examples-v1` requesting commit readiness for the examples packet. | `closeout_commit_readiness` | Closeout | yes | Manually invoked Closeout by reviewing the docs-only diff, confirming no runtime behavior changed, rerunning checks, and committing `153e198`. |
+| Session context resumed from a compact handoff with prior packet history and current repo state needing confirmation before continuing. | `stale_lost_context` | Reentry | yes | Manually invoked Reentry-style reconstruction by checking the provided handoff summary, `git status --short`, current `HEAD`, and relevant docs before starting new work. Outcome: safe continuation without inventing missing state. |
+
 ## Stream Rules
 
 - `active-stream.md` is the only declaration of which stream owns the live loop
