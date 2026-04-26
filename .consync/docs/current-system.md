@@ -4,6 +4,8 @@
 
 - Work Manager Agent (coordination layer)
   - See: `.consync/docs/work-manager-agent.md`
+- ScaffoldAi invoked-agent system
+  - See: `.consync/agents/00_agent-system.md`
 - ScaffoldAi / Consync boundary
   - See: `.consync/docs/scaffoldai-consync-boundary.md`
 
