@@ -1,3 +1,33 @@
+## 2026-04-26 — timeline_marker_selects_inspector_e2e
+
+PACKET_ID: timeline_marker_selects_inspector_e2e
+
+SUMMARY
+- Implemented and covered Timeline View → Inspector Panel selection sync.
+- Production change: added `bookmarkId` field to bookmark timeline marker objects; added `onSelectBookmark` prop to `SessionTimelineShell`; bookmark markers now render as `role="button"` with `aria-label="Select marker <note>"` and call `onSelectBookmark(bookmarkId)` on click; call site passes `setSelectedBookmarkId`.
+- e2e spec seeds one bookmark, navigates to Timeline View, clicks the bookmark marker button, and asserts Inspector transitions from Latest Bookmark to Selected Marker with note text confirmed.
+
+FILES
+- src/electron/renderer/App.jsx (modified: bookmarkId in marker objects, onSelectBookmark prop, selectable marker rendering, call site prop)
+- src/test/e2e/timeline-marker-selects-inspector.spec.js (created)
+- .consync/docs/ui-e2e-coverage-map.md (updated: 20 tests, new row in test list and covered surfaces)
+- .consync/docs/03_work-log.md (this entry)
+
+TESTS
+- npx playwright test timeline-marker-selects-inspector.spec.js → PASS
+- CI=true npm run verify:full → PASS (20 tests, 20 passing)
+
+FRICTION
+- No friction. `role="button"` with `aria-label` gave Playwright a clean locator with no strict mode issues.
+
+DECISION
+- Production change is within packet rules: behavior was clearly missing, change is isolated to renderer only, no session persistence modified, no architecture change.
+
+FOLLOW-UP
+- None.
+
+---
+
 ## 2026-04-26 — timeline_marker_entry_e2e
 
 PACKET_ID: timeline_marker_entry_e2e

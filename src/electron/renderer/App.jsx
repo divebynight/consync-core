@@ -247,6 +247,7 @@ function getBookmarkTimelineMarkers(sessionState) {
     const rawStart = timelineWindowSeconds > 0 ? (bookmarkTime / timelineWindowSeconds) * 88 : 0;
 
     return {
+      bookmarkId: bookmark.id || null,
       label: getBookmarkMarkerLabel(bookmark, index),
       detail: `${formatTimeLabel(bookmarkTime)} bookmark`,
       start: clampTimelinePercent(rawStart),
@@ -348,7 +349,7 @@ function getSessionTimelineTracks(sessionState) {
   ];
 }
 
-function SessionTimelineShell({ sessionState }) {
+function SessionTimelineShell({ onSelectBookmark, sessionState }) {
   const timelineTracks = getSessionTimelineTracks(sessionState);
 
   return (
@@ -377,20 +378,27 @@ function SessionTimelineShell({ sessionState }) {
               <p className="timeline-track-subtitle">{track.markers.length} markers</p>
             </div>
             <div className="timeline-lane" role="list" aria-label={`${track.label} markers`}>
-              {track.markers.map((marker, index) => (
-                <div
-                  className={`timeline-marker timeline-marker-${track.tone}`}
-                  key={`${track.label}:${marker.label}:${marker.start}:${index}`}
-                  role="listitem"
-                  style={{
-                    left: `${marker.start}%`,
-                    width: `${marker.span}%`,
-                  }}
-                >
-                  <span className="timeline-marker-label">{marker.label}</span>
-                  <span className="timeline-marker-detail">{marker.detail}</span>
-                </div>
-              ))}
+              {track.markers.map((marker, index) => {
+                const isSelectable = Boolean(marker.bookmarkId && onSelectBookmark);
+                return (
+                  <div
+                    aria-label={isSelectable ? `Select marker ${marker.label}` : undefined}
+                    className={`timeline-marker timeline-marker-${track.tone}`}
+                    key={`${track.label}:${marker.label}:${marker.start}:${index}`}
+                    onClick={isSelectable ? () => onSelectBookmark(marker.bookmarkId) : undefined}
+                    role={isSelectable ? "button" : "listitem"}
+                    style={{
+                      cursor: isSelectable ? "pointer" : undefined,
+                      left: `${marker.start}%`,
+                      width: `${marker.span}%`,
+                    }}
+                    tabIndex={isSelectable ? 0 : undefined}
+                  >
+                    <span className="timeline-marker-label">{marker.label}</span>
+                    <span className="timeline-marker-detail">{marker.detail}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
         ))}
@@ -1082,7 +1090,7 @@ export function App() {
 
           {activeView === "timeline" ? (
             <section className="timeline-stage">
-              <SessionTimelineShell sessionState={sessionState} />
+              <SessionTimelineShell onSelectBookmark={setSelectedBookmarkId} sessionState={sessionState} />
             </section>
           ) : (
             <section className="workspace-stack">
