@@ -235,3 +235,14 @@ The assistant should:
 - `.consync/docs/stream-switch-and-active-owner-rules.md` for switching and ownership
 - `.consync/docs/human-assisted-observation-closeout-rules.md` for manual observation packages
 - `.consync/docs/agent-routing-policy.md` and `.consync/docs/integrity-agent-loop.md` for optional agent use
+
+## Feature Development
+
+Use feature packets when a task has two or more independently testable concerns that each deserve their own commit and verification pass.
+
+- `.consync/docs/feature-planning-and-packetization.md` — how to break a feature into packets, design each packet, run the execution loop, and close out
+- `.consync/docs/feature-packet-execution.md` — coordination layer: roles, readiness gate, execution loop, stop conditions
+
+Each packet is a `work-packet-v3` instance. Feature packets do not replace the core operating loop — they sit inside it, one packet per execution slot.
+
+See the canonical example: `.consync/docs/examples/search-panel-feature-example.md`

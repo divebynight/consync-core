@@ -4,3 +4,12 @@
 
 - Work Manager Agent (coordination layer)
   - See: `.consync/docs/work-manager-agent.md`
+
+## Feature Development
+
+- Feature planning and packetization
+  - See: `.consync/docs/feature-planning-and-packetization.md`
+- Feature packet execution model (roles, readiness, loop)
+  - See: `.consync/docs/feature-packet-execution.md`
+- Canonical example: search panel e2e coverage
+  - See: `.consync/docs/examples/search-panel-feature-example.md`
