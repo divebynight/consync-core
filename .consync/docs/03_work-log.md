@@ -780,3 +780,29 @@ DECISION
 FOLLOW-UP
 - Inspector "Latest Bookmark" dedicated test (pre-seeded session, no audio required).
 - Inspector "Selected Result" path: already covered implicitly in search-panel-input.spec.js.
+
+### inspector_coverage_closeout
+
+SUMMARY
+- Confirmed coverage map accuracy for the inspector_panel_e2e_coverage_v1 feature.
+- Coverage map reflects 16 tests, 16 passing.
+- Both inspector specs documented: empty state (smoke) and marker selection (regression).
+- Inspector panel moved from Untested to Covered for two surfaces; Untested entry updated to reflect Latest Bookmark is now implicitly tested.
+- No production code changed.
+
+FILES
+- .consync/docs/ui-e2e-coverage-map.md
+- .consync/docs/03_work-log.md
+
+TESTS
+- CI=true npm run verify:full → PASS (16 e2e tests)
+
+FRICTION
+- None.
+
+DECISION
+- Inspector panel coverage is complete for empty state and marker selection. Inspector "Latest Bookmark" state is tested implicitly but not with a dedicated assertion. Deferred as a named follow-up.
+
+FOLLOW-UP
+- Inspector "Latest Bookmark" dedicated spec: seed session with a bookmark, assert Inspector shows Latest Bookmark heading, file name, note text.
+- Timeline view (Session Timeline panel) remains fully untested.
