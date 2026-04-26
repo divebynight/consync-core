@@ -9,9 +9,10 @@ Structured execution context for AI tools operating in this repository.
 `.consync/` is the authoritative process layer.
 
 - `.consync/state/` — live session state (read/write during execution)
+- `.consync/agents/` — authoritative agent role, invocation, and binding contracts
 - `.consync/docs/` — process docs and reference material (read; write only during doc work)
 - `.consync/templates/` — copy-paste templates (read-only during execution)
-- `.consync/.agents/skills/` — agent skill files (read before using a workflow)
+- `.consync/skills/` — reusable skill/procedure files (read before using a workflow)
 - `.github/` — thin Copilot/GitHub adapter only; not the canonical process model
 
 Do not treat `.github/` as authoritative for process behavior. Point back to `.consync/` instead.
@@ -35,9 +36,10 @@ consync-core/
     current/              — runtime dev artifacts
   .consync/
     state/                — live loop state files
+    agents/               — agent role and binding contracts
     docs/                 — process docs
     templates/            — work packet template
-    .agents/skills/       — agent workflow files
+    skills/               — reusable skills and procedures
   scripts/                — project scripts (state checks, Playwright helpers)
 ```
 
@@ -58,8 +60,8 @@ consync-core/
 | `.consync/docs/03_work-log.md` | Append-only log of completed work — one entry per packet |
 | `.consync/docs/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.consync/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |
-| `.consync/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.consync/.agents/skills/closeout-agent.md` |
-| `.consync/.agents/skills/closeout-agent.md` | Current Closeout agent prompt/process execution surface after human approval |
+| `.consync/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.consync/skills/closeout-agent.md` |
+| `.consync/skills/closeout-agent.md` | Current Closeout agent prompt/process execution surface after human approval |
 
 ---
 

@@ -14,8 +14,8 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 ## Authority Boundary
 
 - `.consync/agents/` is the source of truth for invoked-agent roles and invocation order.
-- `.consync/.agents/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
-- If `.consync/agents/` and `.consync/.agents/skills/` appear to overlap, `.consync/agents/` defines the role and handoff point; `.consync/.agents/skills/` defines reusable procedure.
+- `.consync/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
+- If `.consync/agents/` and `.consync/skills/` appear to overlap, `.consync/agents/` defines the role and handoff point; `.consync/skills/` defines reusable procedure.
 - `.consync/docs/` remains the process documentation and reference surface.
 - `.consync/state/` remains authoritative live state and must not be edited manually outside the appropriate workflow.
 - `.github/` is an adapter layer only. It may point back to `.consync/agents/` and `.consync/docs/`, but it must not become a competing source of process truth.
@@ -50,7 +50,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 5. **Closeout**
    - Summarize changed files, verification, risks, and commit readiness.
    - Invoke after verify completes, or when failed verification must be reported as blocked.
-   - Current concrete surface: `.consync/.agents/skills/closeout-agent.md`.
+   - Current concrete surface: `.consync/skills/closeout-agent.md`.
    - Do not report a clean closeout if verification is failing.
 
 6. **Reentry**
@@ -68,7 +68,7 @@ Current bindings:
 - **Preflight agent** → `npm run check:state-preflight`
 - **Intake agent** → prompt-only work-classification contract
 - **Verify agent** → existing verification commands documented in `.consync/docs/verification-ladder.md`
-- **Closeout agent** → `.consync/.agents/skills/closeout-agent.md`
+- **Closeout agent** → `.consync/skills/closeout-agent.md`
 - **Reentry agent** → prompt-only recovery and context-reconstruction contract
 
 The Closeout binding is a prompt/process binding, not a command binding. `.github/prompts/run_closeout.prompt.md` is an adapter for that workflow, not the authoritative Closeout agent definition.

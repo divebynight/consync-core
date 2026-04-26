@@ -58,4 +58,4 @@ Return at minimum:
 - **OUTPUT CONTRACT** ensures handoff-quality output so the next iteration starts from a clean record.
 
 See `.consync/docs/verification-ladder.md` for the full verification level definitions.
-See `.consync/.agents/skills/closeout-agent.md` for the closeout workflow.
+See `.consync/skills/closeout-agent.md` for the closeout workflow.

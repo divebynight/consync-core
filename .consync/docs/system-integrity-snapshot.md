@@ -60,8 +60,8 @@ HEAD: `477c74b` — Add timeline marker inspector sync
 | `03_work-log.md` | Append-only record of completed work |
 | `state-contracts-and-integrity-checks.md` | State transition and integrity rules |
 | `handoff-delivery-bridge.md` | Package handoff contracts |
-| `.agents/skills/closeout-agent.md` | Post-work closeout verification workflow |
-| `.agents/skills/ingestion-gatekeeper.md` | External context classification workflow |
+| `skills/closeout-agent.md` | Post-work closeout verification workflow |
+| `skills/ingestion-gatekeeper.md` | External context classification workflow |
 | `examples/search-panel-feature-example.md` | Canonical end-to-end feature packet example |
 
 ---
