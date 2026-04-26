@@ -8,6 +8,16 @@ Confirm the repo and Consync process state are safe before a packet begins.
 
 Invoke before intake or execution when a packet is mounted or a human asks to begin work.
 
+## Command Binding
+
+The current concrete execution surface for the Preflight agent is:
+
+```sh
+npm run check:state-preflight
+```
+
+This is an implicit command binding to the existing state preflight check, not a full orchestrator and not a new runner.
+
 ## Inputs
 
 - Current user packet or task statement
@@ -15,6 +25,7 @@ Invoke before intake or execution when a packet is mounted or a human asks to be
 - `.consync/state/snapshot.md`
 - `.consync/state/next-action.md`
 - `.consync/state/handoff.md`
+- `npm run check:state-preflight` output
 - Available verification requirements for the packet surface
 
 ## Responsibilities

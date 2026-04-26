@@ -26,6 +26,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
    - Establish current repo/process state before work begins.
    - Answer: can work safely start from this repo and process state?
    - Invoke before intake or execution when a packet is mounted or a human asks to begin work.
+   - Current concrete surface: `npm run check:state-preflight`.
 
 2. **Intake**
    - Classify the requested work and decide the correct surface.
@@ -53,6 +54,16 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
    - Prepare the next operator or future session to resume safely.
    - Invoke after closeout when context needs to be preserved for the next session or packet.
    - Preserve state handoff without inventing completed work.
+
+## Command Bindings
+
+Agent command bindings are incremental. A binding means an existing command is the current concrete execution surface for an agent role. It does not create a full orchestrator, imply automatic agent dispatch, or add a new runner.
+
+Current binding:
+
+- **Preflight agent** → `npm run check:state-preflight`
+
+No other agents are bound to concrete commands yet.
 
 ## Status Meanings
 
