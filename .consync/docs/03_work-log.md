@@ -1,3 +1,32 @@
+## 2026-04-26 — timeline_marker_entry_e2e
+
+PACKET_ID: timeline_marker_entry_e2e
+
+SUMMARY
+- Added e2e regression coverage for the Timeline View Bookmarks lane with a real bookmark entry.
+- Seeds a session with one bookmark; navigates to Timeline View; asserts bookmark note text appears in the Bookmarks lane and the empty-state placeholder is absent.
+- Used `getByRole("list", { name: "Bookmarks markers" })` to scope assertions to the correct lane without strict mode violations.
+
+FILES
+- src/test/e2e/timeline-marker-entry.spec.js (created)
+- .consync/docs/ui-e2e-coverage-map.md (updated: 19 tests, new row, updated Untested entry)
+- .consync/docs/03_work-log.md (this entry)
+
+TESTS
+- npx playwright test timeline-marker-entry.spec.js → PASS
+- CI=true npm run verify:full → PASS (19 tests, 19 passing)
+
+FRICTION
+- None. ARIA-labeled list role on timeline lane provided clean scoping.
+
+DECISION
+- Coverage-only packet. No production changes.
+
+FOLLOW-UP
+- Session Events lane content is still not asserted; a dedicated spec could cover that if needed.
+
+---
+
 ## 2026-04-26 — timeline_empty_state_e2e
 
 PACKET_ID: timeline_empty_state_e2e

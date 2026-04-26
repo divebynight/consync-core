@@ -1,7 +1,7 @@
 # UI e2e Coverage Map
 
 Audited: 2026-04-25 (updated 2026-04-26)
-Suite: `src/test/e2e/` — 18 tests, 18 passing
+Suite: `src/test/e2e/` — 19 tests, 19 passing
 
 ---
 
@@ -27,6 +27,7 @@ Suite: `src/test/e2e/` — 18 tests, 18 passing
 | `inspector-marker-selection.spec.js` | Clicking a timeline marker updates the Inspector Panel to show Selected Marker details | regression |
 | `inspector-latest-bookmark.spec.js` | Inspector Panel shows Latest Bookmark state when a bookmark exists and no marker is selected | smoke |
 | `timeline-empty-state.spec.js` | Timeline View renders default state with all track lanes visible | smoke |
+| `timeline-marker-entry.spec.js` | Timeline View Bookmarks lane shows a seeded bookmark entry | regression |
 
 ---
 
@@ -53,6 +54,7 @@ Suite: `src/test/e2e/` — 18 tests, 18 passing
 | Inspector panel marker selection | ✅ Full | Click timeline marker seek button → Inspector transitions from Latest Bookmark to Selected Marker; note text confirmed |
 | Inspector panel latest bookmark | ✅ Smoke | Session with one seeded bookmark, no explicit selection → Latest Bookmark heading and note text confirmed |
 | Timeline View default state | ✅ Smoke | Navigate via Open Timeline button; assert eyebrow, Session Timeline heading, all 4 track lane labels, ruler start/end |
+| Timeline View bookmark entry | ✅ Regression | Session with seeded bookmark; assert note text in Bookmarks lane; assert empty-state placeholder absent |
 
 ---
 
@@ -68,7 +70,7 @@ Suite: `src/test/e2e/` — 18 tests, 18 passing
 
 | Surface | Notes |
 |---|---|
-| Timeline view (Session Timeline panel) | Lane content with bookmark entries is not tested |
+| Timeline view (Session Timeline panel) | Session event lane content is not asserted |
 | Search panel (Reveal in Finder) | Reveal in Finder path after selecting a match is not tested in e2e |
 | Session sidebar | Current file, bookmark count, latest note — not asserted in e2e |
 | Full app restart path | Audio path and bookmarks after a full cold start (not just window reload) |
