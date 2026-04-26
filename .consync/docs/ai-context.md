@@ -58,7 +58,8 @@ consync-core/
 | `.consync/docs/03_work-log.md` | Append-only log of completed work — one entry per packet |
 | `.consync/docs/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.consync/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |
-| `.consync/.agents/skills/closeout-agent.md` | Run after human approval to verify tests, docs, integrity, commit readiness |
+| `.consync/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.consync/.agents/skills/closeout-agent.md` |
+| `.consync/.agents/skills/closeout-agent.md` | Current Closeout agent prompt/process execution surface after human approval |
 
 ---
 

@@ -8,12 +8,23 @@ Prepare completed work for safe handoff or commit readiness after implementation
 
 Invoke after verify completes, or when failed verification must be reported as blocked.
 
+## Process Binding
+
+The current concrete execution surface for the Closeout agent is:
+
+```text
+.consync/.agents/skills/closeout-agent.md
+```
+
+This is a prompt/process binding to the existing closeout workflow, not a full orchestrator, automatic dispatcher, new runner, or new command. `.github/prompts/run_closeout.prompt.md` is an adapter that points back to this workflow.
+
 ## Inputs
 
 - `git status --short`
 - `git diff --stat`
 - Changed files
 - Verification results
+- `.consync/.agents/skills/closeout-agent.md`
 - Relevant Consync docs and state references
 
 ## Responsibilities

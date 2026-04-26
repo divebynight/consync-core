@@ -48,6 +48,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 5. **Closeout**
    - Summarize changed files, verification, risks, and commit readiness.
    - Invoke after verify completes, or when failed verification must be reported as blocked.
+   - Current concrete surface: `.consync/.agents/skills/closeout-agent.md`.
    - Do not report a clean closeout if verification is failing.
 
 6. **Reentry**
@@ -55,15 +56,18 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
    - Invoke after closeout when context needs to be preserved for the next session or packet.
    - Preserve state handoff without inventing completed work.
 
-## Command Bindings
+## Execution Bindings
 
-Agent command bindings are incremental. A binding means an existing command is the current concrete execution surface for an agent role. It does not create a full orchestrator, imply automatic agent dispatch, or add a new runner.
+Agent execution bindings are incremental. A binding means an existing command, prompt, or process is the current concrete execution surface for an agent role. It does not create a full orchestrator, imply automatic agent dispatch, or add a new runner.
 
-Current binding:
+Current bindings:
 
 - **Preflight agent** → `npm run check:state-preflight`
+- **Closeout agent** → `.consync/.agents/skills/closeout-agent.md`
 
-No other agents are bound to concrete commands yet.
+The Closeout binding is a prompt/process binding, not a command binding. `.github/prompts/run_closeout.prompt.md` is an adapter for that workflow, not the authoritative Closeout agent definition.
+
+No other agents are bound to concrete commands or prompt/process surfaces yet.
 
 ## Status Meanings
 

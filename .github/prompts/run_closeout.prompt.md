@@ -3,14 +3,14 @@
 Authoritative workflow note:
 
 - `.consync/` is the source of truth for Consync closeout behavior.
-- Use `.consync/.agents/skills/closeout-agent.md` as the authoritative closeout workflow.
+- The Closeout agent is bound to `.consync/.agents/skills/closeout-agent.md` as its current prompt/process execution surface.
 - Treat this file as a GitHub/Copilot adapter only.
 
 Read the current handoff state:
 
 .consync/state/handoff.md
 
-Read the authoritative workflow at:
+Read the authoritative Closeout agent workflow at:
 
 .consync/.agents/skills/closeout-agent.md
 
