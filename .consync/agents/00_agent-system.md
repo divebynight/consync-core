@@ -55,7 +55,8 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 
 6. **Reentry**
    - Prepare the next operator or future session to resume safely.
-   - Invoke after closeout when context needs to be preserved for the next session or packet.
+   - Invoke when work resumes after interruption, context loss, stale conversation state, unclear handoff, or incomplete closeout.
+   - Current concrete surface: prompt-only recovery and context-reconstruction contract.
    - Preserve state handoff without inventing completed work.
 
 ## Execution Bindings
@@ -68,6 +69,7 @@ Current bindings:
 - **Intake agent** → prompt-only work-classification contract
 - **Verify agent** → existing verification commands documented in `.consync/docs/verification-ladder.md`
 - **Closeout agent** → `.consync/.agents/skills/closeout-agent.md`
+- **Reentry agent** → prompt-only recovery and context-reconstruction contract
 
 The Closeout binding is a prompt/process binding, not a command binding. `.github/prompts/run_closeout.prompt.md` is an adapter for that workflow, not the authoritative Closeout agent definition.
 
@@ -75,7 +77,9 @@ Verify is a command-based evidence contract. It reports commands run and outcome
 
 Intake classifies only. It does not approve work, start work, modify files, or replace Preflight, Verify, or Closeout.
 
-No other agents are bound to concrete commands or prompt/process surfaces yet.
+Reentry reconstructs only. It is not authoritative over repo state, process state, or next work.
+
+No additional agents are defined or bound.
 
 ## Status Meanings
 
