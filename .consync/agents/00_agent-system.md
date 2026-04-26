@@ -31,7 +31,8 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 2. **Intake**
    - Classify the requested work and decide the correct surface.
    - Answer: what kind of work is this, and which boundaries apply?
-   - Invoke after preflight passes and before implementation starts.
+   - Invoke before new work is converted into a packet, after preflight passes when repo/process state must be checked first.
+   - Current concrete surface: prompt-only work-classification contract.
    - Preserve scope boundaries before implementation begins.
 
 3. **Execution/tool adapter**
@@ -64,12 +65,15 @@ Agent execution bindings are incremental. A binding means an existing command, p
 Current bindings:
 
 - **Preflight agent** → `npm run check:state-preflight`
+- **Intake agent** → prompt-only work-classification contract
 - **Verify agent** → existing verification commands documented in `.consync/docs/verification-ladder.md`
 - **Closeout agent** → `.consync/.agents/skills/closeout-agent.md`
 
 The Closeout binding is a prompt/process binding, not a command binding. `.github/prompts/run_closeout.prompt.md` is an adapter for that workflow, not the authoritative Closeout agent definition.
 
 Verify is a command-based evidence contract. It reports commands run and outcomes; it does not decide by itself whether work is acceptable.
+
+Intake classifies only. It does not approve work, start work, modify files, or replace Preflight, Verify, or Closeout.
 
 No other agents are bound to concrete commands or prompt/process surfaces yet.
 
