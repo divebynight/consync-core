@@ -146,9 +146,11 @@ describe("App search flow", () => {
     expect(screen.getByRole("heading", { name: "Session Summary" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Help / About" })).toBeTruthy();
+    expect(screen.getByText("Need help? Open Help / About.")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Audio Notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Choose MP3" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Export Support Bundle" })).toBeTruthy();
+    expect(screen.getByText("If something goes wrong, click Export Support Bundle and send Mark the folder path.")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Session Timeline" })).toBeNull();
   });
 
@@ -166,7 +168,7 @@ describe("App search flow", () => {
     expect(screen.getByText(/Searching, opening the timeline/)).toBeTruthy();
     expect(screen.getByText(/Saving, editing, deleting, or undoing notes/)).toBeTruthy();
     expect(screen.getByText(/Consync writes diagnostics on this computer only/)).toBeTruthy();
-    expect(screen.getByText(/send Mark the folder path/)).toBeTruthy();
+    expect(screen.getAllByText(/send Mark the folder path/).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Export Support Bundle" }).length).toBeGreaterThan(0);
   });
 

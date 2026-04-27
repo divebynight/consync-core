@@ -580,10 +580,10 @@ function MockSearchResult({ searchResult, selectedMatchKey, onRevealSelectedMatc
   );
 }
 
-function NavigationButton({ active, children, onClick }) {
+function NavigationButton({ active, children, onClick, tone = "default" }) {
   return (
     <button
-      className={`workspace-nav-button${active ? " workspace-nav-button-active" : ""}`}
+      className={`workspace-nav-button${tone === "help" ? " workspace-nav-button-help" : ""}${active ? " workspace-nav-button-active" : ""}`}
       onClick={onClick}
       type="button"
     >
@@ -1309,10 +1309,12 @@ export function App() {
               <NavigationButton
                 active={activeView === "help"}
                 onClick={() => handleNavigationAction("view-help-about", () => setActiveView("help"))}
+                tone="help"
               >
                 Help / About
               </NavigationButton>
             </div>
+            <p className="sidebar-helper-text">Need help? Open Help / About.</p>
           </article>
 
           <article className="panel panel-secondary">
@@ -1347,6 +1349,9 @@ export function App() {
             <h2>Build</h2>
             <StatusRow label="Version" value={appInfo ? appInfo.appVersion : "loading"} />
             <StatusRow label="Build" value={appInfo ? appInfo.buildVersion : "loading"} />
+            <p className="support-helper-text">
+              If something goes wrong, click Export Support Bundle and send Mark the folder path.
+            </p>
             <button className="bookmark-button bookmark-button-secondary" onClick={handleExportSupportBundle} type="button">
               Export Support Bundle
             </button>
