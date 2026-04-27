@@ -770,6 +770,23 @@ body {
   font-size: 0.76rem;
 }
 
+.diagnostics-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.diagnostics-status {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #9ea7bd;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.diagnostics-status-error {
+  color: #fca5a5;
+}
+
 .search-entry-copy,
 .inspector-note {
   margin-bottom: 8px;

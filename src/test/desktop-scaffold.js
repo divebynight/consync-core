@@ -154,8 +154,10 @@ async function testIpcRegistration() {
   await withTemporarySessionDir(async ({ artifactPath, temporarySessionDir }) => {
     resetSessionState();
     const handlers = new Map();
+    const diagnosticEvents = [];
     const revealedPaths = [];
     const audioPath = path.join(temporarySessionDir, "sample.mp3");
+    const supportBundlePath = path.join(temporarySessionDir, "support-bundle");
 
     fs.writeFileSync(audioPath, "audio");
 
@@ -177,8 +179,35 @@ async function testIpcRegistration() {
           revealedPaths.push(targetPath);
         },
       },
+      diagnostics: {
+        exportSupportBundle() {
+          return {
+            bundlePath: supportBundlePath,
+            includedFiles: [path.join(supportBundlePath, "app-info.json")],
+            ok: true,
+          };
+        },
+        getAppInfo() {
+          return {
+            appName: "Consync Desktop",
+            appVersion: "0.0.11",
+            buildVersion: "0.0.11",
+            diagnosticsRoot: temporarySessionDir,
+            isPackaged: false,
+            platform: process.platform,
+            startedAt: "2026-04-27T00:00:00.000Z",
+          };
+        },
+        logError(type, error, details) {
+          diagnosticEvents.push({ details, error, type });
+        },
+        logEvent(type, details) {
+          diagnosticEvents.push({ details, type });
+        },
+      },
     });
 
+    assert.ok(handlers.has(IPC_CHANNELS.getAppInfo));
     assert.ok(handlers.has(IPC_CHANNELS.getShellInfo));
     assert.ok(handlers.has(IPC_CHANNELS.getSessionState));
     assert.ok(handlers.has(IPC_CHANNELS.revealSearchResult));
@@ -190,7 +219,10 @@ async function testIpcRegistration() {
     assert.ok(handlers.has(IPC_CHANNELS.getBackendSummary));
     assert.ok(handlers.has(IPC_CHANNELS.getConsyncSummary));
     assert.ok(handlers.has(IPC_CHANNELS.selectAudioFile));
+    assert.ok(handlers.has(IPC_CHANNELS.logRendererEvent));
+    assert.ok(handlers.has(IPC_CHANNELS.exportSupportBundle));
 
+    const appInfo = handlers.get(IPC_CHANNELS.getAppInfo)();
     const backendSummary = handlers.get(IPC_CHANNELS.getBackendSummary)();
     const consyncSummary = handlers.get(IPC_CHANNELS.getConsyncSummary)();
     const shellInfo = handlers.get(IPC_CHANNELS.getShellInfo)();
@@ -212,9 +244,14 @@ async function testIpcRegistration() {
     const deletedSessionState = handlers.get(IPC_CHANNELS.deleteBookmark)(null, {
       id: "bookmark-1",
     });
+    const rendererLogResult = handlers.get(IPC_CHANNELS.logRendererEvent)(null, "ui-action", {
+      action: "test-action",
+    });
+    const supportBundleResult = handlers.get(IPC_CHANNELS.exportSupportBundle)();
     const pingResponse = handlers.get(IPC_CHANNELS.ping)(null, "from-renderer");
     const persistedArtifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
 
+    assert.strictEqual(appInfo.appVersion, "0.0.11");
     assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
     assert.deepStrictEqual(consyncSummary, getDesktopConsyncSummary());
     assert.strictEqual(shellInfo.layer, "desktop-scaffold");
@@ -265,6 +302,15 @@ async function testIpcRegistration() {
     ]);
     assert.deepStrictEqual(deletedSessionState.bookmarks, []);
     assert.deepStrictEqual(persistedArtifact.bookmarks, []);
+    assert.deepStrictEqual(rendererLogResult, { ok: true });
+    assert.deepStrictEqual(supportBundleResult, {
+      bundlePath: supportBundlePath,
+      includedFiles: [path.join(supportBundlePath, "app-info.json")],
+      ok: true,
+    });
+    assert.ok(diagnosticEvents.some(event => event.type === "session-opened"));
+    assert.ok(diagnosticEvents.some(event => event.type === "audio-file-selected"));
+    assert.ok(diagnosticEvents.some(event => event.type === "ui-action"));
     assert.deepStrictEqual(pingResponse, {
       ok: true,
       message: "pong:from-renderer",
@@ -330,6 +376,14 @@ async function testPreloadBridge() {
         return Promise.resolve({ bridge: true });
       }
 
+      if (channel === IPC_CHANNELS.getAppInfo) {
+        return Promise.resolve({
+          appName: "Consync Desktop",
+          appVersion: "0.0.11",
+          buildVersion: "0.0.11",
+        });
+      }
+
       if (channel === IPC_CHANNELS.getSessionState) {
         return Promise.resolve({
           artifactCount: getSessionArtifactCount(),
@@ -390,12 +444,21 @@ async function testPreloadBridge() {
         });
       }
 
+      if (channel === IPC_CHANNELS.exportSupportBundle) {
+        return Promise.resolve({
+          bundlePath: "/tmp/support-bundle",
+          includedFiles: ["/tmp/support-bundle/app-info.json"],
+          ok: true,
+        });
+      }
+
       return Promise.resolve({ ok: true, args });
     });
 
     const backendSummary = await bridge.getBackendSummary();
     const bridgeStatus = await bridge.getBridgeStatus();
     const consyncSummary = await bridge.getConsyncSummary();
+    const appInfo = await bridge.getAppInfo();
     const shellInfo = await bridge.getShellInfo();
     const sessionState = await bridge.getSessionState();
     const selectedAudioFile = await bridge.selectAudioFile();
@@ -415,6 +478,10 @@ async function testPreloadBridge() {
     const deletedBookmarkState = await bridge.deleteBookmark({
       id: "bookmark-1",
     });
+    const rendererLogResult = await bridge.logRendererEvent("ui-action", {
+      action: "bridge-test",
+    });
+    const supportBundleResult = await bridge.exportSupportBundle();
     const pingResponse = await bridge.ping("renderer-ready");
 
     assert.deepStrictEqual(backendSummary, getDesktopBackendSummary());
@@ -425,6 +492,7 @@ async function testPreloadBridge() {
       version: "bridge-v1",
     });
     assert.deepStrictEqual(shellInfo, { bridge: true });
+    assert.strictEqual(appInfo.appVersion, "0.0.11");
     assert.deepStrictEqual(sessionState, {
       artifactCount: getSessionArtifactCount(),
       bookmarks: [],
@@ -470,10 +538,17 @@ async function testPreloadBridge() {
       id: "bookmark-1",
       ok: true,
     });
+    assert.deepStrictEqual(rendererLogResult, { ok: true, args: ["ui-action", { action: "bridge-test" }] });
+    assert.deepStrictEqual(supportBundleResult, {
+      bundlePath: "/tmp/support-bundle",
+      includedFiles: ["/tmp/support-bundle/app-info.json"],
+      ok: true,
+    });
     assert.deepStrictEqual(pingResponse, { ok: true, args: ["renderer-ready"] });
     assert.deepStrictEqual(invokedChannels, [
       { channel: IPC_CHANNELS.getBackendSummary, args: [] },
       { channel: IPC_CHANNELS.getConsyncSummary, args: [] },
+      { channel: IPC_CHANNELS.getAppInfo, args: [] },
       { channel: IPC_CHANNELS.getShellInfo, args: [] },
       { channel: IPC_CHANNELS.getSessionState, args: [] },
       { channel: IPC_CHANNELS.selectAudioFile, args: [] },
@@ -508,6 +583,8 @@ async function testPreloadBridge() {
           },
         ],
       },
+      { channel: IPC_CHANNELS.logRendererEvent, args: ["ui-action", { action: "bridge-test" }] },
+      { channel: IPC_CHANNELS.exportSupportBundle, args: [] },
       { channel: IPC_CHANNELS.ping, args: ["renderer-ready"] },
     ]);
   });

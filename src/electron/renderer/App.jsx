@@ -194,6 +194,81 @@ function StatusRow({ label, value }) {
   );
 }
 
+function getErrorDetails(error) {
+  if (!error) {
+    return {
+      message: "Unknown error",
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack || null,
+    };
+  }
+
+  if (typeof error === "object") {
+    return {
+      message: typeof error.message === "string" ? error.message : JSON.stringify(error),
+      name: typeof error.name === "string" ? error.name : null,
+      stack: typeof error.stack === "string" ? error.stack : null,
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
+function logRendererEvent(type, details = {}) {
+  const desktopBridge = window.consyncDesktop;
+
+  if (!desktopBridge || typeof desktopBridge.logRendererEvent !== "function") {
+    return Promise.resolve({ ok: false });
+  }
+
+  return desktopBridge.logRendererEvent(type, details).catch(() => ({ ok: false }));
+}
+
+export class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      errorMessage: null,
+    };
+  }
+
+  componentDidCatch(error, info) {
+    const errorDetails = getErrorDetails(error);
+
+    this.setState({
+      errorMessage: errorDetails.message,
+    });
+
+    logRendererEvent("renderer-error", {
+      componentStack: info && info.componentStack,
+      error: errorDetails,
+    });
+  }
+
+  render() {
+    if (this.state.errorMessage) {
+      return (
+        <main className="shell">
+          <section className="panel session-error-panel">
+            <h1>Something went wrong</h1>
+            <p className="empty-state">{this.state.errorMessage}</p>
+          </section>
+        </main>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function clampTimelinePercent(value) {
   return Math.max(0, Math.min(88, value));
 }
@@ -413,9 +488,12 @@ function getDesktopBridge() {
   if (
     !desktopBridge ||
     typeof desktopBridge.getSessionState !== "function" ||
+    typeof desktopBridge.getAppInfo !== "function" ||
     typeof desktopBridge.getLastAudioFile !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
     typeof desktopBridge.deleteBookmark !== "function" ||
+    typeof desktopBridge.exportSupportBundle !== "function" ||
+    typeof desktopBridge.logRendererEvent !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function"
@@ -585,6 +663,7 @@ function InspectorPanel({ searchResult, selectedAudioFile, selectedBookmarkId, s
 }
 
 export function App() {
+  const [appInfo, setAppInfo] = useState(null);
   const [note, setNote] = useState("");
   const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
   const [searchQuery, setSearchQuery] = useState("moss");
@@ -601,6 +680,8 @@ export function App() {
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
   const [activeEditableMarkerId, setActiveEditableMarkerId] = useState(null);
   const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
+  const [supportBundleStatus, setSupportBundleStatus] = useState(null);
+  const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
   const activeEditableMarkerIdRef = useRef(null);
@@ -634,6 +715,11 @@ export function App() {
     setSearchErrorMessage(null);
   }
 
+  function handleNavigationAction(action, updateView) {
+    updateView();
+    logRendererEvent("ui-action", { action });
+  }
+
   function scrollToSection(sectionRef) {
     if (sectionRef.current) {
       sectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -645,7 +731,8 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const [nextSessionState, lastAudioFile] = await Promise.all([
+      const [nextAppInfo, nextSessionState, lastAudioFile] = await Promise.all([
+        desktopBridge.getAppInfo(),
         desktopBridge.getSessionState(),
         desktopBridge.getLastAudioFile(),
       ]);
@@ -654,8 +741,12 @@ export function App() {
         return;
       }
 
+      setAppInfo(nextAppInfo);
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
+      logRendererEvent("renderer-loaded", {
+        currentFile: nextSessionState.currentFile,
+      });
 
       if (lastAudioFile && lastAudioFile.ok) {
         setSelectedAudioContext(lastAudioFile);
@@ -670,6 +761,29 @@ export function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleWindowError(event) {
+      logRendererEvent("renderer-error", {
+        error: getErrorDetails(event.error || event.message),
+        source: event.filename || null,
+      });
+    }
+
+    function handleUnhandledRejection(event) {
+      logRendererEvent("renderer-unhandled-rejection", {
+        error: getErrorDetails(event.reason),
+      });
+    }
+
+    window.addEventListener("error", handleWindowError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener("error", handleWindowError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
   }, []);
 
@@ -694,6 +808,10 @@ export function App() {
           setSessionState(nextSessionState);
           setSessionErrorMessage(null);
           setAudioErrorMessage(null);
+          logRendererEvent("ui-action", {
+            action: "bookmark-updated",
+            bookmarkId: activeEditableMarkerIdRef.current,
+          });
         }
 
         finalizeEditableMarkerSession();
@@ -710,6 +828,9 @@ export function App() {
       setAudioErrorMessage(null);
       setNote("");
       setEditableMarker(null);
+      logRendererEvent("ui-action", {
+        action: "bookmark-created",
+      });
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -736,6 +857,11 @@ export function App() {
     setAudioCurrentTimeSeconds(currentTimeSeconds);
     setSessionErrorMessage(null);
     setAudioErrorMessage(null);
+    logRendererEvent("ui-action", {
+      action: "marker-created",
+      fileName: selectedAudioFile.fileName,
+      timeSeconds: currentTimeSeconds,
+    });
 
     const nextBookmarks = Array.isArray(nextSessionState.bookmarks) ? nextSessionState.bookmarks : [];
     const createdMarker = nextBookmarks[nextBookmarks.length - 1] || null;
@@ -792,6 +918,10 @@ export function App() {
       setAudioErrorMessage(null);
       setNote("");
       setEditableMarker(null);
+      logRendererEvent("ui-action", {
+        action: "file-note-created",
+        fileName: selectedAudioFile.fileName,
+      });
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -815,6 +945,10 @@ export function App() {
         fileUrl: selectedFile.fileUrl,
       });
       setSelectedAudioContext(selectedFile);
+      logRendererEvent("ui-action", {
+        action: "audio-file-selected",
+        fileName: selectedFile.fileName,
+      });
     } catch (error) {
       setAudioErrorMessage(error.message);
     }
@@ -822,6 +956,10 @@ export function App() {
 
   function handleSelectRecentAudioFile(recentFile) {
     setSelectedAudioContext(recentFile);
+    logRendererEvent("ui-action", {
+      action: "recent-audio-selected",
+      fileName: recentFile.fileName,
+    });
   }
 
   function handleNoteInputKeyDown(event) {
@@ -853,6 +991,10 @@ export function App() {
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "marker-undo",
+        bookmarkId: latestTimelineMarker.id,
+      });
 
       if (activeEditableMarkerIdRef.current === latestTimelineMarker.id) {
         finalizeEditableMarkerSession();
@@ -876,6 +1018,10 @@ export function App() {
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "marker-deleted",
+        bookmarkId,
+      });
 
       if (activeEditableMarkerIdRef.current === bookmarkId) {
         finalizeEditableMarkerSession();
@@ -965,6 +1111,11 @@ export function App() {
       setSearchResult(result);
       setSelectedMatchKey(null);
       setSearchErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "search-run",
+        matchCount: result.matchCount,
+        rootPath: searchRoot.trim(),
+      });
     } catch (error) {
       setSearchErrorMessage(error.message);
       setSearchResult(null);
@@ -975,6 +1126,11 @@ export function App() {
   function handleSelectMockSearchMatch(group, match) {
     setSelectedMatchKey(getMockSearchSelectionKey(group, match));
     setSearchErrorMessage(null);
+    logRendererEvent("ui-action", {
+      action: "search-result-selected",
+      anchorPath: group.anchorPath,
+      artifactPath: match.artifactPath,
+    });
   }
 
   async function handleRevealSelectedMatch(fullPath) {
@@ -991,6 +1147,10 @@ export function App() {
       }
 
       setSearchErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "search-result-revealed",
+        fullPath,
+      });
     } catch (error) {
       setSearchErrorMessage(error.message);
     }
@@ -1005,6 +1165,31 @@ export function App() {
     setAudioCurrentTimeSeconds(normalizeCapturedTimeSeconds(timeSeconds));
     setAudioErrorMessage(null);
     setEditableMarker(null);
+    logRendererEvent("ui-action", {
+      action: "marker-seek",
+      timeSeconds,
+    });
+  }
+
+  async function handleExportSupportBundle() {
+    try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.exportSupportBundle();
+
+      if (!result.ok) {
+        throw new Error(result.output || "Support bundle export failed.");
+      }
+
+      setSupportBundleStatus(result.bundlePath);
+      setSupportBundleErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "support-bundle-exported",
+        bundlePath: result.bundlePath,
+      });
+    } catch (error) {
+      setSupportBundleErrorMessage(error.message);
+      setSupportBundleStatus(null);
+    }
   }
 
   const sessionRows = getSessionPanelRows(sessionState);
@@ -1037,10 +1222,16 @@ export function App() {
           <article className="panel panel-secondary">
             <h2>Views</h2>
             <div className="workspace-nav">
-              <NavigationButton active={activeView === "workspace"} onClick={() => setActiveView("workspace")}>
+              <NavigationButton
+                active={activeView === "workspace"}
+                onClick={() => handleNavigationAction("view-workspace", () => setActiveView("workspace"))}
+              >
                 Workspace Summary
               </NavigationButton>
-              <NavigationButton active={activeView === "timeline"} onClick={() => setActiveView("timeline")}>
+              <NavigationButton
+                active={activeView === "timeline"}
+                onClick={() => handleNavigationAction("view-timeline", () => setActiveView("timeline"))}
+              >
                 Timeline View
               </NavigationButton>
             </div>
@@ -1072,6 +1263,21 @@ export function App() {
             ) : (
               <p className="empty-state">Open an mp3 to start a quick recent-files list.</p>
             )}
+          </article>
+
+          <article className="panel panel-secondary diagnostics-panel">
+            <h2>Build</h2>
+            <StatusRow label="Version" value={appInfo ? appInfo.appVersion : "loading"} />
+            <StatusRow label="Build" value={appInfo ? appInfo.buildVersion : "loading"} />
+            <button className="bookmark-button bookmark-button-secondary" onClick={handleExportSupportBundle} type="button">
+              Export Support Bundle
+            </button>
+            {supportBundleStatus ? (
+              <p className="diagnostics-status">Exported to {supportBundleStatus}</p>
+            ) : null}
+            {supportBundleErrorMessage ? (
+              <p className="diagnostics-status diagnostics-status-error">{supportBundleErrorMessage}</p>
+            ) : null}
           </article>
         </aside>
 
@@ -1114,9 +1320,11 @@ export function App() {
                   <button
                     className="bookmark-button"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("audio");
-                      scrollToSection(resumeSectionRef);
+                      handleNavigationAction("resume-audio", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("audio");
+                        scrollToSection(resumeSectionRef);
+                      });
                     }}
                     type="button"
                   >
@@ -1124,7 +1332,7 @@ export function App() {
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
-                    onClick={() => setActiveView("timeline")}
+                    onClick={() => handleNavigationAction("open-timeline", () => setActiveView("timeline"))}
                     type="button"
                   >
                     Open Timeline
@@ -1132,8 +1340,10 @@ export function App() {
                   <button
                     className="bookmark-button bookmark-button-secondary"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("search");
+                      handleNavigationAction("open-search", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("search");
+                      });
                     }}
                     type="button"
                   >
@@ -1142,8 +1352,10 @@ export function App() {
                   <button
                     className="bookmark-button bookmark-button-secondary"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("bookmarks");
+                      handleNavigationAction("open-bookmarks", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("bookmarks");
+                      });
                     }}
                     type="button"
                   >

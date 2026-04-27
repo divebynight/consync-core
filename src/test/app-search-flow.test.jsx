@@ -89,6 +89,15 @@ function createDesktopBridge(overrides = {}) {
       sessionDirectoryExists: true,
       sessionCount: 4,
     }),
+    getAppInfo: vi.fn().mockResolvedValue({
+      appName: "Consync Desktop",
+      appVersion: "0.0.11",
+      buildVersion: "0.0.11",
+      diagnosticsRoot: "/tmp/consync-diagnostics",
+      isPackaged: false,
+      platform: "darwin",
+      startedAt: "2026-04-27T00:00:00.000Z",
+    }),
     getLastAudioFile: vi.fn().mockResolvedValue(null),
     getSessionState: vi.fn().mockResolvedValue({
       artifactCount: 4,
@@ -99,6 +108,12 @@ function createDesktopBridge(overrides = {}) {
     }),
     createBookmark: vi.fn().mockResolvedValue({ ok: true }),
     deleteBookmark: vi.fn().mockResolvedValue({ ok: true }),
+    exportSupportBundle: vi.fn().mockResolvedValue({
+      bundlePath: "/tmp/consync-diagnostics/support-bundles/support-test",
+      includedFiles: [],
+      ok: true,
+    }),
+    logRendererEvent: vi.fn().mockResolvedValue({ ok: true }),
     selectAudioFile: vi.fn().mockResolvedValue({
       audioSrc: "data:audio/mpeg;base64,c2FtcGxl",
       canceled: false,
@@ -127,11 +142,24 @@ describe("App search flow", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Workspace" })).toBeTruthy();
+    expect((await screen.findAllByText("0.0.11")).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "Session Summary" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Audio Notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Choose MP3" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Export Support Bundle" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Session Timeline" })).toBeNull();
+  });
+
+  it("exports a local support bundle from the diagnostics panel", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Export Support Bundle" }));
+
+    expect(await screen.findByText(/support-test/)).toBeTruthy();
+    expect(window.consyncDesktop.exportSupportBundle).toHaveBeenCalledTimes(1);
   });
 
   it("renders real current-session bookmark markers when timeline view is opened", async () => {
