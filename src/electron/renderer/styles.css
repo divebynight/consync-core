@@ -787,6 +787,33 @@ body {
   color: #fca5a5;
 }
 
+.help-about-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.help-about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.help-about-copy,
+.help-about-list {
+  margin: 0;
+  color: #aeb7cc;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.help-about-list {
+  padding-left: 18px;
+}
+
+.help-about-list li + li {
+  margin-top: 5px;
+}
+
 .search-entry-copy,
 .inspector-note {
   margin-bottom: 8px;

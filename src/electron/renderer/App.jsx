@@ -662,6 +662,78 @@ function InspectorPanel({ searchResult, selectedAudioFile, selectedBookmarkId, s
   );
 }
 
+function HelpAboutPanel({ onExportSupportBundle, supportBundleErrorMessage, supportBundleStatus }) {
+  return (
+    <section className="workspace-stack">
+      <article className="panel help-about-panel">
+        <div className="timeline-heading">
+          <p className="eyebrow timeline-eyebrow">Help</p>
+          <h3>About Consync</h3>
+          <p className="timeline-copy">
+            Consync helps you keep notes connected to the files and moments you are reviewing. For family testing, it is focused on opening a local audio file, saving notes, and keeping enough local detail to help Mark understand what happened if something feels off.
+          </p>
+        </div>
+
+        <div className="help-about-grid">
+          <section className="panel panel-secondary">
+            <h4>How to start</h4>
+            <ol className="help-about-list">
+              <li>Choose an MP3 from your computer.</li>
+              <li>Play or pause it normally.</li>
+              <li>Type a note and save it at the current time, or save a general file note.</li>
+              <li>Use Timeline or Bookmarks to review what you saved.</li>
+            </ol>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What sessions mean</h4>
+            <p className="help-about-copy">
+              A session is the current local note file Consync is reading and writing. It is a small record of the notes and markers you make while testing.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What is safe</h4>
+            <p className="help-about-copy">
+              Searching, opening the timeline, looking at bookmarks, and revealing files are read-only. Choosing an audio file does not change that audio file.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What changes files</h4>
+            <p className="help-about-copy">
+              Saving, editing, deleting, or undoing notes changes the local session note file. Exporting a support bundle creates a new local folder with copies of app details and logs.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>Diagnostics stay local</h4>
+            <p className="help-about-copy">
+              Consync writes diagnostics on this computer only. It does not send logs, audio, notes, or support bundles anywhere by itself.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>Send Mark a support bundle</h4>
+            <p className="help-about-copy">
+              Click Export Support Bundle, then send Mark the folder path shown below. The bundle includes app info, local logs, and recent session details when available.
+            </p>
+            <button className="bookmark-button" onClick={onExportSupportBundle} type="button">
+              Export Support Bundle
+            </button>
+            {supportBundleStatus ? (
+              <p className="diagnostics-status">Exported to {supportBundleStatus}</p>
+            ) : null}
+            {supportBundleErrorMessage ? (
+              <p className="diagnostics-status diagnostics-status-error">{supportBundleErrorMessage}</p>
+            ) : null}
+          </section>
+        </div>
+      </article>
+    </section>
+  );
+}
+
 export function App() {
   const [appInfo, setAppInfo] = useState(null);
   const [note, setNote] = useState("");
@@ -1234,6 +1306,12 @@ export function App() {
               >
                 Timeline View
               </NavigationButton>
+              <NavigationButton
+                active={activeView === "help"}
+                onClick={() => handleNavigationAction("view-help-about", () => setActiveView("help"))}
+              >
+                Help / About
+              </NavigationButton>
             </div>
           </article>
 
@@ -1284,7 +1362,13 @@ export function App() {
         <section className="workspace-column workspace-main">
           <div className="column-heading">
             <p className="eyebrow">Primary View</p>
-            <h2>{activeView === "timeline" ? "Session Timeline" : "Session Summary"}</h2>
+            <h2>
+              {activeView === "timeline"
+                ? "Session Timeline"
+                : activeView === "help"
+                  ? "Help / About"
+                  : "Session Summary"}
+            </h2>
           </div>
 
           {sessionErrorMessage ? (
@@ -1294,7 +1378,13 @@ export function App() {
             </section>
           ) : null}
 
-          {activeView === "timeline" ? (
+          {activeView === "help" ? (
+            <HelpAboutPanel
+              onExportSupportBundle={handleExportSupportBundle}
+              supportBundleErrorMessage={supportBundleErrorMessage}
+              supportBundleStatus={supportBundleStatus}
+            />
+          ) : activeView === "timeline" ? (
             <section className="timeline-stage">
               <SessionTimelineShell onSelectBookmark={setSelectedBookmarkId} sessionState={sessionState} />
             </section>

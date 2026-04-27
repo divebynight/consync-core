@@ -145,10 +145,29 @@ describe("App search flow", () => {
     expect((await screen.findAllByText("0.0.11")).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "Session Summary" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Help / About" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Audio Notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Choose MP3" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Export Support Bundle" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Session Timeline" })).toBeNull();
+  });
+
+  it("shows plain-language help for family testers", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(await screen.findByRole("button", { name: "Help / About" }));
+
+    expect(await screen.findByRole("heading", { name: "Help / About" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "About Consync" })).toBeTruthy();
+    expect(screen.getByText(/Consync helps you keep notes connected/)).toBeTruthy();
+    expect(screen.getByText(/A session is the current local note file/)).toBeTruthy();
+    expect(screen.getByText(/Searching, opening the timeline/)).toBeTruthy();
+    expect(screen.getByText(/Saving, editing, deleting, or undoing notes/)).toBeTruthy();
+    expect(screen.getByText(/Consync writes diagnostics on this computer only/)).toBeTruthy();
+    expect(screen.getByText(/send Mark the folder path/)).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Export Support Bundle" }).length).toBeGreaterThan(0);
   });
 
   it("exports a local support bundle from the diagnostics panel", async () => {
