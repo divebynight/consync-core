@@ -147,6 +147,10 @@ describe("App search flow", () => {
     expect(screen.getByRole("button", { name: "Timeline View" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Help / About" })).toBeTruthy();
     expect(screen.getByText("Need help? Open Help / About.")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Start with an audio file" })).toBeTruthy();
+    expect(screen.getByText(/Click Choose MP3 in Audio Notes/)).toBeTruthy();
+    expect(screen.getByText(/After you choose a file/)).toBeTruthy();
+    expect(screen.getByText(/Consync does not upload your files/)).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Audio Notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Choose MP3" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Export Support Bundle" })).toBeTruthy();

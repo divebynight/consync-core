@@ -1395,6 +1395,30 @@ export function App() {
             </section>
           ) : (
             <section className="workspace-stack">
+              <article className="panel first-run-panel">
+                <div>
+                  <p className="eyebrow">First Steps</p>
+                  <h3>Start with an audio file</h3>
+                  <p className="first-run-copy">
+                    Click Choose MP3 in Audio Notes, pick a file from this computer, then play it and save notes for moments you want to remember.
+                  </p>
+                </div>
+                <div className="first-run-guidance-grid">
+                  <section className="panel panel-secondary">
+                    <h4>What you will see</h4>
+                    <p className="first-run-copy">
+                      After you choose a file, Consync shows the player, the current playback time, and a place to type notes.
+                    </p>
+                  </section>
+                  <section className="panel panel-secondary">
+                    <h4>What stays local</h4>
+                    <p className="first-run-copy">
+                      Consync does not upload your files. Notes, logs, and support bundles stay on this computer unless you choose to send them.
+                    </p>
+                  </section>
+                </div>
+              </article>
+
               <article className="panel resume-panel" ref={resumeSectionRef}>
                 <div className="resume-panel-header">
                   <div>
