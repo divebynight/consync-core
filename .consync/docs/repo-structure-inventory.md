@@ -664,18 +664,6 @@ The numbered prefix naming (`03_`, `04_`) creates visual ambiguity between `docs
 **Risk of removal:** Low-medium. Removes the only explicit resume anchor for the marker capture feature. The feature definition in `05_marker-capture.md` would remain, but the scoped implementation guidance would be gone.
 
 **Recommended next packet:** None for cleanup. When the marker capture feature is ready to implement, this file is the correct starting point. After implementation, it can be archived or removed as part of that package's closeout.
-- Reason: These files share names with the numbered artifact sequence in `.consync/artifacts/`. Whether they are stale duplicates or have diverged in content is not confirmed. A human should compare them against their `artifacts/` counterparts and decide which to keep.
-- Risk Confirmation: Low risk to defer. Keeping both creates minor ambiguity but no system failure. Removing without confirming content match risks losing information.
-
----
-
-**`.consync/artifacts/marker-capture-resume.md`**
-
-- Path: `./.consync/artifacts/marker-capture-resume.md`
-- Original Recommendation: REVIEW
-- Final Decision: **DEFER**
-- Reason: The file explicitly states marker capture is defined but not yet implemented. Whether this is still the accurate state — or whether the feature was implemented, deferred, or dropped — is not confirmed from inspection alone.
-- Risk Confirmation: Low risk to defer. Keeping a stale resume anchor is low harm. A human should confirm the current status of the marker capture feature before removing this.
 
 ---
 
