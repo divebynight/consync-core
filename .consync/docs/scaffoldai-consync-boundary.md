@@ -39,7 +39,7 @@ repo-local operating model:
 | --- | --- | --- |
 | Consync state | `.consync/state/` | Authoritative live process state; do not hand-edit outside workflow. |
 | Consync docs | `.consync/docs/` | Process and operating reference material. |
-| Agent skills | `.consync/.agents/skills/` | Workflow instructions for Consync operators and agents. |
+| Skills and procedures | `.consync/skills/` | Reusable workflow procedures used by Consync operators and agents. |
 | Prompts and templates | `.consync/prompts/`, `.consync/templates/` | Process scaffolding and packet generation material. |
 | Streams and packets | `.consync/streams/`, `.consync/packets/` | Durable process coordination surfaces. |
 | Artifacts and notes | `.consync/artifacts/`, `.consync/notes/` | Historical or working process context. |

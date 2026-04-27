@@ -224,9 +224,11 @@ Preflight result meanings:
 - proceed: state is coherent enough for the mounted package
 - reconcile first: canonical files conflict or the package appears stale
 
-V1 operator command:
+V1 operator command and current Preflight agent binding:
 
 - `npm run check:state-preflight`
+
+This is the existing concrete execution surface for the Preflight agent. It is an implicit command binding, not a full agent orchestrator.
 
 Meaning:
 

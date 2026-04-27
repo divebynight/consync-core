@@ -1,7 +1,85 @@
 # System Integrity Snapshot
 
 Captured: 2026-04-25 (updated 2026-04-26)
-HEAD: `477c74b` — Add timeline marker inspector sync
+HEAD: `c76a3d8` — Align docs with manual agent invocation model
+
+---
+
+## Phase 2 Manual Agent System Snapshot
+
+Captured: 2026-04-26
+
+Current commit: `c76a3d8` — Align docs with manual agent invocation model
+
+### Test / Verification Count
+
+- Current packet verification command: `npm run verify`
+- Current observed UI test count from `npm run verify`: 1 jsdom test file, 35 tests passing in `src/test/app-search-flow.test.jsx`
+- e2e inventory: 20 Playwright spec files under `src/test/e2e/`
+- Full e2e was not rerun for this docs-only snapshot packet.
+
+### System Characteristics
+
+- Consync uses manual, explicit agent invocation.
+- The Entry Adapter is a manual classification layer that recommends one existing agent.
+- A human invokes the recommended agent.
+- No orchestrator, runner, dispatcher, automatic dispatch, or hidden agent pipeline exists.
+- This snapshot records current behavior only; it does not describe future features.
+
+### Current Agent List
+
+| Agent | Current role |
+|---|---|
+| Preflight | Checks whether repo and process state are safe before work begins. |
+| Intake | Classifies new work and its boundaries before execution. |
+| Verify | Runs and reports verification evidence. |
+| Closeout | Summarizes changed files, verification, risks, and commit readiness. |
+| Reentry | Reconstructs context after interruption, stale state, or unclear handoff. |
+
+### Entry Adapter
+
+Input types:
+
+- `new_work_request` -> Intake
+- `before_repo_changes` -> Preflight
+- `verification_evidence_request` -> Verify
+- `closeout_commit_readiness` -> Closeout
+- `stale_lost_context` -> Reentry
+
+Output contract:
+
+```text
+STATUS: PASS | BLOCKED
+INPUT_TYPE:
+RECOMMENDED_AGENT:
+REASON:
+REQUIRED_HUMAN_ACTION:
+```
+
+Invocation rules:
+
+- **MUST** return a classification and recommendation only.
+- **MUST** recommend a single existing agent or return `BLOCKED`.
+- **MUST NOT** execute, dispatch, or invoke the recommended agent.
+- **SHOULD** be used when incoming input is ambiguous or the correct next agent is unclear.
+- **MAY SKIP** when a human explicitly invokes a specific agent, command, or bound process surface.
+
+### Directory Structure
+
+- `.consync/agents/` is the source of truth for agent roles, invocation points, binding status, and the manual Entry Adapter.
+- `.consync/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
+- `.github/` remains an adapter layer only and is not canonical process truth.
+
+### Recent Phase 2 Packets
+
+| Packet | Outcome | Commit |
+|---|---|---|
+| Boundary normalization | COMPLETE | `952ab7b` |
+| Entry Adapter definition | COMPLETE | `c0f5376` |
+| Entry Adapter examples | COMPLETE | `153e198` |
+| Entry Adapter real usage validation | COMPLETE | `90e459e` |
+| Invocation rules | COMPLETE | `c76a3d8` |
+| System alignment | COMPLETE | `c76a3d8` |
 
 ---
 
@@ -60,8 +138,8 @@ HEAD: `477c74b` — Add timeline marker inspector sync
 | `03_work-log.md` | Append-only record of completed work |
 | `state-contracts-and-integrity-checks.md` | State transition and integrity rules |
 | `handoff-delivery-bridge.md` | Package handoff contracts |
-| `.agents/skills/closeout-agent.md` | Post-work closeout verification workflow |
-| `.agents/skills/ingestion-gatekeeper.md` | External context classification workflow |
+| `skills/closeout-agent.md` | Post-work closeout verification workflow |
+| `skills/ingestion-gatekeeper.md` | External context classification workflow |
 | `examples/search-panel-feature-example.md` | Canonical end-to-end feature packet example |
 
 ---

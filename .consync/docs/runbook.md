@@ -16,6 +16,8 @@ This file is not the full spec. It is the practical decision layer above the dee
 ## Source Of Truth Boundary
 
 - `.consync/` is the authoritative Consync process layer for state, docs, streams, prompts, skills, and gatekeeping workflows.
+- `.consync/agents/` defines agent roles, invocation points, binding status, and the manual Entry Adapter.
+- `.consync/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
 - `.github/` is a thin Copilot/GitHub adapter layer and should point back to `.consync` for authoritative process behavior.
 - `AGENTS.md` is the Codex entry point and should direct Codex back to `.consync` rather than duplicating the full process model.
 
@@ -60,13 +62,40 @@ Use a core command when the operation is deterministic and success is checkable:
 - `state-integrity-check` — reads files, evaluates rules, returns PASS or FAIL
 - `new-guid`, `sandbox-scan` — explicit input, predictable output, no judgment required
 
-Use an agent when judgment is required before an operation should happen:
-- `gatekeeper mount` — reads repo state, evaluates a request, decides whether mounting is appropriate
-- use `.consync/.agents/skills/closeout-agent.md` after human approval of completed work to verify tests, docs, integrity, and commit readiness
-- use `.consync/.agents/skills/ingestion-gatekeeper.md` before adding external context so it is classified conservatively and placed in the right Consync surface
+Use an agent when bounded process judgment is required:
+- Preflight — checks whether repo and process state are safe before work begins
+- Intake — classifies new work and its boundaries before execution
+- Verify — runs and reports verification evidence
+- Closeout — summarizes changed files, verification, risks, and commit readiness
+- Reentry — reconstructs context after interruption, stale state, or unclear handoff
+- use the Closeout agent, currently bound to `.consync/skills/closeout-agent.md`, after human approval of completed work to verify tests, docs, integrity, and commit readiness
+- use `.consync/skills/ingestion-gatekeeper.md` before adding external context so it is classified conservatively and placed in the right Consync surface
 - Agents decide. Commands execute. State files record committed truth.
 
 Do not use an agent to do what a command already does deterministically.
+
+## Manual Agent Invocation Rules
+
+Consync uses manual, explicit agent invocation. There is no orchestrator, runner, automatic dispatcher, or hidden agent pipeline.
+
+The Entry Adapter classifies incoming input, recommends one existing agent, and stops. A human invokes the recommended agent.
+
+- **MUST** invoke agents manually.
+- **MUST** use Verify evidence before reporting clean closeout.
+- **SHOULD** use the Entry Adapter when the correct next agent is unclear.
+- **MAY SKIP** the Entry Adapter when the human explicitly invokes a specific agent or command.
+
+## Entry Adapter — Real Usage Validation
+
+The Entry Adapter remains a manual prompt/document classification layer. These examples record real workflow uses and outcomes; they do not add automation, commands, orchestration, dispatch, or runtime behavior.
+
+| INPUT | INPUT_TYPE | RECOMMENDED_AGENT | WAS_CORRECT | NOTES |
+| --- | --- | --- | --- | --- |
+| `MODE: IMPLEMENT PACKET_ID: entry-adapter-real-usage-v1` requesting this runbook validation section. | `new_work_request` | Intake | yes | Manually invoked Intake-style classification by treating the request as a docs-only packet with no code, commands, automation, or agent contract changes. Outcome: proceeded with a scoped runbook edit. |
+| Before editing `.consync/docs/runbook.md`, confirm the repo and process state are safe to work from. | `before_repo_changes` | Preflight | yes | Manually invoked Preflight through `npm run check:state-preflight`. Outcome: PASS before modifying the runbook. |
+| Run the required checks for this packet and report evidence. | `verification_evidence_request` | Verify | yes | Manually invoked Verify by running the required verification surface for this packet. Outcome: command evidence is recorded in the packet output. |
+| `MODE: CLOSEOUT PACKET_ID: entry-adapter-examples-v1` requesting commit readiness for the examples packet. | `closeout_commit_readiness` | Closeout | yes | Manually invoked Closeout by reviewing the docs-only diff, confirming no runtime behavior changed, rerunning checks, and committing `153e198`. |
+| Session context resumed from a compact handoff with prior packet history and current repo state needing confirmation before continuing. | `stale_lost_context` | Reentry | yes | Manually invoked Reentry-style reconstruction by checking the provided handoff summary, `git status --short`, current `HEAD`, and relevant docs before starting new work. Outcome: safe continuation without inventing missing state. |
 
 ## Stream Rules
 
@@ -236,7 +265,8 @@ The assistant should:
 - `.consync/docs/stream-and-state-interaction.md` for live-loop versus per-stream state
 - `.consync/docs/stream-switch-and-active-owner-rules.md` for switching and ownership
 - `.consync/docs/human-assisted-observation-closeout-rules.md` for manual observation packages
-- `.consync/docs/agent-routing-policy.md` and `.consync/docs/integrity-agent-loop.md` for optional agent use
+- `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
+- `.consync/agents/entry-adapter.md` for the manual input-classification adapter
 
 ## Feature Development
 

@@ -1,6 +1,6 @@
-# Closeout Agent
+# Closeout Procedure
 
-Use this after human approval of completed work to verify closeout readiness for the current repo state.
+Use this procedure after human approval of completed work to verify closeout readiness for the current repo state.
 
 This workflow is for final verification and commit preparation. It is not for drafting new work, broad cleanup, or bypassing failed checks.
 

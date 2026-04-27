@@ -4,9 +4,30 @@
 
 `.consync/` is the authoritative Consync process layer.
 
-Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/.agents/skills/*` as the source of truth for workflow behavior.
+Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
+
+`.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+
+`.consync/agents/entry-adapter.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
+
+## Agent Invocation Rules
+
+Consync uses manual, explicit agent invocation. No orchestrator, runner, automatic dispatcher, or hidden agent pipeline exists.
+
+Current agent roles are:
+- Preflight — checks whether repo and process state are safe before work begins.
+- Intake — classifies new work and its boundaries before execution.
+- Verify — runs and reports verification evidence.
+- Closeout — summarizes changed files, verification, risks, and commit readiness.
+- Reentry — reconstructs context after interruption, stale state, or unclear handoff.
+
+Invocation rules:
+- MUST invoke agents manually.
+- MUST use Verify evidence before reporting clean closeout.
+- SHOULD use the Entry Adapter when the correct next agent is unclear.
+- MAY SKIP the Entry Adapter when the human explicitly invokes a specific agent or command.
 
 ## Purpose
 

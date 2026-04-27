@@ -183,7 +183,7 @@ See: `.consync/docs/verification-ladder.md`
 
 Feature Packet closeout follows the same closeout-agent workflow used for individual packets. The difference is that a feature-level summary is also appended to the work-log in addition to each packet's own entry.
 
-See: `.consync/.agents/skills/closeout-agent.md`
+See: `.consync/skills/closeout-agent.md`
 
 ### Coverage Map
 
