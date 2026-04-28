@@ -194,6 +194,81 @@ function StatusRow({ label, value }) {
   );
 }
 
+function getErrorDetails(error) {
+  if (!error) {
+    return {
+      message: "Unknown error",
+    };
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack || null,
+    };
+  }
+
+  if (typeof error === "object") {
+    return {
+      message: typeof error.message === "string" ? error.message : JSON.stringify(error),
+      name: typeof error.name === "string" ? error.name : null,
+      stack: typeof error.stack === "string" ? error.stack : null,
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
+function logRendererEvent(type, details = {}) {
+  const desktopBridge = window.consyncDesktop;
+
+  if (!desktopBridge || typeof desktopBridge.logRendererEvent !== "function") {
+    return Promise.resolve({ ok: false });
+  }
+
+  return desktopBridge.logRendererEvent(type, details).catch(() => ({ ok: false }));
+}
+
+export class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      errorMessage: null,
+    };
+  }
+
+  componentDidCatch(error, info) {
+    const errorDetails = getErrorDetails(error);
+
+    this.setState({
+      errorMessage: errorDetails.message,
+    });
+
+    logRendererEvent("renderer-error", {
+      componentStack: info && info.componentStack,
+      error: errorDetails,
+    });
+  }
+
+  render() {
+    if (this.state.errorMessage) {
+      return (
+        <main className="shell">
+          <section className="panel session-error-panel">
+            <h1>Something went wrong</h1>
+            <p className="empty-state">{this.state.errorMessage}</p>
+          </section>
+        </main>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function clampTimelinePercent(value) {
   return Math.max(0, Math.min(88, value));
 }
@@ -413,9 +488,12 @@ function getDesktopBridge() {
   if (
     !desktopBridge ||
     typeof desktopBridge.getSessionState !== "function" ||
+    typeof desktopBridge.getAppInfo !== "function" ||
     typeof desktopBridge.getLastAudioFile !== "function" ||
     typeof desktopBridge.createBookmark !== "function" ||
     typeof desktopBridge.deleteBookmark !== "function" ||
+    typeof desktopBridge.exportSupportBundle !== "function" ||
+    typeof desktopBridge.logRendererEvent !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function"
@@ -502,10 +580,10 @@ function MockSearchResult({ searchResult, selectedMatchKey, onRevealSelectedMatc
   );
 }
 
-function NavigationButton({ active, children, onClick }) {
+function NavigationButton({ active, children, onClick, tone = "default" }) {
   return (
     <button
-      className={`workspace-nav-button${active ? " workspace-nav-button-active" : ""}`}
+      className={`workspace-nav-button${tone === "help" ? " workspace-nav-button-help" : ""}${active ? " workspace-nav-button-active" : ""}`}
       onClick={onClick}
       type="button"
     >
@@ -584,7 +662,80 @@ function InspectorPanel({ searchResult, selectedAudioFile, selectedBookmarkId, s
   );
 }
 
+function HelpAboutPanel({ onExportSupportBundle, supportBundleErrorMessage, supportBundleStatus }) {
+  return (
+    <section className="workspace-stack">
+      <article className="panel help-about-panel">
+        <div className="timeline-heading">
+          <p className="eyebrow timeline-eyebrow">Help</p>
+          <h3>About Consync</h3>
+          <p className="timeline-copy">
+            Consync helps you keep notes connected to the files and moments you are reviewing. For family testing, it is focused on opening a local audio file, saving notes, and keeping enough local detail to help Mark understand what happened if something feels off.
+          </p>
+        </div>
+
+        <div className="help-about-grid">
+          <section className="panel panel-secondary">
+            <h4>How to start</h4>
+            <ol className="help-about-list">
+              <li>Choose an MP3 from your computer.</li>
+              <li>Play or pause it normally.</li>
+              <li>Type a note and save it at the current time, or save a general file note.</li>
+              <li>Use Timeline or Bookmarks to review what you saved.</li>
+            </ol>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What sessions mean</h4>
+            <p className="help-about-copy">
+              A session is the current local note file Consync is reading and writing. It is a small record of the notes and markers you make while testing.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What is safe</h4>
+            <p className="help-about-copy">
+              Searching, opening the timeline, looking at bookmarks, and revealing files are read-only. Choosing an audio file does not change that audio file.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>What changes files</h4>
+            <p className="help-about-copy">
+              Saving, editing, deleting, or undoing notes changes the local session note file. Exporting a support bundle creates a new local folder with copies of app details and logs.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>Diagnostics stay local</h4>
+            <p className="help-about-copy">
+              Consync writes diagnostics on this computer only. It does not send logs, audio, notes, or support bundles anywhere by itself.
+            </p>
+          </section>
+
+          <section className="panel panel-secondary">
+            <h4>Send Mark a support bundle</h4>
+            <p className="help-about-copy">
+              Click Export Support Bundle, then send Mark the folder path shown below. The bundle includes app info, local logs, and recent session details when available.
+            </p>
+            <button className="bookmark-button" onClick={onExportSupportBundle} type="button">
+              Export Support Bundle
+            </button>
+            {supportBundleStatus ? (
+              <p className="diagnostics-status">Exported to {supportBundleStatus}</p>
+            ) : null}
+            {supportBundleErrorMessage ? (
+              <p className="diagnostics-status diagnostics-status-error">{supportBundleErrorMessage}</p>
+            ) : null}
+          </section>
+        </div>
+      </article>
+    </section>
+  );
+}
+
 export function App() {
+  const [appInfo, setAppInfo] = useState(null);
   const [note, setNote] = useState("");
   const [searchRoot, setSearchRoot] = useState("sandbox/fixtures/nested-anchor-trial");
   const [searchQuery, setSearchQuery] = useState("moss");
@@ -601,6 +752,8 @@ export function App() {
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState("audio");
   const [activeEditableMarkerId, setActiveEditableMarkerId] = useState(null);
   const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
+  const [supportBundleStatus, setSupportBundleStatus] = useState(null);
+  const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
   const activeEditableMarkerIdRef = useRef(null);
@@ -634,6 +787,11 @@ export function App() {
     setSearchErrorMessage(null);
   }
 
+  function handleNavigationAction(action, updateView) {
+    updateView();
+    logRendererEvent("ui-action", { action });
+  }
+
   function scrollToSection(sectionRef) {
     if (sectionRef.current) {
       sectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -645,7 +803,8 @@ export function App() {
 
     async function loadDesktopState() {
       const desktopBridge = getDesktopBridge();
-      const [nextSessionState, lastAudioFile] = await Promise.all([
+      const [nextAppInfo, nextSessionState, lastAudioFile] = await Promise.all([
+        desktopBridge.getAppInfo(),
         desktopBridge.getSessionState(),
         desktopBridge.getLastAudioFile(),
       ]);
@@ -654,8 +813,12 @@ export function App() {
         return;
       }
 
+      setAppInfo(nextAppInfo);
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
+      logRendererEvent("renderer-loaded", {
+        currentFile: nextSessionState.currentFile,
+      });
 
       if (lastAudioFile && lastAudioFile.ok) {
         setSelectedAudioContext(lastAudioFile);
@@ -670,6 +833,29 @@ export function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleWindowError(event) {
+      logRendererEvent("renderer-error", {
+        error: getErrorDetails(event.error || event.message),
+        source: event.filename || null,
+      });
+    }
+
+    function handleUnhandledRejection(event) {
+      logRendererEvent("renderer-unhandled-rejection", {
+        error: getErrorDetails(event.reason),
+      });
+    }
+
+    window.addEventListener("error", handleWindowError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener("error", handleWindowError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
   }, []);
 
@@ -694,6 +880,10 @@ export function App() {
           setSessionState(nextSessionState);
           setSessionErrorMessage(null);
           setAudioErrorMessage(null);
+          logRendererEvent("ui-action", {
+            action: "bookmark-updated",
+            bookmarkId: activeEditableMarkerIdRef.current,
+          });
         }
 
         finalizeEditableMarkerSession();
@@ -710,6 +900,9 @@ export function App() {
       setAudioErrorMessage(null);
       setNote("");
       setEditableMarker(null);
+      logRendererEvent("ui-action", {
+        action: "bookmark-created",
+      });
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -736,6 +929,11 @@ export function App() {
     setAudioCurrentTimeSeconds(currentTimeSeconds);
     setSessionErrorMessage(null);
     setAudioErrorMessage(null);
+    logRendererEvent("ui-action", {
+      action: "marker-created",
+      fileName: selectedAudioFile.fileName,
+      timeSeconds: currentTimeSeconds,
+    });
 
     const nextBookmarks = Array.isArray(nextSessionState.bookmarks) ? nextSessionState.bookmarks : [];
     const createdMarker = nextBookmarks[nextBookmarks.length - 1] || null;
@@ -792,6 +990,10 @@ export function App() {
       setAudioErrorMessage(null);
       setNote("");
       setEditableMarker(null);
+      logRendererEvent("ui-action", {
+        action: "file-note-created",
+        fileName: selectedAudioFile.fileName,
+      });
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
@@ -815,6 +1017,10 @@ export function App() {
         fileUrl: selectedFile.fileUrl,
       });
       setSelectedAudioContext(selectedFile);
+      logRendererEvent("ui-action", {
+        action: "audio-file-selected",
+        fileName: selectedFile.fileName,
+      });
     } catch (error) {
       setAudioErrorMessage(error.message);
     }
@@ -822,6 +1028,10 @@ export function App() {
 
   function handleSelectRecentAudioFile(recentFile) {
     setSelectedAudioContext(recentFile);
+    logRendererEvent("ui-action", {
+      action: "recent-audio-selected",
+      fileName: recentFile.fileName,
+    });
   }
 
   function handleNoteInputKeyDown(event) {
@@ -853,6 +1063,10 @@ export function App() {
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "marker-undo",
+        bookmarkId: latestTimelineMarker.id,
+      });
 
       if (activeEditableMarkerIdRef.current === latestTimelineMarker.id) {
         finalizeEditableMarkerSession();
@@ -876,6 +1090,10 @@ export function App() {
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setAudioErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "marker-deleted",
+        bookmarkId,
+      });
 
       if (activeEditableMarkerIdRef.current === bookmarkId) {
         finalizeEditableMarkerSession();
@@ -965,6 +1183,11 @@ export function App() {
       setSearchResult(result);
       setSelectedMatchKey(null);
       setSearchErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "search-run",
+        matchCount: result.matchCount,
+        rootPath: searchRoot.trim(),
+      });
     } catch (error) {
       setSearchErrorMessage(error.message);
       setSearchResult(null);
@@ -975,6 +1198,11 @@ export function App() {
   function handleSelectMockSearchMatch(group, match) {
     setSelectedMatchKey(getMockSearchSelectionKey(group, match));
     setSearchErrorMessage(null);
+    logRendererEvent("ui-action", {
+      action: "search-result-selected",
+      anchorPath: group.anchorPath,
+      artifactPath: match.artifactPath,
+    });
   }
 
   async function handleRevealSelectedMatch(fullPath) {
@@ -991,6 +1219,10 @@ export function App() {
       }
 
       setSearchErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "search-result-revealed",
+        fullPath,
+      });
     } catch (error) {
       setSearchErrorMessage(error.message);
     }
@@ -1005,6 +1237,31 @@ export function App() {
     setAudioCurrentTimeSeconds(normalizeCapturedTimeSeconds(timeSeconds));
     setAudioErrorMessage(null);
     setEditableMarker(null);
+    logRendererEvent("ui-action", {
+      action: "marker-seek",
+      timeSeconds,
+    });
+  }
+
+  async function handleExportSupportBundle() {
+    try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.exportSupportBundle();
+
+      if (!result.ok) {
+        throw new Error(result.output || "Support bundle export failed.");
+      }
+
+      setSupportBundleStatus(result.bundlePath);
+      setSupportBundleErrorMessage(null);
+      logRendererEvent("ui-action", {
+        action: "support-bundle-exported",
+        bundlePath: result.bundlePath,
+      });
+    } catch (error) {
+      setSupportBundleErrorMessage(error.message);
+      setSupportBundleStatus(null);
+    }
   }
 
   const sessionRows = getSessionPanelRows(sessionState);
@@ -1037,13 +1294,27 @@ export function App() {
           <article className="panel panel-secondary">
             <h2>Views</h2>
             <div className="workspace-nav">
-              <NavigationButton active={activeView === "workspace"} onClick={() => setActiveView("workspace")}>
+              <NavigationButton
+                active={activeView === "workspace"}
+                onClick={() => handleNavigationAction("view-workspace", () => setActiveView("workspace"))}
+              >
                 Workspace Summary
               </NavigationButton>
-              <NavigationButton active={activeView === "timeline"} onClick={() => setActiveView("timeline")}>
+              <NavigationButton
+                active={activeView === "timeline"}
+                onClick={() => handleNavigationAction("view-timeline", () => setActiveView("timeline"))}
+              >
                 Timeline View
               </NavigationButton>
+              <NavigationButton
+                active={activeView === "help"}
+                onClick={() => handleNavigationAction("view-help-about", () => setActiveView("help"))}
+                tone="help"
+              >
+                Help / About
+              </NavigationButton>
             </div>
+            <p className="sidebar-helper-text">Need help? Open Help / About.</p>
           </article>
 
           <article className="panel panel-secondary">
@@ -1073,12 +1344,36 @@ export function App() {
               <p className="empty-state">Open an mp3 to start a quick recent-files list.</p>
             )}
           </article>
+
+          <article className="panel panel-secondary diagnostics-panel">
+            <h2>Build</h2>
+            <StatusRow label="Version" value={appInfo ? appInfo.appVersion : "loading"} />
+            <StatusRow label="Build" value={appInfo ? appInfo.buildVersion : "loading"} />
+            <p className="support-helper-text">
+              If something goes wrong, click Export Support Bundle and send Mark the folder path.
+            </p>
+            <button className="bookmark-button bookmark-button-secondary" onClick={handleExportSupportBundle} type="button">
+              Export Support Bundle
+            </button>
+            {supportBundleStatus ? (
+              <p className="diagnostics-status">Exported to {supportBundleStatus}</p>
+            ) : null}
+            {supportBundleErrorMessage ? (
+              <p className="diagnostics-status diagnostics-status-error">{supportBundleErrorMessage}</p>
+            ) : null}
+          </article>
         </aside>
 
         <section className="workspace-column workspace-main">
           <div className="column-heading">
             <p className="eyebrow">Primary View</p>
-            <h2>{activeView === "timeline" ? "Session Timeline" : "Session Summary"}</h2>
+            <h2>
+              {activeView === "timeline"
+                ? "Session Timeline"
+                : activeView === "help"
+                  ? "Help / About"
+                  : "Session Summary"}
+            </h2>
           </div>
 
           {sessionErrorMessage ? (
@@ -1088,12 +1383,42 @@ export function App() {
             </section>
           ) : null}
 
-          {activeView === "timeline" ? (
+          {activeView === "help" ? (
+            <HelpAboutPanel
+              onExportSupportBundle={handleExportSupportBundle}
+              supportBundleErrorMessage={supportBundleErrorMessage}
+              supportBundleStatus={supportBundleStatus}
+            />
+          ) : activeView === "timeline" ? (
             <section className="timeline-stage">
               <SessionTimelineShell onSelectBookmark={setSelectedBookmarkId} sessionState={sessionState} />
             </section>
           ) : (
             <section className="workspace-stack">
+              <article className="panel first-run-panel">
+                <div>
+                  <p className="eyebrow">First Steps</p>
+                  <h3>Start with an audio file</h3>
+                  <p className="first-run-copy">
+                    Click Choose MP3 in Audio Notes, pick a file from this computer, then play it and save notes for moments you want to remember.
+                  </p>
+                </div>
+                <div className="first-run-guidance-grid">
+                  <section className="panel panel-secondary">
+                    <h4>What you will see</h4>
+                    <p className="first-run-copy">
+                      After you choose a file, Consync shows the player, the current playback time, and a place to type notes.
+                    </p>
+                  </section>
+                  <section className="panel panel-secondary">
+                    <h4>What stays local</h4>
+                    <p className="first-run-copy">
+                      Consync does not upload your files. Notes, logs, and support bundles stay on this computer unless you choose to send them.
+                    </p>
+                  </section>
+                </div>
+              </article>
+
               <article className="panel resume-panel" ref={resumeSectionRef}>
                 <div className="resume-panel-header">
                   <div>
@@ -1114,9 +1439,11 @@ export function App() {
                   <button
                     className="bookmark-button"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("audio");
-                      scrollToSection(resumeSectionRef);
+                      handleNavigationAction("resume-audio", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("audio");
+                        scrollToSection(resumeSectionRef);
+                      });
                     }}
                     type="button"
                   >
@@ -1124,7 +1451,7 @@ export function App() {
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
-                    onClick={() => setActiveView("timeline")}
+                    onClick={() => handleNavigationAction("open-timeline", () => setActiveView("timeline"))}
                     type="button"
                   >
                     Open Timeline
@@ -1132,8 +1459,10 @@ export function App() {
                   <button
                     className="bookmark-button bookmark-button-secondary"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("search");
+                      handleNavigationAction("open-search", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("search");
+                      });
                     }}
                     type="button"
                   >
@@ -1142,8 +1471,10 @@ export function App() {
                   <button
                     className="bookmark-button bookmark-button-secondary"
                     onClick={() => {
-                      setActiveView("workspace");
-                      setActiveWorkspaceSection("bookmarks");
+                      handleNavigationAction("open-bookmarks", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("bookmarks");
+                      });
                     }}
                     type="button"
                   >

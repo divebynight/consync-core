@@ -13,6 +13,7 @@ const {
 const {
   createBookmark,
   deleteBookmark,
+  getLatestSessionFileName,
   getSessionState,
   updateBookmark,
 } = require("../../core/session");
@@ -89,19 +90,47 @@ function resolveSelectedAudioFile(selection, options = {}) {
 function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   const shellLike = options.shellLike || require("electron").shell;
   const dialogLike = options.dialogLike || require("electron").dialog;
+  const diagnostics = options.diagnostics || null;
 
   let lastAudioFileResult = null;
 
+  ipcMainLike.handle(IPC_CHANNELS.getAppInfo, () => diagnostics ? diagnostics.getAppInfo() : {
+    appName: "Consync Desktop",
+    appVersion: "test",
+    buildVersion: "test",
+    diagnosticsRoot: null,
+    isPackaged: false,
+    platform: process.platform,
+    startedAt: new Date(0).toISOString(),
+  });
   ipcMainLike.handle(IPC_CHANNELS.getBackendSummary, () => getDesktopBackendSummary());
   ipcMainLike.handle(IPC_CHANNELS.getConsyncSummary, () => getDesktopConsyncSummary());
   ipcMainLike.handle(IPC_CHANNELS.getShellInfo, () => getDesktopShellInfo());
-  ipcMainLike.handle(IPC_CHANNELS.getSessionState, () => getSessionState());
+  ipcMainLike.handle(IPC_CHANNELS.getSessionState, () => {
+    const sessionState = getSessionState();
+
+    if (diagnostics) {
+      diagnostics.logEvent("session-opened", {
+        currentFile: sessionState.currentFile,
+        artifactCount: sessionState.artifactCount,
+      });
+    }
+
+    return sessionState;
+  });
   ipcMainLike.handle(IPC_CHANNELS.getLastAudioFile, () => lastAudioFileResult);
   ipcMainLike.handle(IPC_CHANNELS.selectAudioFile, async () => {
     const e2eSelectedAudioFile = getE2eSelectedAudioFile();
 
     if (e2eSelectedAudioFile) {
       lastAudioFileResult = e2eSelectedAudioFile;
+      if (diagnostics) {
+        diagnostics.logEvent("audio-file-selected", {
+          fileName: e2eSelectedAudioFile.fileName,
+          filePath: e2eSelectedAudioFile.filePath,
+          source: "e2e-fixture",
+        });
+      }
       return e2eSelectedAudioFile;
     }
 
@@ -117,15 +146,93 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
 
     if (result.ok) {
       lastAudioFileResult = result;
+      if (diagnostics) {
+        diagnostics.logEvent("audio-file-selected", {
+          fileName: result.fileName,
+          filePath: result.filePath,
+          source: "dialog",
+        });
+      }
     }
 
     return result;
   });
-  ipcMainLike.handle(IPC_CHANNELS.revealSearchResult, (_event, targetPath) => revealDesktopPath(targetPath, { shellLike }));
-  ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => runDesktopMockSearch(rootPath, query));
-  ipcMainLike.handle(IPC_CHANNELS.createBookmark, (_event, bookmark) => createBookmark(bookmark));
-  ipcMainLike.handle(IPC_CHANNELS.deleteBookmark, (_event, bookmarkDelete) => deleteBookmark(bookmarkDelete));
-  ipcMainLike.handle(IPC_CHANNELS.updateBookmark, (_event, bookmarkUpdate) => updateBookmark(bookmarkUpdate));
+  ipcMainLike.handle(IPC_CHANNELS.revealSearchResult, (_event, targetPath) => {
+    if (diagnostics) {
+      diagnostics.logEvent("search-result-revealed", { targetPath });
+    }
+
+    return revealDesktopPath(targetPath, { shellLike });
+  });
+  ipcMainLike.handle(IPC_CHANNELS.runMockSearch, (_event, rootPath, query) => {
+    if (diagnostics) {
+      diagnostics.logEvent("folder-search-run", { query, rootPath });
+    }
+
+    return runDesktopMockSearch(rootPath, query);
+  });
+  ipcMainLike.handle(IPC_CHANNELS.createBookmark, (_event, bookmark) => {
+    const nextSessionState = createBookmark(bookmark);
+
+    if (diagnostics) {
+      diagnostics.logEvent("bookmark-created", {
+        currentFile: getLatestSessionFileName(),
+        filePath: bookmark && bookmark.filePath,
+        hasTime: bookmark && bookmark.timeSeconds !== null && bookmark.timeSeconds !== undefined,
+      });
+    }
+
+    return nextSessionState;
+  });
+  ipcMainLike.handle(IPC_CHANNELS.deleteBookmark, (_event, bookmarkDelete) => {
+    const nextSessionState = deleteBookmark(bookmarkDelete);
+
+    if (diagnostics) {
+      diagnostics.logEvent("bookmark-deleted", {
+        bookmarkId: bookmarkDelete && bookmarkDelete.id,
+        currentFile: getLatestSessionFileName(),
+      });
+    }
+
+    return nextSessionState;
+  });
+  ipcMainLike.handle(IPC_CHANNELS.updateBookmark, (_event, bookmarkUpdate) => {
+    const nextSessionState = updateBookmark(bookmarkUpdate);
+
+    if (diagnostics) {
+      diagnostics.logEvent("bookmark-updated", {
+        bookmarkId: bookmarkUpdate && bookmarkUpdate.id,
+        currentFile: getLatestSessionFileName(),
+      });
+    }
+
+    return nextSessionState;
+  });
+  ipcMainLike.handle(IPC_CHANNELS.logRendererEvent, (_event, type, details) => {
+    if (!diagnostics) {
+      return { ok: true };
+    }
+
+    if (type === "renderer-error" || type === "renderer-unhandled-rejection") {
+      diagnostics.logError(type, details && details.error ? details.error : details, details);
+      return { ok: true };
+    }
+
+    diagnostics.logEvent(type, details);
+    return { ok: true };
+  });
+  ipcMainLike.handle(IPC_CHANNELS.exportSupportBundle, () => {
+    if (!diagnostics) {
+      return {
+        bundlePath: null,
+        includedFiles: [],
+        ok: false,
+        output: "Diagnostics are unavailable.",
+      };
+    }
+
+    return diagnostics.exportSupportBundle();
+  });
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
 }
 

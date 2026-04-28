@@ -8,6 +8,12 @@ function createDesktopBridge(invoke) {
     deleteBookmark(bookmarkDelete) {
       return invoke(IPC_CHANNELS.deleteBookmark, bookmarkDelete);
     },
+    exportSupportBundle() {
+      return invoke(IPC_CHANNELS.exportSupportBundle);
+    },
+    getAppInfo() {
+      return invoke(IPC_CHANNELS.getAppInfo);
+    },
     updateBookmark(bookmarkUpdate) {
       return invoke(IPC_CHANNELS.updateBookmark, bookmarkUpdate);
     },
@@ -31,6 +37,9 @@ function createDesktopBridge(invoke) {
     },
     revealSearchResult(targetPath) {
       return invoke(IPC_CHANNELS.revealSearchResult, targetPath);
+    },
+    logRendererEvent(type, details) {
+      return invoke(IPC_CHANNELS.logRendererEvent, type, details);
     },
     runMockSearch(rootPath, query) {
       return invoke(IPC_CHANNELS.runMockSearch, rootPath, query);
