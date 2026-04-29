@@ -422,7 +422,7 @@ describe("App search flow", () => {
     await user.click(screen.getByRole("button", { name: "Notes" }));
 
     const savedNotesSection = screen.getByRole("heading", { name: "Saved Notes" }).closest(".bookmark-section");
-    const keywordFilter = screen.getByLabelText("Filter by keyword");
+    const keywordFilter = screen.getByLabelText("Filter by keyword or idea");
 
     expect(within(savedNotesSection).getByText("Bridge arrangement note")).toBeTruthy();
     expect(within(savedNotesSection).getByText("Research book note")).toBeTruthy();
@@ -443,6 +443,62 @@ describe("App search flow", () => {
 
     expect(within(savedNotesSection).getByText("Bridge arrangement note")).toBeTruthy();
     expect(within(savedNotesSection).getByText("Research book note")).toBeTruthy();
+  });
+
+  it("filters standalone notes by idea field", async () => {
+    const user = userEvent.setup();
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 6,
+        bookmarks: [
+          {
+            createdAt: "2026-04-29T14:30:00.000Z",
+            filePath: "consync://standalone-note",
+            idea: "Song 3 Arrangement",
+            kind: "standalone-note",
+            note: "Bridge reverb note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+          {
+            createdAt: "2026-04-29T15:00:00.000Z",
+            filePath: "consync://standalone-note",
+            idea: "Book Chapter 4",
+            kind: "standalone-note",
+            note: "Research quote note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+
+    const savedNotesSection = screen.getByRole("heading", { name: "Saved Notes" }).closest(".bookmark-section");
+    const filter = screen.getByLabelText("Filter by keyword or idea");
+
+    expect(within(savedNotesSection).getByText("Bridge reverb note")).toBeTruthy();
+    expect(within(savedNotesSection).getByText("Research quote note")).toBeTruthy();
+
+    await user.type(filter, "song 3");
+
+    expect(within(savedNotesSection).getByText("Bridge reverb note")).toBeTruthy();
+    expect(within(savedNotesSection).queryByText("Research quote note")).toBeNull();
+
+    await user.clear(filter);
+    await user.type(filter, "chapter");
+
+    expect(within(savedNotesSection).queryByText("Bridge reverb note")).toBeNull();
+    expect(within(savedNotesSection).getByText("Research quote note")).toBeTruthy();
   });
 
   it("saves and displays the optional idea field on a standalone note", async () => {

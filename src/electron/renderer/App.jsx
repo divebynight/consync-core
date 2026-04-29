@@ -1424,11 +1424,15 @@ export function App() {
   const normalizedStandaloneNoteKeywordFilter = standaloneNoteKeywordFilter.trim().toLowerCase();
   const filteredStandaloneNotes = normalizedStandaloneNoteKeywordFilter
     ? standaloneNotes.filter(bookmark => (
-      Array.isArray(bookmark.keywords) &&
-      bookmark.keywords.some(keyword => (
-        typeof keyword === "string" &&
-        keyword.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
-      ))
+      (Array.isArray(bookmark.keywords) &&
+        bookmark.keywords.some(keyword => (
+          typeof keyword === "string" &&
+          keyword.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
+        ))
+      ) ||
+      (typeof bookmark.idea === "string" &&
+        bookmark.idea.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
+      )
     ))
     : standaloneNotes;
   const standaloneNoteKeywordSuggestions = getNoteKeywordSuggestions(
@@ -1982,14 +1986,14 @@ export function App() {
                   <section className="bookmark-section">
                     <h4>Saved Notes</h4>
                     <label className="bookmark-label" htmlFor="standalone-note-keyword-filter">
-                      Filter by keyword
+                      Filter by keyword or idea
                     </label>
                     <input
                       id="standalone-note-keyword-filter"
                       className="bookmark-input"
                       value={standaloneNoteKeywordFilter}
                       onChange={event => setStandaloneNoteKeywordFilter(event.target.value)}
-                      placeholder="Type a keyword such as arrangement"
+                      placeholder="Type a keyword or idea name"
                       type="text"
                     />
                     {standaloneNotes.length > 0 ? (
