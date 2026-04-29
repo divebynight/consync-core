@@ -160,6 +160,9 @@ function main() {
   runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "index.js"), "sandbox-catalog"]);
   console.log("");
 
+  runNodeStep("[verify] Gatekeeper decision rules", [path.join(repoRoot, "src", "test", "unit-dry-run-check.js")]);
+  console.log("");
+
   runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"]);
   console.log("");
 

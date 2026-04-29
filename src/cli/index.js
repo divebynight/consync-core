@@ -16,6 +16,7 @@ const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-c
 const { runPortableCommand } = require("../commands/portable");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
 const { runReentryCheckCommand } = require("../commands/reentry-check");
+const { runDryRunCheckCommand } = require("../commands/dry-run-check");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -187,6 +188,11 @@ async function main() {
 
   if (command === "reentry-check") {
     await runReentryCheckCommand();
+    return;
+  }
+
+  if (command === "dry-run-check") {
+    runDryRunCheckCommand(process.argv.slice(3));
     return;
   }
 
