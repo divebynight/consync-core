@@ -354,6 +354,127 @@ be low but useful enough to prompt reflection. Accuracy can improve later.
 
 ---
 
+## Notes, Ideas, and Keyword Suggestions — First Slice
+
+Captured: 2026-04-28
+Packet: `notes-ideas-keywords-slice-design-v1`
+
+This section defines the first implementable product slice for standalone
+notes, ideas, and keyword suggestions. It is a docs-only planning artifact.
+No UI or API changes are required yet.
+
+### Object Definitions For This Slice
+
+#### Idea
+
+An Idea is a long-lived conceptual anchor or topic. It is optional at
+capture time. Characteristics:
+
+- Durable: Ideas are not deleted when a Session ends.
+- Hierarchical later: An Idea may eventually have child Ideas, but this is
+  not required for the first slice.
+- Relational later: An Idea may eventually have files, notes, bookmarks, and
+  links attached to it, but attachment is not required at creation.
+- User-named: The user gives the Idea a name. There is no auto-generated
+  Idea structure.
+
+For the first slice, an Idea is just a named anchor the user can attach a
+Note to. Nothing more is required yet.
+
+#### Note
+
+A Note is a standalone captured entry. Characteristics:
+
+- Freeform: No required fields beyond the note text itself.
+- Attachable: A Note may attach to zero or more Ideas. Attachment is
+  optional both at creation time and afterward.
+- Editable: A Note can be edited after it is saved.
+- Searchable: A Note's text and accepted keywords are both searchable.
+- No minimum length: A one-word note is a valid note.
+
+#### Keyword
+
+A keyword is a piece of searchable metadata on a Note. Characteristics:
+
+- Suggested or manual: Keywords may come from local suggestions or be typed
+  directly by the user.
+- Confirmed by user: Suggested keywords are candidates until the user
+  accepts them. Accepted keywords become searchable metadata on the Note.
+- Removable: The user can remove any keyword from a Note at any time.
+- Not a full tag system: Keywords in this slice are flat labels on a Note.
+  A global tag taxonomy may emerge later but is not required now.
+
+#### Keyword Candidates
+
+Keyword candidates are temporary suggestions generated from note content.
+They are distinct from confirmed keywords:
+
+- Candidates are shown to the user but not stored as metadata until accepted.
+- Accepting a candidate promotes it to a confirmed keyword on the Note.
+- Dismissing a candidate removes it from the suggestion list with no effect
+  on the Note.
+- Longer notes produce richer candidates, but short notes are valid and
+  will simply produce fewer or no candidates.
+
+### Capture Rules
+
+The first slice should minimize friction at every step:
+
+- No required Idea — a Note can exist with no attachment.
+- No minimum note length — capture should never be blocked by length.
+- No forced categorization — the user does not need to choose a category or
+  Idea before saving.
+- Keywords are optional — a Note with no keywords is complete and valid.
+- One action to save — the user should be able to save without touching
+  keyword suggestions if they do not want to.
+
+### First Workflow
+
+1. **Add Note** — User opens the note capture surface. No required setup.
+2. **Enter note text** — Freeform text entry. No minimum length. No
+   required fields.
+3. **Optional title** — User may add a short title to the note. If no title
+   is given, the note is identified by its first line or a truncated preview.
+4. **Optional attach to Idea** — User may select an existing Idea from a
+   list, or create a new Idea by name, or leave the Note unattached. All
+   three are valid.
+5. **Review suggested keywords** — After the note is entered, the system
+   shows 3–5 keyword candidates derived from the note text using simple
+   local logic. The user reviews them. This step can be skipped entirely.
+6. **Add custom keywords** — User may type additional keywords not in the
+   suggestion list. Custom keywords are added directly as confirmed
+   keywords, not as candidates.
+7. **Save locally** — Note text, optional title, optional Idea attachment,
+   and confirmed keywords are saved to the local store. No network call.
+   Keyword candidates that were not accepted are discarded.
+
+### First Implementation Packets
+
+These are the suggested implementation steps in order. Each is a distinct,
+testable packet.
+
+1. **Standalone note creation and storage** — Note text, optional title, and
+   timestamp. No Idea attachment, no keywords yet. A note can be created and
+   read back from the local store.
+2. **Idea creation and storage** — Idea name, optional description, and
+   creation timestamp. An Idea can be created, listed, and selected from a
+   picker.
+3. **Attach Note to Idea** — Add optional Idea reference to Note creation
+   and editing. A Note can be saved with an Idea attachment and retrieved
+   by Idea.
+4. **Simple local keyword extraction** — Given a note text, return 3–5
+   keyword candidates using stopword filtering and frequency/position
+   heuristics. No model, no API. Returns a list of candidate strings.
+5. **Accept, add, and remove keywords** — User can accept candidates
+   (promoting them to confirmed keywords), add custom keywords directly,
+   or remove any confirmed keyword. Confirmed keywords are persisted on the
+   Note.
+6. **Basic note list and keyword search** — List all notes ordered by
+   recency. Allow filtering by confirmed keyword. A search for `recipe`
+   should return Notes that have `recipe` as a confirmed keyword.
+
+---
+
 ## Widgets, Views, and Profiles
 
 Captured: 2026-04-28
