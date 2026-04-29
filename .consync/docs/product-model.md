@@ -475,6 +475,34 @@ testable packet.
 
 ---
 
+## Notes / Keywords / Idea — Current State
+
+Captured: 2026-04-29
+Packets: `ideas-foundation-from-notes-first-workflow-v1`, `idea-surface-from-notes-v1`
+
+This section documents the implemented behavior as of these two packets. It
+is the authoritative checkpoint for the Notes → Keywords → Idea model.
+
+### What Is Built
+
+- **Notes** are first-class captured entries. A note has text, an optional
+  idea label, and zero or more accepted keywords. Notes are stored locally
+  and listed in the UI.
+- **Keywords** are lightweight, user-accepted tags on a note. They are
+  suggested during capture and accepted or dismissed by the user. Accepted
+  keywords are persisted on the note and are searchable.
+- **Idea** is an optional free-text field on a note. The user can type any
+  string as the idea label at capture time. It is stored on the note and
+  included in the keyword/idea filter search. It is not a managed entity.
+
+### What Idea Is Not (Guardrail)
+
+The idea field is currently a plain string on a note. It has no CRUD UI,
+no list view, no grouping, and no entity lifecycle. Do not treat idea as a
+managed entity until explicitly introduced in a future packet.
+
+---
+
 ## Widgets, Views, and Profiles
 
 Captured: 2026-04-28
