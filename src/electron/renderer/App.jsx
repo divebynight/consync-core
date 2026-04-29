@@ -850,6 +850,7 @@ export function App() {
   const [supportBundleStatus, setSupportBundleStatus] = useState(null);
   const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
   const [standaloneNoteText, setStandaloneNoteText] = useState("");
+  const [standaloneNoteIdea, setStandaloneNoteIdea] = useState("");
   const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
   const [standaloneNoteKeywordFilter, setStandaloneNoteKeywordFilter] = useState("");
   const [isStandaloneNoteInputOpen, setIsStandaloneNoteInputOpen] = useState(false);
@@ -1110,6 +1111,7 @@ export function App() {
       const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
         createdAt: new Date().toISOString(),
         filePath: STANDALONE_NOTE_FILE_PATH,
+        ...(standaloneNoteIdea.trim() ? { idea: standaloneNoteIdea.trim() } : {}),
         kind: STANDALONE_NOTE_KIND,
         keywords: acceptedStandaloneNoteKeywords,
         note: standaloneNoteText.trim(),
@@ -1120,6 +1122,7 @@ export function App() {
       setSessionState(nextSessionState);
       setSessionErrorMessage(null);
       setStandaloneNoteText("");
+      setStandaloneNoteIdea("");
       setAcceptedStandaloneNoteKeywords([]);
       setIsStandaloneNoteInputOpen(false);
       logRendererEvent("ui-action", {
@@ -1922,6 +1925,17 @@ export function App() {
                         placeholder="Write a note to remember"
                         type="text"
                       />
+                      <label className="bookmark-label" htmlFor="standalone-note-idea">
+                        Idea or category (optional)
+                      </label>
+                      <input
+                        id="standalone-note-idea"
+                        className="bookmark-input"
+                        value={standaloneNoteIdea}
+                        onChange={event => setStandaloneNoteIdea(event.target.value)}
+                        placeholder="e.g. Song 3 arrangement, Book chapter 4"
+                        type="text"
+                      />
                       {standaloneNoteKeywordSuggestions.length > 0 ? (
                         <div className="keyword-chip-group" aria-label="Keyword suggestions">
                           {standaloneNoteKeywordSuggestions.map(keyword => (
@@ -1953,6 +1967,7 @@ export function App() {
                           className="bookmark-button bookmark-button-secondary"
                           onClick={() => {
                             setStandaloneNoteText("");
+                            setStandaloneNoteIdea("");
                             setAcceptedStandaloneNoteKeywords([]);
                             setIsStandaloneNoteInputOpen(false);
                           }}
@@ -1984,6 +1999,9 @@ export function App() {
                             <li className="bookmark-item" key={`${bookmark.id || "note"}-standalone-${index}`}>
                               <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
                               <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                              {typeof bookmark.idea === "string" && bookmark.idea ? (
+                                <span className="bookmark-note-keywords">{bookmark.idea}</span>
+                              ) : null}
                               {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
                                 <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
                               ) : null}

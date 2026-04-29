@@ -445,6 +445,65 @@ describe("App search flow", () => {
     expect(within(savedNotesSection).getByText("Research book note")).toBeTruthy();
   });
 
+  it("saves and displays the optional idea field on a standalone note", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-29T15:00:00.000Z",
+            filePath: "consync://standalone-note",
+            idea: "Song 3 Arrangement",
+            kind: "standalone-note",
+            note: "This transition needs more reverb on the bridge",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+
+    window.consyncDesktop = createDesktopBridge({ getSessionState });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+    await user.click(screen.getByRole("button", { name: "Add Note" }));
+
+    await user.type(screen.getByLabelText("Note text"), "This transition needs more reverb on the bridge");
+    await user.type(screen.getByLabelText("Idea or category (optional)"), "Song 3 Arrangement");
+    await user.click(screen.getByRole("button", { name: "Save Note" }));
+
+    expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: "consync://standalone-note",
+      idea: "Song 3 Arrangement",
+      kind: "standalone-note",
+      note: "This transition needs more reverb on the bridge",
+      timeLabel: null,
+      timeSeconds: null,
+    }));
+
+    const savedNotesSection = await screen.findByRole("heading", { name: "Saved Notes" });
+    const section = savedNotesSection.closest(".bookmark-section");
+    await waitFor(() => {
+      expect(within(section).getByText("This transition needs more reverb on the bridge")).toBeTruthy();
+    });
+    expect(within(section).getByText("Song 3 Arrangement")).toBeTruthy();
+  });
+
   it("adds a new time-based bookmark to the workspace surfaces after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi

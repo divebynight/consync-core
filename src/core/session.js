@@ -112,10 +112,14 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
   const kind = typeof input.kind === "string" && input.kind.trim()
     ? input.kind.trim()
     : null;
+  const idea = typeof input.idea === "string" && input.idea.trim()
+    ? input.idea.trim()
+    : null;
 
   return {
     createdAt: input.createdAt.trim(),
     filePath: input.filePath.trim(),
+    ...(idea ? { idea } : {}),
     ...(kind ? { kind } : {}),
     ...(keywords.length > 0 ? { keywords } : {}),
     note: input.note.trim(),
