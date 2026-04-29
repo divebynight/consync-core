@@ -2,11 +2,13 @@
 
 - id: process
 - title: Stream Model + Process Evolution
-- status: active
+- status: paused
 - owner: human
 - mode: system
-- summary: active — mounted package: create_a_reusable_closeout_agent_workflow
+- summary: paused — state resynced to current Notes-first Electron product work
 
 ## Pause Checkpoint
 
-Current package: `create_a_reusable_closeout_agent_workflow` — verify the new closeout workflow, keep docs narrow, and prepare for a real closeout run without changing product behavior.
+The prior mounted process package `create_a_reusable_closeout_agent_workflow` is no longer the active work driver. Live ownership has returned to `electron_ui` after the current repo and state files were resynced.
+
+Future process cleanup remains useful, especially stale/missing process doc references, but it should be mounted as an explicit process packet rather than implied by stale state.

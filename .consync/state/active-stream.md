@@ -1,18 +1,18 @@
 ACTIVE STREAM
 
-process
+electron_ui
 
 PREVIOUS STREAM
 
-electron_ui
+process
 
 SWITCH REASON
 
-Switching to process to document and close out the reusable closeout-agent workflow after approved UI work
+Resyncing live state after the Notes-first Electron product slice completed. Recent work returned to the app surface: standalone notes, keyword suggestions, keyword filtering, and an explicit standalone note kind marker.
 
 PAUSED STREAMS
 
-- electron_ui
+- process
 
 SUPPORTING STREAMS
 
@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
 
-The global live loop stays singular even while other streams remain durable and resumable.
+The global live loop stays singular. The `process` stream is paused after state resync; future process cleanup should be mounted intentionally rather than implied by stale state.
