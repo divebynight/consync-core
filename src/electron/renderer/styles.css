@@ -675,6 +675,41 @@ body {
   font-size: 0.8rem;
 }
 
+.bookmark-note-keywords {
+  color: #9aa5bf;
+  font-size: 0.72rem;
+}
+
+.keyword-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.keyword-chip {
+  width: fit-content;
+  padding: 4px 8px;
+  border: 1px solid rgba(104, 117, 156, 0.22);
+  border-radius: 999px;
+  background: rgba(18, 24, 36, 0.92);
+  color: #bac3da;
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.keyword-chip:hover {
+  border-color: rgba(99, 102, 241, 0.48);
+  color: #eef2ff;
+}
+
+.keyword-chip-selected {
+  border-color: rgba(99, 102, 241, 0.42);
+  background: rgba(79, 92, 255, 0.18);
+  color: #eef2ff;
+  cursor: default;
+}
+
 .empty-state {
   margin: 0;
   color: #8e98af;

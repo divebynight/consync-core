@@ -12,6 +12,38 @@ import {
 } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 
+const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
+const NOTE_KEYWORD_STOPWORDS = new Set([
+  "about",
+  "after",
+  "again",
+  "also",
+  "and",
+  "are",
+  "because",
+  "but",
+  "can",
+  "for",
+  "from",
+  "have",
+  "here",
+  "into",
+  "just",
+  "later",
+  "like",
+  "note",
+  "notes",
+  "now",
+  "remember",
+  "should",
+  "that",
+  "the",
+  "then",
+  "this",
+  "was",
+  "with",
+]);
+
 function formatTimeLabel(totalSeconds) {
   const normalizedMilliseconds = Math.max(0, Math.round((Number(totalSeconds) || 0) * 1000));
   const minutes = Math.floor(normalizedMilliseconds / 60000);
@@ -56,6 +88,58 @@ function getBookmarkDisplayNote(bookmark) {
   }
 
   return "Untitled note";
+}
+
+function getStandaloneNoteTimestamp(bookmark) {
+  if (!bookmark || typeof bookmark.createdAt !== "string" || !bookmark.createdAt.trim()) {
+    return "Saved locally";
+  }
+
+  const createdAt = new Date(bookmark.createdAt);
+
+  if (Number.isNaN(createdAt.getTime())) {
+    return "Saved locally";
+  }
+
+  return createdAt.toLocaleString([], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function getNoteKeywordSuggestions(noteText, acceptedKeywords = []) {
+  if (typeof noteText !== "string" || !noteText.trim()) {
+    return [];
+  }
+
+  const acceptedKeywordSet = new Set(
+    acceptedKeywords
+      .filter(keyword => typeof keyword === "string")
+      .map(keyword => keyword.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const keywordCounts = new Map();
+
+  for (const rawWord of noteText.toLowerCase().match(/[a-z0-9][a-z0-9'-]*/g) || []) {
+    const keyword = rawWord.replace(/^'+|'+$/g, "");
+
+    if (keyword.length < 3 || NOTE_KEYWORD_STOPWORDS.has(keyword) || acceptedKeywordSet.has(keyword)) {
+      continue;
+    }
+
+    keywordCounts.set(keyword, (keywordCounts.get(keyword) || 0) + 1);
+  }
+
+  return [...keywordCounts.entries()]
+    .sort((left, right) => {
+      if (right[1] !== left[1]) {
+        return right[1] - left[1];
+      }
+
+      return left[0].localeCompare(right[0]);
+    })
+    .slice(0, 5)
+    .map(([keyword]) => keyword);
 }
 
 function getFileName(filePath) {
@@ -754,6 +838,9 @@ export function App() {
   const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
   const [supportBundleStatus, setSupportBundleStatus] = useState(null);
   const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
+  const [standaloneNoteText, setStandaloneNoteText] = useState("");
+  const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
+  const [isStandaloneNoteInputOpen, setIsStandaloneNoteInputOpen] = useState(false);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
   const activeEditableMarkerIdRef = useRef(null);
@@ -997,6 +1084,53 @@ export function App() {
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
+  }
+
+  async function handleCreateStandaloneNote(event) {
+    event.preventDefault();
+
+    if (!standaloneNoteText.trim()) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
+        createdAt: new Date().toISOString(),
+        filePath: STANDALONE_NOTE_FILE_PATH,
+        keywords: acceptedStandaloneNoteKeywords,
+        note: standaloneNoteText.trim(),
+        timeLabel: null,
+        timeSeconds: null,
+      });
+
+      setSessionState(nextSessionState);
+      setSessionErrorMessage(null);
+      setStandaloneNoteText("");
+      setAcceptedStandaloneNoteKeywords([]);
+      setIsStandaloneNoteInputOpen(false);
+      logRendererEvent("ui-action", {
+        action: "standalone-note-created",
+      });
+    } catch (error) {
+      setSessionErrorMessage(error.message);
+    }
+  }
+
+  function handleAcceptStandaloneNoteKeyword(keyword) {
+    if (typeof keyword !== "string" || !keyword.trim()) {
+      return;
+    }
+
+    setAcceptedStandaloneNoteKeywords(currentKeywords => {
+      const normalizedKeyword = keyword.trim().toLowerCase();
+
+      if (currentKeywords.includes(normalizedKeyword)) {
+        return currentKeywords;
+      }
+
+      return [...currentKeywords, normalizedKeyword];
+    });
   }
 
   async function handleSelectAudioFile() {
@@ -1268,6 +1402,13 @@ export function App() {
   const selectedAudioBookmarks = sessionState && selectedAudioFile
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
+  const standaloneNotes = sessionState
+    ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === STANDALONE_NOTE_FILE_PATH)
+    : [];
+  const standaloneNoteKeywordSuggestions = getNoteKeywordSuggestions(
+    standaloneNoteText,
+    acceptedStandaloneNoteKeywords
+  );
   const selectedAudioBookmarkGroups = splitBookmarksByTiming(selectedAudioBookmarks);
   const activeTimelineMarkerIndex = getActiveTimelineMarkerIndex(
     selectedAudioBookmarkGroups.timelineMarkers,
@@ -1467,6 +1608,18 @@ export function App() {
                     type="button"
                   >
                     Search
+                  </button>
+                  <button
+                    className="bookmark-button bookmark-button-secondary"
+                    onClick={() => {
+                      handleNavigationAction("open-notes", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("notes");
+                      });
+                    }}
+                    type="button"
+                  >
+                    Notes
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
@@ -1714,6 +1867,98 @@ export function App() {
                       Enter a root and query to preview the grouped mock search flow in the desktop shell.
                     </p>
                   )}
+                </article>
+              ) : null}
+
+              {activeWorkspaceSection === "notes" ? (
+                <article className="panel">
+                  <div className="audio-panel-header">
+                    <div>
+                      <h3>Notes</h3>
+                      <p className="empty-state">Save a quick standalone note without attaching it to an audio file yet.</p>
+                    </div>
+                    <button
+                      className="bookmark-button bookmark-button-secondary"
+                      onClick={() => setIsStandaloneNoteInputOpen(true)}
+                      type="button"
+                    >
+                      Add Note
+                    </button>
+                  </div>
+
+                  {isStandaloneNoteInputOpen ? (
+                    <form className="bookmark-form" onSubmit={handleCreateStandaloneNote}>
+                      <label className="bookmark-label" htmlFor="standalone-note-text">
+                        Note text
+                      </label>
+                      <input
+                        id="standalone-note-text"
+                        className="bookmark-input"
+                        value={standaloneNoteText}
+                        onChange={event => setStandaloneNoteText(event.target.value)}
+                        placeholder="Write a note to remember"
+                        type="text"
+                      />
+                      {standaloneNoteKeywordSuggestions.length > 0 ? (
+                        <div className="keyword-chip-group" aria-label="Keyword suggestions">
+                          {standaloneNoteKeywordSuggestions.map(keyword => (
+                            <button
+                              className="keyword-chip"
+                              key={keyword}
+                              onClick={() => handleAcceptStandaloneNoteKeyword(keyword)}
+                              type="button"
+                            >
+                              {keyword}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      {acceptedStandaloneNoteKeywords.length > 0 ? (
+                        <div className="keyword-chip-group" aria-label="Accepted keywords">
+                          {acceptedStandaloneNoteKeywords.map(keyword => (
+                            <span className="keyword-chip keyword-chip-selected" key={keyword}>
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="bookmark-action-row">
+                        <button className="bookmark-button" disabled={!standaloneNoteText.trim()} type="submit">
+                          Save Note
+                        </button>
+                        <button
+                          className="bookmark-button bookmark-button-secondary"
+                          onClick={() => {
+                            setStandaloneNoteText("");
+                            setAcceptedStandaloneNoteKeywords([]);
+                            setIsStandaloneNoteInputOpen(false);
+                          }}
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+
+                  <section className="bookmark-section">
+                    <h4>Saved Notes</h4>
+                    {standaloneNotes.length > 0 ? (
+                      <ul className="bookmark-list">
+                        {standaloneNotes.map((bookmark, index) => (
+                          <li className="bookmark-item" key={`${bookmark.id || "note"}-standalone-${index}`}>
+                            <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                            <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                            {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                              <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="empty-state">No standalone notes saved yet.</p>
+                    )}
+                  </section>
                 </article>
               ) : null}
 

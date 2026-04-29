@@ -103,9 +103,17 @@ function normalizeBookmarkPayload(input, sessionStateSnapshot) {
     }
   }
 
+  const keywords = Array.isArray(input.keywords)
+    ? input.keywords
+      .filter(keyword => typeof keyword === "string" && keyword.trim())
+      .map(keyword => keyword.trim().toLowerCase())
+      .filter((keyword, index, allKeywords) => allKeywords.indexOf(keyword) === index)
+    : [];
+
   return {
     createdAt: input.createdAt.trim(),
     filePath: input.filePath.trim(),
+    ...(keywords.length > 0 ? { keywords } : {}),
     note: input.note.trim(),
     timeLabel: hasNullTime ? null : input.timeLabel.trim(),
     timeSeconds: hasNullTime ? null : input.timeSeconds,

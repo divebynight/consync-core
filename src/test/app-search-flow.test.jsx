@@ -283,6 +283,70 @@ describe("App search flow", () => {
     expect(screen.getAllByText("File note").length).toBeGreaterThan(0);
   });
 
+  it("adds a standalone note through the shared bookmark system", async () => {
+    const user = userEvent.setup();
+    const getSessionState = vi
+      .fn()
+      .mockResolvedValueOnce({
+        artifactCount: 4,
+        bookmarks: [],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      })
+      .mockResolvedValueOnce({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-29T14:30:00.000Z",
+            filePath: "consync://standalone-note",
+            keywords: ["bridge", "arrangement"],
+            note: "Bridge arrangement concept with bridge harmony and chorus movement",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      });
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState,
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+    expect(await screen.findByRole("heading", { name: "Notes" })).toBeTruthy();
+    expect(screen.getByText("No standalone notes saved yet.")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Add Note" }));
+    await user.type(screen.getByLabelText("Note text"), "Bridge arrangement concept with bridge harmony and chorus movement");
+    expect(screen.getByRole("button", { name: "bridge" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "arrangement" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "bridge" }));
+    await user.click(screen.getByRole("button", { name: "arrangement" }));
+    await user.click(screen.getByRole("button", { name: "Save Note" }));
+
+    const savedNotesSection = screen.getByRole("heading", { name: "Saved Notes" }).closest(".bookmark-section");
+
+    await waitFor(() => {
+      expect(within(savedNotesSection).getByText("Bridge arrangement concept with bridge harmony and chorus movement")).toBeTruthy();
+    });
+    expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: "consync://standalone-note",
+      keywords: ["bridge", "arrangement"],
+      note: "Bridge arrangement concept with bridge harmony and chorus movement",
+      timeLabel: null,
+      timeSeconds: null,
+    }));
+    expect(within(savedNotesSection).getByText("Apr 29, 2026, 9:30 AM")).toBeTruthy();
+    expect(within(savedNotesSection).getByText("bridge, arrangement")).toBeTruthy();
+  });
+
   it("adds a new time-based bookmark to the workspace surfaces after bookmark capture", async () => {
     const user = userEvent.setup();
     const getSessionState = vi

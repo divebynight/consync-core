@@ -251,6 +251,33 @@ function main() {
     ]);
   });
 
+  withTemporarySessionDir(() => {
+    resetSessionState();
+
+    const keywordState = createBookmark({
+      createdAt: "2026-04-29T14:30:00.000Z",
+      filePath: "consync://standalone-note",
+      keywords: ["Bridge", "arrangement", "bridge", "  chorus  ", ""],
+      note: "Bridge arrangement concept",
+      timeLabel: null,
+      timeSeconds: null,
+    });
+    const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
+
+    assert.deepStrictEqual(keywordState.bookmarks, [
+      {
+        id: "bookmark-1",
+        createdAt: "2026-04-29T14:30:00.000Z",
+        filePath: "consync://standalone-note",
+        keywords: ["bridge", "arrangement", "chorus"],
+        note: "Bridge arrangement concept",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+    ]);
+    assert.deepStrictEqual(persistedArtifact.bookmarks, keywordState.bookmarks);
+  });
+
   console.log("PASS");
 }
 
