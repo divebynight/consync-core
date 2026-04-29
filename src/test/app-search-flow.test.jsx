@@ -300,6 +300,7 @@ describe("App search flow", () => {
           {
             createdAt: "2026-04-29T14:30:00.000Z",
             filePath: "consync://standalone-note",
+            kind: "standalone-note",
             keywords: ["bridge", "arrangement"],
             note: "Bridge arrangement concept with bridge harmony and chorus movement",
             timeLabel: null,
@@ -338,6 +339,7 @@ describe("App search flow", () => {
     });
     expect(window.consyncDesktop.createBookmark).toHaveBeenCalledWith(expect.objectContaining({
       filePath: "consync://standalone-note",
+      kind: "standalone-note",
       keywords: ["bridge", "arrangement"],
       note: "Bridge arrangement concept with bridge harmony and chorus movement",
       timeLabel: null,
@@ -345,6 +347,102 @@ describe("App search flow", () => {
     }));
     expect(within(savedNotesSection).getByText("Apr 29, 2026, 9:30 AM")).toBeTruthy();
     expect(within(savedNotesSection).getByText("bridge, arrangement")).toBeTruthy();
+  });
+
+  it("renders legacy standalone notes without the explicit kind field", async () => {
+    const user = userEvent.setup();
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 5,
+        bookmarks: [
+          {
+            createdAt: "2026-04-29T14:30:00.000Z",
+            filePath: "consync://standalone-note",
+            keywords: ["legacy"],
+            note: "Legacy standalone note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+
+    const savedNotesSection = screen.getByRole("heading", { name: "Saved Notes" }).closest(".bookmark-section");
+
+    expect(within(savedNotesSection).getByText("Legacy standalone note")).toBeTruthy();
+    expect(within(savedNotesSection).getByText("legacy")).toBeTruthy();
+  });
+
+  it("filters standalone notes by accepted keyword", async () => {
+    const user = userEvent.setup();
+
+    window.consyncDesktop = createDesktopBridge({
+      getSessionState: vi.fn().mockResolvedValue({
+        artifactCount: 6,
+        bookmarks: [
+          {
+            createdAt: "2026-04-29T14:30:00.000Z",
+            filePath: "consync://standalone-note",
+            kind: "standalone-note",
+            keywords: ["bridge", "arrangement"],
+            note: "Bridge arrangement note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+          {
+            createdAt: "2026-04-29T15:00:00.000Z",
+            filePath: "consync://standalone-note",
+            kind: "standalone-note",
+            keywords: ["research", "book"],
+            note: "Research book note",
+            timeLabel: null,
+            timeSeconds: null,
+          },
+        ],
+        currentFile: "20260405T154039301Z.json",
+        currentPositionSeconds: 84,
+        latestBookmark: null,
+      }),
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Audio Notes" })).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Notes" }));
+
+    const savedNotesSection = screen.getByRole("heading", { name: "Saved Notes" }).closest(".bookmark-section");
+    const keywordFilter = screen.getByLabelText("Filter by keyword");
+
+    expect(within(savedNotesSection).getByText("Bridge arrangement note")).toBeTruthy();
+    expect(within(savedNotesSection).getByText("Research book note")).toBeTruthy();
+
+    await user.type(keywordFilter, "ARR");
+
+    expect(within(savedNotesSection).getByText("Bridge arrangement note")).toBeTruthy();
+    expect(within(savedNotesSection).queryByText("Research book note")).toBeNull();
+
+    await user.clear(keywordFilter);
+    await user.type(keywordFilter, "zzz");
+
+    expect(within(savedNotesSection).queryByText("Bridge arrangement note")).toBeNull();
+    expect(within(savedNotesSection).queryByText("Research book note")).toBeNull();
+    expect(within(savedNotesSection).getByText("No notes match that keyword.")).toBeTruthy();
+
+    await user.clear(keywordFilter);
+
+    expect(within(savedNotesSection).getByText("Bridge arrangement note")).toBeTruthy();
+    expect(within(savedNotesSection).getByText("Research book note")).toBeTruthy();
   });
 
   it("adds a new time-based bookmark to the workspace surfaces after bookmark capture", async () => {

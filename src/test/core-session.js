@@ -257,6 +257,7 @@ function main() {
     const keywordState = createBookmark({
       createdAt: "2026-04-29T14:30:00.000Z",
       filePath: "consync://standalone-note",
+      kind: "standalone-note",
       keywords: ["Bridge", "arrangement", "bridge", "  chorus  ", ""],
       note: "Bridge arrangement concept",
       timeLabel: null,
@@ -269,6 +270,7 @@ function main() {
         id: "bookmark-1",
         createdAt: "2026-04-29T14:30:00.000Z",
         filePath: "consync://standalone-note",
+        kind: "standalone-note",
         keywords: ["bridge", "arrangement", "chorus"],
         note: "Bridge arrangement concept",
         timeLabel: null,

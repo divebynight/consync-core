@@ -13,6 +13,7 @@ import {
 import { getSessionPanelRows } from "./session-panel.mjs";
 
 const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
+const STANDALONE_NOTE_KIND = "standalone-note";
 const NOTE_KEYWORD_STOPWORDS = new Set([
   "about",
   "after",
@@ -140,6 +141,16 @@ function getNoteKeywordSuggestions(noteText, acceptedKeywords = []) {
     })
     .slice(0, 5)
     .map(([keyword]) => keyword);
+}
+
+function isStandaloneNoteBookmark(bookmark) {
+  return Boolean(
+    bookmark &&
+    (
+      bookmark.kind === STANDALONE_NOTE_KIND ||
+      bookmark.filePath === STANDALONE_NOTE_FILE_PATH
+    )
+  );
 }
 
 function getFileName(filePath) {
@@ -840,6 +851,7 @@ export function App() {
   const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
   const [standaloneNoteText, setStandaloneNoteText] = useState("");
   const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
+  const [standaloneNoteKeywordFilter, setStandaloneNoteKeywordFilter] = useState("");
   const [isStandaloneNoteInputOpen, setIsStandaloneNoteInputOpen] = useState(false);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
@@ -1098,6 +1110,7 @@ export function App() {
       const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
         createdAt: new Date().toISOString(),
         filePath: STANDALONE_NOTE_FILE_PATH,
+        kind: STANDALONE_NOTE_KIND,
         keywords: acceptedStandaloneNoteKeywords,
         note: standaloneNoteText.trim(),
         timeLabel: null,
@@ -1403,8 +1416,18 @@ export function App() {
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
   const standaloneNotes = sessionState
-    ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === STANDALONE_NOTE_FILE_PATH)
+    ? sessionState.bookmarks.filter(bookmark => isStandaloneNoteBookmark(bookmark))
     : [];
+  const normalizedStandaloneNoteKeywordFilter = standaloneNoteKeywordFilter.trim().toLowerCase();
+  const filteredStandaloneNotes = normalizedStandaloneNoteKeywordFilter
+    ? standaloneNotes.filter(bookmark => (
+      Array.isArray(bookmark.keywords) &&
+      bookmark.keywords.some(keyword => (
+        typeof keyword === "string" &&
+        keyword.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
+      ))
+    ))
+    : standaloneNotes;
   const standaloneNoteKeywordSuggestions = getNoteKeywordSuggestions(
     standaloneNoteText,
     acceptedStandaloneNoteKeywords
@@ -1943,18 +1966,33 @@ export function App() {
 
                   <section className="bookmark-section">
                     <h4>Saved Notes</h4>
+                    <label className="bookmark-label" htmlFor="standalone-note-keyword-filter">
+                      Filter by keyword
+                    </label>
+                    <input
+                      id="standalone-note-keyword-filter"
+                      className="bookmark-input"
+                      value={standaloneNoteKeywordFilter}
+                      onChange={event => setStandaloneNoteKeywordFilter(event.target.value)}
+                      placeholder="Type a keyword such as arrangement"
+                      type="text"
+                    />
                     {standaloneNotes.length > 0 ? (
-                      <ul className="bookmark-list">
-                        {standaloneNotes.map((bookmark, index) => (
-                          <li className="bookmark-item" key={`${bookmark.id || "note"}-standalone-${index}`}>
-                            <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
-                            <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
-                            {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
-                              <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
+                      filteredStandaloneNotes.length > 0 ? (
+                        <ul className="bookmark-list">
+                          {filteredStandaloneNotes.map((bookmark, index) => (
+                            <li className="bookmark-item" key={`${bookmark.id || "note"}-standalone-${index}`}>
+                              <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                              <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                              {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                                <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="empty-state">No notes match that keyword.</p>
+                      )
                     ) : (
                       <p className="empty-state">No standalone notes saved yet.</p>
                     )}
