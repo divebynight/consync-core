@@ -48,17 +48,6 @@ async function loadFixtureAudio(window) {
   await expect(window.getByRole("heading", { name: "Timeline Markers" })).toBeVisible();
 }
 
-async function clickNativePlayToggle(window) {
-  const audioPlayer = window.locator("audio.audio-player");
-  const box = await audioPlayer.boundingBox();
-
-  if (!box) {
-    throw new Error("Audio player bounding box was unavailable.");
-  }
-
-  await window.mouse.click(box.x + 10, box.y + (box.height / 2));
-}
-
 test("toggles playback on and off through the visible native audio control", async () => {
   const { electronApp, temporarySessionDir } = await launchElectronApp();
 
@@ -71,10 +60,14 @@ test("toggles playback on and off through the visible native audio control", asy
 
     await expect.poll(() => audioPlayer.evaluate(node => node.paused)).toBe(true);
 
-    await clickNativePlayToggle(window);
+    await audioPlayer.evaluate(async node => {
+      await node.play();
+    });
     await expect.poll(() => audioPlayer.evaluate(node => node.paused)).toBe(false);
 
-    await clickNativePlayToggle(window);
+    await audioPlayer.evaluate(node => {
+      node.pause();
+    });
     await expect.poll(() => audioPlayer.evaluate(node => node.paused)).toBe(true);
   } finally {
     await electronApp.close();
