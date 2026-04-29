@@ -354,6 +354,90 @@ be low but useful enough to prompt reflection. Accuracy can improve later.
 
 ---
 
+## Widgets, Views, and Profiles
+
+Captured: 2026-04-28
+Packet: `widget-view-product-model-v1`
+
+This section describes a future UI architecture for Consync. Nothing here
+requires immediate code or UI changes. It is a planning artifact only.
+
+### Core App and Shared Data Model
+
+The core app owns the shared data model. All widgets, views, and profiles
+read from and write to that model. The data layer does not belong to any
+single view or widget. This means:
+
+- Switching views does not change or lose data.
+- Adding a widget to a view does not duplicate the underlying store.
+- Profile presets are display preferences, not separate data partitions.
+
+The shared model objects are: Ideas, Items, Notes, Tags, Links, Bookmarks,
+and Sessions (as defined in the Core Objects section above).
+
+### Widgets
+
+A widget is a functional UI block. Each widget does one thing well. Widgets
+can be composed into views.
+
+| Widget | Purpose |
+| --- | --- |
+| Add Note | Freeform note capture with optional keyword suggestions |
+| Add File | Choose a local file or folder, create a file Item |
+| Keyword Suggestions | Suggest keywords from a Note or Item; accept, dismiss, or add custom |
+| Timeline | Chronological view of Bookmarks, Notes, and Sessions across Items |
+| Search | Search across Ideas, Items, Notes, Tags, and Links |
+| Idea Tree | Hierarchical or list view of Ideas and their attached Items |
+| Item List | Flat or filtered list of all captured Items |
+| File Preview | Preview metadata, path, and notes for a selected file Item |
+| Audio Player | Load and play a local audio file; capture timestamp Bookmarks |
+| Timestamp Bookmarks | List of Bookmarks on a loaded audio or document Item |
+| Related Items | Show Items linked to the currently selected Item or Idea |
+| Export for AI | Export a structured summary of selected Items, Notes, or Ideas for use with an AI tool |
+
+Widgets are composable but not required all at once. A Simple Start view
+might use only Add Note and Item List. An audio workflow might use Audio
+Player, Timestamp Bookmarks, and Timeline.
+
+### Views
+
+A view is a user-facing arrangement of one or more widgets. Views match a
+workflow or context. They do not own data; they are display configurations
+only.
+
+| View | Included Widgets (suggested) | Primary user |
+| --- | --- | --- |
+| Simple Start | Add Note, Keyword Suggestions, Item List | New users; Jen note-capture slice |
+| Research / Reflection | Add Note, Add File, Keyword Suggestions, Item List, Idea Tree, Search | Jen research/book workflow |
+| Audio Notes / Arrangement | Audio Player, Timestamp Bookmarks, Timeline, Add Note, Search | Mark/FIL audio workflow |
+| Creative Context | Add File, Item List, Related Items, File Preview, Idea Tree, Timeline | Mark visual/media workflow |
+
+These view names and widget sets are suggestions, not final decisions. A
+user may eventually be able to customize which widgets appear in a view and
+save that configuration.
+
+### Profiles
+
+A profile is a named preset that selects a default view and optionally
+configures surface-level defaults (such as default Idea, default keyword
+list, or display density). Profiles make the app feel personalized without
+requiring code changes or separate app instances.
+
+Example profiles:
+
+- **Jen** — defaults to Research / Reflection view; note-first; no audio
+  controls visible unless opted in
+- **Mark** — defaults to Audio Notes view; audio-first; full timeline
+  visible; file preview on
+- **Simple** — defaults to Simple Start view; no Idea Tree or advanced
+  search visible; maximum whitespace
+
+Profiles are cosmetic and behavioral preferences, not data partitions. All
+profiles share the same underlying Idea/Item/Note store. A user can switch
+profiles without losing data.
+
+---
+
 ## Implementation Notes For Later
 
 This document does not require immediate code changes.
@@ -366,3 +450,7 @@ Likely future sequencing:
 3. Add Idea as optional organization, not required setup.
 4. Treat current audio markers as Bookmarks in product language.
 5. Add Tags and Links only after the Item/Idea foundation is clear.
+6. Introduce widget composition after the core Item/Idea/Note foundation is
+   stable and at least one additional workflow (Jen note capture) exists.
+7. Let profiles emerge from observed usage patterns rather than designing
+   them speculatively.
