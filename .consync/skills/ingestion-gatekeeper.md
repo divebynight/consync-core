@@ -42,7 +42,7 @@ Choose the narrowest bucket that preserves meaning without over-modeling the con
   - use when the content is valuable to keep, but not yet shaped enough for a doc or plan
 
 - `future_plan`
-  - destination: `.consync/docs/04_next-steps.md` or `.consync/backlog/`
+  - destination: `.consync/planning/next-steps.md` or `.consync/backlog/`
   - use when the content is clearly about later work, sequencing, or next-step choices
 
 - `product_direction`
@@ -50,15 +50,15 @@ Choose the narrowest bucket that preserves meaning without over-modeling the con
   - use when the content changes how Consync should behave or be framed
 
 - `process_observation`
-  - destination: `.consync/docs/03_work-log.md` or the smallest relevant process doc
+  - destination: `.consync/process/work-log.md` or the smallest relevant process doc
   - use when the content describes how the system behaved, what caused friction, or what operators learned
 
 - `work_log_candidate`
-  - destination: `.consync/docs/03_work-log.md`
+  - destination: `.consync/process/work-log.md`
   - use when completed behavior changed and the result should be remembered concisely
 
 - `backlog_item`
-  - destination: `.consync/backlog/` or `.consync/docs/04_next-steps.md`
+  - destination: `.consync/backlog/` or `.consync/planning/next-steps.md`
   - use when the content is a concrete candidate task but not current live work
 
 - `reject_or_off_topic`
@@ -103,8 +103,8 @@ If rejecting:
 When unsure, prefer:
 
 1. `.consync/discussions/` for unshaped but potentially useful material
-2. `.consync/docs/04_next-steps.md` for future-oriented planning
-3. `.consync/docs/03_work-log.md` only for completed behavior or meaningful process observations
+2. `.consync/planning/next-steps.md` for future-oriented planning
+3. `.consync/process/work-log.md` only for completed behavior or meaningful process observations
 
 Do not force ambiguous content into a durable process or product doc just to avoid a raw discussion file.
 

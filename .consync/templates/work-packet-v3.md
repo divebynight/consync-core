@@ -78,7 +78,7 @@ Before doing any work, check the following. If ALL pass, return STATUS: ALREADY_
      - [path/to/doc — confirm the relevant section reflects this feature]
 
   3. Work-log entry exists:
-     - .consync/docs/03_work-log.md contains an entry for this task or PACKET_ID
+     - .consync/process/work-log.md contains an entry for this task or PACKET_ID
 
   4. Latest commit touching relevant files:
      - Run: git log --oneline -- [relevant file paths]
@@ -115,7 +115,7 @@ Only enter this path if ALREADY_COMPLETE CHECK fails on one or more items.
   VERIFY LEVEL FOR THIS TASK: [FAST_CHECK | UI_CHECK | FULL_VERIFY]
 
   DOCUMENT:
-  - Append an entry to .consync/docs/03_work-log.md describing what was done.
+  - Append an entry to .consync/process/work-log.md describing what was done.
   - Update any doc files listed in ALLOWED FILES if their content is now stale.
   - Do not create new doc files unless explicitly listed in ALLOWED FILES.
 
@@ -185,6 +185,6 @@ Return at minimum:
 - **ALLOWED FILES must be filled in.** An open-ended list defeats the scope protection.
 - **Do not add tooling to support this template.** It is copy-paste only.
 
-See `.consync/docs/verification-ladder.md` for the full verification level definitions.
+See `.consync/verification/verification-ladder.md` for the full verification level definitions.
 See `.consync/skills/closeout-agent.md` for the closeout workflow.
-See `.consync/docs/production-change-packet-rules.md` for rules governing packets that modify production source.
+See `.consync/process/production-change-packet-rules.md` for rules governing packets that modify production source.

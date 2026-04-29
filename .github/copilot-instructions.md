@@ -4,7 +4,7 @@
 
 `.consync/` is the authoritative Consync process layer.
 
-Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
+Use `.consync/state/*`, `.consync/process/runbook.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
 
 `.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
 
@@ -68,7 +68,7 @@ Do not build for hypothetical future features unless explicitly asked.
 
 Implement only the task described by the current authoritative `.consync/state/*` files.
 
-Use `.consync/docs/runbook.md` as the practical process entrypoint.
+Use `.consync/process/runbook.md` as the practical process entrypoint.
 
 When working:
 1. keep scope narrow

@@ -227,4 +227,4 @@ The final packet was a dedicated closeout: read the coverage map, remove stale s
 
 Canonical example: `.consync/docs/examples/search-panel-feature-example.md`
 
-For packets that require production changes: `.consync/docs/production-change-packet-rules.md`
+For packets that require production changes: `.consync/process/production-change-packet-rules.md`

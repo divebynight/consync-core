@@ -43,9 +43,9 @@ Invocation rules:
 ## Where to go next
 
 **Feature development process:**
-- How to plan and break down a feature → [`.consync/docs/feature-planning-and-packetization.md`](.consync/docs/feature-planning-and-packetization.md)
-- Coordination model for multi-packet features → [`.consync/docs/feature-packet-execution.md`](.consync/docs/feature-packet-execution.md)
-- Canonical example (Search Panel e2e coverage) → [`.consync/docs/examples/search-panel-feature-example.md`](.consync/docs/examples/search-panel-feature-example.md)
+- How to plan and break down a feature → [`.consync/process/feature-planning-and-packetization.md`](.consync/process/feature-planning-and-packetization.md)
+- Coordination model for multi-packet features → [`.consync/process/feature-packet-execution.md`](.consync/process/feature-packet-execution.md)
+- Canonical example (Search Panel e2e coverage) → [`.consync/examples/search-panel-feature-example.md`](.consync/examples/search-panel-feature-example.md)
 
 **Running the project:**
 - Start the desktop app: `npm run start:desktop`
@@ -57,6 +57,6 @@ Invocation rules:
 
 For structured execution context, system architecture, and process constraints:
 
-> `.consync/docs/ai-context.md`
+> `.consync/process/ai-context.md`
 
 Agent role contracts live in `.consync/agents/`. Reusable procedures and skills live in `.consync/skills/`. GitHub and Copilot files are adapters only, not the canonical process model.

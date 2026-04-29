@@ -38,7 +38,7 @@ Start from current repo truth:
 3. Identify the smallest relevant test set for the changed surfaces.
 4. Run only the smallest appropriate tests.
 5. If new behavior has no test, report that clearly instead of inventing coverage.
-6. Check whether `.consync/docs/03_work-log.md` needs a new append-only entry.
+6. Check whether `.consync/process/work-log.md` needs a new append-only entry.
 7. Append a concise work-log entry only if user-facing feature behavior changed.
 8. Run available Consync integrity checks.
 9. Do not ignore or bypass failing tests or integrity checks.
@@ -63,7 +63,7 @@ If a package or trigger level names additional required verification, include it
 
 ## Work-Log Rule
 
-Check `.consync/docs/03_work-log.md`.
+Check `.consync/process/work-log.md`.
 
 Append a new entry only when implemented behavior changed in a way a future operator or user would care about.
 
