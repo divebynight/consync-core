@@ -10,6 +10,7 @@ This version adds explicit idempotency detection. The agent must evaluate the AL
 PACKET_ID: [packet-YYYYMMDDTHHMMSSZ]
 MODE: NEXT_ACTION
 TOOL: COPILOT_AGENT
+EXECUTION TARGET: Copilot Chat in VS Code Agent Mode
 STATUS: [COMPLETE | ALREADY_COMPLETE | STOPPED]
 
 ---

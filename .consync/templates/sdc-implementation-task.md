@@ -7,6 +7,7 @@ Copy and fill this template when handing off an implementation task to a Copilot
 ```
 MODE: NEXT_ACTION
 TOOL: COPILOT_AGENT
+EXECUTION TARGET: Copilot Chat in VS Code Agent Mode
 
 CONTEXT:
 [Describe the current state of the repo or feature area. One short paragraph is enough.
