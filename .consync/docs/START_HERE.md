@@ -1,0 +1,83 @@
+# START HERE
+
+This file is a navigation index for `.consync/docs`. It is not a source of
+truth for process rules, product direction, or agent behavior. All of those
+live in the specific docs listed below.
+
+For the full classification of every surface, see:
+`.consync/docs/docs-surface-map.md`
+
+---
+
+## Active Process Surfaces
+
+These docs are required to run the Consync/ScaffoldAI process correctly. If
+you are starting or resuming work, read these first.
+
+| Doc | Purpose |
+| --- | --- |
+| `.consync/docs/runbook.md` | Primary operating entrypoint — loop, agents, streams, state rules |
+| `.consync/docs/ai-context.md` | AI tool entry context and key-doc index |
+| `.consync/docs/current-system.md` | Thin current index into process, feature development, and AI context |
+| `.consync/docs/verification-ladder.md` | Verification levels and command mapping |
+| `.consync/docs/state-contracts-and-integrity-checks.md` | State file contracts and integrity invariants |
+| `.consync/docs/feature-planning-and-packetization.md` | Feature planning and packetization process |
+| `.consync/docs/feature-packet-execution.md` | Multi-packet feature coordination process |
+| `.consync/docs/production-change-packet-rules.md` | Safeguards for production-change packets |
+| `.consync/docs/handoff-delivery-bridge.md` | Source-of-truth and delivery bridge rules for handoffs |
+| `.consync/docs/scaffoldai-consync-boundary.md` | Boundary separating Consync product areas from ScaffoldAI process areas |
+| `.consync/docs/ui-e2e-coverage-map.md` | Current e2e coverage map used during UI and test closeout |
+| `.consync/agents/` | All bound agent roles — preflight, verify, closeout, intake, reentry, entry-adapter |
+| `.consync/skills/closeout-agent.md` | Concrete closeout workflow after human-approved completed work |
+| `.consync/skills/ingestion-gatekeeper.md` | Concrete intake/placement workflow before adding external context |
+| `.consync/templates/work-packet-v3.md` | Current work packet template and idempotency contract |
+| `.consync/state/*.md` | Live execution state — active stream, next action, handoff, snapshot |
+| `.consync/streams/*/stream.md` | Live stream-local checkpoints |
+
+---
+
+## Active Product Surfaces
+
+These docs describe current Consync app direction, runtime boundaries, and
+product readiness. Read these when planning or evaluating product work.
+
+| Doc | Purpose |
+| --- | --- |
+| `.consync/docs/product-model.md` | Product model — Ideas, Items, Notes, Keywords, Widgets, Views, Profiles, and per-user slices |
+| `.consync/docs/consync-export-boundary.md` | App and package export boundary; user-facing runtime separation |
+| `.consync/docs/family-test-readiness.md` | Non-technical tester readiness status and known limitations |
+
+---
+
+## Planning / Future Surfaces
+
+These docs contain near-term candidates or longer-horizon concept work. They
+are not live execution instructions. Do not treat them as current process or
+product authority.
+
+| Doc | Purpose |
+| --- | --- |
+| `.consync/docs/04_next-steps.md` | Near-term/horizon candidates — may lag behind the current mounted package |
+| `.consync/docs/janitor-agent.md` | Concept doc for a future Janitor Agent — not bound, inspection only |
+| `.consync/docs/work-manager-agent.md` | Concept/manual coordination layer — not a bound agent |
+| Future-direction sections of `product-model.md` | Widget composition, profile presets, AI-assisted pattern analysis — not yet in scope |
+
+---
+
+## Historical / Archive Surfaces
+
+These docs record prior state, completed work, older system snapshots, or
+legacy artifacts.
+
+**Do not treat historical docs as current authority unless they have been
+explicitly revalidated and re-classified as active.**
+
+| Doc | Notes |
+| --- | --- |
+| `.consync/docs/03_work-log.md` | Append-only completed work log — active to write, historical by content |
+| `.consync/docs/repo-structure-inventory.md` | Point-in-time structure and cleanup inventory |
+| `.consync/docs/system-integrity-snapshot.md` | Point-in-time Phase 2 / manual agent snapshot |
+| `.consync/docs/ui-e2e-coverage.md` | Older UI coverage map — likely superseded by `ui-e2e-coverage-map.md` |
+| `.consync/docs/examples/search-panel-feature-example.md` | Completed feature example; canonical reference for one past packet |
+| `.consync/state/history/` | Preserved prior package plans and early V1 artifacts |
+| `.consync/artifacts/` | Older artifact system — superseded by `.consync/state` and streams |
