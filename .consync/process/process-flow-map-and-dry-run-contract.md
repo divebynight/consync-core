@@ -267,6 +267,8 @@ A dry-run should be triggered automatically when:
 - The user explicitly requests an inspect/preview before execution.
 - The request type is novel or ambiguous.
 
+> **Current implementation:** `node src/index.js dry-run-check [flags]` is the simulation-only dry-run command. It reads real state and applies Gatekeeper decision logic but does not prompt, execute, or write files. It satisfies this contract for simulation purposes only.
+
 ---
 
 ## 7. Unit-Test Style Examples
@@ -453,17 +455,33 @@ to this contract.
 
 ---
 
-## 9. Next Implementation Candidates
+## 9. Current System Capability (Soft Gate Phase)
 
-The following packets are the logical next steps after this design is approved.
-They are ordered by dependency; earlier packets unlock later ones.
+As of 2026-04-29, the following packets from the implementation roadmap are complete:
+
+| Packet ID | Status | Notes |
+|---|---|---|
+| `active-contract-file-v1` | Done | `.consync/state/active-contract.json` exists and is read at decision time |
+| `gatekeeper-agent-contract-v1` | Done | `src/lib/gatekeeperDecision.js` implements the full decision logic from §4–5 |
+| `dry-run-check-command-v1` | Done | `node src/index.js dry-run-check` — simulation only; reads real state; no prompt; no execution |
+| `packet-state-tracking-v1` | Done | `src/lib/getInFlightPacket.js` reads in-flight state from `next-action.md`; `PACKAGE: NONE` is the closed-state marker |
+| `consync-run-command-v1` | Done | `node src/index.js consync-run` — soft gate; reads real state; prompts for approval; no execution |
+
+**What is not yet implemented:**
+- Automatic enforcement (gate is never invoked without explicit CLI call).
+- Packet execution (approval in `consync-run` produces no work).
+- Background agents, runners, or watchers of any kind.
+
+The user is the final authority. The system does not execute packets.
+
+---
+
+## 10. Next Implementation Candidates
+
+The following packets are the next logical steps. They are ordered by dependency.
 
 | Packet ID | Description | Depends on |
 |---|---|---|
-| `active-contract-file-v1` | Create `.consync/process/active-contract.md` — a machine-readable file that records current mode lock, in-flight packet ID, and gate state. | This document |
-| `gatekeeper-agent-contract-v1` | Update `intake.agent.md` to implement the gate decision logic defined here. | `active-contract-file-v1` |
-| `dry-run-check-command-v1` | Add `npm run check:dry-run` command that reads the active contract and produces a dry-run report per §6. | `gatekeeper-agent-contract-v1` |
-| `packet-state-tracking-v1` | Add packet open/close lifecycle tracking so in-flight state is machine-readable, not just inferred from state files. | `active-contract-file-v1` |
-
-None of these are implemented by this packet. This document is the gate
-before any of them can be designed.
+| `consync-run-execution-wiring-v1` | Wire actual packet execution to `consync-run` after user approval. | All items in §9 |
+| `gatekeeper-auto-invoke-v1` | Automatically invoke the gate on every SDC submission before Copilot executes. | `consync-run-execution-wiring-v1` |
+| `work-log-auto-append-v1` | Append a work-log entry automatically after each successful closeout. | `gatekeeper-auto-invoke-v1` |

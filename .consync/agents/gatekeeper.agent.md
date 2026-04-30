@@ -21,7 +21,14 @@ No packet may proceed to execution without passing through the Gatekeeper first.
 
 Bound as a prompt-only decision contract.
 
-This binding does not create a command, runner, orchestrator, or automatic dispatcher. No enforcement code exists yet. Enforcement will be introduced in `dry-run-check-command-v1`.
+This binding does not create a command, runner, orchestrator, or automatic dispatcher.
+
+The Gatekeeper decision logic is implemented in `src/lib/gatekeeperDecision.js`. Two CLI commands exercise it:
+
+- `dry-run-check` — simulation only; prints a Gatekeeper report; does not prompt or execute.
+- `consync-run` — soft gate; prints a Gatekeeper report; prompts the user for approval; does not execute.
+
+No automatic enforcement exists. The user is the final authority. No packet execution is wired to these commands.
 
 ---
 
@@ -327,10 +334,19 @@ Reason:     packet_type "agent" is in blocked_packet_types for current mode.
 
 ---
 
-## 11. Not Yet Enforced
+## 11. Current System Capability (Soft Gate Phase)
 
-As of the creation of this file, no code reads this contract to gate execution.
+As of 2026-04-29, the Gatekeeper is in a **soft gate phase**:
 
-Enforcement will be introduced in: `dry-run-check-command-v1`
+- `src/lib/gatekeeperDecision.js` implements the full decision logic defined in §4.
+- `node src/index.js dry-run-check [flags]` — reads real state, applies decision rules, prints a report. Simulation only. No prompt. No execution.
+- `node src/index.js consync-run [flags]` — reads real state, applies decision rules, prints a report, and prompts `Proceed with this action? (y/N)`. Approval only. No execution.
+- In-flight packet state is read from `.consync/state/next-action.md` via `src/lib/getInFlightPacket.js`. `PACKAGE: NONE` means no active packet.
+- Active contract is read from `.consync/state/active-contract.json`.
 
-Until then, this document is the authoritative behavioral spec for any future Gatekeeper implementation.
+**What is not yet implemented:**
+- Automatic enforcement (no command runs the gate without explicit invocation).
+- Packet execution (no command runs work after approval).
+- Background agents or runners of any kind.
+
+The user is the final authority at every step.

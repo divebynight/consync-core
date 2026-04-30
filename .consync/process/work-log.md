@@ -1,3 +1,119 @@
+## 2026-04-29 — gatekeeper-soft-gate-stabilization-v1
+
+PACKET_ID: gatekeeper-soft-gate-stabilization-v1
+
+SUMMARY
+- Stabilization packet. Updated process and agent docs to accurately reflect the soft-gate phase.
+- Updated `gatekeeper.agent.md` §2 and §11 to describe current CLI commands and remove stale "not yet enforced" language.
+- Updated `process-flow-map-and-dry-run-contract.md` §6 with implementation note for dry-run-check, replaced §9 with a "Current System Capability" section listing all completed packets, and added §10 Next Implementation Candidates.
+- Added work-log entries for all 2026-04-29 packets.
+- No code changes. No new commands. No decision logic changes.
+
+FILES
+- `.consync/agents/gatekeeper.agent.md` (updated §2 binding status, replaced §11 with Current System Capability)
+- `.consync/process/process-flow-map-and-dry-run-contract.md` (added §6 impl note, replaced §9 with Soft Gate Phase table, added §10)
+- `.consync/process/work-log.md` (this entry and backfill entries)
+
+TESTS
+- npm run check:state-preflight → PASS
+- npm run verify → PASS
+- npm run check:state-postflight → PASS
+
+---
+
+## 2026-04-29 — repair-next-action-strict-package-marker-v1
+
+PACKET_ID: repair-next-action-strict-package-marker-v1
+
+SUMMARY
+- Repair-only packet. Restored strict PACKAGE validation in stateIntegrityCheck.js after the previous recovery loosened it.
+- `PACKAGE: NONE` is now the canonical closed-state marker. `TYPE` + `PACKAGE` are both required in next-action.md.
+- `getInFlightPacket` returns null for `PACKAGE: NONE` and `PACKET_ID: NONE`.
+- Updated next-action.md, handoff.md, and snapshot.md to use the NONE marker.
+- Added two new tests: PACKAGE: NONE → null, PACKET_ID: NONE → null.
+
+FILES
+- `src/lib/stateIntegrityCheck.js` (restored strict validation; NONE treated as closed-state)
+- `src/lib/getInFlightPacket.js` (NONE sentinel returns null)
+- `src/test/unit-get-in-flight-packet.js` (tests 8 and 9 added)
+- `.consync/state/next-action.md` (PACKAGE: NONE added)
+- `.consync/state/handoff.md` (updated wording)
+- `.consync/state/snapshot.md` (package: NONE)
+
+TESTS
+- npm run check:state-preflight → PASS
+- npm run verify → PASS
+- npm run check:state-postflight → PASS
+
+---
+
+## 2026-04-29 — closeout-recovery-clear-stale-next-action-v1
+
+PACKET_ID: closeout-recovery-clear-stale-next-action-v1
+
+SUMMARY
+- Recovery closeout. Cleared stale `ideas_foundation_from_notes_first_workflow` in-flight marker from next-action.md.
+- Recorded recovery of two manually committed packets: packet-state-tracking-v1 and consync-run-command-v1.
+- State is now CLOSED (PACKAGE: NONE). No active in-flight packet.
+
+FILES
+- `.consync/state/next-action.md` (PACKAGE: NONE)
+- `.consync/state/handoff.md` (recovery closeout record)
+- `.consync/state/snapshot.md` (CLOSED state, current branch, completed work summary)
+- `src/lib/stateIntegrityCheck.js` (NONE-aware logic)
+
+TESTS
+- npm run check:state-preflight → PASS
+- npm run verify → PASS
+- npm run check:state-postflight → PASS
+
+---
+
+## 2026-04-29 — consync-run-command-v1
+
+PACKET_ID: consync-run-command-v1
+
+SUMMARY
+- Added `node src/index.js consync-run` soft-gate command.
+- Reads real state (active-contract.json, next-action.md via getInFlightPacket), applies Gatekeeper rules, prints structured report.
+- If decision is ALLOW: prompts `Proceed with this action? (y/N)`. User enters y → "Approved. (execution not implemented yet)". Otherwise → "Cancelled."
+- Non-ALLOW decisions exit non-zero with no prompt.
+- 6 integration tests added.
+
+FILES
+- `src/commands/consync-run.js` (created)
+- `src/cli/index.js` (consync-run route added)
+- `src/test/unit-consync-run.js` (created)
+- `src/test/verify.js` (unit-consync-run step added)
+
+TESTS
+- npm run verify → PASS
+
+---
+
+## 2026-04-29 — packet-state-tracking-v1
+
+PACKET_ID: packet-state-tracking-v1
+
+SUMMARY
+- Added `src/lib/getInFlightPacket.js` to read in-flight packet state from `.consync/state/next-action.md`.
+- Supports both `PACKET_ID:` and `PACKAGE:` patterns. Returns null if file is missing or no packet found.
+- Updated `dry-run-check` to use state-based in-flight resolution; CLI `--in-flight-packet` override still wins. Source annotated as `(state)` or `(cli-override)` in report.
+- For ALLOW + SDC, next-action text now reads "Proceed to SDC execution" instead of "NONE".
+- 7 unit tests for helper; 4 integration tests for dry-run-check state reading.
+
+FILES
+- `src/lib/getInFlightPacket.js` (created)
+- `src/commands/dry-run-check.js` (state-based in-flight, source annotation, ALLOW next-action text)
+- `src/test/unit-get-in-flight-packet.js` (created)
+- `src/test/unit-dry-run-check.js` (integration tests added)
+- `src/test/verify.js` (unit-get-in-flight-packet step added)
+
+TESTS
+- npm run verify → PASS
+
+---
+
 ## 2026-04-26 — timeline_marker_selects_inspector_e2e
 
 PACKET_ID: timeline_marker_selects_inspector_e2e
