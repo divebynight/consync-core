@@ -55,7 +55,7 @@ The Entry Adapter is unbound and manual unless explicitly invoked. It does not e
    - Classify the requested work and decide the correct surface.
    - Answer: what kind of work is this, and which boundaries apply?
    - Invoke before new work is converted into a packet, after preflight passes when repo/process state must be checked first.
-   - Current concrete surface: prompt-only work-classification contract.
+   - Current concrete surface: `node src/index.js intake-run --prompt "..."` (first explicit agent execution surface).
    - Preserve scope boundaries before implementation begins.
 
 3. **Execution/tool adapter**
@@ -78,6 +78,16 @@ The Entry Adapter is unbound and manual unless explicitly invoked. It does not e
 
 6. **Reentry**
    - Prepare the next operator or future session to resume safely.
+
+## Execution Surfaces (Current)
+
+The following CLI commands execute agent logic directly. All invocation remains manual.
+
+| Command | Agent | Behavior |
+| --- | --- | --- |
+| `intake-run --prompt "..."` | Intake | Executes Intake classification — first explicit agent execution surface |
+| `dry-run-check` | Gatekeeper | Simulation only — prints decision report, no prompt, no execution |
+| `consync-run` | Gatekeeper | Approval only — prompts on ALLOW, no execution wiring |
    - Invoke when work resumes after interruption, context loss, stale conversation state, unclear handoff, or incomplete closeout.
    - Current concrete surface: prompt-only recovery and context-reconstruction contract.
    - Preserve state handoff without inventing completed work.

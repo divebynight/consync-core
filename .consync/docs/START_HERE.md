@@ -9,6 +9,28 @@ For the full classification of every surface, see:
 
 ---
 
+## What you can run today
+
+The first explicit agent execution surface:
+
+```
+node src/index.js intake-run --prompt "describe the work here"
+```
+
+This runs the Intake agent's classification logic — one agent, one step. No orchestration, no state mutation, no agent chaining.
+
+Other current execution surfaces:
+
+| Command | Behavior |
+| --- | --- |
+| `intake-run --prompt "..."` | Runs Intake classification, prints structured report |
+| `dry-run-check` | Simulation only — prints Gatekeeper decision, no execution |
+| `consync-run` | Approval only — prompts on ALLOW, no execution wiring |
+
+All agent invocation remains manual. No orchestrator exists.
+
+---
+
 ## Active Process Surfaces
 
 These docs are required to run the Consync/ScaffoldAI process correctly. If

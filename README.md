@@ -40,6 +40,21 @@ Invocation rules:
 - **SHOULD** use the Entry Adapter when the next agent is unclear.
 - **MAY SKIP** the Entry Adapter when the human explicitly invokes a specific agent or command.
 
+## What you can run today
+
+The first explicit agent execution surface is `intake-run`. It runs the Intake agent's classification logic in a single, inspectable step.
+
+```
+node src/index.js intake-run --prompt "describe the work here"
+```
+
+Other current execution surfaces:
+
+- `dry-run-check` — simulation only (prints a Gatekeeper decision report, no prompt, no execution)
+- `consync-run` — approval only (prompts on ALLOW, no execution wiring)
+
+This system is still fully manual and non-orchestrated. No agent auto-dispatches. No pipeline exists.
+
 ## Where to go next
 
 **Feature development process:**

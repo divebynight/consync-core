@@ -65,6 +65,7 @@ Use a core command when the operation is deterministic and success is checkable:
 Use an agent when bounded process judgment is required:
 - Preflight — checks whether repo and process state are safe before work begins
 - Intake — classifies new work and its boundaries before execution
+  - Executable: `node src/index.js intake-run --prompt "describe the work"` (first explicit agent execution surface)
 - Verify — runs and reports verification evidence
 - Closeout — summarizes changed files, verification, risks, and commit readiness
 - Reentry — reconstructs context after interruption, stale state, or unclear handoff
