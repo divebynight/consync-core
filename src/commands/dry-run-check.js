@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+const { getInFlightPacket } = require("../lib/getInFlightPacket");
 
 const ACTIVE_CONTRACT_PATH = ".consync/state/active-contract.json";
 
@@ -79,6 +80,13 @@ function loadActiveContract(rootDir) {
 function formatReport(input, contract, decision) {
   const separator = "─".repeat(53);
 
+  const nextAction =
+    decision.nextRequiredAction === "NONE" && decision.decision === "ALLOW" && input.requestType === "SDC"
+      ? "Proceed to SDC execution"
+      : decision.nextRequiredAction;
+
+  const inFlightSource = input.inFlightPacketSource ? ` (${input.inFlightPacketSource})` : "";
+
   const lines = [
     "DRY-RUN REPORT",
     separator,
@@ -92,11 +100,11 @@ function formatReport(input, contract, decision) {
     `Blocked packet types:    ${contract.blocked_packet_types.join(", ")}`,
     "",
     `Git state:               ${input.gitStatus}`,
-    `In-flight packet:        ${input.inFlightPacket === null ? "none" : input.inFlightPacket}`,
+    `In-flight packet:        ${input.inFlightPacket === null ? "none" : input.inFlightPacket}${inFlightSource}`,
     "",
     `Decision:                ${decision.decision}`,
     `Reason:                  ${decision.reason}`,
-    `Next required action:    ${decision.nextRequiredAction}`,
+    `Next required action:    ${nextAction}`,
     "",
     separator,
   ];
@@ -133,12 +141,24 @@ function runDryRunCheckCommand(argv, options = {}) {
     return;
   }
 
+  let inFlightPacket;
+  let inFlightPacketSource;
+
+  if (flags["in-flight-packet"]) {
+    inFlightPacket = flags["in-flight-packet"];
+    inFlightPacketSource = "cli-override";
+  } else {
+    inFlightPacket = getInFlightPacket(rootDir);
+    inFlightPacketSource = inFlightPacket !== null ? "state" : null;
+  }
+
   const input = {
     requestType: flags["request-type"],
     packetId: flags["packet-id"],
     packetType: flags["packet-type"],
     gitStatus: flags["git-status"],
-    inFlightPacket: flags["in-flight-packet"] || null,
+    inFlightPacket,
+    inFlightPacketSource,
     mode: contract.mode,
   };
 

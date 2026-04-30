@@ -1,5 +1,10 @@
 const assert = require("assert");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { spawnSync } = require("child_process");
 const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+const { getInFlightPacket } = require("../lib/getInFlightPacket");
 
 const TEST_NAME = "unit-dry-run-check";
 
@@ -159,6 +164,215 @@ function main() {
       },
       "SUPERSEDE_REQUIRES_APPROVAL"
     );
+
+    // --- State source tests ---
+
+    // 10. Dry-run CLI without --in-flight-packet reads in-flight from next-action.md (PACKAGE:)
+    (function testStateReadPackage() {
+      const repoRoot = path.resolve(__dirname, "..", "..");
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+
+      try {
+        const stateDir = path.join(tempDir, ".consync", "state");
+        fs.mkdirSync(stateDir, { recursive: true });
+
+        // Write a minimal active-contract.json
+        fs.writeFileSync(
+          path.join(stateDir, "active-contract.json"),
+          JSON.stringify({
+            mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+            allowed_packet_types: ["process", "contract", "planning"],
+            blocked_packet_types: ["product", "agent"],
+            in_flight_packet: null,
+            require_clean_git: true,
+            require_dry_run: true,
+          }),
+          "utf8"
+        );
+
+        // Write next-action.md with PACKAGE: pattern
+        fs.writeFileSync(
+          path.join(stateDir, "next-action.md"),
+          "TYPE: FEATURE\nPACKAGE: active-state-packet-v1\n\nGOAL:\n\nSome work.\n",
+          "utf8"
+        );
+
+        const result = spawnSync(
+          process.execPath,
+          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+            "--request-type=SDC", "--packet-type=contract",
+            "--packet-id=new-packet-v1", "--git-status=clean"],
+          { cwd: tempDir, encoding: "utf8" }
+        );
+
+        assert.ok(
+          result.stdout.includes("active-state-packet-v1"),
+          `Expected in-flight packet from state to appear in report. Got:\n${result.stdout}`
+        );
+        assert.ok(
+          result.stdout.includes("CLOSEOUT_REQUIRED"),
+          `Expected CLOSEOUT_REQUIRED because state shows an in-flight packet. Got:\n${result.stdout}`
+        );
+        assert.ok(
+          result.stdout.includes("(state)"),
+          `Expected source annotation "(state)" in report. Got:\n${result.stdout}`
+        );
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      console.log("  PASS: dry-run reads in-flight from state (PACKAGE: pattern)");
+    })();
+
+    // 11. Dry-run CLI without --in-flight-packet reads in-flight from next-action.md (PACKET_ID:)
+    (function testStateReadPacketId() {
+      const repoRoot = path.resolve(__dirname, "..", "..");
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+
+      try {
+        const stateDir = path.join(tempDir, ".consync", "state");
+        fs.mkdirSync(stateDir, { recursive: true });
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-contract.json"),
+          JSON.stringify({
+            mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+            allowed_packet_types: ["process", "contract", "planning"],
+            blocked_packet_types: ["product", "agent"],
+            in_flight_packet: null,
+            require_clean_git: true,
+            require_dry_run: true,
+          }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "next-action.md"),
+          "TYPE: FEATURE\nPACKET_ID: packet-id-from-state-v1\n\nGOAL:\n\nSome work.\n",
+          "utf8"
+        );
+
+        const result = spawnSync(
+          process.execPath,
+          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+            "--request-type=SDC", "--packet-type=contract",
+            "--packet-id=new-packet-v1", "--git-status=clean"],
+          { cwd: tempDir, encoding: "utf8" }
+        );
+
+        assert.ok(
+          result.stdout.includes("packet-id-from-state-v1"),
+          `Expected in-flight packet from state to appear in report. Got:\n${result.stdout}`
+        );
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      console.log("  PASS: dry-run reads in-flight from state (PACKET_ID: pattern)");
+    })();
+
+    // 12. CLI override wins over state
+    (function testCliOverrideWins() {
+      const repoRoot = path.resolve(__dirname, "..", "..");
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+
+      try {
+        const stateDir = path.join(tempDir, ".consync", "state");
+        fs.mkdirSync(stateDir, { recursive: true });
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-contract.json"),
+          JSON.stringify({
+            mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+            allowed_packet_types: ["process", "contract", "planning"],
+            blocked_packet_types: ["product", "agent"],
+            in_flight_packet: null,
+            require_clean_git: true,
+            require_dry_run: true,
+          }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "next-action.md"),
+          "TYPE: FEATURE\nPACKAGE: state-packet-id\n",
+          "utf8"
+        );
+
+        const result = spawnSync(
+          process.execPath,
+          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+            "--request-type=SDC", "--packet-type=contract",
+            "--packet-id=new-packet-v1", "--git-status=clean",
+            "--in-flight-packet=cli-override-packet"],
+          { cwd: tempDir, encoding: "utf8" }
+        );
+
+        assert.ok(
+          result.stdout.includes("cli-override-packet"),
+          `Expected CLI override packet to appear in report. Got:\n${result.stdout}`
+        );
+        assert.ok(
+          !result.stdout.includes("state-packet-id"),
+          `Expected state value to be suppressed by CLI override. Got:\n${result.stdout}`
+        );
+        assert.ok(
+          result.stdout.includes("(cli-override)"),
+          `Expected source annotation "(cli-override)" in report. Got:\n${result.stdout}`
+        );
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      console.log("  PASS: CLI override wins over state");
+    })();
+
+    // 13. No next-action file → in-flight is null → ALLOW for clean allowed packet
+    (function testNoStateFile() {
+      const repoRoot = path.resolve(__dirname, "..", "..");
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+
+      try {
+        const stateDir = path.join(tempDir, ".consync", "state");
+        fs.mkdirSync(stateDir, { recursive: true });
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-contract.json"),
+          JSON.stringify({
+            mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+            allowed_packet_types: ["process", "contract", "planning"],
+            blocked_packet_types: ["product", "agent"],
+            in_flight_packet: null,
+            require_clean_git: true,
+            require_dry_run: true,
+          }),
+          "utf8"
+        );
+
+        // No next-action.md written
+
+        const result = spawnSync(
+          process.execPath,
+          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+            "--request-type=SDC", "--packet-type=contract",
+            "--packet-id=new-packet-v1", "--git-status=clean"],
+          { cwd: tempDir, encoding: "utf8" }
+        );
+
+        assert.ok(
+          result.stdout.includes("In-flight packet:        none"),
+          `Expected "none" when no next-action.md. Got:\n${result.stdout}`
+        );
+        assert.ok(
+          result.stdout.includes("ALLOW"),
+          `Expected ALLOW when no in-flight packet. Got:\n${result.stdout}`
+        );
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      console.log("  PASS: no next-action file treats in-flight as null");
+    })();
 
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
