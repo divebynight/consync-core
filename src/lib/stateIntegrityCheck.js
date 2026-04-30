@@ -246,18 +246,23 @@ function evaluateStateIntegrity(rootPath, mode) {
   }
 
   const ok = failures.length === 0;
-  const systemState = nextAction.packageName ? "OPEN" : "CLOSED";
+  const isPackageMounted = Boolean(nextAction.packageName && nextAction.packageName !== "NONE");
+  const systemState = isPackageMounted ? "OPEN" : "CLOSED";
   let nextSafeAction = "reconcile live state before continuing";
 
   if (ok && normalizedMode === "preflight") {
-    nextSafeAction = `execute mounted package ${nextAction.packageName}`;
+    nextSafeAction = isPackageMounted
+      ? `execute mounted package ${nextAction.packageName}`
+      : "no active package; define and mount the next work package";
   }
 
   if (ok && normalizedMode === "postflight") {
-    if (nextAction.packageName && handoff.packageName && nextAction.packageName === handoff.packageName) {
+    if (isPackageMounted && handoff.packageName && nextAction.packageName === handoff.packageName) {
       nextSafeAction = `accept closeout for ${handoff.packageName} and mount the next package intentionally`;
-    } else {
+    } else if (isPackageMounted) {
       nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; mounted package ${nextAction.packageName} is now live`;
+    } else {
+      nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; no active package mounted`;
     }
   }
 

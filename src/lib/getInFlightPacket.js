@@ -32,12 +32,14 @@ function getInFlightPacket(rootDir) {
 
     const packetIdMatch = trimmed.match(/^PACKET_ID:\s*(.+)$/);
     if (packetIdMatch) {
-      return packetIdMatch[1].trim();
+      const value = packetIdMatch[1].trim();
+      return value === "NONE" ? null : value;
     }
 
     const packageMatch = trimmed.match(/^PACKAGE:\s*(.+)$/);
     if (packageMatch) {
-      return packageMatch[1].trim();
+      const value = packageMatch[1].trim();
+      return value === "NONE" ? null : value;
     }
   }
 

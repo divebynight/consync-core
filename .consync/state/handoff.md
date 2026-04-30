@@ -1,5 +1,5 @@
-TYPE: PROCESS
-PACKAGE: resync-state-to-current-work-v1
+TYPE: RECOVERY
+PACKAGE: closeout-recovery-clear-stale-next-action-v1
 
 STATUS
 
@@ -7,40 +7,49 @@ PASS
 
 SUMMARY
 
-Resynced the live Consync state surface to match the current repo reality on `feature/product-design-electron`. The active stream is now `electron_ui`, reflecting the completed Notes-first product work: standalone note creation, local keyword suggestions, keyword persistence, keyword filtering, and the explicit `kind: "standalone-note"` marker.
+Recovery closeout for two packets that were manually committed without running the normal Consync closeout state update. Stale `ideas_foundation_from_notes_first_workflow` in-flight marker in `next-action.md` was cleared. System state is now coherent and no in-flight packet is active.
+
+Completed packets recovered:
+
+- `packet-state-tracking-v1` — introduced `src/lib/getInFlightPacket.js` to read real in-flight state from `next-action.md`; updated `dry-run-check` to use state rather than only a CLI flag; added tests and verify wiring
+- `consync-run-command-v1` — introduced `src/commands/consync-run.js` as a soft-gate CLI command with Gatekeeper evaluation and user confirm prompt; wired into CLI index; added tests and verify wiring
+
+Branch: `feature/split-app-from-scaffold`
 
 FILES CREATED
 
-- none
+- `src/lib/getInFlightPacket.js`
+- `src/commands/consync-run.js`
+- `src/test/unit-get-in-flight-packet.js`
+- `src/test/unit-consync-run.js`
 
 FILES MODIFIED
 
-- `.consync/state/active-stream.md` — switched live ownership back to `electron_ui` and paused `process`.
-- `.consync/state/next-action.md` — mounted the next narrow product direction: Ideas from the completed Notes-first workflow.
-- `.consync/state/handoff.md` — replaced stale timeline-lane handoff with this resync closeout.
-- `.consync/state/snapshot.md` — refreshed re-entry state around current branch, completed notes work, and next likely Ideas slice.
-- `.consync/streams/electron_ui/stream.md` — unpaused and updated summary/checkpoint for current Notes-first app work.
-- `.consync/streams/process/stream.md` — paused after state resync.
-
-FILES DELETED
-
-- none
+- `src/commands/dry-run-check.js` — reads in-flight from state; annotates source (state/cli-override)
+- `src/cli/index.js` — added consync-run route
+- `src/test/unit-dry-run-check.js` — added state-reading integration tests
+- `src/test/verify.js` — added steps for new test suites
+- `.consync/state/next-action.md` — stale PACKAGE cleared; set to `PACKAGE: NONE` (explicit closed-state marker)
+- `.consync/state/handoff.md` — updated to this recovery closeout
+- `.consync/state/snapshot.md` — updated to reflect current branch and cleared state
+- `src/lib/stateIntegrityCheck.js` — added `NONE` as explicit closed-state value for PACKAGE; strict TYPE+PACKAGE validation preserved
 
 COMMANDS TO RUN
 
 - `npm run check:state-preflight`
+- `npm run verify`
 - `npm run check:state-postflight`
 
 HUMAN VERIFICATION
 
-1. Confirm `.consync/state/active-stream.md` names `electron_ui`.
-2. Confirm `.consync/streams/electron_ui/stream.md` is marked active.
-3. Confirm `.consync/streams/process/stream.md` is marked paused.
-4. Confirm `.consync/state/next-action.md` points to `ideas_foundation_from_notes_first_workflow`.
-5. Confirm recent completed work is described as Notes-first product work, not the older closeout-agent process package.
+1. Confirm `src/lib/getInFlightPacket.js` exists and reads both PACKET_ID and PACKAGE patterns.
+2. Confirm `src/commands/consync-run.js` exists and prompts on ALLOW.
+3. Confirm `npm run verify` passes all steps including new unit-get-in-flight-packet and unit-consync-run.
+4. Confirm `.consync/state/next-action.md` has `PACKAGE: NONE` (getInFlightPacket returns null for NONE).
+5. Confirm `npm run check:state-preflight` and `npm run check:state-postflight` both pass.
 
 VERIFICATION NOTES
 
-- Initial `npm run check:state-preflight` before edits passed against the old but stale process state.
-- Post-edit integrity verification should confirm the refreshed state files and stream files agree.
-- This packet does not change runtime product code, tests, packaging, or app behavior.
+- All three checks (preflight, verify, postflight) passed after state update.
+- Manual commit of packet-state-tracking-v1 and consync-run-command-v1 skipped state update; recovered here.
+- stateIntegrityCheck.js updated to treat `PACKAGE: NONE` as the explicit closed-state marker; strict TYPE+PACKAGE validation is preserved.

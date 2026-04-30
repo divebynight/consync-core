@@ -86,6 +86,22 @@ function main() {
       console.log("  PASS: whitespace around value is trimmed");
     });
 
+    // 8. PACKAGE: NONE returns null (explicit closed-state marker)
+    withTempDir((tempDir) => {
+      writeNextAction(tempDir, "TYPE: RECOVERY\nPACKAGE: NONE\n\nNo active in-flight packet.\n");
+      const result = getInFlightPacket(tempDir);
+      assert.strictEqual(result, null, "Expected null for PACKAGE: NONE closed-state marker");
+      console.log("  PASS: PACKAGE: NONE returns null");
+    });
+
+    // 9. PACKET_ID: NONE returns null (explicit closed-state marker)
+    withTempDir((tempDir) => {
+      writeNextAction(tempDir, "TYPE: RECOVERY\nPACKET_ID: NONE\n");
+      const result = getInFlightPacket(tempDir);
+      assert.strictEqual(result, null, "Expected null for PACKET_ID: NONE closed-state marker");
+      console.log("  PASS: PACKET_ID: NONE returns null");
+    });
+
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
