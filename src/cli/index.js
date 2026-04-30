@@ -17,6 +17,7 @@ const { runPortableCommand } = require("../commands/portable");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
 const { runReentryCheckCommand } = require("../commands/reentry-check");
 const { runDryRunCheckCommand } = require("../commands/dry-run-check");
+const { runConsyncRunCommand } = require("../commands/consync-run");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -193,6 +194,11 @@ async function main() {
 
   if (command === "dry-run-check") {
     runDryRunCheckCommand(process.argv.slice(3));
+    return;
+  }
+
+  if (command === "consync-run") {
+    await runConsyncRunCommand(process.argv.slice(3));
     return;
   }
 
