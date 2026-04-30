@@ -1,3 +1,5 @@
+# TEMPLATE NOTICE
+This file is a template for portable scaffolds. It is NOT the canonical system entry or AI re-anchor point. For the canonical entry, see: .consync/docs/current-system.md
 # Current System
 
 ## What This Scaffold Provides

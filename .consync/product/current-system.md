@@ -1,3 +1,5 @@
+# NOTICE
+This file is product-specific and is NOT the canonical system entry or AI re-anchor point. For the canonical entry, see: .consync/docs/current-system.md
 # Current System
 
 ## Process / Agents

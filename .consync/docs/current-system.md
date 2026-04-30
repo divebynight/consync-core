@@ -1,3 +1,5 @@
+# CANONICAL ENTRY POINT
+This is the canonical system entry and AI re-anchor document for Consync/ScaffoldAI. For all other system entry, planning, or template docs, refer back to this file as the source of truth.
 # Consync / ScaffoldAI — Current System State
 
 ## WHAT THIS SYSTEM IS

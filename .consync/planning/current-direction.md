@@ -1,3 +1,5 @@
+# PLANNING/VISION NOTICE
+This file is a planning/vision document and is NOT the canonical system entry or AI re-anchor point. For the canonical entry, see: .consync/docs/current-system.md
 # Current Direction
 
 Consync remains local-first, offline, deterministic, and filesystem-first.
