@@ -55,6 +55,14 @@ Other current execution surfaces:
 
 This system is still fully manual and non-orchestrated. No agent auto-dispatches. No pipeline exists.
 
+## Manual Execution Flow
+
+The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+
+`.consync/process/manual-execution-flow.md`
+
+This system remains manual and non-orchestrated. Intake and Preflight have explicit CLI commands.
+
 ## Where to go next
 
 **Feature development process:**

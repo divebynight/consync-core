@@ -36,6 +36,14 @@ Then check the repo surface:
 2. any files named in the current package
 3. the deeper reference docs only if the live state is unclear
 
+## Manual Execution Flow
+
+The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+
+`.consync/process/manual-execution-flow.md`
+
+The system remains manual and non-orchestrated.
+
 ## Core Operating Loop
 
 The live loop is still singular.

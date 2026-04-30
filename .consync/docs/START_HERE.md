@@ -29,6 +29,14 @@ Other current execution surfaces:
 
 All agent invocation remains manual. No orchestrator exists.
 
+## Manual Execution Flow
+
+The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+
+`.consync/process/manual-execution-flow.md`
+
+The system remains manual and non-orchestrated.
+
 ---
 
 ## Active Process Surfaces
@@ -102,4 +110,4 @@ explicitly revalidated and re-classified as active.**
 | `.consync/verification/ui-e2e-coverage.md` | Older UI coverage map — likely superseded by `ui-e2e-coverage-map.md` |
 | `.consync/examples/search-panel-feature-example.md` | Completed feature example; canonical reference for one past packet |
 | `.consync/archive/history/` | Preserved prior package plans and early V1 artifacts |
-| `.consync/archive/` | Older artifact system — superseded by `.consync/state` and streams |
+| `.consync/archive/` | Older artifact system — superseded by `.consync/state` and streams

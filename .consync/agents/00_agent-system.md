@@ -43,6 +43,14 @@ The Entry Adapter is unbound and manual unless explicitly invoked. It does not e
 - **SHOULD** use the Entry Adapter when incoming input is ambiguous or the correct next agent is unclear.
 - **MAY SKIP** the Entry Adapter when a human explicitly invokes a specific agent, command, or bound process surface.
 
+## Manual Execution Flow
+
+The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+
+`.consync/process/manual-execution-flow.md`
+
+The system remains manual and non-orchestrated.
+
 ## Invocation Order
 
 1. **Preflight**
