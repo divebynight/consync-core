@@ -14,6 +14,24 @@ Bound as a prompt-only work-classification contract.
 
 This binding does not create a command, runner, orchestrator, automatic dispatcher, or file mutation authority.
 
+## Execution Binding (First Explicit Agent Execution Surface)
+
+`intake-run` is the first explicit agent execution surface in Consync.
+
+It runs the Intake agent's classification logic directly from the CLI:
+
+```
+node src/index.js intake-run --prompt "describe the work here"
+```
+
+Behavior:
+- Accepts a `--prompt` value as the work description
+- Prints the agent name and input received
+- Runs deterministic keyword-based classification
+- Outputs STATUS, CLASSIFICATION, RISK, AMBIGUITY, TARGET SURFACES, OUT OF SCOPE, VERIFICATION LEVEL, and REQUIRED NEXT STEP
+
+This is not a runner, orchestrator, or dispatcher. It executes one agent's classification logic in a single, inspectable step. It does not call other agents, modify state, or chain workflows.
+
 ## Prompt Binding
 
 The Intake agent is invoked by prompt or human request when incoming work needs classification before packet creation.

@@ -169,6 +169,9 @@ function main() {
   runNodeStep("[verify] Consync-run command", [path.join(repoRoot, "src", "test", "unit-consync-run.js")]);
   console.log("");
 
+  runNodeStep("[verify] Intake agent execution", [path.join(repoRoot, "src", "test", "unit-intake-run.js")]);
+  console.log("");
+
   runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"]);
   console.log("");
 
