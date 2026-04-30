@@ -63,3 +63,11 @@ The packet, trigger level, or human instruction determines which existing comman
 - No clean `PASS` if any required verification fails.
 - Do not delete, skip, or weaken failing tests to get green results.
 - Do not claim unrun checks passed.
+
+## Execution Binding (Explicit Agent Execution Surface)
+
+- CLI: `verify-run`
+- Inputs: original prompt and reported result
+- Behavior: evaluates whether result matches intent
+- Output: structured verification report
+- No tests, no git diff, no state mutation, no orchestration

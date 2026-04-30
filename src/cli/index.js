@@ -214,6 +214,12 @@ async function main() {
       return;
     }
 
+      if (command === "verify-run") {
+        const { runVerifyRunCommand } = require("../commands/verify-run");
+        runVerifyRunCommand(process.argv.slice(3));
+        return;
+      }
+
   console.error("Unknown command");
   process.exitCode = 1;
 }
