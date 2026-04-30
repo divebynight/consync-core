@@ -208,6 +208,12 @@ async function main() {
     return;
   }
 
+    if (command === "preflight-run") {
+      const { runPreflightRunCommand } = require("../commands/preflight-run");
+      runPreflightRunCommand(process.argv.slice(3));
+      return;
+    }
+
   console.error("Unknown command");
   process.exitCode = 1;
 }

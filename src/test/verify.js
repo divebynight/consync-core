@@ -172,6 +172,9 @@ function main() {
   runNodeStep("[verify] Intake agent execution", [path.join(repoRoot, "src", "test", "unit-intake-run.js")]);
   console.log("");
 
+    runNodeStep("[verify] Preflight agent execution", [path.join(repoRoot, "src", "test", "unit-preflight-run.js")]);
+    console.log("");
+
   runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"]);
   console.log("");
 

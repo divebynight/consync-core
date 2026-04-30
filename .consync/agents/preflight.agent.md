@@ -18,6 +18,14 @@ npm run check:state-preflight
 
 This is an implicit command binding to the existing state preflight check, not a full orchestrator and not a new runner.
 
+## Execution Binding (Explicit Agent Execution Surface)
+
+- CLI: `preflight-run`
+- Input: prompt string
+- Behavior: validates readiness of classified work
+- Output: structured readiness report
+- No execution, no orchestration, no state mutation
+
 ## Inputs
 
 - Current user packet or task statement
