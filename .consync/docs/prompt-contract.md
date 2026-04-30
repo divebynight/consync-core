@@ -8,6 +8,15 @@ Prompts are not casual input. Prompts are structured system entrypoints. The Con
 
 ## 2. INPUT SHAPE (PROMPT CONTRACT)
 
+
+A compliant executable packet must contain:
+- MODE
+- EXECUTION SURFACE
+- CONTEXT
+- EXPECTATION
+- TASK or GOAL
+- OUTPUT FORMAT
+
 A good prompt contains:
 - **Clear intent** (what is being done)
 - **Clear scope** (what kind of work: product, docs, tests, process)

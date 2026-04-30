@@ -54,6 +54,10 @@ The packet, trigger level, or human instruction determines which existing comman
 - Pass/fail result for each command
 - Failure summary and suspected cause, when applicable
 - Whether verification permits closeout
+- PROMPT CONTRACT: compliant | needs revision
+- SYSTEM CONSTRAINTS: respected | violated
+- DRIFT: none | possible | detected
+- HUMAN ACTION: proceed | clarify | revise
 
 ## Guardrails
 

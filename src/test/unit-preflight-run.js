@@ -17,6 +17,7 @@ function run(args) {
 function main() {
   console.log(`[${TEST_NAME}] Running`);
 
+
   // 1. No prompt → BLOCKED, exit 1
   {
     const result = run([]);
@@ -27,14 +28,31 @@ function main() {
     console.log("  PASS: no prompt → BLOCKED, exit 1");
   }
 
-  // 2. Product prompt → PASS, ready
+  // 1b. Missing required fields → BLOCKED
   {
     const result = run(["--prompt=build a new electron window feature"]);
+    assert.ok(result.stdout.includes("STATUS: BLOCKED"), "BLOCKED status");
+    assert.ok(result.stdout.includes("BLOCKED FIELDS:"), "Blocked fields");
+    assert.strictEqual(result.status, 1, "Exit 1 for missing required fields");
+    console.log("  PASS: missing required fields → BLOCKED");
+  }
+
+  // 2. Product prompt with all required fields → PASS, ready
+  {
+    const result = run([
+      "--prompt=build a new electron window feature",
+      "--mode=IMPLEMENT",
+      "--execution-surface=copilot",
+      "--context=product",
+      "--expectation=add electron window",
+      "--task=add window",
+      "--output-format=STATUS,SUMMARY,FILES"
+    ]);
     assert.ok(result.stdout.includes("STATUS: PASS"), "PASS status");
     assert.ok(result.stdout.includes("CLASSIFICATION: product"), "product classification");
     assert.ok(result.stdout.includes("READINESS: ready"), "ready");
     assert.strictEqual(result.status, 0, "Exit 0");
-    console.log("  PASS: product prompt → PASS, ready");
+    console.log("  PASS: product prompt with all fields → PASS, ready");
   }
 
   // 3. Unknown prompt → BLOCKED
@@ -46,23 +64,40 @@ function main() {
     console.log("  PASS: unknown prompt → BLOCKED");
   }
 
-  // 4. Mixed prompt → WARN, ambiguous
+
+  // 4. Mixed prompt with all required fields → WARN, ambiguous
   {
-    const result = run(["--prompt=build a test for the electron feature and document it"]);
+    const result = run([
+      "--prompt=build a test for the electron feature and document it",
+      "--mode=IMPLEMENT",
+      "--execution-surface=copilot",
+      "--context=mixed",
+      "--expectation=add tests and docs",
+      "--task=add tests and docs",
+      "--output-format=STATUS,SUMMARY,FILES"
+    ]);
     assert.ok(result.stdout.includes("STATUS: WARN"), "WARN status");
     assert.ok(result.stdout.includes("CLASSIFICATION: mixed"), "mixed classification");
     assert.ok(result.stdout.includes("READINESS: ambiguous"), "ambiguous");
     assert.strictEqual(result.status, 0, "Exit 0");
-    console.log("  PASS: mixed prompt → WARN, ambiguous");
+    console.log("  PASS: mixed prompt with all fields → WARN, ambiguous");
   }
 
-  // 5. Needs clarification prompt → BLOCKED
+  // 5. Needs clarification prompt with all required fields → BLOCKED
   {
-    const result = run(["--prompt=asdfghjkl"]);
+    const result = run([
+      "--prompt=asdfghjkl",
+      "--mode=IMPLEMENT",
+      "--execution-surface=copilot",
+      "--context=product",
+      "--expectation=clarify",
+      "--task=clarify",
+      "--output-format=STATUS,SUMMARY,FILES"
+    ]);
     assert.ok(result.stdout.includes("STATUS: BLOCKED"), "BLOCKED status");
     assert.ok(result.stdout.includes("READINESS: needs_clarification"), "needs_clarification");
     assert.strictEqual(result.status, 1, "Exit 1");
-    console.log("  PASS: nonsense prompt → BLOCKED");
+    console.log("  PASS: nonsense prompt with all fields → BLOCKED");
   }
 
   // 6. Input is echoed

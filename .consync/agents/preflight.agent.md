@@ -51,6 +51,18 @@ This is an implicit command binding to the existing state preflight check, not a
 - Preflight command results
 - Proceed/stop recommendation
 
+## Required Executable Packet Fields
+
+Preflight must block any packet missing these fields:
+- MODE
+- EXECUTION SURFACE
+- CONTEXT
+- EXPECTATION
+- TASK or GOAL
+- OUTPUT FORMAT
+
+Preflight must also block if the declared EXECUTION SURFACE does not match the current execution surface.
+
 ## Guardrails
 
 - Do not modify runtime code.

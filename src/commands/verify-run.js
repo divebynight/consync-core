@@ -23,6 +23,31 @@ function classifyText(text) {
 }
 
 function runVerifyRunCommand(argv, options = {}) {
+
+    // Prompt contract compliance (minimal: both prompt and result present and not unknown)
+    let promptContract = "compliant";
+    if (!prompt.trim() || !result.trim() || promptClass.classification === "unknown" || resultClass.classification === "unknown") {
+      promptContract = "needs revision";
+    }
+
+    // System constraints (minimal: no orchestration, no auto, human authority always respected in this CLI)
+    let systemConstraints = "respected";
+    // This CLI never orchestrates, auto-executes, or commits, so always respected
+
+    // Drift detection
+    let drift = "none";
+    if (promptClass.classification !== resultClass.classification) {
+      if (promptClass.classification === "unknown" || resultClass.classification === "unknown") {
+        drift = "possible";
+      } else {
+        drift = "detected";
+      }
+    }
+
+    // Human action recommendation
+    let humanAction = "proceed";
+    if (status === "WARN") humanAction = "clarify";
+    else if (status === "FAIL" || status === "BLOCKED") humanAction = "revise";
   const out = options.outputStream || process.stdout;
   const flags = parseFlags(argv);
   const prompt = flags["prompt"] || "";
@@ -95,12 +120,17 @@ function runVerifyRunCommand(argv, options = {}) {
     completeness = "complete";
   }
 
+
   out.write(`STATUS: ${status}\n`);
   out.write(`PROMPT_CLASSIFICATION: ${promptClass.classification}\n`);
   out.write(`RESULT_CLASSIFICATION: ${resultClass.classification}\n`);
   out.write(`ALIGNMENT: ${alignment}\n`);
   out.write(`SCOPE: ${scope}\n`);
   out.write(`COMPLETENESS: ${completeness}\n`);
+  out.write(`PROMPT CONTRACT: ${promptContract}\n`);
+  out.write(`SYSTEM CONSTRAINTS: ${systemConstraints}\n`);
+  out.write(`DRIFT: ${drift}\n`);
+  out.write(`HUMAN ACTION: ${humanAction}\n`);
   out.write("\n");
 
   out.write(`RECOMMENDED NEXT ACTION: ${

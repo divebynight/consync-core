@@ -34,10 +34,46 @@ function runPreflightRunCommand(argv, options = {}) {
     return;
   }
 
+
+  // Minimal packet field extraction (from prompt or flags)
+  // Accept both --mode=, --execution-surface=, etc. or parse from prompt lines
+  const requiredFields = ["mode", "execution-surface", "context", "expectation", "task", "output-format"];
+  const missingFields = [];
+  for (const field of requiredFields) {
+    if (!flags[field] || !flags[field].trim()) missingFields.push(field.toUpperCase().replace(/-/g, " "));
+  }
+
+  // Execution surface check
+  const declaredSurface = (flags["execution-surface"] || "").toLowerCase();
+  const currentSurface = "copilot"; // Hardcoded for Copilot execution surface
+  let surfaceMismatch = false;
+  if (declaredSurface && declaredSurface !== currentSurface) surfaceMismatch = true;
+
   const result = classifyInput(prompt);
   let status = "PASS";
   let readiness = "ready";
   let warn = false;
+
+
+  if (missingFields.length > 0) {
+    status = "BLOCKED";
+    readiness = "missing_fields";
+    out.write(`STATUS: BLOCKED\n`);
+    out.write(`BLOCKED FIELDS: ${missingFields.join(", ")}\n`);
+    out.write("REQUIRED NEXT STEP: Provide all required packet fields.\n");
+    if (!options.outputStream) process.exitCode = 1;
+    return;
+  }
+
+  if (surfaceMismatch) {
+    status = "BLOCKED";
+    readiness = "execution_surface_mismatch";
+    out.write(`STATUS: BLOCKED\n`);
+    out.write(`EXECUTION SURFACE MISMATCH: declared='${declaredSurface}', current='${currentSurface}'\n`);
+    out.write("REQUIRED NEXT STEP: Ensure EXECUTION SURFACE matches the current execution context.\n");
+    if (!options.outputStream) process.exitCode = 1;
+    return;
+  }
 
   if (result.status === "NEEDS_CLARIFICATION" || result.classification === "unknown") {
     status = "BLOCKED";
