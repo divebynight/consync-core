@@ -1,3 +1,4 @@
+# REFERENCE / HISTORICAL — NOT PART OF ACTIVE SYSTEM
 # State History
 
 - `.consync/state/next-action.md` is a live execution slot and may be replaced during closeout.

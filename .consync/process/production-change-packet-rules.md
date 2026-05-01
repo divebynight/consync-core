@@ -1,3 +1,4 @@
+# SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 # Production Change Packet Rules
 
 Rules for when a packet is allowed to modify production code, how that differs from coverage-only or docs-only packets, and what extra safeguards apply.

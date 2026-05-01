@@ -1,3 +1,4 @@
+# REFERENCE / HISTORICAL — NOT PART OF ACTIVE SYSTEM
 ## GOAL
 
 Implement Consync V1 Feature 1: `new-guid` CLI command

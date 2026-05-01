@@ -1,3 +1,4 @@
+# REFERENCE / HISTORICAL — NOT PART OF ACTIVE SYSTEM
 MODE: IMPLEMENT
 PACKET_ID: scaffoldai-system-layers-summary-v1
 

@@ -1,3 +1,4 @@
+# SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 # Manual ScaffoldAI Execution Flow
 
 ## Current Command Surfaces

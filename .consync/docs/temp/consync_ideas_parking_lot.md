@@ -1,3 +1,4 @@
+# REFERENCE / HISTORICAL — NOT PART OF ACTIVE SYSTEM
 # Consync / ScaffoldAI — Ideas Parking Lot
 
 This file captures useful ideas that should not be implemented immediately.

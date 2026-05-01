@@ -1,3 +1,4 @@
+# NAVIGATION / ONBOARDING ONLY — NOT AUTHORITATIVE
 # START HERE
 
 This file is a navigation index for `.consync/docs`. It is not a source of

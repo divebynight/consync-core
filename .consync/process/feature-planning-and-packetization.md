@@ -1,3 +1,4 @@
+# SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 # Feature Planning and Packetization
 
 A practical process for breaking a feature request into small, independently executable, verifiable packets.

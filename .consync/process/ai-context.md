@@ -1,3 +1,4 @@
+# SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 # AI Context — consync-core
 
 Structured execution context for AI tools operating in this repository.

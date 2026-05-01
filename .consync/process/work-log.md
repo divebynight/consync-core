@@ -1,3 +1,4 @@
+# SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 ## 2026-04-29 — gatekeeper-soft-gate-stabilization-v1
 
 PACKET_ID: gatekeeper-soft-gate-stabilization-v1
