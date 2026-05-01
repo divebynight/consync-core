@@ -3,6 +3,12 @@
 
 A design doc describing how Consync handles mid-size features composed of multiple work packets.
 
+## Role Boundary
+
+Role: feature-level coordination and execution flow.
+
+Answers: "Given an ordered packet list, how do we safely execute, advance, stop, and close out the feature?"
+
 ---
 
 ## 1. Overview

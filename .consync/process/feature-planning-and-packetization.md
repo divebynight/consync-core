@@ -3,6 +3,12 @@
 
 A practical process for breaking a feature request into small, independently executable, verifiable packets.
 
+## Role Boundary
+
+Role: feature decomposition and packet design.
+
+Answers: "Should this feature become multiple packets, and how should those packets be shaped?"
+
 Based on: `.consync/examples/search-panel-feature-example.md`
 
 ---

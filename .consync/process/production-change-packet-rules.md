@@ -3,6 +3,12 @@
 
 Rules for when a packet is allowed to modify production code, how that differs from coverage-only or docs-only packets, and what extra safeguards apply.
 
+## Role Boundary
+
+Role: production-code permission and safety rules.
+
+Answers: "Is this packet allowed to modify production code, and what safeguards apply?"
+
 ---
 
 ## 1. Packet Types

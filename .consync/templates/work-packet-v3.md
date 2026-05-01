@@ -4,6 +4,12 @@ Copy and fill this template when handing off an implementation task to a Copilot
 
 This version adds explicit idempotency detection. The agent must evaluate the ALREADY_COMPLETE CHECK before performing any work.
 
+## Role Boundary
+
+Role: executable packet template.
+
+Answers: "What exact structure must be followed to execute a single packet?"
+
 ---
 
 ```
