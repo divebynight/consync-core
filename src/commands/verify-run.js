@@ -65,18 +65,13 @@ function runVerifyRunCommand(argv, options = {}) {
     return;
   }
 
-  const promptClass = classifyText(prompt);
-  const resultClass = classifyText(result);
-
-  // ...existing code...
-
-  const promptClass = classifyText(prompt);
-  const resultClass = classifyText(result);
-
-  let status = "PASS";
-  let alignment = "strong";
-  let scope = "correct";
-  let completeness = "complete";
+  // Only classify if both prompt and result are present
+  let promptClass = { classification: "unknown", status: "NEEDS_CLARIFICATION" };
+  let resultClass = { classification: "unknown", status: "NEEDS_CLARIFICATION" };
+  if (prompt.trim() && result.trim()) {
+    promptClass = classifyText(prompt);
+    resultClass = classifyText(result);
+  }
 
   // Fail conditions
   if (promptClass.classification === "unknown" || promptClass.status === "NEEDS_CLARIFICATION") {
