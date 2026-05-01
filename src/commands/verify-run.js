@@ -24,30 +24,6 @@ function classifyText(text) {
 
 function runVerifyRunCommand(argv, options = {}) {
 
-    // Prompt contract compliance (minimal: both prompt and result present and not unknown)
-    let promptContract = "compliant";
-    if (!prompt.trim() || !result.trim() || promptClass.classification === "unknown" || resultClass.classification === "unknown") {
-      promptContract = "needs revision";
-    }
-
-    // System constraints (minimal: no orchestration, no auto, human authority always respected in this CLI)
-    let systemConstraints = "respected";
-    // This CLI never orchestrates, auto-executes, or commits, so always respected
-
-    // Drift detection
-    let drift = "none";
-    if (promptClass.classification !== resultClass.classification) {
-      if (promptClass.classification === "unknown" || resultClass.classification === "unknown") {
-        drift = "possible";
-      } else {
-        drift = "detected";
-      }
-    }
-
-    // Human action recommendation
-    let humanAction = "proceed";
-    if (status === "WARN") humanAction = "clarify";
-    else if (status === "FAIL" || status === "BLOCKED") humanAction = "revise";
   const out = options.outputStream || process.stdout;
   const flags = parseFlags(argv);
   const prompt = flags["prompt"] || "";
@@ -57,8 +33,29 @@ function runVerifyRunCommand(argv, options = {}) {
   out.write(`Prompt: ${prompt || "(none)"}\n`);
   out.write(`Result: ${result || "(none)"}\n\n`);
 
+  // Always emit contract lines, even for missing args
+  let promptContract = "compliant";
+  let systemConstraints = "respected";
+  let drift = "none";
+  let humanAction = "proceed";
+  let status = "PASS";
+  let alignment = "strong";
+  let scope = "correct";
+  let completeness = "complete";
+
   if (!prompt.trim() || !result.trim()) {
-    out.write("STATUS: BLOCKED\n");
+    status = "BLOCKED";
+    alignment = "blocked";
+    scope = "unknown";
+    completeness = "unclear";
+    promptContract = "needs revision";
+    humanAction = "revise";
+    drift = "possible";
+    out.write(`STATUS: ${status}\n`);
+    out.write(`PROMPT CONTRACT: ${promptContract}\n`);
+    out.write(`SYSTEM CONSTRAINTS: ${systemConstraints}\n`);
+    out.write(`DRIFT: ${drift}\n`);
+    out.write(`HUMAN ACTION: ${humanAction}\n`);
     out.write("ALIGNMENT: blocked\n");
     out.write("SCOPE: unknown\n");
     out.write("COMPLETENESS: unclear\n");
@@ -67,6 +64,11 @@ function runVerifyRunCommand(argv, options = {}) {
     if (!options.outputStream) process.exitCode = 1;
     return;
   }
+
+  const promptClass = classifyText(prompt);
+  const resultClass = classifyText(result);
+
+  // ...existing code...
 
   const promptClass = classifyText(prompt);
   const resultClass = classifyText(result);

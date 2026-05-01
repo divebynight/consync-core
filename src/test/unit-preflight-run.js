@@ -28,6 +28,23 @@ function main() {
     console.log("  PASS: no prompt → BLOCKED, exit 1");
   }
 
+    // 1c. Execution surface mismatch → BLOCKED
+    {
+      const result = run([
+        "--prompt=build a new electron window feature",
+        "--mode=IMPLEMENT",
+        "--execution-surface=verify", // mismatch
+        "--context=product",
+        "--expectation=add electron window",
+        "--task=add window",
+        "--output-format=STATUS,SUMMARY,FILES"
+      ]);
+      assert.ok(result.stdout.includes("STATUS: BLOCKED"), "BLOCKED status (surface mismatch)");
+      assert.ok(result.stdout.toLowerCase().includes("surface mismatch"), "surface mismatch reason");
+      assert.strictEqual(result.status, 1, "Exit 1 for surface mismatch");
+      console.log("  PASS: execution surface mismatch → BLOCKED");
+    }
+
   // 1b. Missing required fields → BLOCKED
   {
     const result = run(["--prompt=build a new electron window feature"]);
@@ -55,13 +72,21 @@ function main() {
     console.log("  PASS: product prompt with all fields → PASS, ready");
   }
 
-  // 3. Unknown prompt → BLOCKED
+  // 3. Unknown prompt with all required fields → BLOCKED, needs_clarification
   {
-    const result = run(["--prompt=do the thing with the stuff"]);
+    const result = run([
+      "--prompt=do the thing with the stuff",
+      "--mode=IMPLEMENT",
+      "--execution-surface=copilot",
+      "--context=product",
+      "--expectation=clarify",
+      "--task=clarify",
+      "--output-format=STATUS,SUMMARY,FILES"
+    ]);
     assert.ok(result.stdout.includes("STATUS: BLOCKED"), "BLOCKED status");
     assert.ok(result.stdout.includes("READINESS: needs_clarification"), "needs_clarification");
     assert.strictEqual(result.status, 1, "Exit 1");
-    console.log("  PASS: unknown prompt → BLOCKED");
+    console.log("  PASS: unknown prompt with all fields → BLOCKED, needs_clarification");
   }
 
 

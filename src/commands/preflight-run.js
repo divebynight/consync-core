@@ -67,10 +67,12 @@ function runPreflightRunCommand(argv, options = {}) {
 
   if (surfaceMismatch) {
     status = "BLOCKED";
-    readiness = "execution_surface_mismatch";
+    readiness = "surface_mismatch";
     out.write(`STATUS: BLOCKED\n`);
+    out.write(`READINESS: surface_mismatch\n`);
     out.write(`EXECUTION SURFACE MISMATCH: declared='${declaredSurface}', current='${currentSurface}'\n`);
-    out.write("REQUIRED NEXT STEP: Ensure EXECUTION SURFACE matches the current execution context.\n");
+    out.write("RECOMMENDED NEXT ACTION: Run this packet in the declared execution surface or correct the packet.\n");
+    out.write("REQUIRED NEXT STEP: Update the EXECUTION SURFACE field to match the current execution context ('copilot') or run in the correct agent.\n");
     if (!options.outputStream) process.exitCode = 1;
     return;
   }

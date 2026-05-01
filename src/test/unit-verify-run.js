@@ -48,6 +48,16 @@ function main() {
     console.log("  PASS: aligned prompt/result → PASS");
   }
 
+  // 2b. Output includes explicit contract lines
+  {
+    const result = run(["--prompt=build a new electron window feature", "--result=added electron window feature"]);
+    assert.ok(result.stdout.includes("PROMPT CONTRACT:"), "PROMPT CONTRACT line");
+    assert.ok(result.stdout.includes("SYSTEM CONSTRAINTS:"), "SYSTEM CONSTRAINTS line");
+    assert.ok(result.stdout.includes("DRIFT:"), "DRIFT line");
+    assert.ok(result.stdout.includes("HUMAN ACTION:"), "HUMAN ACTION line");
+    console.log("  PASS: verify output includes explicit contract lines");
+  }
+
   // 3. WARN: mixed/partial
   {
     const result = run(["--prompt=build a test for the electron feature and document it", "--result=added tests and docs"]);
