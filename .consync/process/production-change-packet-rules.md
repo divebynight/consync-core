@@ -71,7 +71,7 @@ A packet may modify production code only when **all three** of the following are
 
 ## 3. Safeguards for Production-Change Packets
 
-Run these steps in order. Do not skip.
+Follow `.consync/templates/work-packet-v3.md` for the generic packet lifecycle, outcomes, ALLOWED FILES, commit rules, and output contract. The safeguards below are the extra requirements for packets that modify production code.
 
 ### Before starting
 
@@ -88,31 +88,21 @@ If either fails, do not begin.
 - Make only the changes listed in ALLOWED FILES
 - Do not introduce new abstractions unless the packet goal explicitly requires them
 
-### Test the new work in isolation
+### Test and verify
 
 ```
 npx playwright test <new-spec>
-```
-
-Confirm the spec passes before running the full suite. Fix all assertion failures before proceeding.
-
-### Verify the full suite
-
-```
 CI=true npm run verify:full
 ```
 
-The e2e count must increase by the expected amount (one new spec = one more passing test). If FULL_VERIFY fails, stop and record STOPPED before attempting anything else.
+Confirm the focused spec passes before running the full suite. The e2e count must increase by the expected amount when a new spec is added. Verification level definitions live in `.consync/verification/verification-ladder.md`.
 
-### Update docs
+If FULL_VERIFY fails, stop and record STOPPED before attempting anything else. Generic STOPPED handling is defined in `.consync/templates/work-packet-v3.md`.
 
-- Append an entry to `.consync/process/work-log.md`
+### Production-specific documentation
+
+- Append an entry to `.consync/process/work-log.md` describing the production behavior and verification result
 - Update `.consync/verification/ui-e2e-coverage-map.md` if a new spec was added
-
-### Commit
-
-- Stage only files listed in ALLOWED FILES that were actually changed
-- Do not push
 
 ---
 

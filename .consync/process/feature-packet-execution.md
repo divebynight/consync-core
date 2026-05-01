@@ -51,10 +51,9 @@ READINESS GATE
 
 PACKET EXECUTION LOOP
   For each packet (in order):
-    └─ Run packet (implement → test → doc → verify → commit)
-    └─ Confirm packet is COMPLETE or ALREADY_COMPLETE
-    └─ Run FAST_CHECK minimum before advancing
-    └─ Do not advance if packet returned STOPPED
+    └─ Run the packet using work-packet-v3
+    └─ Advance only on COMPLETE or ALREADY_COMPLETE
+    └─ Halt the feature if a packet returns STOPPED
 
 INTEGRITY VERIFICATION
   └─ Run FULL_VERIFY after all packets complete
@@ -93,11 +92,8 @@ These roles describe process responsibilities. They may be performed by a human,
 
 **Responsibility:** Execute a single work packet using the work-packet-v3 template.
 
-- Performs ALREADY_COMPLETE check first
-- Implements only what the packet describes
-- Runs the stated verification level
-- Commits only allowed files
-- Returns one of: COMPLETE, ALREADY_COMPLETE, STOPPED
+- Follows `.consync/templates/work-packet-v3.md`
+- Returns the packet outcome defined by that template
 
 ### Integrity
 
@@ -123,15 +119,15 @@ For each packet in the feature:
 
 1. **Before starting:** confirm the previous packet returned COMPLETE or ALREADY_COMPLETE. If any packet returned STOPPED, halt the feature execution.
 
-2. **Run the packet** using the work-packet-v3 template. Follow its EXECUTION PHASES in order.
+2. **Run the packet** using `.consync/templates/work-packet-v3.md`.
 
-3. **After the packet completes:** run at minimum `npm test` (FAST_CHECK) before advancing to the next packet.
+3. **After the packet completes:** run the verification level required for advancing the feature. See `.consync/verification/verification-ladder.md`.
 
 4. **Record the result** in `.consync/process/work-log.md` using the packet's PACKET_ID.
 
 5. **Advance** to the next packet only when:
    - The current packet returned COMPLETE or ALREADY_COMPLETE
-   - FAST_CHECK passes
+   - the required verification passes
    - No unexpected files were changed outside the packet's ALLOWED FILES
 
 If any of these conditions fail, stop and record a STOPPED entry in the work-log before attempting to unblock.
@@ -159,13 +155,12 @@ Do not begin packet execution until all readiness checks pass.
 Halt feature execution (do not advance to the next packet) if any of the following occur:
 
 - A packet returns STOPPED
-- Verification fails after one retry
-- Scope drift: a packet required changes outside its ALLOWED FILES to proceed
+- Required feature-level verification fails
 - An unclear product decision must be resolved before the feature can continue
 - Unexpected files were changed outside the scope of the active packet
 - `npm run verify:full` fails at the integrity check phase
 
-Record the reason in the work-log and leave the repo in a clean state before stopping.
+Generic packet stop conditions are defined in `.consync/templates/work-packet-v3.md`. Record the feature-level reason in the work-log and leave the repo in a clean state before stopping.
 
 ---
 
@@ -173,16 +168,13 @@ Record the reason in the work-log and leave the repo in a clean state before sto
 
 ### work-packet-v3
 
-Feature Packet execution is built directly on top of the work-packet-v3 template. Each step in the feature is a work packet. The three outcomes (COMPLETE, ALREADY_COMPLETE, STOPPED) apply at both the packet level and the feature level.
+Feature Packet execution is built directly on top of the work-packet-v3 template. Each step in the feature is a work packet.
 
 See: `.consync/templates/work-packet-v3.md`
 
 ### Verification Ladder
 
-Feature Packet execution uses the same verification ladder as individual work packets.
-
-- FAST_CHECK between packets
-- FULL_VERIFY before and after the feature
+Feature Packet execution uses the shared verification ladder. This document only adds feature-level timing: verification before starting, between packets as needed, and at final integrity check.
 
 See: `.consync/verification/verification-ladder.md`
 
