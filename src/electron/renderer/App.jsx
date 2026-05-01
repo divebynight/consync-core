@@ -1,3 +1,22 @@
+// Minimal tooltip for note preview
+function NotePreviewTooltip({ content, children }) {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <span
+      className="note-preview-hover-target"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: "relative", display: "inline-block" }}
+    >
+      {children}
+      {hovered && content ? (
+        <span className="note-preview-tooltip">
+          {content.length > 100 ? content.slice(0, 100) + "…" : content}
+        </span>
+      ) : null}
+    </span>
+  );
+}
 import React, { useEffect, useRef, useState } from "react";
 import {
   createBookmarkAndReadSessionState,
@@ -1767,7 +1786,9 @@ export function App() {
                             {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
                               <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
                                 <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                <NotePreviewTooltip content={bookmark.note || ""}>
+                                  <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                </NotePreviewTooltip>
                               </li>
                             ))}
                           </ul>
@@ -1793,7 +1814,9 @@ export function App() {
                                     type="button"
                                   >
                                     <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                    <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                    <NotePreviewTooltip content={bookmark.note || ""}>
+                                      <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                    </NotePreviewTooltip>
                                   </button>
                                   <button
                                     aria-label={`Delete marker ${getBookmarkDisplayNote(bookmark)}`}
