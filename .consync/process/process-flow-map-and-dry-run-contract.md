@@ -10,15 +10,21 @@ Packet: `process-flow-map-and-dry-run-contract-v1`
 
 This document is a design and contract map for the Consync process loop.
 
+## Role Boundary
+
+Role: gatekeeper/dry-run design contract reference.
+
+Answers: "What are the gatekeeper and dry-run decision rules?"
+
 It describes what happens when, who is responsible at each step, where
 dry-run behavior belongs, and where the first agent/gate should be placed
 when it is eventually implemented.
 
 **No agent, gate, or code is implemented by this packet.**
 
-This document is the authoritative design surface for the gatekeeper flow.
-Any future implementation packet must be consistent with this map or must
-explicitly supersede it with approval.
+This document is the contract reference for gatekeeper and dry-run behavior.
+Any future gatekeeper or dry-run implementation packet must be consistent with
+this map or must explicitly supersede it with approval.
 
 ---
 

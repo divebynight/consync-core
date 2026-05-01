@@ -5,6 +5,12 @@
 
 This runbook is the thin operating entrypoint for a new human, ChatGPT, or Copilot session.
 
+## Role Boundary
+
+Role: fast operator entrypoint.
+
+Answers: "What do I do right now, and which doc do I open next?"
+
 For AI tools requiring structured execution context, see: `.consync/process/ai-context.md`
 
 Use it to answer two questions fast:

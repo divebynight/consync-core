@@ -1,6 +1,12 @@
 # SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
 # Manual ScaffoldAI Execution Flow
 
+## Role Boundary
+
+Role: implemented manual command flow reference.
+
+Answers: "Which command do I run, and what does the output mean?"
+
 ## Current Command Surfaces
 
 - `intake-run` — executes Intake agent classification logic
