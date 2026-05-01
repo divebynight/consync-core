@@ -171,8 +171,7 @@ Heavier process or governance work should be explicit and deliberate.
 The system may have many durable streams, but only one live owner at a time.
 
 - `.consync/state/active-stream.md` records the active stream
-- `.consync/orchestration/active_foreground_stream.txt` records the foreground stream
-- the live loop should match that ownership unless an intentional switch or reconciliation is in progress
+- the live loop should match that active stream unless an intentional switch or reconciliation is in progress
 
 If the system is closed, any stream may be chosen intentionally.
 
@@ -205,9 +204,8 @@ When switching:
 
 1. pause or close the current stream cleanly
 2. update `.consync/state/active-stream.md`
-3. update `.consync/orchestration/active_foreground_stream.txt` if needed
-4. make `next-action.md` match the new owner
-5. keep `handoff.md` and `snapshot.md` aligned with that reality
+3. make `next-action.md` match the new active stream
+4. keep `handoff.md` and `snapshot.md` aligned with that reality
 
 If those files disagree, reconciliation comes before new feature work.
 
