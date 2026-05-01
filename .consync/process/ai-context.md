@@ -11,7 +11,8 @@ Structured execution context for AI tools operating in this repository.
 
 - `.consync/state/` — live session state (read/write during execution)
 - `.consync/agents/` — authoritative agent role, invocation, and binding contracts
-- `.consync/docs/` — process docs and reference material (read; write only during doc work)
+- `.consync/docs/` — navigation and canonical entry docs (read; write only during doc work)
+- `.consync/process/` — process docs and reference material (read; write only during doc work)
 - `.consync/templates/` — copy-paste templates (read-only during execution)
 - `.consync/skills/` — reusable skill/procedure files (read before using a workflow)
 - `.github/` — thin Copilot/GitHub adapter only; not the canonical process model
@@ -53,13 +54,13 @@ consync-core/
 | `.consync/state/snapshot.md` | Fast re-entry artifact — read first to understand current state |
 | `.consync/state/next-action.md` | Live execution slot — the one thing to do next |
 | `.consync/state/handoff.md` | Closeout record for the most recently completed package |
-| `.consync/docs/runbook.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
+| `.consync/process/runbook.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
 | `.consync/docs/current-system.md` | Current product and process truth |
-| `.consync/docs/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
-| `.consync/docs/feature-planning-and-packetization.md` | How to break a feature into packets and execute them |
-| `.consync/docs/feature-packet-execution.md` | Coordination model for multi-packet features (roles, readiness, loop) |
-| `.consync/docs/03_work-log.md` | Append-only log of completed work — one entry per packet |
-| `.consync/docs/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
+| `.consync/verification/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
+| `.consync/process/feature-planning-and-packetization.md` | How to break a feature into packets and execute them |
+| `.consync/process/feature-packet-execution.md` | Coordination model for multi-packet features (roles, readiness, loop) |
+| `.consync/process/work-log.md` | Append-only log of completed work — one entry per packet |
+| `.consync/verification/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.consync/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |
 | `.consync/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.consync/skills/closeout-agent.md` |
 | `.consync/skills/closeout-agent.md` | Current Closeout agent prompt/process execution surface after human approval |
@@ -89,7 +90,7 @@ For features with two or more independently testable concerns, use the feature p
 - Execute packets sequentially — do not advance if any packet returns STOPPED
 - Run a dedicated closeout packet at the end
 
-See: `.consync/docs/feature-planning-and-packetization.md`
+See: `.consync/process/feature-planning-and-packetization.md`
 
 ---
 
@@ -133,8 +134,8 @@ This matters in multi-agent and multi-session workflows.
 **Write during execution:**
 - `.consync/state/handoff.md` — overwrite at packet closeout
 - `.consync/state/snapshot.md` — refresh after closeout
-- `.consync/docs/03_work-log.md` — append only, one entry per packet
-- `.consync/docs/ui-e2e-coverage-map.md` — update in the same commit as any new spec
+- `.consync/process/work-log.md` — append only, one entry per packet
+- `.consync/verification/ui-e2e-coverage-map.md` — update in the same commit as any new spec
 
 **Never modify without following the appropriate workflow:**
 - `.consync/state/next-action.md` — only the human or work manager sets the next action
@@ -156,6 +157,6 @@ This matters in multi-agent and multi-session workflows.
 
 ## Reference
 
-Canonical feature example: `.consync/docs/examples/search-panel-feature-example.md`
+Canonical feature example: `.consync/examples/search-panel-feature-example.md`
 
-Production-change packet rules (when source changes are allowed): `.consync/docs/production-change-packet-rules.md`
+Production-change packet rules (when source changes are allowed): `.consync/process/production-change-packet-rules.md`

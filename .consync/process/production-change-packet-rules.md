@@ -100,8 +100,8 @@ The e2e count must increase by the expected amount (one new spec = one more pass
 
 ### Update docs
 
-- Append an entry to `.consync/docs/03_work-log.md`
-- Update `.consync/docs/ui-e2e-coverage-map.md` if a new spec was added
+- Append an entry to `.consync/process/work-log.md`
+- Update `.consync/verification/ui-e2e-coverage-map.md` if a new spec was added
 
 ### Commit
 
@@ -136,6 +136,6 @@ A STOP condition in a coverage packet is not a failure — it is information. It
 
 ## Reference
 
-- `.consync/docs/feature-planning-and-packetization.md` — packet design rules and execution loop
+- `.consync/process/feature-planning-and-packetization.md` — packet design rules and execution loop
 - `.consync/templates/work-packet-v3.md` — ALLOWED FILES, STOP conditions, and output contract
-- `.consync/docs/verification-ladder.md` — FAST_CHECK, UI_CHECK, FULL_VERIFY definitions
+- `.consync/verification/verification-ladder.md` — FAST_CHECK, UI_CHECK, FULL_VERIFY definitions

@@ -121,7 +121,7 @@ For each packet in the feature:
 
 3. **After the packet completes:** run at minimum `npm test` (FAST_CHECK) before advancing to the next packet.
 
-4. **Record the result** in `.consync/docs/03_work-log.md` using the packet's PACKET_ID.
+4. **Record the result** in `.consync/process/work-log.md` using the packet's PACKET_ID.
 
 5. **Advance** to the next packet only when:
    - The current packet returned COMPLETE or ALREADY_COMPLETE
@@ -178,7 +178,7 @@ Feature Packet execution uses the same verification ladder as individual work pa
 - FAST_CHECK between packets
 - FULL_VERIFY before and after the feature
 
-See: `.consync/docs/verification-ladder.md`
+See: `.consync/verification/verification-ladder.md`
 
 ### Closeout Process
 
@@ -190,7 +190,7 @@ See: `.consync/skills/closeout-agent.md`
 
 If the feature touches UI or e2e test paths, the UI coverage map should be reviewed before starting and updated if new coverage is added.
 
-See: `.consync/docs/ui-e2e-coverage-map.md`
+See: `.consync/verification/ui-e2e-coverage-map.md`
 
 ---
 

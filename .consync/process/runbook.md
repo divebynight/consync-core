@@ -5,7 +5,7 @@
 
 This runbook is the thin operating entrypoint for a new human, ChatGPT, or Copilot session.
 
-For AI tools requiring structured execution context, see: `.consync/docs/ai-context.md`
+For AI tools requiring structured execution context, see: `.consync/process/ai-context.md`
 
 Use it to answer two questions fast:
 
@@ -102,7 +102,7 @@ The Entry Adapter remains a manual prompt/document classification layer. These e
 | INPUT | INPUT_TYPE | RECOMMENDED_AGENT | WAS_CORRECT | NOTES |
 | --- | --- | --- | --- | --- |
 | `MODE: IMPLEMENT PACKET_ID: entry-adapter-real-usage-v1` requesting this runbook validation section. | `new_work_request` | Intake | yes | Manually invoked Intake-style classification by treating the request as a docs-only packet with no code, commands, automation, or agent contract changes. Outcome: proceeded with a scoped runbook edit. |
-| Before editing `.consync/docs/runbook.md`, confirm the repo and process state are safe to work from. | `before_repo_changes` | Preflight | yes | Manually invoked Preflight through `npm run check:state-preflight`. Outcome: PASS before modifying the runbook. |
+| Before editing `.consync/process/runbook.md`, confirm the repo and process state are safe to work from. | `before_repo_changes` | Preflight | yes | Manually invoked Preflight through `npm run check:state-preflight`. Outcome: PASS before modifying the runbook. |
 | Run the required checks for this packet and report evidence. | `verification_evidence_request` | Verify | yes | Manually invoked Verify by running the required verification surface for this packet. Outcome: command evidence is recorded in the packet output. |
 | `MODE: CLOSEOUT PACKET_ID: entry-adapter-examples-v1` requesting commit readiness for the examples packet. | `closeout_commit_readiness` | Closeout | yes | Manually invoked Closeout by reviewing the docs-only diff, confirming no runtime behavior changed, rerunning checks, and committing `153e198`. |
 | Session context resumed from a compact handoff with prior packet history and current repo state needing confirmation before continuing. | `stale_lost_context` | Reentry | yes | Manually invoked Reentry-style reconstruction by checking the provided handoff summary, `git status --short`, current `HEAD`, and relevant docs before starting new work. Outcome: safe continuation without inventing missing state. |
@@ -265,16 +265,9 @@ The assistant should:
 
 ## Pointers To Deeper Docs
 
-- `.consync/docs/handoff-delivery-bridge.md` for the transport-vs-source-of-truth model for getting local handoff state into ChatGPT or another AI session reliably
-- `.consync/docs/artifact-role-model.md` for role-aware reasoning about state, control, governance, reference, and history artifacts and the validation weight each role should carry
-- `.consync/docs/integrity-trigger-model.md` for deciding when packages should run light, elevated, or heavy validation expectations based on role, stream type, and package character
-- `.consync/docs/doc-integrity-layer.md` for the governed documentation/state surface, canonical live-state questions, and integrity enforcement points
-- `.consync/docs/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
+- `.consync/process/handoff-delivery-bridge.md` for the transport-vs-source-of-truth model for getting local handoff state into ChatGPT or another AI session reliably
+- `.consync/contracts/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth
-- `.consync/docs/stream-operating-model.md` for stream structure and pause-safe rules
-- `.consync/docs/stream-and-state-interaction.md` for live-loop versus per-stream state
-- `.consync/docs/stream-switch-and-active-owner-rules.md` for switching and ownership
-- `.consync/docs/human-assisted-observation-closeout-rules.md` for manual observation packages
 - `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
 - `.consync/agents/entry-adapter.md` for the manual input-classification adapter
 
@@ -282,9 +275,9 @@ The assistant should:
 
 Use feature packets when a task has two or more independently testable concerns that each deserve their own commit and verification pass.
 
-- `.consync/docs/feature-planning-and-packetization.md` — how to break a feature into packets, design each packet, run the execution loop, and close out
-- `.consync/docs/feature-packet-execution.md` — coordination layer: roles, readiness gate, execution loop, stop conditions
+- `.consync/process/feature-planning-and-packetization.md` — how to break a feature into packets, design each packet, run the execution loop, and close out
+- `.consync/process/feature-packet-execution.md` — coordination layer: roles, readiness gate, execution loop, stop conditions
 
 Each packet is a `work-packet-v3` instance. Feature packets do not replace the core operating loop — they sit inside it, one packet per execution slot.
 
-See the canonical example: `.consync/docs/examples/search-panel-feature-example.md`
+See the canonical example: `.consync/examples/search-panel-feature-example.md`

@@ -3,7 +3,7 @@
 
 A practical process for breaking a feature request into small, independently executable, verifiable packets.
 
-Based on: `.consync/docs/examples/search-panel-feature-example.md`
+Based on: `.consync/examples/search-panel-feature-example.md`
 
 ---
 
@@ -226,6 +226,6 @@ The final packet was a dedicated closeout: read the coverage map, remove stale s
 
 ## Reference
 
-Canonical example: `.consync/docs/examples/search-panel-feature-example.md`
+Canonical example: `.consync/examples/search-panel-feature-example.md`
 
 For packets that require production changes: `.consync/process/production-change-packet-rules.md`

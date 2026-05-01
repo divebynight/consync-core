@@ -22,7 +22,7 @@ Current authoritative closeout artifact:
 Supporting re-entry artifacts that may travel with it:
 
 - `.consync/state/snapshot.md`
-- `.consync/docs/runbook.md` or a compact pointer to it
+- `.consync/process/runbook.md` or a compact pointer to it
 
 ### Delivery bridge
 
@@ -194,5 +194,5 @@ The goal is to reduce human rehydration burden without duplicating authority acr
 
 ## Related Docs
 
-- `.consync/docs/runbook.md` explains which local files should be read first during re-entry
+- `.consync/process/runbook.md` explains which local files should be read first during re-entry
 - `.consync/state/snapshot.md` provides the compact current-state view that should usually travel with the latest handoff
