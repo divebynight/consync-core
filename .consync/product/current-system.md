@@ -16,7 +16,7 @@ This file is product-specific and is NOT the canonical system entry or AI re-anc
 - Feature planning and packetization
   - See: `.consync/process/feature-planning-and-packetization.md`
 - Feature packet execution model (roles, readiness, loop)
-  - See: `.consync/process/feature-packet-execution.md`
+  - See: `.consync/process/feature-packet-execution.process.md`
 - Canonical example: search panel e2e coverage
   - See: `.consync/examples/search-panel-feature-example.md`
 

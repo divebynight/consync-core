@@ -131,7 +131,7 @@ Invocation rules:
 | `current-system.md` | System architecture and state |
 | `ai-context.md` | AI-first entry point for structured execution |
 | `verification-ladder.md` | FAST_CHECK / UI_CHECK / FULL_VERIFY definitions |
-| `feature-packet-execution.md` | Feature packet coordination layer |
+| `feature-packet-execution.process.md` | Feature packet coordination layer |
 | `feature-planning-and-packetization.md` | How to decompose features into packets |
 | `production-change-packet-rules.md` | When and how packets may modify production code |
 | `ui-e2e-coverage-map.md` | Living record of all e2e tests and surface coverage |

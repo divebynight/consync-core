@@ -269,7 +269,7 @@ The assistant should:
 
 ## Pointers To Deeper Docs
 
-- `.consync/process/handoff-delivery-bridge.md` for the transport-vs-source-of-truth model for getting local handoff state into ChatGPT or another AI session reliably
+- `.consync/process/handoff-delivery-bridge.process.md` for the transport-vs-source-of-truth model for getting local handoff state into ChatGPT or another AI session reliably
 - `.consync/contracts/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth
 - `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
@@ -279,8 +279,8 @@ The assistant should:
 
 Use feature packets when a task has two or more independently testable concerns that each deserve their own commit and verification pass.
 
-- `.consync/process/feature-planning-and-packetization.md` — how to break a feature into packets, design each packet, run the execution loop, and close out
-- `.consync/process/feature-packet-execution.md` — coordination layer: roles, readiness gate, execution loop, stop conditions
+- `.consync/process/feature-planning-and-packetization.process.md` — how to break a feature into packets, design each packet, run the execution loop, and close out
+- `.consync/process/feature-packet-execution.process.md` — coordination layer: roles, readiness gate, execution loop, stop conditions
 
 Each packet is a `work-packet-v3` instance. Feature packets do not replace the core operating loop — they sit inside it, one packet per execution slot.
 

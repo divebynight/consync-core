@@ -119,7 +119,7 @@ The authoritative Consync process layer. All meaningful process state, agent rol
 | `system-integrity-snapshot.md` | PROCESS | Periodic integrity snapshot; records test counts, command surface, and HEAD at capture time |
 | `state-contracts-and-integrity-checks.md` | PROCESS | Documents the integrity check contracts and what each check validates |
 | `verification-ladder.md` | PROCESS | Documents the tiered verification approach (unit → integration → e2e → manual) |
-| `feature-packet-execution.md` | PROCESS | Documents how feature packets are executed |
+| `feature-packet-execution.process.md` | PROCESS | Documents how feature packets are executed |
 | `feature-planning-and-packetization.md` | PROCESS | Documents how work is planned and packetized |
 | `handoff-delivery-bridge.md` | PROCESS | Defines the handoff delivery bridge between local truth and external AI session state |
 | `production-change-packet-rules.md` | PROCESS | Rules governing production change packets |

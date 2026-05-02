@@ -98,7 +98,7 @@ itself to determine its category.
 | `docs/current-system.md` | `product/current-system.md` | medium | Describes current system state; overlaps with process. Needs decision. |
 | `docs/ai-context.md` | `process/ai-context.md` | high | AI execution context for agents. Operational, not product. |
 | `docs/runbook.md` | `process/runbook.md` | high | Primary process entrypoint. |
-| `docs/feature-packet-execution.md` | `process/feature-packet-execution.md` | high | Packet execution procedures. |
+| `docs/feature-packet-execution.md` | `process/feature-packet-execution.process.md` | high | Packet execution procedures. |
 | `docs/feature-planning-and-packetization.md` | `process/feature-planning-and-packetization.md` | high | Planning and packetization procedures. |
 | `docs/production-change-packet-rules.md` | `process/production-change-packet-rules.md` | high | Rules for production change packets. |
 | `docs/handoff-delivery-bridge.md` | `process/handoff-delivery-bridge.md` | high | How to deliver handoff to AI sessions. Operational process. |
@@ -258,7 +258,7 @@ docs/current-system.md            -> product/current-system.md          (needs d
 ```
 docs/ai-context.md                             -> process/ai-context.md
 docs/runbook.md                                -> process/runbook.md
-docs/feature-packet-execution.md               -> process/feature-packet-execution.md
+docs/feature-packet-execution.md               -> process/feature-packet-execution.process.md
 docs/feature-planning-and-packetization.md     -> process/feature-planning-and-packetization.md
 docs/production-change-packet-rules.md         -> process/production-change-packet-rules.md
 docs/handoff-delivery-bridge.md                -> process/handoff-delivery-bridge.md

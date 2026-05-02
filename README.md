@@ -59,15 +59,15 @@ This system is still fully manual and non-orchestrated. No agent auto-dispatches
 
 The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
 
-`.consync/process/manual-execution-flow.md`
+`.consync/process/manual-execution-flow.process.md`
 
 This system remains manual and non-orchestrated. Intake and Preflight have explicit CLI commands.
 
 ## Where to go next
 
 **Feature development process:**
-- How to plan and break down a feature → [`.consync/process/feature-planning-and-packetization.md`](.consync/process/feature-planning-and-packetization.md)
-- Coordination model for multi-packet features → [`.consync/process/feature-packet-execution.md`](.consync/process/feature-packet-execution.md)
+- How to plan and break down a feature → [`.consync/process/feature-planning-and-packetization.process.md`](.consync/process/feature-planning-and-packetization.process.md)
+- Coordination model for multi-packet features → [`.consync/process/feature-packet-execution.process.md`](.consync/process/feature-packet-execution.process.md)
 - Canonical example (Search Panel e2e coverage) → [`.consync/examples/search-panel-feature-example.md`](.consync/examples/search-panel-feature-example.md)
 
 **Running the project:**
@@ -80,6 +80,6 @@ This system remains manual and non-orchestrated. Intake and Preflight have expli
 
 For structured execution context, system architecture, and process constraints:
 
-> `.consync/process/ai-context.md`
+> `.consync/process/ai-context.process.md`
 
 Agent role contracts live in `.consync/agents/`. Reusable procedures and skills live in `.consync/skills/`. GitHub and Copilot files are adapters only, not the canonical process model.

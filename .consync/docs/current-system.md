@@ -78,7 +78,7 @@ Prompt Contract:
 .consync/docs/prompt-contract.md
 
 Manual Execution Flow:
-.consync/process/manual-execution-flow.md
+.consync/process/manual-execution-flow.process.md
 
 Agent Definitions:
 .consync/agents/

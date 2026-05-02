@@ -47,7 +47,7 @@ The Entry Adapter is unbound and manual unless explicitly invoked. It does not e
 
 The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
 
-`.consync/process/manual-execution-flow.md`
+`.consync/process/manual-execution-flow.process.md`
 
 The system remains manual and non-orchestrated.
 

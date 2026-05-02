@@ -54,11 +54,11 @@ consync-core/
 | `.consync/state/snapshot.md` | Fast re-entry artifact — read first to understand current state |
 | `.consync/state/next-action.md` | Live execution slot — the one thing to do next |
 | `.consync/state/handoff.md` | Closeout record for the most recently completed package |
-| `.consync/process/runbook.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
+| `.consync/process/runbook.process.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
 | `.consync/docs/current-system.md` | Current product and process truth |
 | `.consync/verification/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
 | `.consync/process/feature-planning-and-packetization.md` | How to break a feature into packets and execute them |
-| `.consync/process/feature-packet-execution.md` | Coordination model for multi-packet features (roles, readiness, loop) |
+| `.consync/process/feature-packet-execution.process.md` | Coordination model for multi-packet features (roles, readiness, loop) |
 | `.consync/process/work-log.md` | Append-only log of completed work — one entry per packet |
 | `.consync/verification/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.consync/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |

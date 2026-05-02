@@ -6,7 +6,7 @@ Role: append-only work log / history.
 
 Purpose: records completed work and context over time.
 
-This file is not authoritative for current process rules. Current process rules live in `.consync/process/runbook.md`, `.consync/process/manual-execution-flow.md`, and the packet execution docs.
+This file is not authoritative for current process rules. Current process rules live in `.consync/process/runbook.process.md`, `.consync/process/manual-execution-flow.process.md`, and the packet execution docs.
 
 ## 2026-04-29 — gatekeeper-soft-gate-stabilization-v1
 
@@ -15,13 +15,13 @@ PACKET_ID: gatekeeper-soft-gate-stabilization-v1
 SUMMARY
 - Stabilization packet. Updated process and agent docs to accurately reflect the soft-gate phase.
 - Updated `gatekeeper.agent.md` §2 and §11 to describe current CLI commands and remove stale "not yet enforced" language.
-- Updated `process-flow-map-and-dry-run-contract.md` §6 with implementation note for dry-run-check, replaced §9 with a "Current System Capability" section listing all completed packets, and added §10 Next Implementation Candidates.
+- Updated `process-flow-map-and-dry-run-contract.process.md` §6 with implementation note for dry-run-check, replaced §9 with a "Current System Capability" section listing all completed packets, and added §10 Next Implementation Candidates.
 - Added work-log entries for all 2026-04-29 packets.
 - No code changes. No new commands. No decision logic changes.
 
 FILES
 - `.consync/agents/gatekeeper.agent.md` (updated §2 binding status, replaced §11 with Current System Capability)
-- `.consync/process/process-flow-map-and-dry-run-contract.md` (added §6 impl note, replaced §9 with Soft Gate Phase table, added §10)
+- `.consync/process/process-flow-map-and-dry-run-contract.process.md` (added §6 impl note, replaced §9 with Soft Gate Phase table, added §10)
 - `.consync/process/work-log.md` (this entry and backfill entries)
 
 TESTS

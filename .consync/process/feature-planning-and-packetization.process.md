@@ -226,7 +226,7 @@ The final packet was a dedicated closeout: read the coverage map, remove stale s
 | `verification-ladder.md` | Defines FAST_CHECK, UI_CHECK, and FULL_VERIFY. FULL_VERIFY is required before committing any packet that creates a spec. |
 | `ui-e2e-coverage-map.md` | Updated in the same commit as each new spec. The closeout packet confirms the map is accurate before the feature is closed. |
 | `03_work-log.md` | One entry per packet, appended in the same commit. The entry records files, tests, friction, decision, and follow-ups. |
-| `feature-packet-execution.md` | Defines the coordination layer — roles, readiness gate, execution loop, stop conditions. This doc is the practical complement to that one. |
+| `feature-packet-execution.process.md` | Defines the coordination layer — roles, readiness gate, execution loop, stop conditions. This doc is the practical complement to that one. |
 
 ---
 

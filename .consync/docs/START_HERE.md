@@ -34,7 +34,7 @@ All agent invocation remains manual. No orchestrator exists.
 
 The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
 
-`.consync/process/manual-execution-flow.md`
+`.consync/process/manual-execution-flow.process.md`
 
 The system remains manual and non-orchestrated.
 
@@ -47,15 +47,15 @@ you are starting or resuming work, read these first.
 
 | Doc | Purpose |
 | --- | --- |
-| `.consync/process/runbook.md` | Primary operating entrypoint — loop, agents, streams, state rules |
-| `.consync/process/ai-context.md` | AI tool entry context and key-doc index |
+| `.consync/process/runbook.process.md` | Primary operating entrypoint — loop, agents, streams, state rules |
+| `.consync/process/ai-context.process.md` | AI tool entry context and key-doc index |
 | `.consync/product/current-system.md` | Thin current index into process, feature development, and AI context |
 | `.consync/verification/verification-ladder.md` | Verification levels and command mapping |
 | `.consync/contracts/state-contracts-and-integrity-checks.md` | State file contracts and integrity invariants |
-| `.consync/process/feature-planning-and-packetization.md` | Feature planning and packetization process |
-| `.consync/process/feature-packet-execution.md` | Multi-packet feature coordination process |
-| `.consync/process/production-change-packet-rules.md` | Safeguards for production-change packets |
-| `.consync/process/handoff-delivery-bridge.md` | Source-of-truth and delivery bridge rules for handoffs |
+| `.consync/process/feature-planning-and-packetization.process.md` | Feature planning and packetization process |
+| `.consync/process/feature-packet-execution.process.md` | Multi-packet feature coordination process |
+| `.consync/process/production-change-packet-rules.process.md` | Safeguards for production-change packets |
+| `.consync/process/handoff-delivery-bridge.process.md` | Source-of-truth and delivery bridge rules for handoffs |
 | `.consync/contracts/scaffoldai-consync-boundary.md` | Boundary separating Consync product areas from ScaffoldAI process areas |
 | `.consync/verification/ui-e2e-coverage-map.md` | Current e2e coverage map used during UI and test closeout |
 | `.consync/agents/` | All bound agent roles — preflight, verify, closeout, intake, reentry, entry-adapter |
