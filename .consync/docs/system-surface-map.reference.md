@@ -62,9 +62,9 @@ Explicit invariants, boundary rules, and naming contracts.
 
 | Path | Purpose |
 |---|---|
-| `contracts/state-contracts-and-integrity-checks.md` | Invariants and bounded change rules for live state artifacts |
-| `contracts/consync-export-boundary.md` | What Consync may and may not export |
-| `contracts/scaffoldai-consync-boundary.md` | Authority boundary between ScaffoldAI and Consync |
+| `contracts/state-contracts-and-integrity-checks.contract.md` | Invariants and bounded change rules for live state artifacts |
+| `contracts/consync-export-boundary.contract.md` | What Consync may and may not export |
+| `contracts/scaffoldai-consync-boundary.contract.md` | Authority boundary between ScaffoldAI and Consync |
 | `contracts/markdown-artifact.contract.md` | Naming rules and suffix system for `.consync/` markdown artifacts |
 | `contracts/markdown-file-types.contract.md` | File type taxonomy for markdown within the system |
 

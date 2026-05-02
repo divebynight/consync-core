@@ -61,18 +61,18 @@ does not move, rename, delete, archive, or restructure files.
 | `.consync/process/ai-context.process.md` | `ACTIVE_PROCESS` | AI tool entry context and key-doc index; may need refresh as surface map matures. |
 | `.consync/product/current-system.md` | `ACTIVE_PROCESS` | Thin current index into process, feature development, and AI context docs. |
 | `.consync/verification/verification-ladder.md` | `ACTIVE_PROCESS` | Active verification levels and command mapping. |
-| `.consync/contracts/state-contracts-and-integrity-checks.md` | `ACTIVE_PROCESS` | Active state file contracts and integrity invariants. |
+| `.consync/contracts/state-contracts-and-integrity-checks.contract.md` | `ACTIVE_PROCESS` | Active state file contracts and integrity invariants. |
 | `.consync/process/feature-planning-and-packetization.process.md` | `ACTIVE_PROCESS` | Active feature planning and packetization process. |
 | `.consync/process/feature-packet-execution.process.md` | `ACTIVE_PROCESS` | Active multi-packet feature coordination process. |
 | `.consync/process/production-change-packet-rules.process.md` | `ACTIVE_PROCESS` | Active safeguards for production-change packets. |
 | `.consync/process/handoff-delivery-bridge.process.md` | `ACTIVE_PROCESS` | Active source-of-truth and delivery bridge rules for handoffs. |
-| `.consync/contracts/scaffoldai-consync-boundary.md` | `ACTIVE_PROCESS` | Active boundary doc separating Consync product/app areas from ScaffoldAI/process areas. |
+| `.consync/contracts/scaffoldai-consync-boundary.contract.md` | `ACTIVE_PROCESS` | Active boundary doc separating Consync product/app areas from ScaffoldAI/process areas. |
 | `.consync/process/work-log.log.md` | `HISTORICAL` | Append-only completed work log; active to write, historical by content. |
 | `.consync/verification/ui-e2e-coverage-map.md` | `ACTIVE_PROCESS` | Current e2e coverage map used during UI/test closeout. |
 | `.consync/verification/ui-e2e-coverage.md` | `HISTORICAL` | Older UI coverage map; likely superseded by `ui-e2e-coverage-map.md`. |
 | `.consync/verification/system-integrity-snapshot.md` | `HISTORICAL` | Point-in-time Phase 2/manual agent snapshot. |
 | `.consync/docs/repo-structure-inventory.md` | `HISTORICAL` | Point-in-time structure and cleanup inventory; useful audit reference but not live operating truth. |
-| `.consync/contracts/consync-export-boundary.md` | `ACTIVE_PRODUCT` | Current app/package export boundary and user-facing runtime separation. |
+| `.consync/contracts/consync-export-boundary.contract.md` | `ACTIVE_PRODUCT` | Current app/package export boundary and user-facing runtime separation. |
 | `.consync/verification/family-test-readiness.md` | `ACTIVE_PRODUCT` | Current non-technical tester readiness and known limitations. |
 | `.consync/product/product-model.md` | `ACTIVE_PRODUCT` | Current product model and Notes/Ideas/keywords direction; includes later concept sections. |
 | `.consync/planning/next-steps.md` | `PLANNING` | Near-term/horizon candidates; may be stale relative to the current Ideas package. |
@@ -94,12 +94,12 @@ does not move, rename, delete, archive, or restructure files.
 - `.consync/process/ai-context.process.md`
 - `.consync/product/current-system.md`
 - `.consync/verification/verification-ladder.md`
-- `.consync/contracts/state-contracts-and-integrity-checks.md`
+- `.consync/contracts/state-contracts-and-integrity-checks.contract.md`
 - `.consync/process/feature-planning-and-packetization.process.md`
 - `.consync/process/feature-packet-execution.process.md`
 - `.consync/process/production-change-packet-rules.process.md`
 - `.consync/process/handoff-delivery-bridge.process.md`
-- `.consync/contracts/scaffoldai-consync-boundary.md`
+- `.consync/contracts/scaffoldai-consync-boundary.contract.md`
 - `.consync/agents/*.md`
 - `.consync/skills/closeout-agent.md`
 - `.consync/skills/ingestion-gatekeeper.md`
@@ -113,7 +113,7 @@ does not move, rename, delete, archive, or restructure files.
 - `.consync/state/next-action.md`
 - `.consync/streams/electron_ui/stream.md`
 - `.consync/product/product-model.md`
-- `.consync/contracts/consync-export-boundary.md`
+- `.consync/contracts/consync-export-boundary.contract.md`
 - `.consync/verification/family-test-readiness.md`
 - `.consync/verification/ui-e2e-coverage-map.md`
 - `.consync/process/work-log.log.md`
@@ -125,7 +125,7 @@ does not move, rename, delete, archive, or restructure files.
 - `.consync/agents/janitor-agent-concept.md`
 - `.consync/agents/work-manager-agent-concept.md`
 - Future-direction sections inside `.consync/product/product-model.md`
-- Deferred/future sections inside `.consync/contracts/scaffoldai-consync-boundary.md`
+- Deferred/future sections inside `.consync/contracts/scaffoldai-consync-boundary.contract.md`
 - Deferred cleanup sections inside `.consync/docs/repo-structure-inventory.md`
 
 ## Confusing Or Mixed Docs
@@ -133,7 +133,7 @@ does not move, rename, delete, archive, or restructure files.
 - `.consync/product/product-model.md` is mostly `ACTIVE_PRODUCT`, but it also contains future product model sections and implementation notes. This is useful now, but it mixes current truth with later concepts.
 - `.consync/planning/next-steps.md` points to audio candidates while live state points to `ideas_foundation_from_notes_first_workflow`; it should be reviewed before treating it as current.
 - `.consync/verification/ui-e2e-coverage.md` and `.consync/verification/ui-e2e-coverage-map.md` duplicate coverage-map intent. The `*-map.md` file appears current.
-- `.consync/product/current-system.md` is intentionally thin but may underrepresent active product docs, especially `product-model.md`, `consync-export-boundary.md`, and `family-test-readiness.md`.
+- `.consync/product/current-system.md` is intentionally thin but may underrepresent active product docs, especially `product-model.md`, `consync-export-boundary.contract.md`, and `family-test-readiness.md`.
 - `.consync/docs/repo-structure-inventory.md` contains active-sounding cleanup decisions, but it is a dated inventory and should be treated as historical audit context.
 - `.consync/archive/` contains older active-work/current-direction names that conflict with current `.consync/state` authority.
 - `.consync/templates/sdc-implementation-task.md` overlaps with `.consync/templates/work-packet-v3.md`; the latter is the stronger current template.

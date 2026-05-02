@@ -102,9 +102,9 @@ itself to determine its category.
 | `docs/feature-planning-and-packetization.md` | `process/feature-planning-and-packetization.md` | high | Planning and packetization procedures. |
 | `docs/production-change-packet-rules.md` | `process/production-change-packet-rules.md` | high | Rules for production change packets. |
 | `docs/handoff-delivery-bridge.md` | `process/handoff-delivery-bridge.md` | high | How to deliver handoff to AI sessions. Operational process. |
-| `docs/scaffoldai-consync-boundary.md` | `contracts/scaffoldai-consync-boundary.md` | high | Boundary definition document. |
-| `docs/consync-export-boundary.md` | `contracts/consync-export-boundary.md` | high | Export boundary definition. |
-| `docs/state-contracts-and-integrity-checks.md` | `contracts/state-contracts-and-integrity-checks.md` | high | State contract definitions. |
+| `docs/scaffoldai-consync-boundary.contract.md` | `contracts/scaffoldai-consync-boundary.contract.md` | high | Boundary definition document. |
+| `docs/consync-export-boundary.contract.md` | `contracts/consync-export-boundary.contract.md` | high | Export boundary definition. |
+| `docs/state-contracts-and-integrity-checks.contract.md` | `contracts/state-contracts-and-integrity-checks.contract.md` | high | State contract definitions. |
 | `docs/verification-ladder.md` | `verification/verification-ladder.md` | high | Verification tier definitions. |
 | `docs/ui-e2e-coverage-map.md` | `verification/ui-e2e-coverage-map.md` | high | E2e test coverage map. |
 | `docs/ui-e2e-coverage.md` | `verification/ui-e2e-coverage.md` | high | E2e coverage detail. |
@@ -266,9 +266,9 @@ docs/handoff-delivery-bridge.md                -> process/handoff-delivery-bridg
 
 ### → `.consync/contracts/`
 ```
-docs/scaffoldai-consync-boundary.md            -> contracts/scaffoldai-consync-boundary.md
-docs/consync-export-boundary.md                -> contracts/consync-export-boundary.md
-docs/state-contracts-and-integrity-checks.md   -> contracts/state-contracts-and-integrity-checks.md
+docs/scaffoldai-consync-boundary.contract.md            -> contracts/scaffoldai-consync-boundary.contract.md
+docs/consync-export-boundary.contract.md                -> contracts/consync-export-boundary.contract.md
+docs/state-contracts-and-integrity-checks.contract.md   -> contracts/state-contracts-and-integrity-checks.contract.md
 ```
 
 ### → `.consync/verification/`

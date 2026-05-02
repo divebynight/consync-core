@@ -9,7 +9,7 @@ This file is product-specific and is NOT the canonical system entry or AI re-anc
 - ScaffoldAi invoked-agent system
   - See: `.consync/agents/00_agent-system.md`
 - ScaffoldAi / Consync boundary
-  - See: `.consync/contracts/scaffoldai-consync-boundary.md`
+  - See: `.consync/contracts/scaffoldai-consync-boundary.contract.md`
 
 ## Feature Development
 

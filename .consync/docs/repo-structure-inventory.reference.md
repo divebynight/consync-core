@@ -117,13 +117,13 @@ The authoritative Consync process layer. All meaningful process state, agent rol
 | `ai-context.md` | PROCESS | Structured execution context for AI tools; defines authority boundary and surface roles |
 | `current-system.md` | PROCESS | Description of the current system surface |
 | `system-integrity-snapshot.md` | PROCESS | Periodic integrity snapshot; records test counts, command surface, and HEAD at capture time |
-| `state-contracts-and-integrity-checks.md` | PROCESS | Documents the integrity check contracts and what each check validates |
+| `state-contracts-and-integrity-checks.contract.md` | PROCESS | Documents the integrity check contracts and what each check validates |
 | `verification-ladder.md` | PROCESS | Documents the tiered verification approach (unit → integration → e2e → manual) |
 | `feature-packet-execution.process.md` | PROCESS | Documents how feature packets are executed |
 | `feature-planning-and-packetization.md` | PROCESS | Documents how work is planned and packetized |
 | `handoff-delivery-bridge.md` | PROCESS | Defines the handoff delivery bridge between local truth and external AI session state |
 | `production-change-packet-rules.md` | PROCESS | Rules governing production change packets |
-| `scaffoldai-consync-boundary.md` | PROCESS | Documents the naming and authority boundary between Consync and ScaffoldAi |
+| `scaffoldai-consync-boundary.contract.md` | PROCESS | Documents the naming and authority boundary between Consync and ScaffoldAi |
 | `ui-e2e-coverage-map.md` | PROCESS | Map of UI e2e coverage |
 | `ui-e2e-coverage.md` | PROCESS | Coverage summary document |
 | `work-manager-agent.md` | PROCESS | Concept document for a future Work Manager Agent; explicitly marked as a concept, not implemented |

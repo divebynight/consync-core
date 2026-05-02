@@ -270,7 +270,7 @@ The assistant should:
 ## Pointers To Deeper Docs
 
 - `.consync/process/handoff-delivery-bridge.process.md` for the transport-vs-source-of-truth model for getting local handoff state into ChatGPT or another AI session reliably
-- `.consync/contracts/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
+- `.consync/contracts/state-contracts-and-integrity-checks.contract.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth
 - `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
 - `.consync/agents/entry-adapter.agent.md` for the manual input-classification adapter

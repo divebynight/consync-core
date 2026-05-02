@@ -54,12 +54,12 @@ you are starting or resuming work, read these first.
 | `.consync/process/ai-context.process.md` | AI tool entry context and key-doc index |
 | `.consync/product/current-system.md` | Thin current index into process, feature development, and AI context |
 | `.consync/verification/verification-ladder.md` | Verification levels and command mapping |
-| `.consync/contracts/state-contracts-and-integrity-checks.md` | State file contracts and integrity invariants |
+| `.consync/contracts/state-contracts-and-integrity-checks.contract.md` | State file contracts and integrity invariants |
 | `.consync/process/feature-planning-and-packetization.process.md` | Feature planning and packetization process |
 | `.consync/process/feature-packet-execution.process.md` | Multi-packet feature coordination process |
 | `.consync/process/production-change-packet-rules.process.md` | Safeguards for production-change packets |
 | `.consync/process/handoff-delivery-bridge.process.md` | Source-of-truth and delivery bridge rules for handoffs |
-| `.consync/contracts/scaffoldai-consync-boundary.md` | Boundary separating Consync product areas from ScaffoldAI process areas |
+| `.consync/contracts/scaffoldai-consync-boundary.contract.md` | Boundary separating Consync product areas from ScaffoldAI process areas |
 | `.consync/verification/ui-e2e-coverage-map.md` | Current e2e coverage map used during UI and test closeout |
 | `.consync/agents/` | All bound agent roles — preflight, verify, closeout, intake, reentry, entry-adapter |
 | `.consync/skills/closeout-agent.md` | Concrete closeout workflow after human-approved completed work |
@@ -78,7 +78,7 @@ product readiness. Read these when planning or evaluating product work.
 | Doc | Purpose |
 | --- | --- |
 | `.consync/product/product-model.md` | Product model — Ideas, Items, Notes, Keywords, Widgets, Views, Profiles, and per-user slices |
-| `.consync/contracts/consync-export-boundary.md` | App and package export boundary; user-facing runtime separation |
+| `.consync/contracts/consync-export-boundary.contract.md` | App and package export boundary; user-facing runtime separation |
 | `.consync/verification/family-test-readiness.md` | Non-technical tester readiness status and known limitations |
 
 ---

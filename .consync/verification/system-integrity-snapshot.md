@@ -136,7 +136,7 @@ Invocation rules:
 | `production-change-packet-rules.md` | When and how packets may modify production code |
 | `ui-e2e-coverage-map.md` | Living record of all e2e tests and surface coverage |
 | `03_work-log.md` | Append-only record of completed work |
-| `state-contracts-and-integrity-checks.md` | State transition and integrity rules |
+| `state-contracts-and-integrity-checks.contract.md` | State transition and integrity rules |
 | `handoff-delivery-bridge.md` | Package handoff contracts |
 | `skills/closeout-agent.md` | Post-work closeout verification workflow |
 | `skills/ingestion-gatekeeper.md` | External context classification workflow |
