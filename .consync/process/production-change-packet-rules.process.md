@@ -101,7 +101,7 @@ If FULL_VERIFY fails, stop and record STOPPED before attempting anything else. G
 
 ### Production-specific documentation
 
-- Append an entry to `.consync/process/work-log.md` describing the production behavior and verification result
+- Append an entry to `.consync/process/work-log.log.md` describing the production behavior and verification result
 - Update `.consync/verification/ui-e2e-coverage-map.md` if a new spec was added
 
 ---

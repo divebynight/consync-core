@@ -59,7 +59,7 @@ consync-core/
 | `.consync/verification/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
 | `.consync/process/feature-planning-and-packetization.md` | How to break a feature into packets and execute them |
 | `.consync/process/feature-packet-execution.process.md` | Coordination model for multi-packet features (roles, readiness, loop) |
-| `.consync/process/work-log.md` | Append-only log of completed work — one entry per packet |
+| `.consync/process/work-log.log.md` | Append-only log of completed work — one entry per packet |
 | `.consync/verification/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.consync/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |
 | `.consync/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.consync/skills/closeout-agent.md` |
@@ -134,7 +134,7 @@ This matters in multi-agent and multi-session workflows.
 **Write during execution:**
 - `.consync/state/handoff.md` — overwrite at packet closeout
 - `.consync/state/snapshot.md` — refresh after closeout
-- `.consync/process/work-log.md` — append only, one entry per packet
+- `.consync/process/work-log.log.md` — append only, one entry per packet
 - `.consync/verification/ui-e2e-coverage-map.md` — update in the same commit as any new spec
 
 **Never modify without following the appropriate workflow:**

@@ -108,7 +108,7 @@ explicitly revalidated and re-classified as active.**
 
 | Doc | Notes |
 | --- | --- |
-| `.consync/process/work-log.md` | Append-only completed work log — active to write, historical by content |
+| `.consync/process/work-log.log.md` | Append-only completed work log — active to write, historical by content |
 | `.consync/docs/repo-structure-inventory.md` | Point-in-time structure and cleanup inventory |
 | `.consync/verification/system-integrity-snapshot.md` | Point-in-time Phase 2 / manual agent snapshot |
 | `.consync/verification/ui-e2e-coverage.md` | Older UI coverage map — likely superseded by `ui-e2e-coverage-map.md` |

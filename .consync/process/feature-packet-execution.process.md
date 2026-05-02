@@ -123,7 +123,7 @@ For each packet in the feature:
 
 3. **After the packet completes:** run the verification level required for advancing the feature. See `.consync/verification/verification-ladder.md`.
 
-4. **Record the result** in `.consync/process/work-log.md` using the packet's PACKET_ID.
+4. **Record the result** in `.consync/process/work-log.log.md` using the packet's PACKET_ID.
 
 5. **Advance** to the next packet only when:
    - The current packet returned COMPLETE or ALREADY_COMPLETE

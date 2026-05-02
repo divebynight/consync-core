@@ -50,11 +50,11 @@ Choose the narrowest bucket that preserves meaning without over-modeling the con
   - use when the content changes how Consync should behave or be framed
 
 - `process_observation`
-  - destination: `.consync/process/work-log.md` or the smallest relevant process doc
+  - destination: `.consync/process/work-log.log.md` or the smallest relevant process doc
   - use when the content describes how the system behaved, what caused friction, or what operators learned
 
 - `work_log_candidate`
-  - destination: `.consync/process/work-log.md`
+  - destination: `.consync/process/work-log.log.md`
   - use when completed behavior changed and the result should be remembered concisely
 
 - `backlog_item`
@@ -104,7 +104,7 @@ When unsure, prefer:
 
 1. `.consync/discussions/` for unshaped but potentially useful material
 2. `.consync/planning/next-steps.md` for future-oriented planning
-3. `.consync/process/work-log.md` only for completed behavior or meaningful process observations
+3. `.consync/process/work-log.log.md` only for completed behavior or meaningful process observations
 
 Do not force ambiguous content into a durable process or product doc just to avoid a raw discussion file.
 

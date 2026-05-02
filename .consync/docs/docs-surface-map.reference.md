@@ -67,7 +67,7 @@ does not move, rename, delete, archive, or restructure files.
 | `.consync/process/production-change-packet-rules.process.md` | `ACTIVE_PROCESS` | Active safeguards for production-change packets. |
 | `.consync/process/handoff-delivery-bridge.process.md` | `ACTIVE_PROCESS` | Active source-of-truth and delivery bridge rules for handoffs. |
 | `.consync/contracts/scaffoldai-consync-boundary.md` | `ACTIVE_PROCESS` | Active boundary doc separating Consync product/app areas from ScaffoldAI/process areas. |
-| `.consync/process/work-log.md` | `HISTORICAL` | Append-only completed work log; active to write, historical by content. |
+| `.consync/process/work-log.log.md` | `HISTORICAL` | Append-only completed work log; active to write, historical by content. |
 | `.consync/verification/ui-e2e-coverage-map.md` | `ACTIVE_PROCESS` | Current e2e coverage map used during UI/test closeout. |
 | `.consync/verification/ui-e2e-coverage.md` | `HISTORICAL` | Older UI coverage map; likely superseded by `ui-e2e-coverage-map.md`. |
 | `.consync/verification/system-integrity-snapshot.md` | `HISTORICAL` | Point-in-time Phase 2/manual agent snapshot. |
@@ -82,7 +82,7 @@ does not move, rename, delete, archive, or restructure files.
 | `.consync/examples/search-panel-feature-example.md` | `HISTORICAL` | Completed feature example and canonical reference for one past feature packet. |
 | `.consync/planning/current-direction.md` | `HISTORICAL` | Older direction artifact from prior artifact system. |
 | `.consync/planning/active-work.md` | `HISTORICAL` | Older active work artifact; superseded by `.consync/state` and streams. |
-| `.consync/archive/artifacts-work-log.md` | `HISTORICAL` | Older work log; superseded by `.consync/process/work-log.md`. |
+| `.consync/archive/artifacts-work-log.md` | `HISTORICAL` | Older work log; superseded by `.consync/process/work-log.log.md`. |
 | `.consync/verification/manual-test-protocol.md` | `HISTORICAL` | Older SDC manual test protocol. |
 | `.consync/planning/marker-capture.md` | `HISTORICAL` | Older marker capture product/process artifact. |
 | `.consync/archive/marker-capture-resume.md` | `HISTORICAL` | Older marker capture resume context. |
@@ -116,7 +116,7 @@ does not move, rename, delete, archive, or restructure files.
 - `.consync/contracts/consync-export-boundary.md`
 - `.consync/verification/family-test-readiness.md`
 - `.consync/verification/ui-e2e-coverage-map.md`
-- `.consync/process/work-log.md`
+- `.consync/process/work-log.log.md`
 - `.consync/planning/next-steps.md`, with caution because it may lag behind the current Ideas package.
 
 ## Planning-Only Docs
@@ -156,7 +156,7 @@ These are recommendations only; no restructure happened in this packet.
 | Pair | Issue | Current Leaning |
 | --- | --- | --- |
 | `.consync/verification/ui-e2e-coverage.md` and `.consync/verification/ui-e2e-coverage-map.md` | Duplicate coverage map concepts. | Treat `ui-e2e-coverage-map.md` as current. |
-| `.consync/archive/artifacts-work-log.md` and `.consync/process/work-log.md` | Two work logs from different eras. | Treat process work log as current. |
+| `.consync/archive/artifacts-work-log.md` and `.consync/process/work-log.log.md` | Two work logs from different eras. | Treat process work log as current. |
 | `.consync/planning/current-direction.md` and `.consync/state/snapshot.md` | Two current-direction surfaces. | Treat state snapshot as current. |
 | `.consync/planning/active-work.md` and `.consync/state/next-action.md` | Two active-work surfaces. | Treat next-action as current. |
 | `.consync/templates/sdc-implementation-task.md` and `.consync/templates/work-packet-v3.md` | Older task template overlaps with current packet template. | Treat work-packet-v3 as current. |
