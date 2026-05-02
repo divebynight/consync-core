@@ -4,6 +4,14 @@ Captured: 2026-04-27
 Packet: `family-test-readiness-checklist-v1`
 Mode: readiness/planning only
 
+## Role Boundary
+
+Role: planning / readiness discussion.
+
+Purpose: explores testing readiness and future considerations.
+
+This file is not authoritative for current verification rules. Current verification rules live in `.consync/verification/verification-ladder.md`, test configs, and runtime verification surfaces.
+
 This checklist describes whether Consync is ready to share with non-technical
 family testers. It is not an implementation plan and does not add new app
 behavior.
