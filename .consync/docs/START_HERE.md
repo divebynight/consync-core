@@ -8,6 +8,9 @@ live in the specific docs listed below.
 For the full classification of every surface, see:
 `.consync/docs/docs-surface-map.reference.md`
 
+For a visual map grouping all surfaces by role (Consync / ScaffoldAI / Bridge / Supporting / Archive), see:
+`.consync/docs/system-surface-map.reference.md`
+
 ---
 
 ## What you can run today
