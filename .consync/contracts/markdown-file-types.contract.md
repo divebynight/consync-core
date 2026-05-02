@@ -6,6 +6,9 @@ Define a small suffix convention for Markdown files so their role is clear at a 
 
 This contract guides future naming. It does not require immediate renames.
 
+Related ownership boundary:
+`.consync/contracts/bridge-ownership.contract.md`
+
 ## Role Suffixes
 
 - `*.agent.md` — agent role or behavior definition

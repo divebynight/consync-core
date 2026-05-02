@@ -4,6 +4,7 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const reset = "\x1b[0m";
 
 const GROUPS = {
   CLI: "CLI / COMMAND TESTS",
@@ -14,6 +15,22 @@ const GROUPS = {
 };
 
 const groupResults = new Map(Object.values(GROUPS).map((group) => [group, { status: "NOT RUN", failedStep: null }]));
+
+function green(text) {
+  return `\x1b[32m${text}${reset}`;
+}
+
+function red(text) {
+  return `\x1b[31m${text}${reset}`;
+}
+
+function yellow(text) {
+  return `\x1b[33m${text}${reset}`;
+}
+
+function cyan(text) {
+  return `\x1b[36m${text}${reset}`;
+}
 
 function runNodeStep(title, args, group) {
   console.log(title);
@@ -72,13 +89,13 @@ function runExpectationStep(title, args, expectationPath, group) {
   if (result.status !== 0 || actualOutput !== expectedOutput) {
     printOutput(result.stdout);
     printOutput(result.stderr);
-    console.log("FAIL");
+    console.log(red("FAIL"));
     markGroupFailed(group, title);
     printSummary();
     process.exit(1);
   }
 
-  console.log("PASS");
+  console.log(green("PASS"));
   markGroupPassed(group);
 }
 
@@ -89,7 +106,39 @@ function printOutput(output) {
     return;
   }
 
-  console.log(trimmed);
+  console.log(colorOutput(trimmed));
+}
+
+function colorOutput(output) {
+  return output.split(/\r?\n/).map(colorOutputLine).join("\n");
+}
+
+function colorOutputLine(line) {
+  if (/^STATUS:\s*(PASS|ON_TRACK)\b/.test(line)) {
+    return green(line);
+  }
+
+  if (/^STATUS:\s*(FAIL|BLOCKED)\b/.test(line)) {
+    return red(line);
+  }
+
+  if (/^Warnings?:/i.test(line) || /\bWARNINGS?\b/.test(line)) {
+    return yellow(line);
+  }
+
+  if (/^\s*PASS\b/.test(line) || /\]\s*PASS$/.test(line)) {
+    return green(line);
+  }
+
+  if (/^\s*FAIL\b/.test(line) || /\]\s*FAIL$/.test(line)) {
+    return red(line);
+  }
+
+  if (/\bBLOCKED\b/.test(line)) {
+    return red(line);
+  }
+
+  return line;
 }
 
 function markGroupRunning(group) {
@@ -133,16 +182,57 @@ function printSummary() {
   const overall = [...groupResults.values()].some((result) => result.status === "FAIL") ? "FAIL" : "PASS";
 
   console.log("");
-  console.log("VERIFY SUMMARY");
+  console.log(cyan("VERIFY SUMMARY"));
   console.log("");
 
   for (const [group, result] of groupResults) {
     const failedStep = result.failedStep ? ` (${result.failedStep})` : "";
-    console.log(`${group}: ${result.status}${failedStep}`);
+    console.log(`${group}: ${colorResult(result.status)}${failedStep}`);
   }
 
   console.log("");
-  console.log(`OVERALL: ${overall}`);
+  console.log(`OVERALL: ${colorResult(overall)}`);
+}
+
+function printCoverageMap() {
+  console.log("");
+  console.log(cyan("VERIFY COVERAGE MAP"));
+  console.log("");
+  console.log(green("COVERED:"));
+  console.log("- cli_command_tests");
+  console.log("- bridge_state_integrity");
+  console.log("- gatekeeper_decision_rules");
+  console.log("- intake_preflight_verify_agents");
+  console.log("- renderer_ui_slices");
+  console.log("- sandbox_fixtures_expectations");
+  console.log("");
+  console.log(yellow("PARTIAL:"));
+  console.log("- scaffoldai_docs_process_integrity");
+  console.log("- tool_adapter_references");
+  console.log("- electron_packaging_build_surface");
+  console.log("- system_mind_document_semantic_correctness");
+  console.log("");
+  console.log(red("NOT_COVERED:"));
+  console.log("- manual_ux_review");
+  console.log("- full_product_usability");
+  console.log("- full_semantic_correctness_of_docs");
+  console.log("- future_consync_bridge_scaffoldai_split_behavior");
+}
+
+function colorResult(status) {
+  if (status === "PASS" || status === "ON_TRACK") {
+    return green(status);
+  }
+
+  if (status === "FAIL" || status === "BLOCKED") {
+    return red(status);
+  }
+
+  if (status === "WARN" || status === "WARNING" || status === "WARNINGS") {
+    return yellow(status);
+  }
+
+  return status;
 }
 
 function main() {
@@ -272,6 +362,7 @@ function main() {
   console.log("");
 
   printSummary();
+  printCoverageMap();
   console.log("");
   console.log("[verify] PASS");
 }
