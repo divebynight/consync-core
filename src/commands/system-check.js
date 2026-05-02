@@ -21,9 +21,6 @@ function runSystemCheckCommand() {
   const warnings = [];
 
   const requiredFiles = [
-    ["feature map present", ".consync/archive/system/feature-map.md"],
-    ["work log present", ".consync/archive/artifacts-work-log.md"],
-    ["artifact index present", ".consync/archive/system/artifact-index.md"],
     ["handoff present", ".consync/state/handoff.md"],
   ];
 
