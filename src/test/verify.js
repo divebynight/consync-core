@@ -166,6 +166,9 @@ function main() {
   runNodeStep("[verify] In-flight packet state reader", [path.join(repoRoot, "src", "test", "unit-get-in-flight-packet.js")]);
   console.log("");
 
+  runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")]);
+  console.log("");
+
   runNodeStep("[verify] Consync-run command", [path.join(repoRoot, "src", "test", "unit-consync-run.js")]);
   console.log("");
 
