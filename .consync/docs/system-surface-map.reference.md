@@ -177,7 +177,7 @@ Prompt files for AI tool surfaces.
 | Path | Purpose |
 |---|---|
 | `prompts/generate-packet.prompt.md` | Prompt for packet generation |
-| `prompts/run_integrity_agent.md` | Prompt for integrity agent invocation |
+| `prompts/run-integrity-agent.prompt.md` | Prompt for integrity agent invocation |
 
 ### `.consync/packets/`
 Closed packet records. Append-only historical record of executed work packets.
