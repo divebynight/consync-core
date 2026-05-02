@@ -54,8 +54,8 @@ Agent role definitions and invocation rules. Consulted before invoking an agent.
 | `agents/closeout.agent.md` | Summarizes changed files, verification, risks, and commit readiness |
 | `agents/reentry.agent.md` | Reconstructs context after interruption or unclear handoff |
 | `agents/gatekeeper.agent.md` | Governs what enters the process layer |
-| `agents/janitor-agent-concept.md` | Concept only — not bound |
-| `agents/work-manager-agent-concept.md` | Concept only — not bound |
+| `agents/janitor-agent-concept.md` | Concept only — not bound; moved to `archive/conceptual/` |
+| `agents/work-manager-agent-concept.md` | Concept only — not bound; moved to `archive/conceptual/` |
 
 ### `.consync/contracts/`
 Explicit invariants, boundary rules, and naming contracts.

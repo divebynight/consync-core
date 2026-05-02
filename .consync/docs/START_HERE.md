@@ -92,8 +92,8 @@ product authority.
 | Doc | Purpose |
 | --- | --- |
 | `.consync/planning/next-steps.md` | Near-term/horizon candidates — may lag behind the current mounted package |
-| `.consync/agents/janitor-agent-concept.md` | Concept doc for a future Janitor Agent — not bound, inspection only |
-| `.consync/agents/work-manager-agent-concept.md` | Concept/manual coordination layer — not a bound agent |
+| `.consync/archive/conceptual/janitor-agent-concept.md` | Concept doc for a future Janitor Agent — not bound, archived |
+| `.consync/archive/conceptual/work-manager-agent-concept.md` | Concept/manual coordination layer — not a bound agent, archived |
 | Future-direction sections of `product-model.md` | Widget composition, profile presets, AI-assisted pattern analysis — not yet in scope |
 
 ---

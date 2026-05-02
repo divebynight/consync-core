@@ -5,7 +5,7 @@ This file is product-specific and is NOT the canonical system entry or AI re-anc
 ## Process / Agents
 
 - Work Manager Agent (coordination layer)
-  - See: `.consync/agents/work-manager-agent-concept.md`
+  - See: `.consync/archive/conceptual/work-manager-agent-concept.md`
 - ScaffoldAi invoked-agent system
   - See: `.consync/agents/00_agent-system.md`
 - ScaffoldAi / Consync boundary
