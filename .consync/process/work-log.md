@@ -1,4 +1,13 @@
 # SUPPORTING PROCESS DOCUMENTATION — NOT SOURCE OF TRUTH
+
+## Role Boundary
+
+Role: append-only work log / history.
+
+Purpose: records completed work and context over time.
+
+This file is not authoritative for current process rules. Current process rules live in `.consync/process/runbook.md`, `.consync/process/manual-execution-flow.md`, and the packet execution docs.
+
 ## 2026-04-29 — gatekeeper-soft-gate-stabilization-v1
 
 PACKET_ID: gatekeeper-soft-gate-stabilization-v1
