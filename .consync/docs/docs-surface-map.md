@@ -4,6 +4,14 @@ Captured: 2026-04-29
 Packet: `docs-surface-classification-v1`
 Mode: inspection/documentation only
 
+## Role Boundary
+
+Role: planning / inventory / reference.
+
+Purpose: captures structure, mapping, or exploratory understanding of the repo.
+
+This file is not authoritative for current system behavior or process rules. Current authoritative docs live in process docs, contracts, the runbook, and verification surfaces.
+
 This map classifies current `.consync` documentation and process surfaces. It
 does not move, rename, delete, archive, or restructure files.
 

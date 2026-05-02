@@ -3,6 +3,14 @@
 Captured: 2026-04-26
 Branch: `feature/scaffoldai-agent-system-docs-v1`
 
+## Role Boundary
+
+Role: planning / inventory / reference.
+
+Purpose: captures structure, mapping, or exploratory understanding of the repo.
+
+This file is not authoritative for current system behavior or process rules. Current authoritative docs live in process docs, contracts, the runbook, and verification surfaces.
+
 This document is an observed inventory. It describes what exists and, where clear, what it is for. Where purpose is uncertain, that is noted explicitly. It is not a policy document and does not introduce new rules.
 
 ---
