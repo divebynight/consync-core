@@ -47,7 +47,7 @@ Agent role definitions and invocation rules. Consulted before invoking an agent.
 | Path | Purpose |
 |---|---|
 | `agents/00_agent-system.md` | Agent system overview, invocation rules, and role index |
-| `agents/entry-adapter.md` | Manual input-classification adapter — recommends next agent, does not dispatch |
+| `agents/entry-adapter.agent.md` | Manual input-classification adapter — recommends next agent, does not dispatch |
 | `agents/preflight.agent.md` | Checks repo and process state are safe before work begins |
 | `agents/intake.agent.md` | Classifies new work and its boundaries before execution |
 | `agents/verify.agent.md` | Runs and reports verification evidence |

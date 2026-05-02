@@ -14,7 +14,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 ## Authority Boundary
 
 - `.consync/agents/` is the source of truth for invoked-agent roles and invocation order.
-- `.consync/agents/entry-adapter.md` defines the manual Phase 2 input-classification adapter for recommending which existing agent a human should invoke next.
+- `.consync/agents/entry-adapter.agent.md` defines the manual Phase 2 input-classification adapter for recommending which existing agent a human should invoke next.
 - `.consync/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
 - If `.consync/agents/` and `.consync/skills/` appear to overlap, `.consync/agents/` defines the role and handoff point; `.consync/skills/` defines reusable procedure.
 - `.consync/docs/` remains the process documentation and reference surface.
@@ -23,7 +23,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 
 ## Entry Adapter
 
-The Phase 2 Entry Adapter lives at `.consync/agents/entry-adapter.md`.
+The Phase 2 Entry Adapter lives at `.consync/agents/entry-adapter.agent.md`.
 
 It is a manual prompt/document layer that classifies incoming input and recommends the next manually invoked Consync agent:
 

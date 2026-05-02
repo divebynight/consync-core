@@ -273,7 +273,7 @@ The assistant should:
 - `.consync/contracts/state-contracts-and-integrity-checks.md` for explicit contracts, invariants, preflight/postflight checks, and bounded change rules for live state artifacts
 - `.consync/docs/current-system.md` for current product and architecture truth
 - `.consync/agents/00_agent-system.md` for current agent roles, bindings, and manual invocation rules
-- `.consync/agents/entry-adapter.md` for the manual input-classification adapter
+- `.consync/agents/entry-adapter.agent.md` for the manual input-classification adapter
 
 ## Feature Development
 

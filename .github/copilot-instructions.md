@@ -8,7 +8,7 @@ Use `.consync/state/*`, `.consync/process/runbook.process.md`, and `.consync/age
 
 `.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
 
-`.consync/agents/entry-adapter.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
+`.consync/agents/entry-adapter.agent.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
 
