@@ -57,15 +57,15 @@ does not move, rename, delete, archive, or restructure files.
 | `.consync/streams/electron_ui/stream.md` | `GENERATED` | Active stream-local checkpoint for product/UI work. |
 | `.consync/streams/process/stream.md` | `GENERATED` | Paused stream-local checkpoint for process evolution. |
 | `.consync/streams/*/history/` | `UNCLEAR` | Empty history folders; likely intended generated/archive surface but currently unused. |
-| `.consync/process/runbook.md` | `ACTIVE_PROCESS` | Primary operating entrypoint for source-of-truth, loop, agents, streams, triggers, and state rules. |
-| `.consync/process/ai-context.md` | `ACTIVE_PROCESS` | AI tool entry context and key-doc index; may need refresh as surface map matures. |
+| `.consync/process/runbook.process.md` | `ACTIVE_PROCESS` | Primary operating entrypoint for source-of-truth, loop, agents, streams, triggers, and state rules. |
+| `.consync/process/ai-context.process.md` | `ACTIVE_PROCESS` | AI tool entry context and key-doc index; may need refresh as surface map matures. |
 | `.consync/product/current-system.md` | `ACTIVE_PROCESS` | Thin current index into process, feature development, and AI context docs. |
 | `.consync/verification/verification-ladder.md` | `ACTIVE_PROCESS` | Active verification levels and command mapping. |
 | `.consync/contracts/state-contracts-and-integrity-checks.md` | `ACTIVE_PROCESS` | Active state file contracts and integrity invariants. |
-| `.consync/process/feature-planning-and-packetization.md` | `ACTIVE_PROCESS` | Active feature planning and packetization process. |
-| `.consync/process/feature-packet-execution.md` | `ACTIVE_PROCESS` | Active multi-packet feature coordination process. |
-| `.consync/process/production-change-packet-rules.md` | `ACTIVE_PROCESS` | Active safeguards for production-change packets. |
-| `.consync/process/handoff-delivery-bridge.md` | `ACTIVE_PROCESS` | Active source-of-truth and delivery bridge rules for handoffs. |
+| `.consync/process/feature-planning-and-packetization.process.md` | `ACTIVE_PROCESS` | Active feature planning and packetization process. |
+| `.consync/process/feature-packet-execution.process.md` | `ACTIVE_PROCESS` | Active multi-packet feature coordination process. |
+| `.consync/process/production-change-packet-rules.process.md` | `ACTIVE_PROCESS` | Active safeguards for production-change packets. |
+| `.consync/process/handoff-delivery-bridge.process.md` | `ACTIVE_PROCESS` | Active source-of-truth and delivery bridge rules for handoffs. |
 | `.consync/contracts/scaffoldai-consync-boundary.md` | `ACTIVE_PROCESS` | Active boundary doc separating Consync product/app areas from ScaffoldAI/process areas. |
 | `.consync/process/work-log.md` | `HISTORICAL` | Append-only completed work log; active to write, historical by content. |
 | `.consync/verification/ui-e2e-coverage-map.md` | `ACTIVE_PROCESS` | Current e2e coverage map used during UI/test closeout. |
@@ -90,15 +90,15 @@ does not move, rename, delete, archive, or restructure files.
 
 ## Docs Needed To Run ScaffoldAI / Process
 
-- `.consync/process/runbook.md`
-- `.consync/process/ai-context.md`
+- `.consync/process/runbook.process.md`
+- `.consync/process/ai-context.process.md`
 - `.consync/product/current-system.md`
 - `.consync/verification/verification-ladder.md`
 - `.consync/contracts/state-contracts-and-integrity-checks.md`
-- `.consync/process/feature-planning-and-packetization.md`
-- `.consync/process/feature-packet-execution.md`
-- `.consync/process/production-change-packet-rules.md`
-- `.consync/process/handoff-delivery-bridge.md`
+- `.consync/process/feature-planning-and-packetization.process.md`
+- `.consync/process/feature-packet-execution.process.md`
+- `.consync/process/production-change-packet-rules.process.md`
+- `.consync/process/handoff-delivery-bridge.process.md`
 - `.consync/contracts/scaffoldai-consync-boundary.md`
 - `.consync/agents/*.md`
 - `.consync/skills/closeout-agent.md`

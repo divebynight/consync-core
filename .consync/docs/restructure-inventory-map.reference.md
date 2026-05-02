@@ -92,7 +92,7 @@ itself to determine its category.
 | Current path | Proposed path | Confidence | Notes |
 |---|---|---|---|
 | `docs/START_HERE.md` | stays | high | Navigation index. Correct home. |
-| `docs/docs-surface-map.md` | stays | high | Classification map of .consync surfaces. Correct home. |
+| `docs/docs-surface-map.reference.md` | stays | high | Classification map of .consync surfaces. Correct home. |
 | `docs/repo-structure-inventory.md` | `docs/repo-structure-inventory.md` | medium | Structure inventory; could stay as a navigation aide. Needs decision. |
 | `docs/product-model.md` | `product/product-model.md` | high | Product design truth. Belongs in product/. |
 | `docs/current-system.md` | `product/current-system.md` | medium | Describes current system state; overlaps with process. Needs decision. |
@@ -327,7 +327,7 @@ state/history/plans/*.md (36 files)                  -> archive/plans/*.md
 ### Files staying in `.consync/docs/`
 ```
 docs/START_HERE.md                 (navigation index — correct home)
-docs/docs-surface-map.md           (surface classification map — correct home)
+docs/docs-surface-map.reference.md  (surface classification map — correct home)
 docs/repo-structure-inventory.md   (structure inventory — needs decision, see §5)
 docs/restructure-inventory-map.md  (this file — navigation aide during restructure)
 ```

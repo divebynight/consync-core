@@ -6,7 +6,7 @@ truth for process rules, product direction, or agent behavior. All of those
 live in the specific docs listed below.
 
 For the full classification of every surface, see:
-`.consync/docs/docs-surface-map.md`
+`.consync/docs/docs-surface-map.reference.md`
 
 ---
 
