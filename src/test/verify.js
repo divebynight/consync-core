@@ -205,6 +205,7 @@ function printCoverageMap() {
   console.log("- intake_preflight_verify_agents");
   console.log("- renderer_ui_slices");
   console.log("- sandbox_fixtures_expectations");
+  console.log("- handoff_bundle_path_boundary");
   console.log("");
   console.log(yellow("PARTIAL:"));
   console.log("- scaffoldai_docs_process_integrity");
@@ -341,6 +342,9 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")], GROUPS.BRIDGE);
+  console.log("");
+
+  runNodeStep("[verify] Handoff bundle integration", [path.join(repoRoot, "src", "test", "integration-handoff-bundle-cli.js")], GROUPS.CLI);
   console.log("");
 
   runNodeStep("[verify] Consync-run command", [path.join(repoRoot, "src", "test", "unit-consync-run.js")], GROUPS.CLI);
