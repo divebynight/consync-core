@@ -39,6 +39,15 @@ VERIFICATION NOTES
 - `npm run verify:full` — PASS (20/20 e2e, 42/42 Vitest renderer tests including existing idea-field test, all unit steps)
 - `unit-standalone-notes-grouping.js` — PASS (8/8 scenarios: empty, null, no-idea, all-idea, mixed, same-idea order, whitespace, no mutation)
 
+Manual UX findings (human-verified in running app):
+- Grouping renders correctly: notes with the same idea appear under a shared section heading
+- "Other notes" section appears only when at least one idea group is also present
+- Alphabetical group ordering confirmed
+- Keyword filter continues to work across grouped and ungrouped notes
+- Discovery: users treat the "idea" field like a tag label rather than a category name; the current label ("Idea or category (optional)") causes ambiguity with the keyword chips already present
+- Discovery: the idea field is not prominently visible on saved notes — grouping is only apparent when multiple notes share the same idea; a single-idea note looks similar to no-idea
+- These are UX clarity issues, not functional defects; the feature is correct as implemented
+
 ARCHITECTURE BOUNDARY (UNCHANGED)
 
   Runtime / product:   src/
@@ -49,7 +58,8 @@ ARCHITECTURE BOUNDARY (UNCHANGED)
 
 KNOWN REMAINING RISKS
 
-- Manual UX not verified by agent (no desktop in CI context). Requires human to open Notes section in the running app.
+- UX clarity gap: "idea" label and "keywords" chips are conceptually close; users may not distinguish them without better labeling or helper text. Not a defect — candidate for a follow-up UX slice.
+- Grouping benefit is only visible when 2+ notes share an idea; single-idea notes look identical to no-idea notes in the current render. Low priority cosmetic gap.
 - One pre-existing e2e flake on `timeline-marker-selects-inspector.spec.js` (intermittent timeout). Not introduced by this packet.
 
 WHAT NOT TO DO NEXT
@@ -76,7 +86,9 @@ HUMAN VERIFICATION
 
 RECOMMENDED NEXT SAFE ACTION
 
-Stabilization observation. Next product slice options (small):
+Stabilization observation. Session closed cleanly. Next product slice options (small):
+- `notes-panel-ux-clarity-v1` — improve label, helper text, and idea visibility to reduce keyword/idea confusion (UI-only, no storage changes)
 - `note-delete-from-notes-panel-v1` — delete button on standalone notes (bridge: deleteBookmark already available)
-- `idea-rename-in-notes-panel-v1` — edit idea label on existing note (bridge: updateBookmark)
-- `audio-hotkey-marker-v1` — fast keyboard shortcut for dropping a marker
+- `audio-hotkey-marker-v1` — fast keyboard shortcut for dropping a marker (no UI redesign)
+
+Do not push to main without human review of PR #3.
