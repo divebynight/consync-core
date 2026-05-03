@@ -68,7 +68,7 @@ Do not build for hypothetical future features unless explicitly asked.
 
 ## How to Approach Work
 
-Implement only the task described by the current authoritative `.consync/state/*` files.
+Implement only the task described by the current authoritative `.scaffoldai/state/*` files.
 
 Use `.scaffoldai/process/runbook.process.md` as the practical process entrypoint.
 
@@ -126,7 +126,7 @@ Prefer this structure:
 - `src/index.js` → entry point
 - `src/commands/` → command handlers
 - `src/lib/` → reusable logic
-- `.consync/state/` → specs, handoff docs, logs
+- `.scaffoldai/state/` → specs, handoff docs, logs
 - `scripts/` → project scripts if needed
 
 Keep CLI parsing separate from business logic.
