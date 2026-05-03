@@ -43,6 +43,35 @@ Related target separation note:
 - Packet workflow docs
 - Tool adapter guidance
 
+## Directory Map
+
+Explicit classification of `.consync/` subdirectories by ownership layer.
+
+**BRIDGE** — shared control surface; runtime code reads/writes these:
+- `.consync/state/` — live execution state
+- `.consync/streams/` — per-stream state files
+
+**SCAFFOLDAI (PROCESS)** — process harness; no runtime code dependency:
+- `.consync/process/` — operating procedures and workflow docs
+- `.consync/agents/` — agent role and behavior definitions
+- `.consync/skills/` — reusable procedures referenced by agents
+- `.consync/contracts/` — enforceable rules, invariants, and boundaries (including this file)
+- `.consync/templates/` — reusable fill-in templates
+- `.consync/prompts/` — AI prompt files
+- `.consync/verification/` — verification expectations and checklists
+- `.consync/planning/` — future planning and direction notes
+- `.consync/audits/` — audit reports and classification records
+
+**CONSYNC (PRODUCT/DOCS)** — product and project documentation:
+- `.consync/docs/` — reference docs and examples
+- `.consync/product/` — product-scoped docs
+- `.consync/examples/` — worked examples
+
+**MIXED / HISTORICAL:**
+- `.consync/archive/` — historical records; no active runtime dependency
+- `.consync/packets/` — packet staging; Bridge-adjacent, access is manual
+- `.consync/quarantine/` — held/unclassified material
+
 ## Boundary Rules
 
 - ScaffoldAI should interact with Consync through Bridge contracts and state,
