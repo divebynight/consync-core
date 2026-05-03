@@ -30,6 +30,7 @@ import {
   getSelectedMockSearchDetail,
 } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
+import { groupStandaloneNotesByIdea } from "./notes-panel.mjs";
 
 const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
 const STANDALONE_NOTE_KIND = "standalone-note";
@@ -2021,20 +2022,48 @@ export function App() {
                     />
                     {standaloneNotes.length > 0 ? (
                       filteredStandaloneNotes.length > 0 ? (
-                        <ul className="bookmark-list">
-                          {filteredStandaloneNotes.map((bookmark, index) => (
-                            <li className="bookmark-item" key={`${bookmark.id || "note"}-standalone-${index}`}>
-                              <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
-                              <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
-                              {typeof bookmark.idea === "string" && bookmark.idea ? (
-                                <span className="bookmark-note-keywords">{bookmark.idea}</span>
+                        (() => {
+                          const { groups, other } = groupStandaloneNotesByIdea(filteredStandaloneNotes);
+                          const ideaKeys = Object.keys(groups);
+                          return (
+                            <div className="notes-grouped">
+                              {ideaKeys.map(idea => (
+                                <section className="notes-idea-group" key={idea}>
+                                  <h5 className="notes-idea-heading">{idea}</h5>
+                                  <ul className="bookmark-list">
+                                    {groups[idea].map((bookmark, index) => (
+                                      <li className="bookmark-item" key={`${bookmark.id || "note"}-idea-${idea}-${index}`}>
+                                        <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                                        <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                        {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                                          <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </section>
+                              ))}
+                              {other.length > 0 ? (
+                                <section className="notes-idea-group" key="__other__">
+                                  {ideaKeys.length > 0 ? (
+                                    <h5 className="notes-idea-heading">Other notes</h5>
+                                  ) : null}
+                                  <ul className="bookmark-list">
+                                    {other.map((bookmark, index) => (
+                                      <li className="bookmark-item" key={`${bookmark.id || "note"}-other-${index}`}>
+                                        <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                                        <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                        {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                                          <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </section>
                               ) : null}
-                              {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
-                                <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
-                              ) : null}
-                            </li>
-                          ))}
-                        </ul>
+                            </div>
+                          );
+                        })()
                       ) : (
                         <p className="empty-state">No notes match that keyword.</p>
                       )

@@ -206,6 +206,7 @@ function printCoverageMap() {
   console.log("- renderer_ui_slices");
   console.log("- sandbox_fixtures_expectations");
   console.log("- handoff_bundle_path_boundary");
+  console.log("- standalone_notes_grouping_logic");
   console.log("");
   console.log(yellow("PARTIAL:"));
   console.log("- scaffoldai_docs_process_integrity");
@@ -262,6 +263,9 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] Bookmark write/read/render loop slice", [path.join(repoRoot, "src", "test", "bookmark-write-read-render-loop.js")], GROUPS.RENDERER);
+  console.log("");
+
+  runNodeStep("[verify] Standalone notes grouping", [path.join(repoRoot, "src", "test", "unit-standalone-notes-grouping.js")], GROUPS.RENDERER);
   console.log("");
 
   runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
