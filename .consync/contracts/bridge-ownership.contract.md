@@ -7,6 +7,9 @@ Bridge control surface before any structural split.
 
 This contract does not move, rename, or restructure files.
 
+Related target separation note:
+`.consync/contracts/scaffoldai-consync-separation.contract.md`
+
 ## Layers
 
 - `CONSYNC` = product/runtime.

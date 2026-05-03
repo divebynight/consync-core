@@ -19,6 +19,7 @@ const { runReentryCheckCommand } = require("../commands/reentry-check");
 const { runDryRunCheckCommand } = require("../commands/dry-run-check");
 const { runConsyncRunCommand } = require("../commands/consync-run");
 const { runIntakeRunCommand } = require("../commands/intake-run");
+const { runReferenceAuditCommand } = require("../commands/reference-audit");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -205,6 +206,11 @@ async function main() {
 
   if (command === "intake-run") {
     runIntakeRunCommand(process.argv.slice(3));
+    return;
+  }
+
+  if (command === "reference-audit") {
+    runReferenceAuditCommand();
     return;
   }
 

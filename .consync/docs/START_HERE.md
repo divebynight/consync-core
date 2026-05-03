@@ -60,6 +60,7 @@ you are starting or resuming work, read these first.
 | `.consync/process/production-change-packet-rules.process.md` | Safeguards for production-change packets |
 | `.consync/process/handoff-delivery-bridge.process.md` | Source-of-truth and delivery bridge rules for handoffs |
 | `.consync/contracts/bridge-ownership.contract.md` | Provisional ownership boundary for Consync, ScaffoldAI, and Bridge surfaces |
+| `.consync/contracts/scaffoldai-consync-separation.contract.md` | Target separation note for Consync runtime, ScaffoldAI harness, and Bridge state/config |
 | `.consync/contracts/scaffoldai-consync-boundary.contract.md` | Boundary separating Consync product areas from ScaffoldAI process areas |
 | `.consync/verification/ui-e2e-coverage-map.md` | Current e2e coverage map used during UI and test closeout |
 | `.consync/agents/` | All bound agent roles — preflight, verify, closeout, intake, reentry, entry-adapter |
