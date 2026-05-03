@@ -53,7 +53,7 @@ function runSuccessScenario() {
     assert.match(result.stdout, /^CONSYNC HANDOFF BUNDLE/m);
     assert.match(result.stdout, /^SOURCE OF TRUTH$/m);
     assert.match(result.stdout, /^RUNBOOK POINTER$/m);
-    assert.match(result.stdout, /For operating rules, read \.consync\/process\/runbook\.process\.md in the repo\./);
+    assert.match(result.stdout, /For operating rules, read \.scaffoldai\/process\/runbook\.process\.md in the repo\./);
 
     for (const file of files.slice(0, 2)) {
       assert.match(result.stdout, new RegExp(`===== BEGIN ${escapeRegExp(file.relativePath)} =====`));
@@ -152,7 +152,7 @@ function runMissingFullRunbookScenario() {
     });
 
     assert.notStrictEqual(result.status, 0, "Expected non-zero exit status when full mode runbook is missing");
-    assert.match(result.stderr, /Missing required file: \.consync\/process\/runbook\.process\.md/);
+    assert.match(result.stderr, /Missing required file: \.scaffoldai\/process\/runbook\.process\.md/);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

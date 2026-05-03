@@ -1,10 +1,10 @@
 # AGENTS
 
-Consync process truth lives under `.consync/`.
+Consync BRIDGE truth lives under `.consync/state/` and `.consync/streams/`. ScaffoldAI PROCESS truth lives under `.scaffoldai/`.
 
 Use these boundaries when working in this repo:
 
-- `.consync/` is the authoritative process layer for Consync state, docs, streams, prompts, skills, and gatekeeping workflows.
+- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state. `.consync/` also contains docs, product, archive, examples, and packets.
 - `.scaffoldai/agents/` defines agent roles, invocation points, and binding status.
 - `.scaffoldai/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
 - `.github/` is a thin Copilot/GitHub adapter layer only. Treat it as tool-specific guidance, not the canonical Consync process model.
