@@ -2,7 +2,7 @@
  * Pure Gatekeeper decision function.
  *
  * Applies the decision rules defined in:
- *   .consync/agents/gatekeeper.agent.md
+ *   .scaffoldai/agents/gatekeeper.agent.md
  *
  * Takes an input object and contract config; returns a decision object.
  * Does not read files, write files, or produce output.

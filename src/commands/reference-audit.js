@@ -4,28 +4,28 @@ const path = require("path");
 const REFERENCE_CATEGORIES = [
   {
     name: "process",
-    needle: ".consync/process/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md"],
+    needle: ".scaffoldai/process/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md"],
   },
   {
     name: "agents",
-    needle: ".consync/agents/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md"],
+    needle: ".scaffoldai/agents/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md"],
   },
   {
     name: "skills",
-    needle: ".consync/skills/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md"],
+    needle: ".scaffoldai/skills/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md"],
   },
   {
     name: "templates",
-    needle: ".consync/templates/",
-    expectedZones: [".consync/", "src/lib/portableScaffold.js"],
+    needle: ".scaffoldai/templates/",
+    expectedZones: [".scaffoldai/", "src/lib/portableScaffold.js"],
   },
   {
     name: "contracts",
-    needle: ".consync/contracts/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md"],
+    needle: ".scaffoldai/contracts/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md"],
   },
   {
     name: "state",

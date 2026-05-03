@@ -34,17 +34,17 @@ itself to determine its category.
 |---|---|
 | `.consync/docs/` | Navigation and index only. START_HERE, surface map, structure inventories. |
 | `.consync/product/` | Product model, design decisions, UX slice definitions. |
-| `.consync/process/` | Operating procedures, runbook, packet rules, agent usage guides, AI context. |
-| `.consync/contracts/` | Boundary definitions, state contracts, integrity rules, export constraints. |
-| `.consync/agents/` | Agent role definitions. Already in place. |
-| `.consync/skills/` | Reusable procedures used by agents. Already in place. |
-| `.consync/planning/` | Active planning artifacts, next steps, current direction, proposed future work. |
-| `.consync/verification/` | Verification ladder, test coverage maps, test readiness docs. |
+| `.scaffoldai/process/` | Operating procedures, runbook, packet rules, agent usage guides, AI context. |
+| `.scaffoldai/contracts/` | Boundary definitions, state contracts, integrity rules, export constraints. |
+| `.scaffoldai/agents/` | Agent role definitions. Already in place. |
+| `.scaffoldai/skills/` | Reusable procedures used by agents. Already in place. |
+| `.scaffoldai/planning/` | Active planning artifacts, next steps, current direction, proposed future work. |
+| `.scaffoldai/verification/` | Verification ladder, test coverage maps, test readiness docs. |
 | `.consync/state/` | Live operational state only (handoff, snapshot, next-action, active-stream). |
 | `.consync/streams/` | Per-stream live state. Already in place. |
 | `.consync/packets/` | Executed packet records. Already in place. |
-| `.consync/prompts/` | Prompt templates for tooling. Already in place. |
-| `.consync/templates/` | Scaffolding templates (portable, packet, etc.). Already in place. |
+| `.scaffoldai/prompts/` | Prompt templates for tooling. Already in place. |
+| `.scaffoldai/templates/` | Scaffolding templates (portable, packet, etc.). Already in place. |
 | `.consync/archive/` | Historical plans, old specs, retired concepts, prior state artifacts. |
 | `.consync/examples/` | Concrete usage examples (how-to, worked examples). |
 
@@ -52,7 +52,7 @@ itself to determine its category.
 
 ## 3. Full Inventory
 
-### `.consync/agents/` — 7 files (no moves proposed)
+### `.scaffoldai/agents/` — 7 files (no moves proposed)
 
 | Current path | Proposed path | Confidence | Notes |
 |---|---|---|---|
@@ -133,7 +133,7 @@ itself to determine its category.
 
 ---
 
-### `.consync/prompts/` — 2 files (no moves proposed)
+### `.scaffoldai/prompts/` — 2 files (no moves proposed)
 
 | Current path | Proposed path | Confidence | Notes |
 |---|---|---|---|
@@ -142,7 +142,7 @@ itself to determine its category.
 
 ---
 
-### `.consync/skills/` — 2 files (no moves proposed)
+### `.scaffoldai/skills/` — 2 files (no moves proposed)
 
 | Current path | Proposed path | Confidence | Notes |
 |---|---|---|---|
@@ -230,7 +230,7 @@ Files included:
 
 ---
 
-### `.consync/templates/` — 7 files (no moves proposed)
+### `.scaffoldai/templates/` — 7 files (no moves proposed)
 
 | Current path | Proposed path | Confidence | Notes |
 |---|---|---|---|
@@ -254,7 +254,7 @@ docs/product-model.md             -> product/product-model.md
 docs/current-system.md            -> product/current-system.md          (needs decision — see §5)
 ```
 
-### → `.consync/process/`
+### → `.scaffoldai/process/`
 ```
 docs/ai-context.md                             -> process/ai-context.md
 docs/runbook.md                                -> process/runbook.md
@@ -264,14 +264,14 @@ docs/production-change-packet-rules.md         -> process/production-change-pack
 docs/handoff-delivery-bridge.md                -> process/handoff-delivery-bridge.md
 ```
 
-### → `.consync/contracts/`
+### → `.scaffoldai/contracts/`
 ```
 docs/scaffoldai-consync-boundary.contract.md            -> contracts/scaffoldai-consync-boundary.contract.md
 docs/consync-export-boundary.contract.md                -> contracts/consync-export-boundary.contract.md
 docs/state-contracts-and-integrity-checks.contract.md   -> contracts/state-contracts-and-integrity-checks.contract.md
 ```
 
-### → `.consync/verification/`
+### → `.scaffoldai/verification/`
 ```
 docs/verification-ladder.md                    -> verification/verification-ladder.md
 docs/ui-e2e-coverage-map.md                    -> verification/ui-e2e-coverage-map.md
@@ -281,13 +281,13 @@ docs/system-integrity-snapshot.md              -> verification/system-integrity-
 artifacts/04_manual-test-protocol.md           -> verification/manual-test-protocol.md
 ```
 
-### → `.consync/agents/`
+### → `.scaffoldai/agents/`
 ```
 docs/janitor-agent.md                          -> agents/janitor.agent.md      (needs decision — see §5)
 docs/work-manager-agent.md                     -> agents/work-manager.agent.md (needs decision — see §5)
 ```
 
-### → `.consync/planning/`
+### → `.scaffoldai/planning/`
 ```
 artifacts/01_current-direction.md             -> planning/current-direction.md
 artifacts/02_active-work.md                   -> planning/active-work.md

@@ -26,7 +26,7 @@ Live execution truth. The only source of record for what is happening right now.
 | `state/active-contract.json` | Machine-readable form of the active contract |
 | `state/history/` | Historical state snapshots; immutable once written |
 
-### `.consync/process/`
+### `.scaffoldai/process/`
 How the system operates. Reference these when the live state is unclear or a session is starting.
 
 | Path | Purpose |
@@ -41,7 +41,7 @@ How the system operates. Reference these when the live state is unclear or a ses
 | `process/process-flow-map-and-dry-run-contract.process.md` | Formal flow map and dry-run contract rules |
 | `process/work-log.log.md` | Append-only work log for the process stream |
 
-### `.consync/agents/`
+### `.scaffoldai/agents/`
 Agent role definitions and invocation rules. Consulted before invoking an agent.
 
 | Path | Purpose |
@@ -57,7 +57,7 @@ Agent role definitions and invocation rules. Consulted before invoking an agent.
 | `agents/janitor-agent-concept.md` | Concept only — not bound; moved to `archive/conceptual/` |
 | `agents/work-manager-agent-concept.md` | Concept only — not bound; moved to `archive/conceptual/` |
 
-### `.consync/contracts/`
+### `.scaffoldai/contracts/`
 Explicit invariants, boundary rules, and naming contracts.
 
 | Path | Purpose |
@@ -125,7 +125,7 @@ Navigation aids, surface maps, and human-readable reference docs.
 | `docs/prompt-contract.md` | Rules for prompt files |
 | `docs/examples/` | Example docs for reference |
 
-### `.consync/verification/`
+### `.scaffoldai/verification/`
 Test readiness, coverage maps, and integrity evidence.
 
 | Path | Purpose |
@@ -137,7 +137,7 @@ Test readiness, coverage maps, and integrity evidence.
 | `verification/ui-e2e-coverage-map.md` | E2E coverage map for UI surfaces |
 | `verification/ui-e2e-coverage.reference.md` | Reference version of E2E coverage |
 
-### `.consync/planning/`
+### `.scaffoldai/planning/`
 Active planning artifacts. In-progress direction, not committed truth.
 
 | Path | Purpose |
@@ -147,7 +147,7 @@ Active planning artifacts. In-progress direction, not committed truth.
 | `planning/next-steps.plan.md` | Queued next steps |
 | `planning/marker-capture.plan.md` | Marker capture planning |
 
-### `.consync/templates/`
+### `.scaffoldai/templates/`
 Reusable scaffold templates for packets and portable exports.
 
 | Path | Purpose |
@@ -155,7 +155,7 @@ Reusable scaffold templates for packets and portable exports.
 | `templates/work-packet-v3.md` | Canonical packet template (current version) |
 | `templates/portable/` | Portable export scaffolding templates |
 
-### `.consync/skills/`
+### `.scaffoldai/skills/`
 Reusable procedural skills referenced by agents.
 
 | Path | Purpose |
@@ -171,7 +171,7 @@ Canonical worked examples for reference.
 | `examples/search-panel-feature-example.md` | Canonical multi-packet feature example |
 | `examples/current-system/` | Current system example artifacts |
 
-### `.consync/prompts/`
+### `.scaffoldai/prompts/`
 Prompt files for AI tool surfaces.
 
 | Path | Purpose |
@@ -237,18 +237,18 @@ Isolated content pending classification or disposal. Not actively consulted.
 These surfaces record committed truth. Treat them as ground truth over chat memory, plans, or docs.
 
 - `.consync/state/` — live execution truth
-- `.consync/process/` — how the system operates
-- `.consync/agents/` — agent roles and invocation rules
-- `.consync/contracts/` — invariants and boundary rules
+- `.scaffoldai/process/` — how the system operates
+- `.scaffoldai/agents/` — agent roles and invocation rules
+- `.scaffoldai/contracts/` — invariants and boundary rules
 
 ### Supportive
 These surfaces are useful and consulted, but they describe or support rather than govern.
 
 - `.consync/product/` — what is being built
 - `.consync/docs/` — navigation and reference
-- `.consync/verification/` — evidence and test readiness
-- `.consync/planning/` — in-progress direction
-- `.consync/templates/`, `.consync/skills/`, `.consync/examples/`, `.consync/prompts/` — tooling and scaffolding
+- `.scaffoldai/verification/` — evidence and test readiness
+- `.scaffoldai/planning/` — in-progress direction
+- `.scaffoldai/templates/`, `.scaffoldai/skills/`, `.consync/examples/`, `.scaffoldai/prompts/` — tooling and scaffolding
 - `.consync/packets/` — closed work records (authoritative as immutable history, but not live)
 - `sandbox/` — test infrastructure
 - `.github/` — external tool adapter

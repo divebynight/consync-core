@@ -1,7 +1,8 @@
 Authoritative workflow note:
 
-- `.consync/` is the source of truth for Consync execution workflow.
-- Use `.consync/state/*` and `.consync/process/runbook.process.md` as authoritative.
+- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
+- `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+- Use `.consync/state/*` and `.scaffoldai/process/runbook.process.md` as authoritative.
 - Treat this file as a GitHub/Copilot adapter only.
 
 Read the file at:

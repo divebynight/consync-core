@@ -2,13 +2,15 @@
 
 ## Authority Boundary
 
-`.consync/` is the authoritative Consync process layer.
+`.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
 
-Use `.consync/state/*`, `.consync/process/runbook.process.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
+`.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
 
-`.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+Use `.consync/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
 
-`.consync/agents/entry-adapter.agent.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
+`.scaffoldai/agents/` defines agent roles, invocation points, and binding status. `.scaffoldai/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+
+`.scaffoldai/agents/entry-adapter.agent.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
 
@@ -68,7 +70,7 @@ Do not build for hypothetical future features unless explicitly asked.
 
 Implement only the task described by the current authoritative `.consync/state/*` files.
 
-Use `.consync/process/runbook.process.md` as the practical process entrypoint.
+Use `.scaffoldai/process/runbook.process.md` as the practical process entrypoint.
 
 When working:
 1. keep scope narrow

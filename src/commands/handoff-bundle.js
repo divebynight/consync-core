@@ -6,7 +6,7 @@ const LEAN_FILES = [
   path.join(".consync", "state", "snapshot.md"),
 ];
 
-const RUNBOOK_PATH = path.join(".consync", "process", "runbook.process.md");
+const RUNBOOK_PATH = path.join(".scaffoldai", "process", "runbook.process.md");
 const RUNBOOK_POINTER = `For operating rules, read ${RUNBOOK_PATH} in the repo.`;
 
 function readRequiredFile(relativePath) {

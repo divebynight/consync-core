@@ -9,7 +9,7 @@ const TYPE_PATTERNS = {
 
 const TARGET_SURFACES = {
   product: ["src/", "electron/"],
-  process: [".consync/process/", ".consync/agents/"],
+  process: [".scaffoldai/process/", ".scaffoldai/agents/"],
   docs: [".consync/docs/", "README.md"],
   tests: ["src/test/"],
   runtime: ["src/core/", "src/lib/"],

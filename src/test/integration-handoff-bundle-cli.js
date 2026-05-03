@@ -33,7 +33,7 @@ function runSuccessScenario() {
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
-      relativePath: path.join(".consync", "process", "runbook.process.md"),
+      relativePath: path.join(".scaffoldai", "process", "runbook.process.md"),
       content: "# Consync Runbook\n\nRead state first.\n",
     },
   ];
@@ -86,7 +86,7 @@ function runFullScenario() {
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
-      relativePath: path.join(".consync", "process", "runbook.process.md"),
+      relativePath: path.join(".scaffoldai", "process", "runbook.process.md"),
       content: "# Consync Runbook\n\nRead state first.\n",
     },
   ];

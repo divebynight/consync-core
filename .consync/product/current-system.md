@@ -7,20 +7,20 @@ This file is product-specific and is NOT the canonical system entry or AI re-anc
 - Work Manager Agent (coordination layer)
   - See: `.consync/archive/conceptual/work-manager-agent-concept.md`
 - ScaffoldAi invoked-agent system
-  - See: `.consync/agents/00_agent-system.md`
+  - See: `.scaffoldai/agents/00_agent-system.md`
 - ScaffoldAi / Consync boundary
-  - See: `.consync/contracts/scaffoldai-consync-boundary.contract.md`
+  - See: `.scaffoldai/contracts/scaffoldai-consync-boundary.contract.md`
 
 ## Feature Development
 
 - Feature planning and packetization
-  - See: `.consync/process/feature-planning-and-packetization.md`
+  - See: `.scaffoldai/process/feature-planning-and-packetization.md`
 - Feature packet execution model (roles, readiness, loop)
-  - See: `.consync/process/feature-packet-execution.process.md`
+  - See: `.scaffoldai/process/feature-packet-execution.process.md`
 - Canonical example: search panel e2e coverage
   - See: `.consync/examples/search-panel-feature-example.md`
 
 ## AI Context
 
 - Primary entry point for AI tools interacting with Consync
-  - See: `.consync/process/ai-context.md`
+  - See: `.scaffoldai/process/ai-context.md`

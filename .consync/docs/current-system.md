@@ -78,10 +78,10 @@ Prompt Contract:
 .consync/docs/prompt-contract.md
 
 Manual Execution Flow:
-.consync/process/manual-execution-flow.process.md
+.scaffoldai/process/manual-execution-flow.process.md
 
 Agent Definitions:
-.consync/agents/
+.scaffoldai/agents/
 
 ---
 

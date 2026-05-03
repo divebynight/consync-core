@@ -20,7 +20,7 @@ This repository uses a stream-based workflow:
 - Streams are defined under .consync/streams/
 - The active foreground stream is tracked in .consync/state/active-stream.md
 - The current live loop still uses .consync/state/next-action.md and .consync/state/handoff.md
-- Process docs under .consync/process/ define expected workflow behavior
+- Process docs under .scaffoldai/process/ define expected workflow behavior
 
 ---
 

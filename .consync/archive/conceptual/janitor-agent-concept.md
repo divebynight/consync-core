@@ -100,5 +100,5 @@ Suggested invocation point: after a package closeout, or before a new stream beg
 ## Notes
 
 - The `repo-structure-inventory.md` cleanup workflow (2026-04-26) is the human-driven precursor to what this agent would automate as inspection.
-- This agent is not yet bound. No agent file exists in `.consync/agents/` for it.
-- When ready to bind, create `.consync/agents/janitor.md` and update this doc with a binding reference.
+- This agent is not yet bound. No agent file exists in `.scaffoldai/agents/` for it.
+- When ready to bind, create `.scaffoldai/agents/janitor.agent.md` and update this doc with a binding reference.

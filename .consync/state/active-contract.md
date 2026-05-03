@@ -66,7 +66,7 @@ Prevents accidental execution on top of uncommitted changes.
 ### `require_dry_run`
 Boolean. If `true`, a future gatekeeper will require a dry-run report to be produced and approved before executing any packet.
 
-Corresponds to the dry-run contract defined in `.consync/process/process-flow-map-and-dry-run-contract.process.md`.
+Corresponds to the dry-run contract defined in `.scaffoldai/process/process-flow-map-and-dry-run-contract.process.md`.
 
 ---
 

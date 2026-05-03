@@ -43,7 +43,7 @@ This document is an observed inventory. It describes what exists and, where clea
 | `package.json` | SOURCE | Node.js project manifest, scripts, and dependency declarations |
 | `package-lock.json` | DEPS | Lockfile for reproducible installs |
 | `README.md` | PROCESS | Project readme; practical usage overview |
-| `AGENTS.md` | ADAPTER | Codex/AGENTS.md entry point; redirects back to `.consync/agents/` as authoritative source |
+| `AGENTS.md` | ADAPTER | Codex/AGENTS.md entry point; redirects back to `.scaffoldai/agents/` as authoritative source |
 | `forge.config.js` | SOURCE | Electron Forge packaging and make configuration |
 | `playwright.config.js` | TESTS | Playwright e2e test runner configuration |
 | `vite.main.config.mjs` | BUILD | Vite build config for Electron main process |
@@ -90,7 +90,7 @@ The authoritative Consync process layer. All meaningful process state, agent rol
 | `history/consync_v1_spec.md` | LEGACY | Early v1 spec document; kept as historical reference |
 | `history/plans/` | PROCESS | Archive of executed package instructions (one file per completed package) |
 
-### `.consync/agents/`
+### `.scaffoldai/agents/`
 
 | File | Classification | Purpose |
 |---|---|---|
@@ -102,7 +102,7 @@ The authoritative Consync process layer. All meaningful process state, agent rol
 | `closeout.agent.md` | AGENTS | Closeout agent role definition |
 | `reentry.agent.md` | AGENTS | Reentry agent role definition |
 
-### `.consync/skills/`
+### `.scaffoldai/skills/`
 
 | File | Classification | Purpose |
 |---|---|---|
@@ -157,14 +157,14 @@ Living context documents. Numbered prefix indicates intended reading order.
 | `electron_ui/stream.md` | PROCESS | Stream record for the `electron_ui` stream; currently paused |
 | `electron_ui/history/` | PROCESS | History folder for `electron_ui` stream; currently empty |
 
-### `.consync/prompts/`
+### `.scaffoldai/prompts/`
 
 | File | Classification | Purpose |
 |---|---|---|
 | `generate-packet.prompt.md` | PROMPTS | Prompt template for generating a work packet from state files |
 | `run_integrity_agent.md` | PROMPTS | Prompt template for invoking the integrity agent; user fills in TYPE and PACKAGE |
 
-### `.consync/templates/`
+### `.scaffoldai/templates/`
 
 | File/Folder | Classification | Purpose |
 |---|---|---|
@@ -192,7 +192,7 @@ Thin adapter layer for GitHub/Copilot tooling.
 | File/Folder | Classification | Purpose |
 |---|---|---|
 | `copilot-instructions.md` | ADAPTER | GitHub Copilot system instructions for this repo; references `.consync/` as authoritative |
-| `prompts/run_closeout.prompt.md` | ADAPTER | Copilot prompt that reads `.consync/state/handoff.md` and `.consync/skills/closeout-agent.md` |
+| `prompts/run_closeout.prompt.md` | ADAPTER | Copilot prompt that reads `.consync/state/handoff.md` and `.scaffoldai/skills/closeout-agent.md` |
 | `prompts/run_next_action.prompt.md` | ADAPTER | Copilot prompt that reads and executes `.consync/state/next-action.md` |
 | `agents/consync-integrity.agent.md` | ADAPTER | Copilot agent definition for the integrity agent |
 | `agents/consync-process.agent.md` | ADAPTER | Copilot agent definition for the process agent |
@@ -477,7 +477,7 @@ The following items are unclear, potentially redundant, generated, stale, or pos
 
 4. **Duplicate numbered files in `.consync/docs/` vs `.consync/artifacts/`** — `03_work-log.md` and `04_next-steps.md` appear in `docs/` but the numbered artifact sequence belongs in `artifacts/`. Whether these are exact duplicates or have diverged is not confirmed.
 
-5. **`.consync/templates/portable/`** — This folder scaffolds a portable template output. It is referenced by the `portable` command in `src/commands/portable.js`. Its relationship to `.github/prompts/` content is structural (the template includes GitHub prompt files). This is observed fact, not a problem — noted because the nesting may look surprising on first read.
+5. **`.scaffoldai/templates/portable/`** — This folder scaffolds a portable template output. It is referenced by the `portable` command in `src/commands/portable.js`. Its relationship to `.github/prompts/` content is structural (the template includes GitHub prompt files). This is observed fact, not a problem — noted because the nesting may look surprising on first read.
 
 ---
 

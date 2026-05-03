@@ -2,8 +2,9 @@
 
 Authoritative workflow note:
 
-- `.consync/` is the source of truth for Consync closeout behavior.
-- The Closeout agent is bound to `.consync/skills/closeout-agent.md` as its current prompt/process execution surface.
+- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
+- `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+- The Closeout agent is bound to `.scaffoldai/skills/closeout-agent.md` as its current prompt/process execution surface.
 - Treat this file as a GitHub/Copilot adapter only.
 
 Read the current handoff state:
@@ -12,7 +13,7 @@ Read the current handoff state:
 
 Read the authoritative Closeout agent workflow at:
 
-.consync/skills/closeout-agent.md
+.scaffoldai/skills/closeout-agent.md
 
 ---
 
@@ -25,7 +26,7 @@ Finalize the most recent Work Packet using the existing handoff.
 ## Behavior
 
 - Use handoff.md as the source of truth
-- Apply the closeout rules from `.consync/skills/closeout-agent.md`
+- Apply the closeout rules from `.scaffoldai/skills/closeout-agent.md`
 - Do not modify source files
 - Do not re-run tests
 - Do not introduce new work
