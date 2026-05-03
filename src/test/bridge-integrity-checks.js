@@ -6,16 +6,16 @@ const TEST_NAME = "bridge-integrity-checks";
 const repoRoot = path.resolve(__dirname, "..", "..");
 
 const requiredStateFiles = [
-  ".consync/state/next-action.md",
-  ".consync/state/active-contract.json",
-  ".consync/state/active-stream.md",
-  ".consync/state/handoff.md",
-  ".consync/state/snapshot.md",
+  ".scaffoldai/state/next-action.md",
+  ".scaffoldai/state/active-contract.json",
+  ".scaffoldai/state/active-stream.md",
+  ".scaffoldai/state/handoff.md",
+  ".scaffoldai/state/snapshot.md",
 ];
 
 const requiredStreamFiles = [
-  ".consync/streams/process/stream.md",
-  ".consync/streams/electron_ui/stream.md",
+  ".scaffoldai/streams/process/stream.md",
+  ".scaffoldai/streams/electron_ui/stream.md",
 ];
 
 function fail(error) {
@@ -65,10 +65,10 @@ function main() {
     }
     console.log("  PASS: required stream files exist");
 
-    const activeContract = JSON.parse(readRepoFile(".consync/state/active-contract.json"));
+    const activeContract = JSON.parse(readRepoFile(".scaffoldai/state/active-contract.json"));
     console.log("  PASS: active-contract.json is valid JSON");
 
-    const nextAction = readRepoFile(".consync/state/next-action.md");
+    const nextAction = readRepoFile(".scaffoldai/state/next-action.md");
     if (activeContract.in_flight_packet === null) {
       assert.ok(
         /\b(?:PACKAGE|PACKET_ID):\s*NONE\b/.test(nextAction),
@@ -77,15 +77,15 @@ function main() {
     }
     console.log("  PASS: active-contract.json and next-action.md agree on no active packet state");
 
-    const activeStream = extractActiveStream(readRepoFile(".consync/state/active-stream.md"));
-    const activeStreamDir = path.join(repoRoot, ".consync", "streams", activeStream);
+    const activeStream = extractActiveStream(readRepoFile(".scaffoldai/state/active-stream.md"));
+    const activeStreamDir = path.join(repoRoot, ".scaffoldai", "streams", activeStream);
     assert.ok(fs.statSync(activeStreamDir).isDirectory(), `Expected active stream directory to exist: ${activeStreamDir}`);
     console.log("  PASS: active-stream.md references an existing stream directory");
 
-    assert.ok(readRepoFile(".consync/state/handoff.md").trim().length > 0, "Expected handoff.md to be non-empty");
+    assert.ok(readRepoFile(".scaffoldai/state/handoff.md").trim().length > 0, "Expected handoff.md to be non-empty");
     console.log("  PASS: handoff.md is non-empty");
 
-    assert.ok(readRepoFile(".consync/state/snapshot.md").trim().length > 0, "Expected snapshot.md to be non-empty");
+    assert.ok(readRepoFile(".scaffoldai/state/snapshot.md").trim().length > 0, "Expected snapshot.md to be non-empty");
     console.log("  PASS: snapshot.md is non-empty");
 
     console.log(`[${TEST_NAME}] PASS`);

@@ -207,6 +207,7 @@ function printCoverageMap() {
   console.log("- sandbox_fixtures_expectations");
   console.log("- handoff_bundle_path_boundary");
   console.log("- standalone_notes_grouping_logic");
+  console.log("- consync_bridge_scaffoldai_split_behavior");
   console.log("");
   console.log(yellow("PARTIAL:"));
   console.log("- scaffoldai_docs_process_integrity");
@@ -218,7 +219,6 @@ function printCoverageMap() {
   console.log("- manual_ux_review");
   console.log("- full_product_usability");
   console.log("- full_semantic_correctness_of_docs");
-  console.log("- future_consync_bridge_scaffoldai_split_behavior");
 }
 
 function colorResult(status) {

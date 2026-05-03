@@ -63,7 +63,7 @@ function runHandoffBundleCommand(options = {}) {
   console.log("CONSYNC HANDOFF BUNDLE");
   console.log("");
   console.log("SOURCE OF TRUTH");
-  console.log("Local repo files under .consync/ remain canonical.");
+  console.log("Local repo files under .scaffoldai/ remain canonical.");
   console.log("This bundle is a transport artifact for re-entry.");
   console.log("");
 

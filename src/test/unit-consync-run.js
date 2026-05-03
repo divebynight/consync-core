@@ -25,7 +25,7 @@ function withTempDir(fn) {
 }
 
 function writeContract(tempDir, overrides = {}) {
-  const stateDir = path.join(tempDir, ".consync", "state");
+  const stateDir = path.join(tempDir, ".scaffoldai", "state");
   fs.mkdirSync(stateDir, { recursive: true });
 
   const contract = Object.assign(

@@ -267,11 +267,11 @@ async function runGatekeeperClose(rootPath) {
     console.log(`- package: ${closeMode.packageName}`);
     console.log(`- handoff status: ${closeMode.handoffStatus} (existing)`);
     console.log("- files to be written:");
-    console.log("    .consync/state/snapshot.md (Current Package section only)");
-    console.log(`    .consync/streams/${state.activeStreamName}/stream.md (summary line only)`);
+    console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
+    console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
     console.log("- files NOT touched:");
-    console.log("    .consync/state/handoff.md");
-    console.log("    .consync/state/next-action.md");
+    console.log("    .scaffoldai/state/handoff.md");
+    console.log("    .scaffoldai/state/next-action.md");
     console.log("");
 
     const session = makePromptSession();
@@ -332,11 +332,11 @@ async function runGatekeeperClose(rootPath) {
   console.log(`- status: ${status}`);
   console.log(`- summary: ${summary}`);
   console.log("- files to be written:");
-  console.log("    .consync/state/handoff.md");
-  console.log("    .consync/state/snapshot.md (Current Package section only)");
-  console.log(`    .consync/streams/${state.activeStreamName}/stream.md (summary line only)`);
+  console.log("    .scaffoldai/state/handoff.md");
+  console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
+  console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
   console.log("- files NOT touched:");
-  console.log("    .consync/state/next-action.md");
+  console.log("    .scaffoldai/state/next-action.md");
   console.log("");
 
   const confirmAnswer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();

@@ -1,5 +1,5 @@
-TYPE: FEATURE
-PACKAGE: ideas-grouping-in-notes-panel-v1
+TYPE: REFACTOR
+PACKAGE: scaffoldai-bridge-migration-v1
 
 STATUS
 
@@ -7,9 +7,65 @@ PASS
 
 SUMMARY
 
-Implemented grouped rendering of standalone notes by idea in the Notes panel. Pure grouping logic extracted to a new `notes-panel.mjs` module following the existing renderer `.mjs` pattern. Notes with ideas render under named section headings (alphabetical). Notes without ideas render under "Other notes" (heading suppressed when all notes have ideas). Filter-then-group order preserved. No storage format changes. No new bridge calls.
+Migrated all ScaffoldAI BRIDGE state from `.consync/` to `.scaffoldai/`. The three bridge-owned directories — `state/`, `streams/`, and `packets/` — are now co-located under `.scaffoldai/` alongside agents, skills, process, and planning. `.consync/` now contains only Consync product content: `docs/`, `product/`, `examples/`, `archive/`, `quarantine/`, and the orphaned `contracts/bridge-ownership.contract.md`.
+
+All 27 path references across runtime source, tests, scripts, prompts, and docs were updated atomically before the directory moves. Two additional test fixture files (`unit-dry-run-check.js`, `unit-consync-run.js`) were found and corrected during post-migration verify. `npm run verify` and `npm run verify:full` both PASS. Coverage map updated: `consync_bridge_scaffoldai_split_behavior` moved from NOT_COVERED to COVERED.
 
 Branch: `feature/product-design-electron`
+
+FILES CREATED
+
+- none
+
+FILES MODIFIED
+
+Runtime source:
+- `src/lib/stateIntegrityCheck.js` — CORE_STATE_FILES and STREAMS_ROOT constants updated
+- `src/lib/getInFlightPacket.js` — NEXT_ACTION_PATH constant updated
+- `src/lib/gatekeeperSwitch.js` — LIVE OWNER NOTE error string and console.log path strings updated
+- `src/lib/gatekeeperClose.js` — console.log path strings updated
+- `src/lib/gatekeeperMount.js` — console.log path strings updated
+- `src/lib/intakeClassify.js` — OUT_OF_SCOPE data string updated
+- `src/commands/dry-run-check.js` — ACTIVE_CONTRACT_PATH constant updated
+- `src/commands/consync-run.js` — ACTIVE_CONTRACT_PATH constant updated
+- `src/commands/system-check.js` — requiredFiles path string updated
+- `src/commands/reentry-check.js` — console string updated
+- `src/commands/handoff-bundle.js` — console string updated
+- `src/commands/reference-audit.js` — REFERENCE_CATEGORIES needle strings and expectedZones updated
+
+Tests:
+- `src/test/bridge-integrity-checks.js` — requiredStateFiles, requiredStreamFiles arrays and inline path strings updated
+- `src/test/state-integrity-checks.js` — all fixture writeFile paths, readFileSync paths, and LIVE OWNER NOTE content string updated
+- `src/test/unit-get-in-flight-packet.js` — writeNextAction temp-dir path updated
+- `src/test/unit-dry-run-check.js` — all 4 temp-dir stateDir path joins updated
+- `src/test/unit-consync-run.js` — temp-dir stateDir path join updated
+- `src/test/verify.js` — coverage map: moved consync_bridge_scaffoldai_split_behavior to COVERED
+
+Scripts:
+- `scripts/check-handoff-contract.js` — nextActionPath and handoffPath joins updated
+
+Prompts and agents:
+- `.github/prompts/run_closeout.prompt.md` — all state path references updated
+- `.github/prompts/run_next_action.prompt.md` — all state path references updated
+- `.github/agents/consync-integrity.agent.md` — streams and state path references updated
+- `.github/agents/consync-process.agent.md` — streams and state path references updated
+- `.github/copilot-instructions.md` — authority boundary text updated
+- `AGENTS.md` — authority boundary text updated
+
+Directories moved (filesystem operations):
+- `.consync/state/` → `.scaffoldai/state/`
+- `.consync/streams/` → `.scaffoldai/streams/`
+- `.consync/packets/` → `.scaffoldai/packets/`
+
+VERIFICATION NOTES
+
+- `npm run verify` — PASS (all CLI, bridge/state, system, renderer tests PASS)
+- `npm run verify:full` — PASS (preflight, unit+integration, build, e2e, postflight all PASS)
+- `npm run check:state-postflight` — PASS
+- `consync_bridge_scaffoldai_split_behavior` now in COVERED section of coverage map
+- No stale `.consync/state/` or `.consync/streams/` references remain in `src/`, `scripts/`, or `.github/`
+- `.consync/` retains: `docs/`, `product/`, `examples/`, `archive/`, `quarantine/`, `contracts/` (orphan noted)
+
 
 WHAT CHANGED
 

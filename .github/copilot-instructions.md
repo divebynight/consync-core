@@ -2,11 +2,11 @@
 
 ## Authority Boundary
 
-`.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
+`.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
 
 `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
 
-Use `.consync/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
+Use `.scaffoldai/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
 
 `.scaffoldai/agents/` defines agent roles, invocation points, and binding status. `.scaffoldai/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
 

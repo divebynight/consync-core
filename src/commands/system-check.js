@@ -21,7 +21,7 @@ function runSystemCheckCommand() {
   const warnings = [];
 
   const requiredFiles = [
-    ["handoff present", ".consync/state/handoff.md"],
+    ["handoff present", ".scaffoldai/state/handoff.md"],
   ];
 
   for (const [label, relativePath] of requiredFiles) {

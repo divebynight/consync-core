@@ -29,13 +29,13 @@ const REFERENCE_CATEGORIES = [
   },
   {
     name: "state",
-    needle: ".consync/state/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/test/"],
+    needle: ".scaffoldai/state/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/test/"],
   },
   {
     name: "streams",
-    needle: ".consync/streams/",
-    expectedZones: [".consync/", ".github/", "AGENTS.md", "src/lib/", "src/test/"],
+    needle: ".scaffoldai/streams/",
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "src/lib/", "src/test/"],
   },
 ];
 

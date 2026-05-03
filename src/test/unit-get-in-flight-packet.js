@@ -22,7 +22,7 @@ function withTempDir(fn) {
 }
 
 function writeNextAction(tempDir, content) {
-  const stateDir = path.join(tempDir, ".consync", "state");
+  const stateDir = path.join(tempDir, ".scaffoldai", "state");
   fs.mkdirSync(stateDir, { recursive: true });
   fs.writeFileSync(path.join(stateDir, "next-action.md"), content, "utf8");
 }

@@ -2,12 +2,12 @@ const fs = require("fs");
 const path = require("path");
 
 const CORE_STATE_FILES = {
-  activeStream: path.join(".consync", "state", "active-stream.md"),
-  nextAction: path.join(".consync", "state", "next-action.md"),
-  handoff: path.join(".consync", "state", "handoff.md"),
-  snapshot: path.join(".consync", "state", "snapshot.md"),
+  activeStream: path.join(".scaffoldai", "state", "active-stream.md"),
+  nextAction: path.join(".scaffoldai", "state", "next-action.md"),
+  handoff: path.join(".scaffoldai", "state", "handoff.md"),
+  snapshot: path.join(".scaffoldai", "state", "snapshot.md"),
 };
-const STREAMS_ROOT = path.join(".consync", "streams");
+const STREAMS_ROOT = path.join(".scaffoldai", "streams");
 
 const REQUIRED_HANDOFF_SECTIONS = [
   "STATUS",

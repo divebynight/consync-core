@@ -1,0 +1,1150 @@
+diff --git a/.consync/packets/packet-20260421T062146Z.md b/.consync/packets/packet-20260421T062146Z.md
+deleted file mode 100644
+index 602b809..0000000
+--- a/.consync/packets/packet-20260421T062146Z.md
++++ /dev/null
+@@ -1,75 +0,0 @@
+-PACKET_ID: packet-20260421T062146Z
+-MODE: HANDOFF_REVIEW
+-
+----
+-
+-## CURRENT_STATE
+-- `.consync/state/handoff.md` exists and closes `define_handoff_delivery_bridge_and_automation_path` with `STATUS` set to `PASS`
+-- `.consync/state/handoff.md` states that `.consync/state/handoff.md` remains the local authoritative closeout artifact
+-- `.consync/state/handoff.md` states that `.consync/docs/handoff-delivery-bridge.md` was created
+-- `.consync/state/handoff.md` states that `.consync/docs/runbook.md`, `.consync/state/snapshot.md`, `.consync/streams/process/state/next_action.md`, and `.consync/streams/process/state/snapshot.md` were modified
+-- `.consync/state/handoff.md` states that the new bridge doc defines local truth, delivery bridge, and downstream assistant state as distinct layers
+-- `.consync/state/handoff.md` states that the new bridge doc defines acceptable delivery modes from manual copy/paste through future direct tooling
+-- `.consync/state/handoff.md` states that the new bridge doc defines bridge failure modes including stale mirrors and missing stream context
+-- `.consync/state/handoff.md` states that the preferred near-term path is a small locally generated handoff bundle rather than dependence on flaky cloud transport
+-- `.consync/state/snapshot.md` states that the repo state is currently clean enough to run a new package
+-- `.consync/state/snapshot.md` states that the most recent completed package paused `electron_ui` cleanly at the timeline bookmark milestone and preserved a clear resume checkpoint
+-- `.consync/state/snapshot.md` states that the current package defines the handoff-delivery bridge so local truth and external transport stop being blurred together
+-- `.consync/state/snapshot.md` states that the active stream is `process`
+-- `.consync/state/snapshot.md` states that the recorded foreground stream is `process`
+-- `.consync/state/snapshot.md` states that the paused stream is `electron_ui`
+-- `.consync/state/snapshot.md` states that the current package is `define_handoff_delivery_bridge_and_automation_path`
+-- `.consync/state/snapshot.md` states that the mounted package is definition-only and does not yet implement automation
+-- `.consync/state/snapshot.md` states that the next likely package is `define_exportable_handoff_bundle_for_ai_rehydration`
+-- `.consync/state/next-action.md` states that the goal is to define a reliable handoff-delivery bridge between the local repo and ChatGPT
+-- `.consync/state/next-action.md` states that the bridge should distinguish local source-of-truth from external delivery mechanisms
+-- `.consync/state/next-action.md` states that acceptable delivery modes, success conditions, failure modes, and the likely automation path should be defined
+-- `.consync/state/next-action.md` states that the package should create `.consync/docs/handoff-delivery-bridge.md`
+-- `.consync/state/active-stream.md` states that `process` is the active stream and `electron_ui` is the previous and paused stream
+-- `.consync/state/active-stream.md` states that only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`
+-- `.consync/state/package_plan.md` exists with `SEQUENCE STATUS` set to `ACTIVE`
+-- `.consync/state/package_plan.md` states that the current cursor is `32`
+-- `.consync/state/package_plan.md` states that the next package is `capture_manual_observation_for_explicit_reveal_search_loop`
+-
+----
+-
+-## KNOWN_GAPS
+-- `.consync/state/snapshot.md` states that the process phase still does not implement broader repo-wide validation
+-- `.consync/state/snapshot.md` states that `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
+-- `.consync/state/snapshot.md` states that handoff delivery into ChatGPT is still a weak bridge point even when local repo state is clean
+-- `.consync/state/next-action.md` states that getting local handoff state into ChatGPT still depends too heavily on manual transfer and inconsistent external tooling behavior
+-- `.consync/state/next-action.md` states that the bridge automation is not implemented in this package
+-- `.consync/state/next-action.md` states that a full MCP server is not built in this package
+-- `.consync/state/next-action.md` states that Google Drive should not be assumed to be the permanent solution
+-- `.consync/state/handoff.md` states that the near-term path is a local exportable bundle, which implies that direct automation is not yet in place
+-- `.consync/state/handoff.md` states that Google Drive is optional and unreliable rather than required infrastructure
+-
+----
+-
+-## TASK
+-Evaluate readiness for packet-based iteration.
+-
+----
+-
+-## OUTPUT_CONTRACT
+-Return:
+-- STATUS: PASS | NEEDS_WORK
+-- SUMMARY
+-- RISKS
+-- MISSING
+-
+----
+-
+-## PROHIBITIONS
+-- Do not assume missing context
+-- Do not expand scope
+-
+----
+-
+-## RULES
+-
+-- Be deterministic
+-- Do not explain your work
+-- Do not include extra sections
+-- Do not include commentary
+-- Only output the packet file contents
+diff --git a/.consync/packets/packet-20260421T062806Z.md b/.consync/packets/packet-20260421T062806Z.md
+deleted file mode 100644
+index 6d9598a..0000000
+--- a/.consync/packets/packet-20260421T062806Z.md
++++ /dev/null
+@@ -1,74 +0,0 @@
+-PACKET_ID: packet-20260421T062806Z
+-MODE: HANDOFF_REVIEW
+-
+----
+-
+-## CURRENT_STATE
+-- `.consync/state/handoff.md` exists and closes `define_handoff_delivery_bridge_and_automation_path` with `STATUS` set to `PASS`
+-- `.consync/state/handoff.md` states that `.consync/docs/handoff-delivery-bridge.md` was created
+-- `.consync/state/handoff.md` states that `.consync/docs/runbook.md`, `.consync/state/snapshot.md`, `.consync/streams/process/state/next_action.md`, and `.consync/streams/process/state/snapshot.md` were modified
+-- `.consync/state/handoff.md` states that `.consync/state/handoff.md` is the local authoritative closeout artifact
+-- `.consync/state/handoff.md` states that the new bridge doc defines local truth, delivery bridge, and downstream assistant state as distinct layers
+-- `.consync/state/handoff.md` states that the new bridge doc defines delivery modes from manual copy/paste through future direct tooling
+-- `.consync/state/handoff.md` states that the preferred near-term path is a small locally generated handoff bundle rather than dependence on flaky cloud transport
+-- `.consync/state/snapshot.md` states that the repo state is currently clean enough to run a new package
+-- `.consync/state/snapshot.md` states that the most recent completed package paused `electron_ui` cleanly at the timeline bookmark milestone and preserved a clear resume checkpoint
+-- `.consync/state/snapshot.md` states that the current package defines the handoff-delivery bridge so local truth and external transport stop being blurred together
+-- `.consync/state/snapshot.md` states that the active stream is `process`
+-- `.consync/state/snapshot.md` states that the recorded foreground stream is `process`
+-- `.consync/state/snapshot.md` states that the paused stream is `electron_ui`
+-- `.consync/state/snapshot.md` states that the current package is `define_handoff_delivery_bridge_and_automation_path`
+-- `.consync/state/snapshot.md` states that the mounted package is definition-only and does not yet implement automation
+-- `.consync/state/snapshot.md` states that the next likely package is `define_exportable_handoff_bundle_for_ai_rehydration`
+-- `.consync/state/next-action.md` states that the goal is to define a reliable handoff-delivery bridge between the local Consync repo and ChatGPT
+-- `.consync/state/next-action.md` states that the package should create `.consync/docs/handoff-delivery-bridge.md`
+-- `.consync/state/next-action.md` states that the bridge should distinguish local truth from external delivery mechanisms
+-- `.consync/state/next-action.md` states that acceptable delivery modes, success conditions, failure modes, and the automation path should be defined
+-- `.consync/state/package_plan.md` exists with `SEQUENCE STATUS` set to `ACTIVE`
+-- `.consync/state/package_plan.md` states that the current cursor is `32`
+-- `.consync/state/package_plan.md` states that the next package is `capture_manual_observation_for_explicit_reveal_search_loop`
+-
+----
+-
+-## KNOWN_GAPS
+-- `.consync/state/snapshot.md` states that the process phase still does not implement broader repo-wide validation
+-- `.consync/state/snapshot.md` states that `package_plan.md` still reflects older sequence state and is not the best guide for the current live package
+-- `.consync/state/snapshot.md` states that handoff delivery into ChatGPT is still a weak bridge point even when local repo state is clean
+-- `.consync/state/next-action.md` states that getting local handoff state into ChatGPT still depends too heavily on manual transfer and inconsistent external tooling behavior
+-- `.consync/state/next-action.md` states that the package should not implement the automation yet
+-- `.consync/state/next-action.md` states that the package should not build a full MCP server
+-- `.consync/state/next-action.md` states that Google Drive should not be assumed to be the permanent solution
+-- `.consync/state/handoff.md` states that the near-term path is a local exportable handoff bundle, which means direct automation is not yet in place
+-
+----
+-
+-## TASK
+-Evaluate readiness for packet-based iteration.
+-
+----
+-
+-## OUTPUT_CONTRACT
+-Return:
+-- STATUS: PASS | NEEDS_WORK
+-- SUMMARY
+-- RISKS
+-- MISSING
+-
+----
+-
+-## PROHIBITIONS
+-- Do not assume missing context
+-- Do not expand scope
+-
+----
+-
+-## RULES
+-
+-- Be deterministic
+-- Do not include extra sections
+-- Do not include commentary
+-- Only output the packet file contents
+-- Do not include any narration, logs, or explanations
+-- Do not describe actions taken
+-- Do not include file read/write messages
+-- Output ONLY the packet file contents
+diff --git a/.consync/state/active-contract.json b/.consync/state/active-contract.json
+deleted file mode 100644
+index 752c63d..0000000
+--- a/.consync/state/active-contract.json
++++ /dev/null
+@@ -1,8 +0,0 @@
+-{
+-  "mode": "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+-  "allowed_packet_types": ["process", "contract", "planning"],
+-  "blocked_packet_types": ["product", "agent"],
+-  "in_flight_packet": null,
+-  "require_clean_git": true,
+-  "require_dry_run": true
+-}
+diff --git a/.consync/state/active-contract.md b/.consync/state/active-contract.md
+deleted file mode 100644
+index 9665126..0000000
+--- a/.consync/state/active-contract.md
++++ /dev/null
+@@ -1,89 +0,0 @@
+-# Active Contract
+-
+-## Purpose
+-
+-`active-contract.json` is the machine-readable state surface for the Consync process loop.
+-
+-It represents the current system mode and execution constraints. Future gatekeeper and agent logic will read this file to determine what is allowed before executing any packet.
+-
+-This file is the authoritative source of truth for:
+-- current system mode
+-- allowed and blocked packet types
+-- in-flight packet tracking
+-- basic execution constraints
+-
+-**This file is not yet enforced automatically.** Enforcement logic will be introduced in a future packet (`gatekeeper-agent-contract-v1`).
+-
+----
+-
+-## Field Reference
+-
+-### `mode`
+-The current operational mode of the system.
+-
+-Controls what categories of work are appropriate right now. Must be set explicitly when shifting context.
+-
+-Example values:
+-- `"CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN"` — process/contract design work only
+-- `"OPEN"` — general product and process work permitted
+-
+----
+-
+-### `allowed_packet_types`
+-Array of packet type strings that are permitted in the current mode.
+-
+-A future gatekeeper agent will check incoming packet types against this list before allowing execution.
+-
+-Example: `["process", "contract", "planning"]`
+-
+----
+-
+-### `blocked_packet_types`
+-Array of packet type strings that are explicitly blocked in the current mode.
+-
+-A future gatekeeper agent will reject packets matching any type in this list.
+-
+-Example: `["product", "agent"]`
+-
+----
+-
+-### `in_flight_packet`
+-The ID of any packet currently being executed, or `null` if none.
+-
+-Used to prevent concurrent packet execution. A future gatekeeper will block new packet starts if this field is non-null.
+-
+-Example: `"active-contract-file-v1"` or `null`
+-
+----
+-
+-### `require_clean_git`
+-Boolean. If `true`, a future gatekeeper will require a clean git working tree before executing any packet.
+-
+-Prevents accidental execution on top of uncommitted changes.
+-
+----
+-
+-### `require_dry_run`
+-Boolean. If `true`, a future gatekeeper will require a dry-run report to be produced and approved before executing any packet.
+-
+-Corresponds to the dry-run contract defined in `.scaffoldai/process/process-flow-map-and-dry-run-contract.process.md`.
+-
+----
+-
+-## Authoritative Surface
+-
+-This file (`active-contract.json`) is the single source of truth for system execution constraints.
+-
+-When implementing gatekeeper or agent logic, read from this file — do not hardcode mode logic or constraint values in scripts or commands.
+-
+-When shifting system mode or constraints, update this file explicitly as a tracked state change.
+-
+----
+-
+-## Not Yet Enforced
+-
+-As of the creation of this file, no enforcement logic exists.
+-
+-The contract is defined and tracked, but no command or agent currently reads it to gate execution.
+-
+-Enforcement will be introduced in: `gatekeeper-agent-contract-v1`
+diff --git a/.consync/state/active-stream.md b/.consync/state/active-stream.md
+deleted file mode 100644
+index 52cacf6..0000000
+--- a/.consync/state/active-stream.md
++++ /dev/null
+@@ -1,29 +0,0 @@
+-ACTIVE STREAM
+-
+-electron_ui
+-
+-PREVIOUS STREAM
+-
+-process
+-
+-SWITCH REASON
+-
+-Resyncing live state after the Notes-first Electron product slice completed. Recent work returned to the app surface: standalone notes, keyword suggestions, keyword filtering, and an explicit standalone note kind marker.
+-
+-PAUSED STREAMS
+-
+-- process
+-
+-SUPPORTING STREAMS
+-
+-- none
+-
+-BLOCKED STREAMS
+-
+-- none
+-
+-LIVE OWNER NOTE
+-
+-Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+-
+-The global live loop stays singular. The `process` stream is paused after state resync; future process cleanup should be mounted intentionally rather than implied by stale state.
+diff --git a/.consync/state/handoff.md b/.consync/state/handoff.md
+deleted file mode 100644
+index 4969825..0000000
+--- a/.consync/state/handoff.md
++++ /dev/null
+@@ -1,94 +0,0 @@
+-TYPE: FEATURE
+-PACKAGE: ideas-grouping-in-notes-panel-v1
+-
+-STATUS
+-
+-PASS
+-
+-SUMMARY
+-
+-Implemented grouped rendering of standalone notes by idea in the Notes panel. Pure grouping logic extracted to a new `notes-panel.mjs` module following the existing renderer `.mjs` pattern. Notes with ideas render under named section headings (alphabetical). Notes without ideas render under "Other notes" (heading suppressed when all notes have ideas). Filter-then-group order preserved. No storage format changes. No new bridge calls.
+-
+-Branch: `feature/product-design-electron`
+-
+-WHAT CHANGED
+-
+-Notes panel rendering:
+-- Flat `filteredStandaloneNotes` list replaced with grouped render driven by `groupStandaloneNotesByIdea`
+-- Each idea group renders as a `<section>` with an `<h5>` heading
+-- "Other notes" heading only appears when at least one idea group also exists
+-- Empty state behavior preserved (no notes / no filter match)
+-
+-Architecture:
+-- Pure logic extracted to `notes-panel.mjs` — no React, no browser APIs, no side effects
+-- App.jsx imports from `notes-panel.mjs` (consistent with `session-panel.mjs`, `mock-search-panel.mjs`, `bookmark-flow.mjs` pattern)
+-
+-FILES CREATED
+-
+-- `src/electron/renderer/notes-panel.mjs` — exports `groupStandaloneNotesByIdea(notes)`
+-- `src/test/unit-standalone-notes-grouping.js` — 8 unit test scenarios
+-
+-FILES MODIFIED
+-
+-- `src/electron/renderer/App.jsx` — added import from `notes-panel.mjs`; replaced flat notes render with grouped render
+-- `src/test/verify.js` — added `runNodeStep` for grouping test in RENDERER group; added `standalone_notes_grouping_logic` to COVERED map
+-
+-VERIFICATION NOTES
+-
+-- `npm run verify` — PASS (all groups: CLI, BRIDGE, SYSTEM, RENDERER including new grouping step)
+-- `npm run verify:full` — PASS (20/20 e2e, 42/42 Vitest renderer tests including existing idea-field test, all unit steps)
+-- `unit-standalone-notes-grouping.js` — PASS (8/8 scenarios: empty, null, no-idea, all-idea, mixed, same-idea order, whitespace, no mutation)
+-
+-Manual UX findings (human-verified in running app):
+-- Grouping renders correctly: notes with the same idea appear under a shared section heading
+-- "Other notes" section appears only when at least one idea group is also present
+-- Alphabetical group ordering confirmed
+-- Keyword filter continues to work across grouped and ungrouped notes
+-- Discovery: users treat the "idea" field like a tag label rather than a category name; the current label ("Idea or category (optional)") causes ambiguity with the keyword chips already present
+-- Discovery: the idea field is not prominently visible on saved notes — grouping is only apparent when multiple notes share the same idea; a single-idea note looks similar to no-idea
+-- These are UX clarity issues, not functional defects; the feature is correct as implemented
+-
+-ARCHITECTURE BOUNDARY (UNCHANGED)
+-
+-  Runtime / product:   src/
+-  ScaffoldAI PROCESS:  .scaffoldai/
+-  BRIDGE state:        .consync/state/  and  .consync/streams/
+-  Operator docs:       .consync/docs/
+-  AI adapter layer:    .github/  (thin — not canonical)
+-
+-KNOWN REMAINING RISKS
+-
+-- UX clarity gap: "idea" label and "keywords" chips are conceptually close; users may not distinguish them without better labeling or helper text. Not a defect — candidate for a follow-up UX slice.
+-- Grouping benefit is only visible when 2+ notes share an idea; single-idea notes look identical to no-idea notes in the current render. Low priority cosmetic gap.
+-- One pre-existing e2e flake on `timeline-marker-selects-inspector.spec.js` (intermittent timeout). Not introduced by this packet.
+-
+-WHAT NOT TO DO NEXT
+-
+-- Do NOT change bookmark storage format to accommodate ideas as first-class entities yet.
+-- Do NOT redesign the Notes panel layout beyond this grouping change.
+-- Do NOT push to main without human review of PR #3.
+-
+-COMMANDS TO RUN
+-
+-- `npm run check:state-preflight`
+-- `npm run verify`
+-- `npm run check:state-postflight`
+-
+-HUMAN VERIFICATION
+-
+-1. Open the app on `feature/product-design-electron`.
+-2. Navigate to the Notes section.
+-3. Add two standalone notes with idea "Song 3" and one note without an idea.
+-4. Confirm: "Song 3" section heading appears with two notes; "Other notes" section appears with one note.
+-5. Add a keyword filter — confirm filtering works across both grouped and ungrouped notes.
+-6. Add a note with a different idea (e.g. "Chapter 4") — confirm two idea sections appear in alphabetical order.
+-7. Delete all notes with ideas — confirm "Other notes" heading disappears.
+-
+-RECOMMENDED NEXT SAFE ACTION
+-
+-Stabilization observation. Session closed cleanly. Next product slice options (small):
+-- `notes-panel-ux-clarity-v1` — improve label, helper text, and idea visibility to reduce keyword/idea confusion (UI-only, no storage changes)
+-- `note-delete-from-notes-panel-v1` — delete button on standalone notes (bridge: deleteBookmark already available)
+-- `audio-hotkey-marker-v1` — fast keyboard shortcut for dropping a marker (no UI redesign)
+-
+-Do not push to main without human review of PR #3.
+diff --git a/.consync/streams/electron_ui/stream.md b/.consync/streams/electron_ui/stream.md
+deleted file mode 100644
+index 2eb7687..0000000
+--- a/.consync/streams/electron_ui/stream.md
++++ /dev/null
+@@ -1,37 +0,0 @@
+-# Stream
+-
+-- id: electron_ui
+-- title: Electron UI Behavior + Testing
+-- status: active
+-- owner: human
+-- mode: build
+-- summary: active — ideas-grouping-in-notes-panel-v1 complete and validated; system stable; next slice TBD
+-
+-## Active Checkpoint
+-
+-Current branch: `feature/product-design-electron`
+-
+-Recent completed product slices:
+-
+-- standalone note creation
+-- local keyword suggestions from note content
+-- accepted keyword persistence
+-- keyword-based note filtering
+-- explicit `kind: "standalone-note"` marker with legacy filePath fallback
+-
+-Current direction: Notes-first workflow is stable. Ideas layer is now present as an optional grouping surface on the Notes panel.
+-
+-## Completed Slices
+-
+-- `ideas-grouping-in-notes-panel-v1` (2026-05-03, validated): Standalone notes in the Notes panel now render grouped by their optional `idea` field. Notes with ideas appear under named section headings (alphabetical). Notes without ideas appear under "Other notes" (heading suppressed if all notes have ideas). Pure grouping logic extracted to `notes-panel.mjs` following existing `.mjs` pattern. 8-scenario unit test wired into verify. Session storage format unchanged. No new bridge calls.
+-
+-  Manual UX insight: users treat the "idea" field like a short tag label rather than a category name. The current "Idea or category (optional)" label sits next to keyword chips and causes confusion — users are uncertain which surface to use for labeling notes. The grouping feature is correct as built, but a UX clarity slice is needed to make the distinction legible.
+-
+-## Next Possible Slices (small)
+-
+-- `notes-panel-ux-clarity-v1` — update label text, add a helper note distinguishing idea (grouping label) from keywords (searchable tags); make idea field visible on saved note cards; UI-only, no storage changes (RECOMMENDED FIRST — addresses validated confusion)
+-- `note-delete-from-notes-panel-v1` — add a delete button to standalone notes in the Notes panel (requires bridge: deleteBookmark, already used for timeline markers)
+-- `audio-hotkey-marker-v1` — fast keyboard shortcut for dropping a marker during playback (no UI redesign)
+-- `idea-rename-in-notes-panel-v1` — allow editing the idea label on an existing standalone note (requires bridge: updateBookmark)
+-
+-Next narrow slice: mount `notes-panel-ux-clarity-v1` or choose another candidate after stabilization observation.
+diff --git a/.consync/streams/process/stream.md b/.consync/streams/process/stream.md
+deleted file mode 100644
+index b9d8d79..0000000
+--- a/.consync/streams/process/stream.md
++++ /dev/null
+@@ -1,14 +0,0 @@
+-# Stream
+-
+-- id: process
+-- title: Stream Model + Process Evolution
+-- status: paused
+-- owner: human
+-- mode: system
+-- summary: paused — state resynced to current Notes-first Electron product work
+-
+-## Pause Checkpoint
+-
+-The prior mounted process package `create_a_reusable_closeout_agent_workflow` is no longer the active work driver. Live ownership has returned to `electron_ui` after the current repo and state files were resynced.
+-
+-Future process cleanup remains useful, especially stale/missing process doc references, but it should be mounted as an explicit process packet rather than implied by stale state.
+diff --git a/.github/agents/consync-integrity.agent.md b/.github/agents/consync-integrity.agent.md
+index f0acfa5..55f5f7d 100644
+--- a/.github/agents/consync-integrity.agent.md
++++ b/.github/agents/consync-integrity.agent.md
+@@ -17,8 +17,8 @@ CONTEXT
+ This repository uses a stream-based workflow:
+ 
+ - Work is executed via next-action → handoff → verify
+-- Streams are defined under .consync/streams/
+-- The active stream is tracked in .consync/state/active-stream.md
++- Streams are defined under .scaffoldai/streams/
++- The active stream is tracked in .scaffoldai/state/active-stream.md
+ - Tests define behavioral truth
+ - Docs and stream state define expected system understanding
+ 
+diff --git a/.github/agents/consync-process.agent.md b/.github/agents/consync-process.agent.md
+index 13fc29d..272853d 100644
+--- a/.github/agents/consync-process.agent.md
++++ b/.github/agents/consync-process.agent.md
+@@ -17,9 +17,9 @@ CONTEXT
+ This repository uses a stream-based workflow:
+ 
+ - Work is executed via next-action → execution → verify → optional integrity agent → handoff → commit
+-- Streams are defined under .consync/streams/
+-- The active foreground stream is tracked in .consync/state/active-stream.md
+-- The current live loop still uses .consync/state/next-action.md and .consync/state/handoff.md
++- Streams are defined under .scaffoldai/streams/
++- The active foreground stream is tracked in .scaffoldai/state/active-stream.md
++- The current live loop still uses .scaffoldai/state/next-action.md and .scaffoldai/state/handoff.md
+ - Process docs under .scaffoldai/process/ define expected workflow behavior
+ 
+ ---
+diff --git a/.github/copilot-instructions.md b/.github/copilot-instructions.md
+index 3197279..2fbce17 100644
+--- a/.github/copilot-instructions.md
++++ b/.github/copilot-instructions.md
+@@ -2,11 +2,11 @@
+ 
+ ## Authority Boundary
+ 
+-`.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
++`.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
+ 
+ `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+ 
+-Use `.consync/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
++Use `.scaffoldai/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
+ 
+ `.scaffoldai/agents/` defines agent roles, invocation points, and binding status. `.scaffoldai/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+ 
+diff --git a/.github/prompts/run_closeout.prompt.md b/.github/prompts/run_closeout.prompt.md
+index cd6c041..61df566 100644
+--- a/.github/prompts/run_closeout.prompt.md
++++ b/.github/prompts/run_closeout.prompt.md
+@@ -2,14 +2,14 @@
+ 
+ Authoritative workflow note:
+ 
+-- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
++- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
+ - `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+ - The Closeout agent is bound to `.scaffoldai/skills/closeout-agent.md` as its current prompt/process execution surface.
+ - Treat this file as a GitHub/Copilot adapter only.
+ 
+ Read the current handoff state:
+ 
+-.consync/state/handoff.md
++.scaffoldai/state/handoff.md
+ 
+ Read the authoritative Closeout agent workflow at:
+ 
+@@ -37,11 +37,11 @@ Finalize the most recent Work Packet using the existing handoff.
+ 
+ Write full result to:
+ 
+-.consync/state/handoff.md
++.scaffoldai/state/handoff.md
+ 
+ Overwrite the file completely.
+ 
+-The final handoff in `.consync/state/handoff.md` must include these sections:
++The final handoff in `.scaffoldai/state/handoff.md` must include these sections:
+ - Status
+ - Summary
+ - Files Created
+@@ -58,7 +58,7 @@ Do NOT print the full response in chat.
+ 
+ Only reply with:
+ 
+-Wrote closeout to .consync/state/handoff.md
++Wrote closeout to .scaffoldai/state/handoff.md
+ 
+ ---
+ 
+diff --git a/.github/prompts/run_next_action.prompt.md b/.github/prompts/run_next_action.prompt.md
+index 238d555..bfdb062 100644
+--- a/.github/prompts/run_next_action.prompt.md
++++ b/.github/prompts/run_next_action.prompt.md
+@@ -1,26 +1,26 @@
+ Authoritative workflow note:
+ 
+-- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state.
++- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
+ - `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+-- Use `.consync/state/*` and `.scaffoldai/process/runbook.process.md` as authoritative.
++- Use `.scaffoldai/state/*` and `.scaffoldai/process/runbook.process.md` as authoritative.
+ - Treat this file as a GitHub/Copilot adapter only.
+ 
+ Read the file at:
+ 
+-.consync/state/next-action.md
++.scaffoldai/state/next-action.md
+ 
+ Execute it exactly as written.
+ 
+ Follow all constraints in the document.
+ 
+ Output behavior:
+-- Write the full result to: .consync/state/handoff.md
++- Write the full result to: .scaffoldai/state/handoff.md
+ - Overwrite the file completely
+ 
+ Do NOT print the full response in chat.
+ 
+ Only reply with:
+-Wrote full handoff to .consync/state/handoff.md
++Wrote full handoff to .scaffoldai/state/handoff.md
+ 
+ ## Handoff Output Rules
+ 
+diff --git a/AGENTS.md b/AGENTS.md
+index 31b097d..25d459d 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,10 +1,10 @@
+ # AGENTS
+ 
+-Consync BRIDGE truth lives under `.consync/state/` and `.consync/streams/`. ScaffoldAI PROCESS truth lives under `.scaffoldai/`.
++Consync BRIDGE truth lives under `.scaffoldai/state/` and `.scaffoldai/streams/`. ScaffoldAI PROCESS truth lives under `.scaffoldai/`.
+ 
+ Use these boundaries when working in this repo:
+ 
+-- `.consync/state/` and `.consync/streams/` are the BRIDGE source of truth for live execution state. `.consync/` also contains docs, product, archive, examples, and packets.
++- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state. `.consync/` also contains docs, product, archive, examples, and packets.
+ - `.scaffoldai/agents/` defines agent roles, invocation points, and binding status.
+ - `.scaffoldai/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
+ - `.github/` is a thin Copilot/GitHub adapter layer only. Treat it as tool-specific guidance, not the canonical Consync process model.
+@@ -26,6 +26,6 @@ Use these boundaries when working in this repo:
+ 
+ ## State + Docs Discipline
+ 
+-- Do not modify `.consync/state/*` or `.consync/docs/*` manually unless you are following the appropriate Consync workflow.
+-- Treat `.consync/state/*` as authoritative over chat memory or tool-local assumptions.
++- Do not modify `.scaffoldai/state/*` or `.consync/docs/*` manually unless you are following the appropriate Consync workflow.
++- Treat `.scaffoldai/state/*` as authoritative over chat memory or tool-local assumptions.
+ - Do not push automatically.
+diff --git a/scripts/check-handoff-contract.js b/scripts/check-handoff-contract.js
+index 41cc87e..3390464 100644
+--- a/scripts/check-handoff-contract.js
++++ b/scripts/check-handoff-contract.js
+@@ -3,8 +3,8 @@ const path = require("path");
+ const { validateLoopTexts } = require("../src/lib/handoffContractChecker");
+ 
+ const repoRoot = path.resolve(__dirname, "..");
+-const nextActionPath = path.join(repoRoot, ".consync", "state", "next-action.md");
+-const handoffPath = path.join(repoRoot, ".consync", "state", "handoff.md");
++const nextActionPath = path.join(repoRoot, ".scaffoldai", "state", "next-action.md");
++const handoffPath = path.join(repoRoot, ".scaffoldai", "state", "handoff.md");
+ 
+ function main() {
+   const nextActionText = fs.readFileSync(nextActionPath, "utf8");
+diff --git a/src/commands/consync-run.js b/src/commands/consync-run.js
+index 64722f5..4207f88 100644
+--- a/src/commands/consync-run.js
++++ b/src/commands/consync-run.js
+@@ -4,7 +4,7 @@ const readline = require("readline");
+ const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+ const { getInFlightPacket } = require("../lib/getInFlightPacket");
+ 
+-const ACTIVE_CONTRACT_PATH = ".consync/state/active-contract.json";
++const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
+ 
+ const VALID_REQUEST_TYPES = ["SDC", "CLOSEOUT", "RECOVERY", "DRY_RUN", "CANCEL", "SUPERSEDE"];
+ const VALID_PACKET_TYPES = ["product", "process", "contract", "agent", "planning", "docs", "recovery", "closeout"];
+diff --git a/src/commands/dry-run-check.js b/src/commands/dry-run-check.js
+index 1ab4793..3798b22 100644
+--- a/src/commands/dry-run-check.js
++++ b/src/commands/dry-run-check.js
+@@ -3,7 +3,7 @@ const path = require("path");
+ const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+ const { getInFlightPacket } = require("../lib/getInFlightPacket");
+ 
+-const ACTIVE_CONTRACT_PATH = ".consync/state/active-contract.json";
++const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
+ 
+ const VALID_REQUEST_TYPES = ["SDC", "CLOSEOUT", "RECOVERY", "DRY_RUN", "CANCEL", "SUPERSEDE"];
+ const VALID_PACKET_TYPES = ["product", "process", "contract", "agent", "planning", "docs", "recovery", "closeout"];
+diff --git a/src/commands/handoff-bundle.js b/src/commands/handoff-bundle.js
+index e19708a..b62ec7b 100644
+--- a/src/commands/handoff-bundle.js
++++ b/src/commands/handoff-bundle.js
+@@ -63,7 +63,7 @@ function runHandoffBundleCommand(options = {}) {
+   console.log("CONSYNC HANDOFF BUNDLE");
+   console.log("");
+   console.log("SOURCE OF TRUTH");
+-  console.log("Local repo files under .consync/ remain canonical.");
++  console.log("Local repo files under .scaffoldai/ remain canonical.");
+   console.log("This bundle is a transport artifact for re-entry.");
+   console.log("");
+ 
+diff --git a/src/commands/reentry-check.js b/src/commands/reentry-check.js
+index 1b83d79..3f55a4a 100644
+--- a/src/commands/reentry-check.js
++++ b/src/commands/reentry-check.js
+@@ -260,7 +260,7 @@ async function runReentryCheckCommand(options) {
+   if (answer === "yes" || answer === "y") {
+     console.log("Re-entry confirmed. System is ready for next mount.");
+   } else {
+-    console.log("Review .consync/state/ before proceeding. Run check:state-preflight for detailed integrity check.");
++    console.log("Review .scaffoldai/state/ before proceeding. Run check:state-preflight for detailed integrity check.");
+     process.exitCode = 1;
+   }
+ }
+diff --git a/src/commands/reference-audit.js b/src/commands/reference-audit.js
+index 31672ac..08eb00d 100644
+--- a/src/commands/reference-audit.js
++++ b/src/commands/reference-audit.js
+@@ -29,13 +29,13 @@ const REFERENCE_CATEGORIES = [
+   },
+   {
+     name: "state",
+-    needle: ".consync/state/",
+-    expectedZones: [".consync/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/test/"],
++    needle: ".scaffoldai/state/",
++    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/test/"],
+   },
+   {
+     name: "streams",
+-    needle: ".consync/streams/",
+-    expectedZones: [".consync/", ".github/", "AGENTS.md", "src/lib/", "src/test/"],
++    needle: ".scaffoldai/streams/",
++    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "src/lib/", "src/test/"],
+   },
+ ];
+ 
+diff --git a/src/commands/system-check.js b/src/commands/system-check.js
+index a9d2445..b47db9c 100644
+--- a/src/commands/system-check.js
++++ b/src/commands/system-check.js
+@@ -21,7 +21,7 @@ function runSystemCheckCommand() {
+   const warnings = [];
+ 
+   const requiredFiles = [
+-    ["handoff present", ".consync/state/handoff.md"],
++    ["handoff present", ".scaffoldai/state/handoff.md"],
+   ];
+ 
+   for (const [label, relativePath] of requiredFiles) {
+diff --git a/src/lib/gatekeeperClose.js b/src/lib/gatekeeperClose.js
+index c241ecd..1acecc9 100644
+--- a/src/lib/gatekeeperClose.js
++++ b/src/lib/gatekeeperClose.js
+@@ -267,11 +267,11 @@ async function runGatekeeperClose(rootPath) {
+     console.log(`- package: ${closeMode.packageName}`);
+     console.log(`- handoff status: ${closeMode.handoffStatus} (existing)`);
+     console.log("- files to be written:");
+-    console.log("    .consync/state/snapshot.md (Current Package section only)");
+-    console.log(`    .consync/streams/${state.activeStreamName}/stream.md (summary line only)`);
++    console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
++    console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+     console.log("- files NOT touched:");
+-    console.log("    .consync/state/handoff.md");
+-    console.log("    .consync/state/next-action.md");
++    console.log("    .scaffoldai/state/handoff.md");
++    console.log("    .scaffoldai/state/next-action.md");
+     console.log("");
+ 
+     const session = makePromptSession();
+@@ -332,11 +332,11 @@ async function runGatekeeperClose(rootPath) {
+   console.log(`- status: ${status}`);
+   console.log(`- summary: ${summary}`);
+   console.log("- files to be written:");
+-  console.log("    .consync/state/handoff.md");
+-  console.log("    .consync/state/snapshot.md (Current Package section only)");
+-  console.log(`    .consync/streams/${state.activeStreamName}/stream.md (summary line only)`);
++  console.log("    .scaffoldai/state/handoff.md");
++  console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
++  console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+   console.log("- files NOT touched:");
+-  console.log("    .consync/state/next-action.md");
++  console.log("    .scaffoldai/state/next-action.md");
+   console.log("");
+ 
+   const confirmAnswer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
+diff --git a/src/lib/gatekeeperMount.js b/src/lib/gatekeeperMount.js
+index c2eaf90..fd93ed8 100644
+--- a/src/lib/gatekeeperMount.js
++++ b/src/lib/gatekeeperMount.js
+@@ -574,9 +574,9 @@ async function runGatekeeperMount(rootPath, requestText) {
+   console.log(`- package name: ${proposedPackage}`);
+   console.log(`- integrity level: ${integrityLevel}`);
+   console.log(`- files to be written:`);
+-  console.log(`    .consync/state/next-action.md`);
+-  console.log(`    .consync/state/snapshot.md (Current Package section only)`);
+-  console.log(`    .consync/streams/${activeStreamName}/stream.md (summary line only)`);
++  console.log(`    .scaffoldai/state/next-action.md`);
++  console.log(`    .scaffoldai/state/snapshot.md (Current Package section only)`);
++  console.log(`    .scaffoldai/streams/${activeStreamName}/stream.md (summary line only)`);
+   console.log(``);
+ 
+   const answer = await promptConfirmation("CONFIRM? (yes / no / edit): ");
+diff --git a/src/lib/gatekeeperSwitch.js b/src/lib/gatekeeperSwitch.js
+index a43c9e0..ac4ead2 100644
+--- a/src/lib/gatekeeperSwitch.js
++++ b/src/lib/gatekeeperSwitch.js
+@@ -177,7 +177,7 @@ function buildActiveStreamContent(toStream, fromStream, pausedStreams, switchRea
+     "",
+     "LIVE OWNER NOTE",
+     "",
+-    `Only \`${toStream}\` currently owns \`.consync/state/next-action.md\` and \`.consync/state/handoff.md\`.`,
++    `Only \`${toStream}\` currently owns \`.scaffoldai/state/next-action.md\` and \`.scaffoldai/state/handoff.md\`.`,
+     "",
+     "The global live loop stays singular even while other streams remain durable and resumable.",
+     "",
+@@ -376,13 +376,13 @@ async function runGatekeeperSwitch(rootPath, targetStream) {
+   console.log(`- from: ${fromStream}`);
+   console.log(`- to: ${toStream}`);
+   console.log("- files to be written:");
+-  console.log(`    .consync/streams/${fromStream}/stream.md (status → paused, summary, pause checkpoint)`);
+-  console.log(`    .consync/streams/${toStream}/stream.md (status → active, summary)`);
+-  console.log("    .consync/state/active-stream.md");
+-  console.log("    .consync/state/snapshot.md (active stream + Current Package section)");
++  console.log(`    .scaffoldai/streams/${fromStream}/stream.md (status → paused, summary, pause checkpoint)`);
++  console.log(`    .scaffoldai/streams/${toStream}/stream.md (status → active, summary)`);
++  console.log("    .scaffoldai/state/active-stream.md");
++  console.log("    .scaffoldai/state/snapshot.md (active stream + Current Package section)");
+   console.log("- files NOT touched:");
+-  console.log("    .consync/state/next-action.md");
+-  console.log("    .consync/state/handoff.md");
++  console.log("    .scaffoldai/state/next-action.md");
++  console.log("    .scaffoldai/state/handoff.md");
+ 
+   if (targetHasPauseCheckpoint) {
+     console.log("");
+diff --git a/src/lib/getInFlightPacket.js b/src/lib/getInFlightPacket.js
+index 80dab4e..e9fbfc0 100644
+--- a/src/lib/getInFlightPacket.js
++++ b/src/lib/getInFlightPacket.js
+@@ -1,10 +1,10 @@
+ const fs = require("fs");
+ const path = require("path");
+ 
+-const NEXT_ACTION_PATH = ".consync/state/next-action.md";
++const NEXT_ACTION_PATH = ".scaffoldai/state/next-action.md";
+ 
+ /**
+- * Read .consync/state/next-action.md and extract the in-flight packet identifier.
++ * Read .scaffoldai/state/next-action.md and extract the in-flight packet identifier.
+  *
+  * Supports both key patterns:
+  *   PACKET_ID: <value>
+diff --git a/src/lib/intakeClassify.js b/src/lib/intakeClassify.js
+index 1a1c8fd..12a95fd 100644
+--- a/src/lib/intakeClassify.js
++++ b/src/lib/intakeClassify.js
+@@ -21,7 +21,7 @@ const TARGET_SURFACES = {
+ const OUT_OF_SCOPE = {
+   product: [".consync/ process docs", "agent definitions"],
+   process: ["src/ product code", "electron/"],
+-  docs: ["src/ code changes", ".consync/state/"],
++  docs: ["src/ code changes", ".scaffoldai/state/"],
+   tests: ["product features", "process docs"],
+   runtime: ["UI components", "process docs"],
+   adapter: ["product code", "process docs"],
+diff --git a/src/lib/stateIntegrityCheck.js b/src/lib/stateIntegrityCheck.js
+index 69f7aae..37cd0a2 100644
+--- a/src/lib/stateIntegrityCheck.js
++++ b/src/lib/stateIntegrityCheck.js
+@@ -2,12 +2,12 @@ const fs = require("fs");
+ const path = require("path");
+ 
+ const CORE_STATE_FILES = {
+-  activeStream: path.join(".consync", "state", "active-stream.md"),
+-  nextAction: path.join(".consync", "state", "next-action.md"),
+-  handoff: path.join(".consync", "state", "handoff.md"),
+-  snapshot: path.join(".consync", "state", "snapshot.md"),
++  activeStream: path.join(".scaffoldai", "state", "active-stream.md"),
++  nextAction: path.join(".scaffoldai", "state", "next-action.md"),
++  handoff: path.join(".scaffoldai", "state", "handoff.md"),
++  snapshot: path.join(".scaffoldai", "state", "snapshot.md"),
+ };
+-const STREAMS_ROOT = path.join(".consync", "streams");
++const STREAMS_ROOT = path.join(".scaffoldai", "streams");
+ 
+ const REQUIRED_HANDOFF_SECTIONS = [
+   "STATUS",
+diff --git a/src/test/bridge-integrity-checks.js b/src/test/bridge-integrity-checks.js
+index 16e48e4..f7c84ab 100644
+--- a/src/test/bridge-integrity-checks.js
++++ b/src/test/bridge-integrity-checks.js
+@@ -6,16 +6,16 @@ const TEST_NAME = "bridge-integrity-checks";
+ const repoRoot = path.resolve(__dirname, "..", "..");
+ 
+ const requiredStateFiles = [
+-  ".consync/state/next-action.md",
+-  ".consync/state/active-contract.json",
+-  ".consync/state/active-stream.md",
+-  ".consync/state/handoff.md",
+-  ".consync/state/snapshot.md",
++  ".scaffoldai/state/next-action.md",
++  ".scaffoldai/state/active-contract.json",
++  ".scaffoldai/state/active-stream.md",
++  ".scaffoldai/state/handoff.md",
++  ".scaffoldai/state/snapshot.md",
+ ];
+ 
+ const requiredStreamFiles = [
+-  ".consync/streams/process/stream.md",
+-  ".consync/streams/electron_ui/stream.md",
++  ".scaffoldai/streams/process/stream.md",
++  ".scaffoldai/streams/electron_ui/stream.md",
+ ];
+ 
+ function fail(error) {
+@@ -65,10 +65,10 @@ function main() {
+     }
+     console.log("  PASS: required stream files exist");
+ 
+-    const activeContract = JSON.parse(readRepoFile(".consync/state/active-contract.json"));
++    const activeContract = JSON.parse(readRepoFile(".scaffoldai/state/active-contract.json"));
+     console.log("  PASS: active-contract.json is valid JSON");
+ 
+-    const nextAction = readRepoFile(".consync/state/next-action.md");
++    const nextAction = readRepoFile(".scaffoldai/state/next-action.md");
+     if (activeContract.in_flight_packet === null) {
+       assert.ok(
+         /\b(?:PACKAGE|PACKET_ID):\s*NONE\b/.test(nextAction),
+@@ -77,15 +77,15 @@ function main() {
+     }
+     console.log("  PASS: active-contract.json and next-action.md agree on no active packet state");
+ 
+-    const activeStream = extractActiveStream(readRepoFile(".consync/state/active-stream.md"));
+-    const activeStreamDir = path.join(repoRoot, ".consync", "streams", activeStream);
++    const activeStream = extractActiveStream(readRepoFile(".scaffoldai/state/active-stream.md"));
++    const activeStreamDir = path.join(repoRoot, ".scaffoldai", "streams", activeStream);
+     assert.ok(fs.statSync(activeStreamDir).isDirectory(), `Expected active stream directory to exist: ${activeStreamDir}`);
+     console.log("  PASS: active-stream.md references an existing stream directory");
+ 
+-    assert.ok(readRepoFile(".consync/state/handoff.md").trim().length > 0, "Expected handoff.md to be non-empty");
++    assert.ok(readRepoFile(".scaffoldai/state/handoff.md").trim().length > 0, "Expected handoff.md to be non-empty");
+     console.log("  PASS: handoff.md is non-empty");
+ 
+-    assert.ok(readRepoFile(".consync/state/snapshot.md").trim().length > 0, "Expected snapshot.md to be non-empty");
++    assert.ok(readRepoFile(".scaffoldai/state/snapshot.md").trim().length > 0, "Expected snapshot.md to be non-empty");
+     console.log("  PASS: snapshot.md is non-empty");
+ 
+     console.log(`[${TEST_NAME}] PASS`);
+diff --git a/src/test/state-integrity-checks.js b/src/test/state-integrity-checks.js
+index d86ed84..19921c0 100644
+--- a/src/test/state-integrity-checks.js
++++ b/src/test/state-integrity-checks.js
+@@ -13,7 +13,7 @@ function writeFile(rootPath, relativePath, content) {
+ function createBaseFixture(rootPath) {
+   writeFile(
+     rootPath,
+-    ".consync/state/active-stream.md",
++    ".scaffoldai/state/active-stream.md",
+     [
+       "ACTIVE STREAM",
+       "",
+@@ -41,14 +41,14 @@ function createBaseFixture(rootPath) {
+       "",
+       "LIVE OWNER NOTE",
+       "",
+-      "Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.",
++      "Only `process` currently owns `.scaffoldai/state/next-action.md` and `.scaffoldai/state/handoff.md`.",
+       "",
+     ].join("\n")
+   );
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/next-action.md",
++    ".scaffoldai/state/next-action.md",
+     [
+       "TYPE: PROCESS",
+       "PACKAGE: sample_current_package",
+@@ -74,7 +74,7 @@ function createBaseFixture(rootPath) {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/snapshot.md",
++    ".scaffoldai/state/snapshot.md",
+     [
+       "# Consync Snapshot",
+       "",
+@@ -121,7 +121,7 @@ function createBaseFixture(rootPath) {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/streams/process/stream.md",
++    ".scaffoldai/streams/process/stream.md",
+     [
+       "# Stream",
+       "",
+@@ -137,7 +137,7 @@ function createBaseFixture(rootPath) {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/streams/electron_ui/stream.md",
++    ".scaffoldai/streams/electron_ui/stream.md",
+     [
+       "# Stream",
+       "",
+@@ -159,7 +159,7 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/handoff.md",
++    ".scaffoldai/state/handoff.md",
+     [
+       "TYPE: PROCESS",
+       "PACKAGE: previous_package",
+@@ -203,7 +203,7 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/handoff.md",
++    ".scaffoldai/state/handoff.md",
+     [
+       "TYPE: PROCESS",
+       "PACKAGE: sample_current_package",
+@@ -248,7 +248,7 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/handoff.md",
++    ".scaffoldai/state/handoff.md",
+     [
+       "TYPE: PROCESS",
+       "PACKAGE: sample_current_package",
+@@ -294,7 +294,7 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/handoff.md",
++    ".scaffoldai/state/handoff.md",
+     [
+       "TYPE: FEATURE",
+       "PACKAGE: previous_completed_package",
+@@ -340,9 +340,9 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/snapshot.md",
++    ".scaffoldai/state/snapshot.md",
+     fs
+-      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
++      .readFileSync(path.join(rootPath, ".scaffoldai/state/snapshot.md"), "utf8")
+       .replace("`process`", "`electron_ui`")
+   );
+ 
+@@ -355,17 +355,17 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/state/snapshot.md",
++    ".scaffoldai/state/snapshot.md",
+     fs
+-      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
++      .readFileSync(path.join(rootPath, ".scaffoldai/state/snapshot.md"), "utf8")
+       .replace("`electron_ui`", "`process`")
+   );
+ 
+   writeFile(
+     rootPath,
+-    ".consync/streams/process/stream.md",
++    ".scaffoldai/streams/process/stream.md",
+     fs
+-      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
++      .readFileSync(path.join(rootPath, ".scaffoldai/streams/process/stream.md"), "utf8")
+       .replace("- status: active", "- status: paused")
+   );
+ 
+@@ -378,9 +378,9 @@ function main() {
+ 
+   writeFile(
+     rootPath,
+-    ".consync/streams/process/stream.md",
++    ".scaffoldai/streams/process/stream.md",
+     fs
+-      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
++      .readFileSync(path.join(rootPath, ".scaffoldai/streams/process/stream.md"), "utf8")
+       .replace("- status: paused", "- status: active")
+   );
+ 
+diff --git a/src/test/unit-consync-run.js b/src/test/unit-consync-run.js
+index 8a8884d..d3f97b1 100644
+--- a/src/test/unit-consync-run.js
++++ b/src/test/unit-consync-run.js
+@@ -25,7 +25,7 @@ function withTempDir(fn) {
+ }
+ 
+ function writeContract(tempDir, overrides = {}) {
+-  const stateDir = path.join(tempDir, ".consync", "state");
++  const stateDir = path.join(tempDir, ".scaffoldai", "state");
+   fs.mkdirSync(stateDir, { recursive: true });
+ 
+   const contract = Object.assign(
+diff --git a/src/test/unit-dry-run-check.js b/src/test/unit-dry-run-check.js
+index d0c7250..ff0c668 100644
+--- a/src/test/unit-dry-run-check.js
++++ b/src/test/unit-dry-run-check.js
+@@ -173,7 +173,7 @@ function main() {
+       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+ 
+       try {
+-        const stateDir = path.join(tempDir, ".consync", "state");
++        const stateDir = path.join(tempDir, ".scaffoldai", "state");
+         fs.mkdirSync(stateDir, { recursive: true });
+ 
+         // Write a minimal active-contract.json
+@@ -230,7 +230,7 @@ function main() {
+       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+ 
+       try {
+-        const stateDir = path.join(tempDir, ".consync", "state");
++        const stateDir = path.join(tempDir, ".scaffoldai", "state");
+         fs.mkdirSync(stateDir, { recursive: true });
+ 
+         fs.writeFileSync(
+@@ -277,7 +277,7 @@ function main() {
+       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+ 
+       try {
+-        const stateDir = path.join(tempDir, ".consync", "state");
++        const stateDir = path.join(tempDir, ".scaffoldai", "state");
+         fs.mkdirSync(stateDir, { recursive: true });
+ 
+         fs.writeFileSync(
+@@ -333,7 +333,7 @@ function main() {
+       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
+ 
+       try {
+-        const stateDir = path.join(tempDir, ".consync", "state");
++        const stateDir = path.join(tempDir, ".scaffoldai", "state");
+         fs.mkdirSync(stateDir, { recursive: true });
+ 
+         fs.writeFileSync(
+diff --git a/src/test/unit-get-in-flight-packet.js b/src/test/unit-get-in-flight-packet.js
+index ddcacbc..067bd99 100644
+--- a/src/test/unit-get-in-flight-packet.js
++++ b/src/test/unit-get-in-flight-packet.js
+@@ -22,7 +22,7 @@ function withTempDir(fn) {
+ }
+ 
+ function writeNextAction(tempDir, content) {
+-  const stateDir = path.join(tempDir, ".consync", "state");
++  const stateDir = path.join(tempDir, ".scaffoldai", "state");
+   fs.mkdirSync(stateDir, { recursive: true });
+   fs.writeFileSync(path.join(stateDir, "next-action.md"), content, "utf8");
+ }
+diff --git a/src/test/verify.js b/src/test/verify.js
+index f570e8b..c55522e 100644
+--- a/src/test/verify.js
++++ b/src/test/verify.js
+@@ -207,6 +207,7 @@ function printCoverageMap() {
+   console.log("- sandbox_fixtures_expectations");
+   console.log("- handoff_bundle_path_boundary");
+   console.log("- standalone_notes_grouping_logic");
++  console.log("- consync_bridge_scaffoldai_split_behavior");
+   console.log("");
+   console.log(yellow("PARTIAL:"));
+   console.log("- scaffoldai_docs_process_integrity");
+@@ -218,7 +219,6 @@ function printCoverageMap() {
+   console.log("- manual_ux_review");
+   console.log("- full_product_usability");
+   console.log("- full_semantic_correctness_of_docs");
+-  console.log("- future_consync_bridge_scaffoldai_split_behavior");
+ }
+ 
+ function colorResult(status) {

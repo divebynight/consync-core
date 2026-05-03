@@ -21,7 +21,7 @@ const TARGET_SURFACES = {
 const OUT_OF_SCOPE = {
   product: [".consync/ process docs", "agent definitions"],
   process: ["src/ product code", "electron/"],
-  docs: ["src/ code changes", ".consync/state/"],
+  docs: ["src/ code changes", ".scaffoldai/state/"],
   tests: ["product features", "process docs"],
   runtime: ["UI components", "process docs"],
   adapter: ["product code", "process docs"],

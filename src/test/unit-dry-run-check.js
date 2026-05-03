@@ -173,7 +173,7 @@ function main() {
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
 
       try {
-        const stateDir = path.join(tempDir, ".consync", "state");
+        const stateDir = path.join(tempDir, ".scaffoldai", "state");
         fs.mkdirSync(stateDir, { recursive: true });
 
         // Write a minimal active-contract.json
@@ -230,7 +230,7 @@ function main() {
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
 
       try {
-        const stateDir = path.join(tempDir, ".consync", "state");
+        const stateDir = path.join(tempDir, ".scaffoldai", "state");
         fs.mkdirSync(stateDir, { recursive: true });
 
         fs.writeFileSync(
@@ -277,7 +277,7 @@ function main() {
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
 
       try {
-        const stateDir = path.join(tempDir, ".consync", "state");
+        const stateDir = path.join(tempDir, ".scaffoldai", "state");
         fs.mkdirSync(stateDir, { recursive: true });
 
         fs.writeFileSync(
@@ -333,7 +333,7 @@ function main() {
       const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-drc-"));
 
       try {
-        const stateDir = path.join(tempDir, ".consync", "state");
+        const stateDir = path.join(tempDir, ".scaffoldai", "state");
         fs.mkdirSync(stateDir, { recursive: true });
 
         fs.writeFileSync(

@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const NEXT_ACTION_PATH = ".consync/state/next-action.md";
+const NEXT_ACTION_PATH = ".scaffoldai/state/next-action.md";
 
 /**
- * Read .consync/state/next-action.md and extract the in-flight packet identifier.
+ * Read .scaffoldai/state/next-action.md and extract the in-flight packet identifier.
  *
  * Supports both key patterns:
  *   PACKET_ID: <value>

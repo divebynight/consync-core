@@ -17,9 +17,9 @@ CONTEXT
 This repository uses a stream-based workflow:
 
 - Work is executed via next-action → execution → verify → optional integrity agent → handoff → commit
-- Streams are defined under .consync/streams/
-- The active foreground stream is tracked in .consync/state/active-stream.md
-- The current live loop still uses .consync/state/next-action.md and .consync/state/handoff.md
+- Streams are defined under .scaffoldai/streams/
+- The active foreground stream is tracked in .scaffoldai/state/active-stream.md
+- The current live loop still uses .scaffoldai/state/next-action.md and .scaffoldai/state/handoff.md
 - Process docs under .scaffoldai/process/ define expected workflow behavior
 
 ---

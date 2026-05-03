@@ -574,9 +574,9 @@ async function runGatekeeperMount(rootPath, requestText) {
   console.log(`- package name: ${proposedPackage}`);
   console.log(`- integrity level: ${integrityLevel}`);
   console.log(`- files to be written:`);
-  console.log(`    .consync/state/next-action.md`);
-  console.log(`    .consync/state/snapshot.md (Current Package section only)`);
-  console.log(`    .consync/streams/${activeStreamName}/stream.md (summary line only)`);
+  console.log(`    .scaffoldai/state/next-action.md`);
+  console.log(`    .scaffoldai/state/snapshot.md (Current Package section only)`);
+  console.log(`    .scaffoldai/streams/${activeStreamName}/stream.md (summary line only)`);
   console.log(``);
 
   const answer = await promptConfirmation("CONFIRM? (yes / no / edit): ");

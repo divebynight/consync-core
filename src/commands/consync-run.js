@@ -4,7 +4,7 @@ const readline = require("readline");
 const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
 
-const ACTIVE_CONTRACT_PATH = ".consync/state/active-contract.json";
+const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
 
 const VALID_REQUEST_TYPES = ["SDC", "CLOSEOUT", "RECOVERY", "DRY_RUN", "CANCEL", "SUPERSEDE"];
 const VALID_PACKET_TYPES = ["product", "process", "contract", "agent", "planning", "docs", "recovery", "closeout"];

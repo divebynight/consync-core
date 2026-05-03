@@ -177,7 +177,7 @@ function buildActiveStreamContent(toStream, fromStream, pausedStreams, switchRea
     "",
     "LIVE OWNER NOTE",
     "",
-    `Only \`${toStream}\` currently owns \`.consync/state/next-action.md\` and \`.consync/state/handoff.md\`.`,
+    `Only \`${toStream}\` currently owns \`.scaffoldai/state/next-action.md\` and \`.scaffoldai/state/handoff.md\`.`,
     "",
     "The global live loop stays singular even while other streams remain durable and resumable.",
     "",
@@ -376,13 +376,13 @@ async function runGatekeeperSwitch(rootPath, targetStream) {
   console.log(`- from: ${fromStream}`);
   console.log(`- to: ${toStream}`);
   console.log("- files to be written:");
-  console.log(`    .consync/streams/${fromStream}/stream.md (status → paused, summary, pause checkpoint)`);
-  console.log(`    .consync/streams/${toStream}/stream.md (status → active, summary)`);
-  console.log("    .consync/state/active-stream.md");
-  console.log("    .consync/state/snapshot.md (active stream + Current Package section)");
+  console.log(`    .scaffoldai/streams/${fromStream}/stream.md (status → paused, summary, pause checkpoint)`);
+  console.log(`    .scaffoldai/streams/${toStream}/stream.md (status → active, summary)`);
+  console.log("    .scaffoldai/state/active-stream.md");
+  console.log("    .scaffoldai/state/snapshot.md (active stream + Current Package section)");
   console.log("- files NOT touched:");
-  console.log("    .consync/state/next-action.md");
-  console.log("    .consync/state/handoff.md");
+  console.log("    .scaffoldai/state/next-action.md");
+  console.log("    .scaffoldai/state/handoff.md");
 
   if (targetHasPauseCheckpoint) {
     console.log("");
