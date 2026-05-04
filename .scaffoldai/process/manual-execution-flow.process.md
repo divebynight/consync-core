@@ -40,7 +40,7 @@ No agent chaining, no auto-dispatch, no state mutation, no commits, no hidden ex
 
 - Does not chain agents or commands
 - Does not auto-dispatch or auto-mount packets
-- Does not mutate `.consync/state/`
+- Does not mutate `.scaffoldai/state/`
 - Does not write files or commit
 - Does not execute any work beyond classification/validation
 

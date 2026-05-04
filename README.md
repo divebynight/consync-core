@@ -76,6 +76,32 @@ This system remains manual and non-orchestrated. Intake and Preflight have expli
 - Run normal verification: `npm run verify`
 - Run full verification (includes e2e): `npm run verify:full`
 
+## Repo structure
+
+Each major folder has a local `README.md` that describes its boundary rules and what belongs there.
+
+| Folder | Purpose | README |
+|--------|---------|--------|
+| `src/` | Consync runtime/product code — CLI, lib, commands, Electron, tests | [src/README.md](src/README.md) |
+| `src/lib/` | Reusable product logic called by commands and Electron | [src/lib/README.md](src/lib/README.md) |
+| `src/commands/` | Thin CLI command handlers — gather input, call lib, output results | [src/commands/README.md](src/commands/README.md) |
+| `src/electron/` | Electron runtime shell: main, preload, renderer, shared | [src/electron/README.md](src/electron/README.md) |
+| `src/test/` | Automated verification: unit, integration, renderer slice, e2e | [src/test/README.md](src/test/README.md) |
+| `.scaffoldai/` | ScaffoldAI process/harness layer: agents, skills, state, streams, packets | [.scaffoldai/README.md](.scaffoldai/README.md) |
+| `.consync/` | Consync product metadata: docs, product, examples, archive | [.consync/README.md](.consync/README.md) |
+| `.github/` | GitHub/Copilot adapter layer only — not the canonical process model | [.github/README.md](.github/README.md) |
+| `sandbox/` | Deterministic dev/test artifacts: fixtures, expectations, probes | [sandbox/README.md](sandbox/README.md) |
+| `scripts/` | Project utility scripts | [scripts/README.md](scripts/README.md) |
+
+**Central boundary:**
+
+- Consync product/runtime code belongs in `src/`
+- ScaffoldAI process harness and live state belong in `.scaffoldai/`
+- Consync product metadata belongs in `.consync/`
+- `.github/` is a thin adapter layer — GitHub and Copilot files are not the canonical process model
+
+---
+
 ## For AI tools
 
 For structured execution context, system architecture, and process constraints:

@@ -39,10 +39,18 @@ function runNodeStep(title, args, group) {
   const result = spawnSync(process.execPath, args, {
     cwd: repoRoot,
     encoding: "utf8",
+    timeout: 60000,
   });
 
   printOutput(result.stdout);
   printOutput(result.stderr);
+
+  if (result.signal === "SIGTERM") {
+    console.log(red(`TIMEOUT: step did not complete within 60s — ${title}`));
+    markGroupFailed(group, title);
+    printSummary();
+    process.exit(1);
+  }
 
   if (result.status !== 0) {
     markGroupFailed(group, title);
@@ -57,13 +65,22 @@ function runCommandStep(title, command, args, group) {
   console.log(title);
   markGroupRunning(group);
 
+  // 120s timeout: npm + vitest startup can be slow; jsdom teardown occasionally hangs
   const result = spawnSync(command, args, {
     cwd: repoRoot,
     encoding: "utf8",
+    timeout: 120000,
   });
 
   printOutput(result.stdout);
   printOutput(result.stderr);
+
+  if (result.signal === "SIGTERM") {
+    console.log(red(`TIMEOUT: step did not complete within 120s — ${title}`));
+    markGroupFailed(group, title);
+    printSummary();
+    process.exit(1);
+  }
 
   if (result.status !== 0) {
     markGroupFailed(group, title);
@@ -81,7 +98,15 @@ function runExpectationStep(title, args, expectationPath, group) {
   const result = spawnSync(process.execPath, args, {
     cwd: repoRoot,
     encoding: "utf8",
+    timeout: 60000,
   });
+
+  if (result.signal === "SIGTERM") {
+    console.log(red(`TIMEOUT: step did not complete within 60s — ${title}`));
+    markGroupFailed(group, title);
+    printSummary();
+    process.exit(1);
+  }
 
   const actualOutput = result.stdout.trimEnd();
   const expectedOutput = fs.readFileSync(expectationPath, "utf8").trimEnd();

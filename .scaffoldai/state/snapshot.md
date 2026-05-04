@@ -69,4 +69,4 @@ Start from `.scaffoldai/state/snapshot.md`, then read `.scaffoldai/state/next-ac
 
 ## Bootstrap Note For New AI Conversations
 
-Start from `.consync/state/snapshot.md`, then read `.consync/state/next-action.md`, `.consync/state/handoff.md`, and `.consync/state/active-stream.md`. Treat `electron_ui` as the active stream unless a later packet deliberately switches streams.
+Start from `.scaffoldai/state/snapshot.md`, then read `.scaffoldai/state/next-action.md`, `.scaffoldai/state/handoff.md`, and `.scaffoldai/state/active-stream.md`. Treat `electron_ui` as the active stream unless a later packet deliberately switches streams.

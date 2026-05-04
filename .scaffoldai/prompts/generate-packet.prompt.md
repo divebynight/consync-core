@@ -10,10 +10,10 @@ Your job is to generate a packet using Packet Schema v0.1.
 
 Read from these files if they exist:
 
-- .consync/state/handoff.md
-- .consync/state/package_plan.md
-- .consync/state/snapshot.md
-- .consync/state/next-action.md
+- .scaffoldai/state/handoff.md
+- .scaffoldai/state/package_plan.md
+- .scaffoldai/state/snapshot.md
+- .scaffoldai/state/next-action.md
 
 If a file does not exist, ignore it.
 
@@ -53,7 +53,7 @@ DO NOT:
 
 Create a new file:
 
-.consync/packets/packet-<timestamp>.md
+.scaffoldai/packets/packet-<timestamp>.md
 
 ---
 

@@ -143,7 +143,7 @@ Before starting any work on a Feature Packet, all of the following must pass:
 | Repo is clean                 | `git status` — no uncommitted changes    |
 | No failing tests              | `npm test`                               |
 | Full verify passes            | `npm run verify:full`                    |
-| No open blocking work         | Review `.consync/state/handoff.md`       |
+| No open blocking work         | Review `.scaffoldai/state/handoff.md`    |
 | Feature is decomposed         | Packet list is written and ordered       |
 
 Do not begin packet execution until all readiness checks pass.

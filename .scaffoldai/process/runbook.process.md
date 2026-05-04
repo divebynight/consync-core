@@ -22,20 +22,22 @@ This file is not the full spec. It is the practical decision layer above the dee
 
 ## Source Of Truth Boundary
 
-- `.consync/` is the authoritative Consync process layer for state, docs, streams, prompts, skills, and gatekeeping workflows.
+- `.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/` are the BRIDGE source of truth for live execution state.
+- `.consync/docs/` — navigation and canonical entry docs.
+- `.consync/product/`, `.consync/examples/`, `.consync/archive/` — Consync product content.
 - `.scaffoldai/agents/` defines agent roles, invocation points, binding status, and the manual Entry Adapter.
 - `.scaffoldai/skills/` contains reusable procedures/skills used by agents; it is not the primary role-definition surface.
-- `.github/` is a thin Copilot/GitHub adapter layer and should point back to `.consync` for authoritative process behavior.
-- `AGENTS.md` is the Codex entry point and should direct Codex back to `.consync` rather than duplicating the full process model.
+- `.github/` is a thin Copilot/GitHub adapter layer and should point back to `.scaffoldai/` for authoritative process behavior.
+- `AGENTS.md` is the Codex entry point and should direct Codex back to `.scaffoldai/` rather than duplicating the full process model.
 
 ## How To Start A Session
 
 Read these files in order:
 
-1. `.consync/state/snapshot.md`
-2. `.consync/state/next-action.md`
-3. `.consync/state/handoff.md`
-4. `.consync/state/active-stream.md`
+1. `.scaffoldai/state/snapshot.md`
+2. `.scaffoldai/state/next-action.md`
+3. `.scaffoldai/state/handoff.md`
+4. `.scaffoldai/state/active-stream.md`
 
 Then check the repo surface:
 
@@ -55,9 +57,9 @@ The system remains manual and non-orchestrated.
 
 The live loop is still singular.
 
-- `.consync/state/next-action.md` is the live execution slot
-- `.consync/state/handoff.md` is the live closeout for the most recently completed package
-- `.consync/state/snapshot.md` is the fast re-entry artifact
+- `.scaffoldai/state/next-action.md` is the live execution slot
+- `.scaffoldai/state/handoff.md` is the live closeout for the most recently completed package
+- `.scaffoldai/state/snapshot.md` is the fast re-entry artifact
 
 Run one package at a time.
 
@@ -170,7 +172,7 @@ Heavier process or governance work should be explicit and deliberate.
 
 The system may have many durable streams, but only one live owner at a time.
 
-- `.consync/state/active-stream.md` records the active stream
+- `.scaffoldai/state/active-stream.md` records the active stream
 - the live loop should match that active stream unless an intentional switch or reconciliation is in progress
 
 If the system is closed, any stream may be chosen intentionally.
@@ -203,7 +205,7 @@ Switch streams deliberately, not implicitly.
 When switching:
 
 1. pause or close the current stream cleanly
-2. update `.consync/state/active-stream.md`
+2. update `.scaffoldai/state/active-stream.md`
 3. make `next-action.md` match the new active stream
 4. keep `handoff.md` and `snapshot.md` aligned with that reality
 
@@ -215,10 +217,10 @@ Choose the next package from repo truth, not chat memory.
 
 Primary inputs:
 
-1. `.consync/state/snapshot.md`
-2. `.consync/state/handoff.md`
-3. `.consync/state/package_plan.md`
-4. `.consync/state/active-stream.md`
+1. `.scaffoldai/state/snapshot.md`
+2. `.scaffoldai/state/handoff.md`
+3. `.scaffoldai/state/package_plan.md`
+4. `.scaffoldai/state/active-stream.md`
 5. current repo status
 
 Keep packages narrow.
@@ -252,11 +254,11 @@ When that happens:
 
 For a new AI conversation, paste or summarize:
 
-1. `.consync/state/snapshot.md`
-2. `.consync/state/next-action.md`
+1. `.scaffoldai/state/snapshot.md`
+2. `.scaffoldai/state/next-action.md`
 3. any single deeper doc directly relevant to the current package
 
-Tell the assistant to treat `.consync/state/*` as authoritative over prior conversation memory.
+Tell the assistant to treat `.scaffoldai/state/*` as authoritative over prior conversation memory.
 
 The assistant should:
 

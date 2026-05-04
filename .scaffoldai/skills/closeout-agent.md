@@ -21,9 +21,9 @@ Start from current repo truth:
 1. `git status --short`
 2. `git diff --stat`
 3. changed files themselves
-4. `.consync/state/snapshot.md`
-5. `.consync/state/next-action.md`
-6. `.consync/state/handoff.md`
+4. `.scaffoldai/state/snapshot.md`
+5. `.scaffoldai/state/next-action.md`
+6. `.scaffoldai/state/handoff.md`
 
 ## Required Workflow
 

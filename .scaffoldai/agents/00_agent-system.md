@@ -18,7 +18,7 @@ A **Consync agent** is an invoked role with a bounded responsibility, defined in
 - `.scaffoldai/skills/` holds reusable workflow instructions that an agent may reference or execute when its role calls for that skill.
 - If `.scaffoldai/agents/` and `.scaffoldai/skills/` appear to overlap, `.scaffoldai/agents/` defines the role and handoff point; `.scaffoldai/skills/` defines reusable procedure.
 - `.consync/docs/` remains the process documentation and reference surface.
-- `.consync/state/` remains authoritative live state and must not be edited manually outside the appropriate workflow.
+- `.scaffoldai/state/` remains authoritative live state and must not be edited manually outside the appropriate workflow.
 - `.github/` is an adapter layer only. It may point back to `.scaffoldai/agents/` and `.consync/docs/`, but it must not become a competing source of process truth.
 
 ## Entry Adapter

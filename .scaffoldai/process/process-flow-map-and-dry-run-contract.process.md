@@ -74,7 +74,7 @@ Each step should be independently testable.
 [2] INTAKE / GATEKEEPER
     - Classify the request type (product, process, contract, recovery, etc.)
     - Check current mode lock (if any)
-    - Read .consync/state/* to determine current state
+    - Read `.scaffoldai/state/*` to determine current state
     │
     ▼
 [3] MODE CHECK
@@ -91,7 +91,7 @@ Each step should be independently testable.
     ▼
 [5] IN-FLIGHT WORK CHECK
     - Is there an active packet that is not closed out?
-    - Check .consync/state/next-action.md and handoff.md
+    - Check `.scaffoldai/state/next-action.md` and `handoff.md`
     - If in-flight work exists and request is not closeout/recovery/cancel:
       → CLOSEOUT_REQUIRED or BLOCK
     │
@@ -143,8 +143,8 @@ Each step should be independently testable.
     │
     ▼
 [13] STATE UPDATE / NEXT CHECKPOINT
-    - Update .consync/state/handoff.md
-    - Update .consync/state/next-action.md
+    - Update `.scaffoldai/state/handoff.md`
+    - Update `.scaffoldai/state/next-action.md`
     - Mark packet as closed
     - System returns to IDLE / ready for next request
 ```
@@ -167,7 +167,7 @@ Each step should be independently testable.
 - Must not silently assume continuity from prior conversations.
 
 ### Intake / Gatekeeper Agent
-- Reads `.consync/state/*` to determine current execution context.
+- Reads `.scaffoldai/state/*` to determine current execution context.
 - Classifies the incoming request.
 - Produces a gate decision and dry-run report.
 - Does not perform product work.
@@ -435,7 +435,7 @@ advisory only.
 
 ### What it must do
 
-- Read `.consync/state/next-action.md`, `handoff.md`, and `active-stream.md`.
+- Read `.scaffoldai/state/next-action.md`, `handoff.md`, and `active-stream.md`.
 - Classify the incoming request.
 - Run a mode check against declared mode locks.
 - Check git state via `git status --porcelain`.
@@ -468,7 +468,7 @@ As of 2026-04-29, the following packets from the implementation roadmap are comp
 
 | Packet ID | Status | Notes |
 |---|---|---|
-| `active-contract-file-v1` | Done | `.consync/state/active-contract.json` exists and is read at decision time |
+| `active-contract-file-v1` | Done | `.scaffoldai/state/active-contract.json` exists and is read at decision time |
 | `gatekeeper-agent-contract-v1` | Done | `src/lib/gatekeeperDecision.js` implements the full decision logic from §4–5 |
 | `dry-run-check-command-v1` | Done | `node src/index.js dry-run-check` — simulation only; reads real state; no prompt; no execution |
 | `packet-state-tracking-v1` | Done | `src/lib/getInFlightPacket.js` reads in-flight state from `next-action.md`; `PACKAGE: NONE` is the closed-state marker |

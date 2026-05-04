@@ -17,11 +17,11 @@ Authoritative state that lives in the repo.
 
 Current authoritative closeout artifact:
 
-- `.consync/state/handoff.md`
+- `.scaffoldai/state/handoff.md`
 
 Supporting re-entry artifacts that may travel with it:
 
-- `.consync/state/snapshot.md`
+- `.scaffoldai/state/snapshot.md`
 - `.scaffoldai/process/runbook.process.md` or a compact pointer to it
 
 ### Delivery bridge
@@ -44,7 +44,7 @@ At minimum, the receiving assistant should be able to identify:
 
 ## Source-Of-Truth Rule
 
-`.consync/state/handoff.md` remains the local authoritative closeout artifact.
+`.scaffoldai/state/handoff.md` remains the local authoritative closeout artifact.
 
 The bridge is a transport layer, not a second source of truth.
 
@@ -195,4 +195,4 @@ The goal is to reduce human rehydration burden without duplicating authority acr
 ## Related Docs
 
 - `.scaffoldai/process/runbook.process.md` explains which local files should be read first during re-entry
-- `.consync/state/snapshot.md` provides the compact current-state view that should usually travel with the latest handoff
+- `.scaffoldai/state/snapshot.md` provides the compact current-state view that should usually travel with the latest handoff

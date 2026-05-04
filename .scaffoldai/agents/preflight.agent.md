@@ -30,9 +30,9 @@ This is an implicit command binding to the existing state preflight check, not a
 
 - Current user packet or task statement
 - `git status --short`
-- `.consync/state/snapshot.md`
-- `.consync/state/next-action.md`
-- `.consync/state/handoff.md`
+- `.scaffoldai/state/snapshot.md`
+- `.scaffoldai/state/next-action.md`
+- `.scaffoldai/state/handoff.md`
 - `npm run check:state-preflight` output
 - Available verification requirements for the packet surface
 
@@ -66,5 +66,5 @@ Preflight must also block if the declared EXECUTION SURFACE does not match the c
 ## Guardrails
 
 - Do not modify runtime code.
-- Do not modify `.consync/state/` manually.
+- Do not modify `.scaffoldai/state/` manually.
 - Do not treat a failed preflight as a clean pass.

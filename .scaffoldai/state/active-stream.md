@@ -24,6 +24,6 @@ BLOCKED STREAMS
 
 LIVE OWNER NOTE
 
-Only `electron_ui` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.
+Only `electron_ui` currently owns `.scaffoldai/state/next-action.md` and `.scaffoldai/state/handoff.md`.
 
 The global live loop stays singular. The `process` stream is paused after state resync; future process cleanup should be mounted intentionally rather than implied by stale state.

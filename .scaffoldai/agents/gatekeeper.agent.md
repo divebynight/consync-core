@@ -11,7 +11,7 @@ The Gatekeeper validates every incoming request before execution begins.
 
 It is a decision layer only. It does not execute work, write product files, generate packets, or modify state beyond writing its own gate decision output.
 
-The Gatekeeper reads the current system state from `.consync/state/active-contract.json` and related state files and returns exactly one gate decision.
+The Gatekeeper reads the current system state from `.scaffoldai/state/active-contract.json` and related state files and returns exactly one gate decision.
 
 No packet may proceed to execution without passing through the Gatekeeper first.
 
@@ -65,11 +65,11 @@ Must be read from the actual working tree at decision time.
 `dirty` means uncommitted changes exist. `clean` means none.
 
 **`in_flight_packet`**
-Must be read from `.consync/state/next-action.md` or `.consync/state/handoff.md`.
+Must be read from `.scaffoldai/state/next-action.md` or `.scaffoldai/state/handoff.md`.
 `null` means no packet is currently in flight.
 
 **`mode`**
-Must be read from `.consync/state/active-contract.json`.
+Must be read from `.scaffoldai/state/active-contract.json`.
 Do not assume a mode. Always read the file.
 
 ---
@@ -188,9 +188,9 @@ The Gatekeeper reads the following files at decision time. It must not act on st
 
 | File | Purpose |
 |---|---|
-| `.consync/state/active-contract.json` | Current mode, allowed/blocked packet types, constraint flags |
-| `.consync/state/next-action.md` | Whether an in-flight packet exists |
-| `.consync/state/handoff.md` | Secondary source for in-flight state and last closed packet |
+| `.scaffoldai/state/active-contract.json` | Current mode, allowed/blocked packet types, constraint flags |
+| `.scaffoldai/state/next-action.md` | Whether an in-flight packet exists |
+| `.scaffoldai/state/handoff.md` | Secondary source for in-flight state and last closed packet |
 
 ---
 
@@ -341,8 +341,8 @@ As of 2026-04-29, the Gatekeeper is in a **soft gate phase**:
 - `src/lib/gatekeeperDecision.js` implements the full decision logic defined in §4.
 - `node src/index.js dry-run-check [flags]` — reads real state, applies decision rules, prints a report. Simulation only. No prompt. No execution.
 - `node src/index.js consync-run [flags]` — reads real state, applies decision rules, prints a report, and prompts `Proceed with this action? (y/N)`. Approval only. No execution.
-- In-flight packet state is read from `.consync/state/next-action.md` via `src/lib/getInFlightPacket.js`. `PACKAGE: NONE` means no active packet.
-- Active contract is read from `.consync/state/active-contract.json`.
+- In-flight packet state is read from `.scaffoldai/state/next-action.md` via `src/lib/getInFlightPacket.js`. `PACKAGE: NONE` means no active packet.
+- Active contract is read from `.scaffoldai/state/active-contract.json`.
 
 **What is not yet implemented:**
 - Automatic enforcement (no command runs the gate without explicit invocation).

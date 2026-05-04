@@ -7,9 +7,9 @@ Structured execution context for AI tools operating in this repository.
 
 ## 1. Authority Boundary
 
-`.consync/` is the authoritative process layer.
+`.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/` are the BRIDGE source of truth for live execution state.
 
-- `.consync/state/` — live session state (read/write during execution)
+- `.scaffoldai/state/` — live session state (read/write during execution)
 - `.scaffoldai/agents/` — authoritative agent role, invocation, and binding contracts
 - `.consync/docs/` — navigation and canonical entry docs (read; write only during doc work)
 - `.scaffoldai/process/` — process docs and reference material (read; write only during doc work)
@@ -17,7 +17,7 @@ Structured execution context for AI tools operating in this repository.
 - `.scaffoldai/skills/` — reusable skill/procedure files (read before using a workflow)
 - `.github/` — thin Copilot/GitHub adapter only; not the canonical process model
 
-Do not treat `.github/` as authoritative for process behavior. Point back to `.consync/` instead.
+Do not treat `.github/` as authoritative for process behavior. Point back to `.scaffoldai/` instead.
 
 ---
 
@@ -36,12 +36,19 @@ consync-core/
   sandbox/
     fixtures/             — deterministic test data for e2e and verification
     current/              — runtime dev artifacts
-  .consync/
-    state/                — live loop state files
+  .scaffoldai/
+    state/                — live loop state files (snapshot, next-action, handoff, active-stream)
+    streams/              — stream files (process/, electron_ui/)
+    packets/              — packet artifacts
     agents/               — agent role and binding contracts
-    docs/                 — process docs
-    templates/            — work packet template
+    process/              — process docs
     skills/               — reusable skills and procedures
+    templates/            — work packet template
+  .consync/
+    docs/                 — navigation and canonical entry docs
+    product/              — product metadata
+    examples/             — examples and reference scenarios
+    archive/              — historical plans and records
   scripts/                — project scripts (state checks, Playwright helpers)
 ```
 
@@ -51,9 +58,9 @@ consync-core/
 
 | Doc | Role |
 |-----|------|
-| `.consync/state/snapshot.md` | Fast re-entry artifact — read first to understand current state |
-| `.consync/state/next-action.md` | Live execution slot — the one thing to do next |
-| `.consync/state/handoff.md` | Closeout record for the most recently completed package |
+| `.scaffoldai/state/snapshot.md` | Fast re-entry artifact — read first to understand current state |
+| `.scaffoldai/state/next-action.md` | Live execution slot — the one thing to do next |
+| `.scaffoldai/state/handoff.md` | Closeout record for the most recently completed package |
 | `.scaffoldai/process/runbook.process.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
 | `.consync/docs/current-system.md` | Current product and process truth |
 | `.scaffoldai/verification/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
@@ -126,20 +133,20 @@ This matters in multi-agent and multi-session workflows.
 ## 7. State Read/Write Rules
 
 **Read at session start (in order):**
-1. `.consync/state/snapshot.md`
-2. `.consync/state/next-action.md`
-3. `.consync/state/handoff.md`
-4. `.consync/state/active-stream.md`
+1. `.scaffoldai/state/snapshot.md`
+2. `.scaffoldai/state/next-action.md`
+3. `.scaffoldai/state/handoff.md`
+4. `.scaffoldai/state/active-stream.md`
 
 **Write during execution:**
-- `.consync/state/handoff.md` — overwrite at packet closeout
-- `.consync/state/snapshot.md` — refresh after closeout
+- `.scaffoldai/state/handoff.md` — overwrite at packet closeout
+- `.scaffoldai/state/snapshot.md` — refresh after closeout
 - `.scaffoldai/process/work-log.log.md` — append only, one entry per packet
 - `.scaffoldai/verification/ui-e2e-coverage-map.md` — update in the same commit as any new spec
 
 **Never modify without following the appropriate workflow:**
-- `.consync/state/next-action.md` — only the human or work manager sets the next action
-- `.consync/state/active-stream.md` — stream switches require explicit workflow
+- `.scaffoldai/state/next-action.md` — only the human or work manager sets the next action
+- `.scaffoldai/state/active-stream.md` — stream switches require explicit workflow
 - Any `governance` surface
 
 ---

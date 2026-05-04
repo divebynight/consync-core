@@ -52,8 +52,8 @@ Be specific. Do not allow open-ended file access.]
 Examples:
 - src/commands/[new-command].js           (create)
 - src/lib/[new-lib].js                    (create)
-- .consync/state/handoff.md               (modify)
-- .consync/state/work-log.md              (append)
+- .scaffoldai/state/handoff.md               (modify)
+- .scaffoldai/state/work-log.md              (append)
 - README.md                               (modify if needed)
 
 ---
