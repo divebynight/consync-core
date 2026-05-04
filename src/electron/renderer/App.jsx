@@ -31,6 +31,7 @@ import {
 } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
 import { groupStandaloneNotesByIdea } from "./notes-panel.mjs";
+import { getFolderSummaryExtensionRows, getFolderSummaryRows } from "./folder-summary-panel.mjs";
 
 const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
 const STANDALONE_NOTE_KIND = "standalone-note";
@@ -611,7 +612,8 @@ function getDesktopBridge() {
     typeof desktopBridge.logRendererEvent !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
-    typeof desktopBridge.runMockSearch !== "function"
+    typeof desktopBridge.runMockSearch !== "function" ||
+    typeof desktopBridge.getFolderSummary !== "function"
   ) {
     throw new Error("Consync desktop bridge is unavailable.");
   }
@@ -869,6 +871,9 @@ export function App() {
   const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
   const [supportBundleStatus, setSupportBundleStatus] = useState(null);
   const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
+  const [folderSummaryPath, setFolderSummaryPath] = useState("sandbox/fixtures/mixed-flat-small");
+  const [folderSummary, setFolderSummary] = useState(null);
+  const [folderSummaryErrorMessage, setFolderSummaryErrorMessage] = useState(null);
   const [standaloneNoteText, setStandaloneNoteText] = useState("");
   const [standaloneNoteIdea, setStandaloneNoteIdea] = useState("");
   const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
@@ -1413,8 +1418,33 @@ export function App() {
     });
   }
 
-  async function handleExportSupportBundle() {
+  async function handleRunFolderSummary(event) {
+    event.preventDefault();
+
+    if (!folderSummaryPath.trim()) {
+      return;
+    }
+
     try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.getFolderSummary(folderSummaryPath.trim());
+
+      if (!result.ok) {
+        setFolderSummaryErrorMessage(result.error || "Folder summary failed.");
+        setFolderSummary(null);
+        return;
+      }
+
+      setFolderSummary(result);
+      setFolderSummaryErrorMessage(null);
+      logRendererEvent("ui-action", { action: "folder-summary-run", path: folderSummaryPath.trim() });
+    } catch (error) {
+      setFolderSummaryErrorMessage(error.message);
+      setFolderSummary(null);
+    }
+  }
+
+  async function handleExportSupportBundle() {    try {
       const desktopBridge = getDesktopBridge();
       const result = await desktopBridge.exportSupportBundle();
 
@@ -1504,6 +1534,12 @@ export function App() {
               >
                 Help / About
               </NavigationButton>
+              <NavigationButton
+                active={activeView === "folder-summary"}
+                onClick={() => handleNavigationAction("view-folder-summary", () => setActiveView("folder-summary"))}
+              >
+                Folder Summary
+              </NavigationButton>
             </div>
             <p className="sidebar-helper-text">Need help? Open Help / About.</p>
           </article>
@@ -1563,7 +1599,9 @@ export function App() {
                 ? "Session Timeline"
                 : activeView === "help"
                   ? "Help / About"
-                  : "Session Summary"}
+                  : activeView === "folder-summary"
+                    ? "Folder Summary"
+                    : "Session Summary"}
             </h2>
           </div>
 
@@ -1580,6 +1618,58 @@ export function App() {
               supportBundleErrorMessage={supportBundleErrorMessage}
               supportBundleStatus={supportBundleStatus}
             />
+          ) : activeView === "folder-summary" ? (
+            <section className="workspace-stack">
+              <article className="panel">
+                <h3>Folder Summary</h3>
+                <p className="empty-state">Enter a folder path to scan its contents.</p>
+                <form className="search-form" onSubmit={handleRunFolderSummary}>
+                  <label className="bookmark-label" htmlFor="folder-summary-path">
+                    Folder path
+                  </label>
+                  <input
+                    id="folder-summary-path"
+                    className="bookmark-input"
+                    value={folderSummaryPath}
+                    onChange={event => {
+                      setFolderSummaryPath(event.target.value);
+                      setFolderSummary(null);
+                      setFolderSummaryErrorMessage(null);
+                    }}
+                    placeholder="e.g. sandbox/fixtures/mixed-flat-small"
+                    type="text"
+                  />
+                  <button className="bookmark-button" disabled={!folderSummaryPath.trim()} type="submit">
+                    Run Summary
+                  </button>
+                </form>
+
+                {folderSummaryErrorMessage ? (
+                  <section className="panel panel-inline panel-secondary search-error-panel">
+                    <h4>Error</h4>
+                    <p className="empty-state">{folderSummaryErrorMessage}</p>
+                  </section>
+                ) : null}
+
+                {folderSummary ? (
+                  <div className="mock-search-summary">
+                    {getFolderSummaryRows(folderSummary).map(row => (
+                      <StatusRow key={row.label} label={row.label} value={row.value} />
+                    ))}
+                    {getFolderSummaryExtensionRows(folderSummary).length > 0 ? (
+                      <section className="bookmark-section">
+                        <h4>Extensions</h4>
+                        {getFolderSummaryExtensionRows(folderSummary).map(row => (
+                          <StatusRow key={row.label} label={row.label} value={row.value} />
+                        ))}
+                      </section>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="empty-state">Run a summary to see file counts, folder counts, and extension breakdown.</p>
+                )}
+              </article>
+            </section>
           ) : activeView === "timeline" ? (
             <section className="timeline-stage">
               <SessionTimelineShell onSelectBookmark={setSelectedBookmarkId} sessionState={sessionState} />

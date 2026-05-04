@@ -1,4 +1,5 @@
 const IPC_CHANNELS = {
+  getFolderSummary: "desktop:get-folder-summary",
   getBackendSummary: "desktop:get-backend-summary",
   createBookmark: "desktop:create-bookmark",
   deleteBookmark: "desktop:delete-bookmark",

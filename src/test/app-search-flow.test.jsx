@@ -124,6 +124,14 @@ function createDesktopBridge(overrides = {}) {
     }),
     revealSearchResult: vi.fn().mockResolvedValue({ ok: true, output: "revealed" }),
     runMockSearch: vi.fn().mockResolvedValue(mockSearchResult),
+    getFolderSummary: vi.fn().mockResolvedValue({
+      ok: true,
+      absolutePath: "/tmp/test",
+      fileCount: 2,
+      folderCount: 0,
+      extensions: { ".txt": 1, ".md": 1 },
+      totalBytes: 100,
+    }),
     ...overrides,
   };
 }

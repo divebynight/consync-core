@@ -281,6 +281,9 @@ function main() {
   runNodeStep("[verify] Renderer mock search panel slice", [path.join(repoRoot, "src", "test", "renderer-mock-search-panel.js")], GROUPS.RENDERER);
   console.log("");
 
+  runNodeStep("[verify] Renderer folder summary panel slice", [path.join(repoRoot, "src", "test", "renderer-folder-summary-panel.js")], GROUPS.RENDERER);
+  console.log("");
+
   runCommandStep("[verify] Renderer search flow UI slice", npmCommand, ["run", "test:ui-search"], GROUPS.RENDERER);
   console.log("");
 
