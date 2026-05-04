@@ -219,31 +219,41 @@ function printSummary() {
   console.log(`OVERALL: ${colorResult(overall)}`);
 }
 
-function printCoverageMap() {
+function printCoverageConfidenceSummary() {
+  const COL_AREA = 32;
+  const COL_STATUS = 12;
+
+  const areas = [
+    { label: "Lib / Core",                   group: GROUPS.CLI,      signal: "unit — guid, folder-summary" },
+    { label: "CLI Commands",                  group: GROUPS.CLI,      signal: "unit + integration + expectation snapshots" },
+    { label: "Electron Bridge",               group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet" },
+    { label: "Renderer UI",                   group: GROUPS.RENDERER, signal: "panel slices + UI flow + bookmark loop" },
+    { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "smoke tests (verify:full only)" },
+    { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation" },
+    { label: "Sandbox Fixtures",              group: GROUPS.CLI,      signal: "deterministic expectation snapshots" },
+  ];
+
   console.log("");
-  console.log(cyan("VERIFY COVERAGE MAP"));
+  console.log(cyan("SYSTEM COVERAGE CONFIDENCE"));
   console.log("");
-  console.log(green("COVERED:"));
-  console.log("- cli_command_tests");
-  console.log("- bridge_state_integrity");
-  console.log("- gatekeeper_decision_rules");
-  console.log("- intake_preflight_verify_agents");
-  console.log("- renderer_ui_slices");
-  console.log("- sandbox_fixtures_expectations");
-  console.log("- handoff_bundle_path_boundary");
-  console.log("- standalone_notes_grouping_logic");
-  console.log("- consync_bridge_scaffoldai_split_behavior");
+
+  const headerArea = "System Area".padEnd(COL_AREA);
+  const headerStatus = "Status".padEnd(COL_STATUS);
+  console.log(`${headerArea}  ${headerStatus}  Coverage`);
+  console.log("-".repeat(88));
+
+  for (const { label, group, signal } of areas) {
+    const result = groupResults.get(group);
+    const status = result ? result.status : "NOT RUN";
+
+    const dotsCount = Math.max(2, COL_AREA - label.length - 1);
+    const areaCol = label + " " + ".".repeat(dotsCount);
+    const statusPadding = " ".repeat(Math.max(0, COL_STATUS - status.length));
+
+    console.log(`${areaCol}  ${colorResult(status)}${statusPadding}  ${signal}`);
+  }
+
   console.log("");
-  console.log(yellow("PARTIAL:"));
-  console.log("- scaffoldai_docs_process_integrity");
-  console.log("- tool_adapter_references");
-  console.log("- electron_packaging_build_surface");
-  console.log("- system_mind_document_semantic_correctness");
-  console.log("");
-  console.log(red("NOT_COVERED:"));
-  console.log("- manual_ux_review");
-  console.log("- full_product_usability");
-  console.log("- full_semantic_correctness_of_docs");
 }
 
 function colorResult(status) {
@@ -399,7 +409,7 @@ function main() {
   console.log("");
 
   printSummary();
-  printCoverageMap();
+  printCoverageConfidenceSummary();
   console.log("");
   console.log("[verify] PASS");
 }
