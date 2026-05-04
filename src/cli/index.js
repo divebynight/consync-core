@@ -20,6 +20,7 @@ const { runDryRunCheckCommand } = require("../commands/dry-run-check");
 const { runConsyncRunCommand } = require("../commands/consync-run");
 const { runIntakeRunCommand } = require("../commands/intake-run");
 const { runReferenceAuditCommand } = require("../commands/reference-audit");
+const { runFolderSummaryCommand } = require("../commands/folder-summary");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -211,6 +212,11 @@ async function main() {
 
   if (command === "reference-audit") {
     runReferenceAuditCommand();
+    return;
+  }
+
+  if (command === "folder-summary") {
+    runFolderSummaryCommand(process.argv[3]);
     return;
   }
 

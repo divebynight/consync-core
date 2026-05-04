@@ -388,7 +388,8 @@ function main() {
     runNodeStep("[verify] Verify agent execution", [path.join(repoRoot, "src", "test", "unit-verify-run.js")], GROUPS.CLI);
     console.log("");
 
-  runNodeStep("[verify] Surface summary", [path.join(repoRoot, "src", "index.js"), "system-summary"], GROUPS.SYSTEM);
+  runNodeStep("[verify] Folder summary lib", [path.join(repoRoot, "src", "test", "unit-folder-summary.js")], GROUPS.CLI);
+  console.log("");
   console.log("");
 
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM);
