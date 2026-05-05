@@ -7,7 +7,6 @@ Consync is a small local-first tool for tracking creative work. It organizes ses
 - Captures session context and artifact metadata locally
 - Runs structured development loops: plan → packet → test → verify → commit
 - Provides a desktop scaffold for browsing and searching work
-- Keeps a portable `.consync/` process boundary that travels with the repo
 
 ## How work happens
 
@@ -68,7 +67,7 @@ This system remains manual and non-orchestrated. Intake and Preflight have expli
 **Feature development process:**
 - How to plan and break down a feature → [`.scaffoldai/process/feature-planning-and-packetization.process.md`](.scaffoldai/process/feature-planning-and-packetization.process.md)
 - Coordination model for multi-packet features → [`.scaffoldai/process/feature-packet-execution.process.md`](.scaffoldai/process/feature-packet-execution.process.md)
-- Canonical example (Search Panel e2e coverage) → [`.consync/examples/search-panel-feature-example.md`](.consync/examples/search-panel-feature-example.md)
+- Canonical example (Search Panel e2e coverage) → [`repo-archive/consync-legacy/examples/search-panel-feature-example.md`](repo-archive/consync-legacy/examples/search-panel-feature-example.md)
 
 **Running the project:**
 - Start the desktop app: `npm run start:desktop`
@@ -88,7 +87,6 @@ Each major folder has a local `README.md` that describes its boundary rules and 
 | `src/electron/` | Electron runtime shell: main, preload, renderer, shared | [src/electron/README.md](src/electron/README.md) |
 | `src/test/` | Automated verification: unit, integration, renderer slice, e2e | [src/test/README.md](src/test/README.md) |
 | `.scaffoldai/` | ScaffoldAI process/harness layer: agents, skills, state, streams, packets | [.scaffoldai/README.md](.scaffoldai/README.md) |
-| `.consync/` | Consync product metadata: docs, product, examples, archive | [.consync/README.md](.consync/README.md) |
 | `.github/` | GitHub/Copilot adapter layer only — not the canonical process model | [.github/README.md](.github/README.md) |
 | `sandbox/` | Deterministic dev/test artifacts: fixtures, expectations, probes | [sandbox/README.md](sandbox/README.md) |
 | `scripts/` | Project utility scripts | [scripts/README.md](scripts/README.md) |
@@ -97,7 +95,6 @@ Each major folder has a local `README.md` that describes its boundary rules and 
 
 - Consync product/runtime code belongs in `src/`
 - ScaffoldAI process harness and live state belong in `.scaffoldai/`
-- Consync product metadata belongs in `.consync/`
 - `.github/` is a thin adapter layer — GitHub and Copilot files are not the canonical process model
 
 ---

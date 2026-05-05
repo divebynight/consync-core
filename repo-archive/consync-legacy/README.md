@@ -1,21 +1,28 @@
-# .consync/
+# consync-legacy
 
-## Purpose
+This folder contains legacy/reference material formerly stored at repo-root `.consync/`.
 
-This folder belongs to the Consync product metadata layer.
+## Why it moved
 
-It holds product concepts, documentation, examples, and archival records related to the Consync product — not ScaffoldAI process state, and not runtime code.
+`.consync/` at the repo root is reserved for real Consync app-created product and session metadata — the kind the running application generates during actual usage (state, streams, session anchors, etc.).
 
----
+The material in this folder is legacy planning, archive, and reference content from earlier phases of Consync development. It is not active runtime data. Its presence at repo-root `.consync/` was misleading because it could be confused with live product metadata.
 
-## What Belongs Here
+## What is here
 
-- `docs/` — navigation docs and canonical entry points for the Consync product (e.g. `current-system.md`)
-- `product/` — product metadata, vision, and definition artifacts
-- `examples/` — reference examples and scenario illustrations for Consync behavior
-- `archive/` — historical plans and records intentionally preserved for reference
-- `contracts/` — product-level contracts (e.g. bridge ownership boundary); distinct from ScaffoldAI process contracts
-- `quarantine/` — content held pending review or reclassification
+- `archive/` — historical plans and process documents from earlier development
+- `contracts/` — earlier contract/spec material
+- `docs/` — reference docs from pre-`.scaffoldai/` era
+- `examples/` — earlier feature examples
+- `product/` — product planning material
+- `quarantine/` — previously quarantined content
+
+## Rules
+
+- Do not restore this folder to repo-root `.consync/` unless Consync itself creates it during real usage.
+- If the Consync app writes a `.consync/` folder at repo root as part of normal operation, that is correct and expected — it will contain real runtime data, not this content.
+- Contents here may be reorganized later into proper `docs/`, `examples/`, or permanent archive locations.
+- Active process and agent state belongs in `.scaffoldai/`.
 
 ---
 
