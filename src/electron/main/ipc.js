@@ -236,6 +236,22 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
   });
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
   ipcMainLike.handle(IPC_CHANNELS.getFolderSummary, (_event, targetPath) => summarizeFolder(targetPath || ""));
+  ipcMainLike.handle(IPC_CHANNELS.selectWorkspace, async () => {
+    if (process.env.CONSYNC_E2E_WORKSPACE_FIXTURE) {
+      return { ok: true, path: process.env.CONSYNC_E2E_WORKSPACE_FIXTURE };
+    }
+
+    const selection = await dialogLike.showOpenDialog({
+      properties: ["openDirectory"],
+      title: "Select Workspace Folder",
+    });
+
+    if (!selection || selection.canceled || !Array.isArray(selection.filePaths) || !selection.filePaths[0]) {
+      return { ok: false, canceled: true };
+    }
+
+    return { ok: true, path: selection.filePaths[0] };
+  });
 }
 
 module.exports = {

@@ -32,6 +32,7 @@ import {
 import { getSessionPanelRows } from "./session-panel.mjs";
 import { groupStandaloneNotesByIdea } from "./notes-panel.mjs";
 import { getFolderSummaryExtensionRows, getFolderSummaryRows } from "./folder-summary-panel.mjs";
+import { getWorkspacePanelRows, hasActiveWorkspace } from "./workspace-panel.mjs";
 
 const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
 const STANDALONE_NOTE_KIND = "standalone-note";
@@ -613,7 +614,8 @@ function getDesktopBridge() {
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
     typeof desktopBridge.runMockSearch !== "function" ||
-    typeof desktopBridge.getFolderSummary !== "function"
+    typeof desktopBridge.getFolderSummary !== "function" ||
+    typeof desktopBridge.selectWorkspace !== "function"
   ) {
     throw new Error("Consync desktop bridge is unavailable.");
   }
@@ -874,6 +876,7 @@ export function App() {
   const [folderSummaryPath, setFolderSummaryPath] = useState("sandbox/fixtures/mixed-flat-small");
   const [folderSummary, setFolderSummary] = useState(null);
   const [folderSummaryErrorMessage, setFolderSummaryErrorMessage] = useState(null);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [standaloneNoteText, setStandaloneNoteText] = useState("");
   const [standaloneNoteIdea, setStandaloneNoteIdea] = useState("");
   const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
@@ -1444,6 +1447,25 @@ export function App() {
     }
   }
 
+  async function handleSelectWorkspace() {
+    try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.selectWorkspace();
+
+      if (!result.ok || !result.path) {
+        return;
+      }
+
+      setActiveWorkspace(result.path);
+      setFolderSummaryPath(result.path);
+      setFolderSummary(null);
+      setFolderSummaryErrorMessage(null);
+      logRendererEvent("ui-action", { action: "workspace-selected", path: result.path });
+    } catch (error) {
+      logRendererEvent("ui-action", { action: "workspace-select-error", error: error.message });
+    }
+  }
+
   async function handleExportSupportBundle() {    try {
       const desktopBridge = getDesktopBridge();
       const result = await desktopBridge.exportSupportBundle();
@@ -1542,6 +1564,20 @@ export function App() {
               </NavigationButton>
             </div>
             <p className="sidebar-helper-text">Need help? Open Help / About.</p>
+          </article>
+
+          <article className="panel panel-secondary">
+            <h2>Active Workspace</h2>
+            {getWorkspacePanelRows(activeWorkspace).map(row => (
+              <StatusRow key={row.label} label={row.label} value={row.value} />
+            ))}
+            <button
+              className="bookmark-button bookmark-button-secondary"
+              onClick={handleSelectWorkspace}
+              type="button"
+            >
+              {hasActiveWorkspace(activeWorkspace) ? "Change Workspace" : "Choose Workspace"}
+            </button>
           </article>
 
           <article className="panel panel-secondary">

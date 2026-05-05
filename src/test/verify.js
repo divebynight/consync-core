@@ -294,6 +294,9 @@ function main() {
   runNodeStep("[verify] Renderer folder summary panel slice", [path.join(repoRoot, "src", "test", "renderer-folder-summary-panel.js")], GROUPS.RENDERER);
   console.log("");
 
+  runNodeStep("[verify] Renderer workspace panel slice", [path.join(repoRoot, "src", "test", "renderer-workspace-panel.js")], GROUPS.RENDERER);
+  console.log("");
+
   runCommandStep("[verify] Renderer search flow UI slice", npmCommand, ["run", "test:ui-search"], GROUPS.RENDERER);
   console.log("");
 

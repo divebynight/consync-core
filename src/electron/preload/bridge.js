@@ -50,6 +50,9 @@ function createDesktopBridge(invoke) {
     getFolderSummary(targetPath) {
       return invoke(IPC_CHANNELS.getFolderSummary, targetPath);
     },
+    selectWorkspace() {
+      return invoke(IPC_CHANNELS.selectWorkspace);
+    },
     getBridgeStatus() {
       return Promise.resolve({
         status: "ready",

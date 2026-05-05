@@ -132,6 +132,7 @@ function createDesktopBridge(overrides = {}) {
       extensions: { ".txt": 1, ".md": 1 },
       totalBytes: 100,
     }),
+    selectWorkspace: vi.fn().mockResolvedValue({ ok: false, canceled: true }),
     ...overrides,
   };
 }
