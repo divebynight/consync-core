@@ -246,6 +246,84 @@ function checkArchitectureInvariants() {
 }
 
 // -----------------------------------------------------------------------
+// E. intakeClassify docs routing (v2)
+//    Assert TARGET_SURFACES.docs is correctly routed away from .consync/docs
+//    and toward active documentation surfaces.
+// -----------------------------------------------------------------------
+
+function checkIntakeClassifyDocsRouting() {
+  const classifyPath = path.join(repoRoot, "src", "lib", "intakeClassify.js");
+  assert.ok(fs.existsSync(classifyPath), "Expected src/lib/intakeClassify.js to exist");
+
+  const { classifyInput } = require(classifyPath);
+
+  // Trigger the docs classification by using a known docs keyword.
+  const result = classifyInput("write a readme document");
+
+  assert.strictEqual(result.classification, "docs", "Expected 'document' prompt to classify as docs");
+
+  const surfaces = result.targetSurfaces;
+
+  assert.ok(
+    !surfaces.some((s) => s.includes(".consync/docs")),
+    `TARGET_SURFACES.docs must not include '.consync/docs'. Got: ${JSON.stringify(surfaces)}`
+  );
+  console.log("  PASS: TARGET_SURFACES.docs does not include .consync/docs");
+
+  assert.ok(
+    surfaces.includes("README.md"),
+    `TARGET_SURFACES.docs must include 'README.md'. Got: ${JSON.stringify(surfaces)}`
+  );
+  console.log("  PASS: TARGET_SURFACES.docs includes README.md");
+
+  assert.ok(
+    surfaces.includes(".scaffoldai/process/"),
+    `TARGET_SURFACES.docs must include '.scaffoldai/process/'. Got: ${JSON.stringify(surfaces)}`
+  );
+  console.log("  PASS: TARGET_SURFACES.docs includes .scaffoldai/process/");
+
+  assert.ok(
+    surfaces.includes(".scaffoldai/examples/"),
+    `TARGET_SURFACES.docs must include '.scaffoldai/examples/'. Got: ${JSON.stringify(surfaces)}`
+  );
+  console.log("  PASS: TARGET_SURFACES.docs includes .scaffoldai/examples/");
+}
+
+// -----------------------------------------------------------------------
+// F. reference-audit path targets (v2)
+//    Assert all REFERENCE_CATEGORIES in reference-audit.js use .scaffoldai/
+//    needles, not stale .consync/ targets.
+// -----------------------------------------------------------------------
+
+function checkReferenceAuditPathTargets() {
+  const auditPath = path.join(repoRoot, "src", "commands", "reference-audit.js");
+  assert.ok(fs.existsSync(auditPath), "Expected src/commands/reference-audit.js to exist");
+
+  const content = fs.readFileSync(auditPath, "utf8");
+
+  const stalePatterns = [".consync/state", ".consync/streams", ".consync/docs", ".consync/packets"];
+
+  for (const stale of stalePatterns) {
+    assert.ok(
+      !content.includes(stale),
+      `reference-audit.js must not reference stale path '${stale}'`
+    );
+  }
+  console.log("  PASS: reference-audit.js contains no stale .consync/ path targets");
+
+  // Assert it does reference .scaffoldai/ paths as expected.
+  assert.ok(
+    content.includes(".scaffoldai/state/"),
+    "Expected reference-audit.js to reference .scaffoldai/state/ as a tracked zone"
+  );
+  assert.ok(
+    content.includes(".scaffoldai/process/"),
+    "Expected reference-audit.js to reference .scaffoldai/process/ as a tracked zone"
+  );
+  console.log("  PASS: reference-audit.js references .scaffoldai/ zones correctly");
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -257,6 +335,8 @@ function main() {
     checkReadmeLinkIntegrity();
     checkVerifySurfaceInvariants();
     checkArchitectureInvariants();
+    checkIntakeClassifyDocsRouting();
+    checkReferenceAuditPathTargets();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
