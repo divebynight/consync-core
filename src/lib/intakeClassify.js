@@ -10,7 +10,7 @@ const TYPE_PATTERNS = {
 const TARGET_SURFACES = {
   product: ["src/", "electron/"],
   process: [".scaffoldai/process/", ".scaffoldai/agents/"],
-  docs: [".consync/docs/", "README.md"],
+  docs: ["README.md", ".scaffoldai/process/", ".scaffoldai/examples/"],
   tests: ["src/test/"],
   runtime: ["src/core/", "src/lib/"],
   adapter: [".github/"],
