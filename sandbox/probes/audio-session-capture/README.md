@@ -6,7 +6,7 @@ It is testing whether a very small local-first capture loop is enough to create 
 
 ## What It Writes
 
-The script writes one JSON session file per run in the current working directory under `.consync/sessions/`.
+The script writes one JSON session file per run in the current working directory. Output goes to a local `sessions/` folder relative to the working directory — this is workspace-local runtime data, not repo-root state.
 
 Each session file includes:
 

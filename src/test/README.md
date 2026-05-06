@@ -56,7 +56,6 @@ Located in `e2e/` — run by `npm run test:e2e` against a live Vite renderer dev
 - CLI command handlers (belong in `src/commands/`)
 - Test fixtures and expected output files (belong in `sandbox/fixtures/` and `sandbox/expectations/`)
 - ScaffoldAI process state or docs (belong under `.scaffoldai/`)
-- Consync product metadata (belongs under `.consync/`)
 
 ---
 

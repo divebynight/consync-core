@@ -33,7 +33,6 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - Electron IPC handlers or window management (belong in `src/electron/main/`)
 - React UI components or renderer logic (belong in `src/electron/renderer/`)
 - ScaffoldAI process state, agents, or docs (belong under `.scaffoldai/`)
-- Consync product metadata files (belong under `.consync/`)
 - Test files (belong in `src/test/`)
 
 ---

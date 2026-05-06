@@ -47,7 +47,6 @@ Safe to import from both main and preload. Must not import from either.
 - Business logic that is not Electron-specific (belongs in `src/lib/`)
 - CLI command handlers (belong in `src/commands/`)
 - ScaffoldAI process state or docs (belong under `.scaffoldai/`)
-- Consync product metadata (belongs under `.consync/`)
 - Test files (belong in `src/test/`)
 
 ---

@@ -24,7 +24,6 @@ It contains the CLI entry point, command handlers, shared logic, the Electron de
 
 - ScaffoldAI process state (`.scaffoldai/state/`, `.scaffoldai/streams/`, `.scaffoldai/packets/`)
 - ScaffoldAI agents, skills, prompts, or process docs
-- Consync product metadata files (`.consync/docs/`, `.consync/product/`)
 - Work packets, handoff records, or snapshot files
 - Sandbox fixtures or probes (those live in `sandbox/`)
 
@@ -47,7 +46,6 @@ It contains the CLI entry point, command handlers, shared logic, the Electron de
 | `sandbox/` | Test fixtures, probes, and runtime dev artifacts used during development |
 | `scripts/` | Project utility scripts (state checks, Playwright helpers) — not product runtime |
 | `.scaffoldai/` | ScaffoldAI process harness — separate from product code |
-| `.consync/` | Consync product metadata — separate from runtime code |
 
 ---
 

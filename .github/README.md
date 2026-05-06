@@ -22,7 +22,6 @@ It wires GitHub-specific and Copilot-specific tooling into the repo. It is not t
 - Canonical ScaffoldAI process documentation (belongs under `.scaffoldai/process/`)
 - Agent role definitions or binding contracts (belong under `.scaffoldai/agents/`)
 - Live loop state: next-action, handoff, snapshot (belong under `.scaffoldai/state/`)
-- Consync product metadata (belongs under `.consync/`)
 - Consync runtime/product code (belongs in `src/`)
 
 ---
@@ -43,7 +42,6 @@ It wires GitHub-specific and Copilot-specific tooling into the repo. It is not t
 | `.scaffoldai/` | The canonical ScaffoldAI process layer — agents, state, process docs, skills, and prompts all live here |
 | `.scaffoldai/agents/` | Authoritative agent role and binding contracts; `.github/agents/` are adapter-only inspection roles |
 | `.scaffoldai/prompts/` | Canonical prompt files; `.github/prompts/` are Copilot-specific entry points that delegate to these |
-| `.consync/` | Consync product metadata — separate from this adapter layer |
 
 ---
 

@@ -20,7 +20,6 @@ It is a development tool, not a Consync runtime data store.
 ## What Does NOT Belong Here
 
 - ScaffoldAI process state (`.scaffoldai/state/`, `.scaffoldai/streams/`, `.scaffoldai/packets/`)
-- Consync product metadata (`.consync/docs/`, `.consync/product/`)
 - User-facing Consync session data or GUID metadata
 - Work packets, handoff records, or snapshot files
 - Production runtime data of any kind
@@ -43,7 +42,6 @@ It is a development tool, not a Consync runtime data store.
 | `src/test/` | Test runners and unit/integration/e2e test files; they reference fixtures and expectations here |
 | `src/commands/` | CLI commands exercised against fixtures during verify |
 | `.scaffoldai/` | ScaffoldAI process harness — separate from sandbox artifacts |
-| `.consync/` | Consync product metadata — separate from development fixtures |
 
 ---
 

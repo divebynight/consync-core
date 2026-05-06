@@ -34,7 +34,6 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - Electron IPC handlers or window management (belong in `src/electron/main/`)
 - React UI or renderer code (belongs in `src/electron/renderer/`)
 - ScaffoldAI process state, agents, or docs (belong under `.scaffoldai/`)
-- Consync product metadata (belongs under `.consync/`)
 - Test files (belong in `src/test/`)
 
 ---

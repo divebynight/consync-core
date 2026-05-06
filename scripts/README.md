@@ -19,7 +19,6 @@ These scripts are not Consync runtime/product code and not ScaffoldAI process do
 
 - Consync runtime/product logic (belongs in `src/lib/` or `src/commands/`)
 - ScaffoldAI process documentation, agents, or state files (belong under `.scaffoldai/`)
-- Consync product metadata (belongs under `.consync/`)
 - Test assertions or test fixtures (belong in `src/test/` and `sandbox/`)
 
 ---
