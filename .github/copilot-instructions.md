@@ -14,6 +14,16 @@ Use `.scaffoldai/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaff
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
 
+## Temp and Runtime Artifact Boundary
+
+Do NOT write temporary files, logs, generated artifacts, or runtime scratch output outside the project root unless explicitly approved by the human.
+
+Use `.scaffoldai/tmp/` for all ScaffoldAI and tooling temp/debug/verify output. This directory is gitignored (contents excluded, directory tracked via `.gitkeep`).
+
+Do NOT use `/tmp`, `~/`, or any path outside the repo for ScaffoldAI runtime logs, verification output, or debug artifacts.
+
+This applies to: shell commands, subagent queries, inline terminal commands, and any code that writes runtime artifacts.
+
 ## Agent Invocation Rules
 
 Consync uses manual, explicit agent invocation. No orchestrator, runner, automatic dispatcher, or hidden agent pipeline exists.
