@@ -16,13 +16,30 @@ Treat `.github/` as a thin Copilot/GitHub adapter layer only.
 
 ## Temp and Runtime Artifact Boundary
 
+**HARD RULE: Never write to `/tmp`, `/var/tmp`, `~/`, `~/Desktop`, `~/Downloads`, or any path outside the repo root.**
+
 Do NOT write temporary files, logs, generated artifacts, or runtime scratch output outside the project root unless explicitly approved by the human.
 
 Use `.scaffoldai/tmp/` for all ScaffoldAI and tooling temp/debug/verify output. This directory is gitignored (contents excluded, directory tracked via `.gitkeep`).
 
-Do NOT use `/tmp`, `~/`, or any path outside the repo for ScaffoldAI runtime logs, verification output, or debug artifacts.
+Treat `/tmp` usage as a process boundary violation. It is not acceptable as a shortcut for piping or tail operations.
 
-This applies to: shell commands, subagent queries, inline terminal commands, and any code that writes runtime artifacts.
+This applies to: shell commands, subagent queries, inline terminal commands, execution subagents, and any code that writes runtime artifacts.
+
+**Correct pattern — pipe or redirect to `.scaffoldai/tmp/`:**
+```
+npm run verify:scaffoldai > .scaffoldai/tmp/verify_sai.log 2>&1 && tail -n 8 .scaffoldai/tmp/verify_sai.log
+```
+
+**Forbidden — do not use `/tmp` for any command output:**
+```
+npm run verify:scaffoldai > /tmp/check_output 2>&1   ← VIOLATION
+```
+
+If you need to capture and inspect output without leaving a log file, use a pipeline instead:
+```
+npm run verify:scaffoldai 2>&1 | tail -n 8
+```
 
 ## Agent Invocation Rules
 

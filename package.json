@@ -36,6 +36,9 @@
     "scaffoldai:mcp": "node src/mcp/server.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
+    "test:mcp:smoke": "node src/test/mcp-smoke.js",
+    "test:mcp:e2e": "node src/test/mcp-transport-e2e.js",
+    "test:mcp": "npm run test:mcp:smoke && npm run test:mcp:e2e",
     "test": "npm run test:unit && npm run test:integration",
     "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"
   },
