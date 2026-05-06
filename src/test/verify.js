@@ -14,7 +14,20 @@ const GROUPS = {
   E2E: "E2E TESTS",
 };
 
+const SURFACES = {
+  CONSYNC: "consync",
+  SCAFFOLDAI: "scaffoldai",
+  ALL: "all",
+};
+
+const surfaceArg = process.argv.find((arg) => arg.startsWith("--surface="));
+const activeSurface = surfaceArg ? surfaceArg.split("=")[1] : SURFACES.ALL;
+
 const groupResults = new Map(Object.values(GROUPS).map((group) => [group, { status: "NOT RUN", failedStep: null }]));
+
+function shouldRunSurface(surface) {
+  return activeSurface === SURFACES.ALL || surface === SURFACES.ALL || surface === activeSurface;
+}
 
 function green(text) {
   return `\x1b[32m${text}${reset}`;
@@ -32,7 +45,8 @@ function cyan(text) {
   return `\x1b[36m${text}${reset}`;
 }
 
-function runNodeStep(title, args, group) {
+function runNodeStep(title, args, group, surface = SURFACES.CONSYNC) {
+  if (!shouldRunSurface(surface)) return;
   console.log(title);
   markGroupRunning(group);
 
@@ -61,7 +75,8 @@ function runNodeStep(title, args, group) {
   markGroupPassed(group);
 }
 
-function runCommandStep(title, command, args, group) {
+function runCommandStep(title, command, args, group, surface = SURFACES.CONSYNC) {
+  if (!shouldRunSurface(surface)) return;
   console.log(title);
   markGroupRunning(group);
 
@@ -91,7 +106,8 @@ function runCommandStep(title, command, args, group) {
   markGroupPassed(group);
 }
 
-function runExpectationStep(title, args, expectationPath, group) {
+function runExpectationStep(title, args, expectationPath, group, surface = SURFACES.CONSYNC) {
+  if (!shouldRunSurface(surface)) return;
   console.log(title);
   markGroupRunning(group);
 
@@ -203,11 +219,19 @@ function markGroupFailed(group, failedStep) {
   }
 }
 
+function surfaceLabel() {
+  if (activeSurface === SURFACES.CONSYNC) return "Consync fast (no e2e)";
+  if (activeSurface === SURFACES.SCAFFOLDAI) return "ScaffoldAI";
+  return "All";
+}
+
 function printSummary() {
   const overall = [...groupResults.values()].some((result) => result.status === "FAIL") ? "FAIL" : "PASS";
 
   console.log("");
   console.log(cyan("VERIFY SUMMARY"));
+  console.log("");
+  console.log(`VERIFY SURFACE............. ${surfaceLabel()}`);
   console.log("");
 
   for (const [group, result] of groupResults) {
@@ -224,14 +248,19 @@ function printCoverageConfidenceSummary() {
   const COL_STATUS = 12;
 
   const areas = [
-    { label: "Lib / Core",                   group: GROUPS.CLI,      signal: "unit — guid, folder-summary" },
-    { label: "CLI Commands",                  group: GROUPS.CLI,      signal: "unit + integration + expectation snapshots" },
-    { label: "Electron Bridge",               group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet" },
-    { label: "Renderer UI",                   group: GROUPS.RENDERER, signal: "panel slices + UI flow + bookmark loop" },
-    { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "smoke tests (verify:full only)" },
-    { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation" },
-    { label: "Sandbox Fixtures",              group: GROUPS.CLI,      signal: "deterministic expectation snapshots" },
+    { label: "Lib / Core",                   group: GROUPS.CLI,      signal: "unit — guid, folder-summary",                  surface: SURFACES.CONSYNC },
+    { label: "CLI Commands",                  group: GROUPS.CLI,      signal: "unit + integration + expectation snapshots",    surface: SURFACES.CONSYNC },
+    { label: "Sandbox Fixtures",              group: GROUPS.CLI,      signal: "deterministic expectation snapshots",           surface: SURFACES.CONSYNC },
+    { label: "Renderer UI",                   group: GROUPS.RENDERER, signal: "panel slices + UI flow + bookmark loop",        surface: SURFACES.CONSYNC },
+    { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "run verify:consync:e2e or verify:full",          surface: SURFACES.CONSYNC },
+    { label: "ScaffoldAI Bridge / State",     group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet",  surface: SURFACES.SCAFFOLDAI },
+    { label: "ScaffoldAI Agent Commands",     group: GROUPS.CLI,      signal: "consync-run, intake, preflight, verify, handoff", surface: SURFACES.SCAFFOLDAI },
+    { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation",       surface: SURFACES.ALL },
   ];
+
+  const filteredAreas = activeSurface === SURFACES.ALL
+    ? areas
+    : areas.filter((a) => a.surface === activeSurface || a.surface === SURFACES.ALL);
 
   console.log("");
   console.log(cyan("SYSTEM COVERAGE CONFIDENCE"));
@@ -242,7 +271,7 @@ function printCoverageConfidenceSummary() {
   console.log(`${headerArea}  ${headerStatus}  Coverage`);
   console.log("-".repeat(88));
 
-  for (const { label, group, signal } of areas) {
+  for (const { label, group, signal } of filteredAreas) {
     const result = groupResults.get(group);
     const status = result ? result.status : "NOT RUN";
 
@@ -380,35 +409,35 @@ function main() {
   runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "index.js"), "sandbox-catalog"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Gatekeeper decision rules", [path.join(repoRoot, "src", "test", "unit-dry-run-check.js")], GROUPS.BRIDGE);
+  runNodeStep("[verify] Gatekeeper decision rules", [path.join(repoRoot, "src", "test", "unit-dry-run-check.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] In-flight packet state reader", [path.join(repoRoot, "src", "test", "unit-get-in-flight-packet.js")], GROUPS.BRIDGE);
+  runNodeStep("[verify] In-flight packet state reader", [path.join(repoRoot, "src", "test", "unit-get-in-flight-packet.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")], GROUPS.BRIDGE);
+  runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] Handoff bundle integration", [path.join(repoRoot, "src", "test", "integration-handoff-bundle-cli.js")], GROUPS.CLI);
+  runNodeStep("[verify] Handoff bundle integration", [path.join(repoRoot, "src", "test", "integration-handoff-bundle-cli.js")], GROUPS.CLI, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] Consync-run command", [path.join(repoRoot, "src", "test", "unit-consync-run.js")], GROUPS.CLI);
+  runNodeStep("[verify] Consync-run command", [path.join(repoRoot, "src", "test", "unit-consync-run.js")], GROUPS.CLI, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] Intake agent execution", [path.join(repoRoot, "src", "test", "unit-intake-run.js")], GROUPS.CLI);
+  runNodeStep("[verify] Intake agent execution", [path.join(repoRoot, "src", "test", "unit-intake-run.js")], GROUPS.CLI, SURFACES.SCAFFOLDAI);
   console.log("");
 
-    runNodeStep("[verify] Preflight agent execution", [path.join(repoRoot, "src", "test", "unit-preflight-run.js")], GROUPS.CLI);
+    runNodeStep("[verify] Preflight agent execution", [path.join(repoRoot, "src", "test", "unit-preflight-run.js")], GROUPS.CLI, SURFACES.SCAFFOLDAI);
     console.log("");
 
-    runNodeStep("[verify] Verify agent execution", [path.join(repoRoot, "src", "test", "unit-verify-run.js")], GROUPS.CLI);
+    runNodeStep("[verify] Verify agent execution", [path.join(repoRoot, "src", "test", "unit-verify-run.js")], GROUPS.CLI, SURFACES.SCAFFOLDAI);
     console.log("");
 
   runNodeStep("[verify] Folder summary lib", [path.join(repoRoot, "src", "test", "unit-folder-summary.js")], GROUPS.CLI);
   console.log("");
   console.log("");
 
-  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM);
+  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
   console.log("");
 
   printSummary();

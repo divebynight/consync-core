@@ -65,15 +65,43 @@ This system remains manual and non-orchestrated. Intake and Preflight have expli
 ## Where to go next
 
 **Feature development process:**
-- How to plan and break down a feature → [`.scaffoldai/process/feature-planning-and-packetization.process.md`](.scaffoldai/process/feature-planning-and-packetization.process.md)
-- Coordination model for multi-packet features → [`.scaffoldai/process/feature-packet-execution.process.md`](.scaffoldai/process/feature-packet-execution.process.md)
-- Canonical example (Search Panel e2e coverage) → [`repo-archive/consync-legacy/examples/search-panel-feature-example.md`](repo-archive/consync-legacy/examples/search-panel-feature-example.md)
+- How to plan and break down a feature — [Feature planning and packetization](.scaffoldai/process/feature-planning-and-packetization.process.md)
+- Coordination model for multi-packet features — [Feature packet execution](.scaffoldai/process/feature-packet-execution.process.md)
+- Canonical example (Search Panel e2e coverage) — [Search panel feature example](.scaffoldai/examples/search-panel-feature-example.md)
 
 **Running the project:**
 - Start the desktop app: `npm run start:desktop`
 - Run unit + integration tests: `npm test`
 - Run normal verification: `npm run verify`
 - Run full verification (includes e2e): `npm run verify:full`
+- See the full command model: [Verification Model](#verification-model)
+
+## Verification Model
+
+Consync uses a surface-based verification model to separate fast feedback from full system validation.
+
+**Consync product commands:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify:consync` | Fast product checks. Does NOT launch Electron. | Active development — tight feedback loop. |
+| `npm run verify:consync:e2e` | Electron end-to-end tests using Playwright. Launches the full app. | When explicitly testing Electron behavior. |
+| `npm run verify:consync:full` | Fast product checks + Electron e2e. | Before shipping product changes. |
+
+**ScaffoldAI process command:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify:scaffoldai` | Process state, packets, and system integrity checks. | Before or after process-layer changes. |
+
+**Combined commands:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify` | All fast checks across Consync and ScaffoldAI. | Default development command. |
+| `npm run verify:full` | Full system verification: preflight checks, unit tests, Electron e2e, and postflight validation. | Before committing or merging. |
+
+> **Note:** Electron e2e tests can take over the system and should be run explicitly when needed.
 
 ## Repo structure
 
