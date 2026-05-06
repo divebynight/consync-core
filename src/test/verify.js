@@ -254,7 +254,7 @@ function printCoverageConfidenceSummary() {
     { label: "Renderer UI",                   group: GROUPS.RENDERER, signal: "panel slices + UI flow + bookmark loop",        surface: SURFACES.CONSYNC },
     { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "run verify:consync:e2e or verify:full",          surface: SURFACES.CONSYNC },
     { label: "ScaffoldAI Bridge / State",     group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet",  surface: SURFACES.SCAFFOLDAI },
-    { label: "ScaffoldAI Agent Commands",     group: GROUPS.CLI,      signal: "consync-run, intake, preflight, verify, handoff", surface: SURFACES.SCAFFOLDAI },
+    { label: "ScaffoldAI Runtime Commands",   group: GROUPS.CLI,      signal: "consync-run, intake, preflight, verify, handoff", surface: SURFACES.SCAFFOLDAI },
     { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation",       surface: SURFACES.ALL },
   ];
 
@@ -441,6 +441,9 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI preflight command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-preflight.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);

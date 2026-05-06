@@ -59,7 +59,7 @@ function main() {
       assert.ok(out.includes("ACTIVE PACKET:"), `Missing ACTIVE PACKET section. Got:\n${out}`);
       assert.ok(out.includes("NEXT ACTION:"), `Missing NEXT ACTION section. Got:\n${out}`);
       assert.ok(out.includes("GIT STATUS:"), `Missing GIT STATUS section. Got:\n${out}`);
-      assert.ok(out.includes("VERIFY SURFACE:"), `Missing VERIFY SURFACE section. Got:\n${out}`);
+      assert.ok(out.includes("VERIFY COMMAND:"), `Missing VERIFY COMMAND section. Got:\n${out}`);
       console.log("  PASS: output includes all expected sections");
     }
 

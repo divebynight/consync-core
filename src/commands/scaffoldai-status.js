@@ -66,7 +66,7 @@ function readNextActionSummary() {
 }
 
 // -----------------------------------------------------------------------
-// Recommend verify surface based on contract
+// Recommend verify command based on contract
 // -----------------------------------------------------------------------
 
 function recommendedVerifySurface(contract) {
@@ -143,7 +143,7 @@ function runScaffoldaiStatusCommand() {
   // Git status
   const git = getGitStatus(repoRoot);
 
-  // Verify surface
+  // Verify command
   const verifySurface = recommendedVerifySurface(contract);
 
   // ---- Output ----
@@ -172,7 +172,7 @@ function runScaffoldaiStatusCommand() {
     }
   }
 
-  console.log(`VERIFY SURFACE:   ${verifySurface}`);
+  console.log(`VERIFY COMMAND:   ${verifySurface}`);
 
   if (warnings.length === 0) {
     console.log("WARNINGS:         none");

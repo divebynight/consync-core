@@ -1,5 +1,6 @@
 const { runNewGuidCommand } = require("../commands/new-guid");
 const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status");
+const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
@@ -237,6 +238,10 @@ async function main() {
     const subcommand = process.argv[3];
     if (subcommand === "status") {
       runScaffoldaiStatusCommand();
+      return;
+    }
+    if (subcommand === "preflight") {
+      runScaffoldaiPreflightCommand();
       return;
     }
     console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
