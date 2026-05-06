@@ -132,37 +132,54 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 13: No MCP source file contains write operations
+// Test 13: No MCP server/tool source file contains write operations
 // -----------------------------------------------------------------------
 
 {
   const mcpDir = path.join(__dirname, "..", "mcp");
   const forbidden = ["writeFile", "appendFile", "mkdirSync", "writeFileSync"];
+  const readOnlyFiles = ["server.js", "tools.js"].map((f) => path.join(mcpDir, f));
 
-  let mcpFiles;
-  try {
-    mcpFiles = fs
-      .readdirSync(mcpDir)
-      .filter((f) => f.endsWith(".js"))
-      .map((f) => path.join(mcpDir, f));
-  } catch {
-    mcpFiles = [];
-  }
-
-  if (mcpFiles.length === 0) {
-    fail("No .js files found in src/mcp/ — cannot check for write operations");
-  } else {
-    for (const filePath of mcpFiles) {
+  for (const filePath of readOnlyFiles) {
+    try {
       const source = fs.readFileSync(filePath, "utf8");
       for (const pattern of forbidden) {
         check(!source.includes(pattern), `${path.basename(filePath)} does not contain "${pattern}"`);
       }
+    } catch {
+      fail(`Could not read ${path.basename(filePath)} for write operation check`);
     }
   }
 }
 
 // -----------------------------------------------------------------------
-// Test 14: server.js is not imported by src/cli/index.js or src/index.js
+// Test 14: Snapshot runtime has exactly the planned local write boundary
+// -----------------------------------------------------------------------
+
+{
+  const snapshotPath = path.join(__dirname, "..", "mcp", "snapshot.js");
+
+  try {
+    const source = fs.readFileSync(snapshotPath, "utf8");
+
+    check(source.includes("StdioClientTransport"), "snapshot.js uses local stdio MCP transport");
+    check(source.includes("client.callTool"), "snapshot.js calls MCP tools through the client");
+    check(!source.includes('require("./tools")'), "snapshot.js does not import MCP tool functions directly");
+    check(!source.includes("require(\"./tools\")"), "snapshot.js does not import MCP tool functions directly");
+    check(source.includes('".scaffoldai/tmp/mcp-runtime-snapshot.json"'), "snapshot.js writes the planned snapshot path");
+    check(source.includes("fs.writeFileSync(outputPath, json)"), "snapshot.js write is limited to the snapshot output variable");
+    check(!source.includes("appendFile"), "snapshot.js does not append files");
+    check(!source.includes("mkdirSync"), "snapshot.js does not create directories");
+    check(!source.includes("http://"), "snapshot.js does not include an HTTP URL");
+    check(!source.includes("https://"), "snapshot.js does not include a remote URL");
+    check(!source.includes("ngrok.com"), "snapshot.js does not include ngrok usage");
+  } catch {
+    fail("Could not read snapshot.js for snapshot boundary check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 15: server.js is not imported by src/cli/index.js or src/index.js
 // -----------------------------------------------------------------------
 
 {
@@ -185,7 +202,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 15: No MCP source file contains /tmp path usage
+// Test 16: No MCP source file contains /tmp path usage
 // -----------------------------------------------------------------------
 
 {

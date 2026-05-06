@@ -34,6 +34,7 @@
     "scaffoldai:closeout": "node src/index.js scaffoldai closeout",
     "scaffoldai:question": "node src/index.js scaffoldai question",
     "scaffoldai:mcp": "node src/mcp/server.js",
+    "scaffoldai:mcp:snapshot": "node src/mcp/snapshot.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test:mcp:smoke": "node src/test/mcp-smoke.js",
