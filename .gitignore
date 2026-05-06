@@ -28,3 +28,7 @@ sandbox/probes/audio-session-capture/workdir/*
 # Keep the directory tracked via .gitkeep; ignore its contents
 .scaffoldai/tmp/*
 !.scaffoldai/tmp/.gitkeep
+
+# Prevent ScaffoldAI verify/debug logs from landing at repo root
+.scaffoldai_verify.log
+.scaffoldai_*.log
