@@ -440,6 +440,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI architectural invariants", [path.join(repoRoot, "src", "test", "scaffoldai-invariants.test.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
   console.log("");
 

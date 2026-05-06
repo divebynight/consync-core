@@ -28,6 +28,7 @@
     "verify:consync:e2e": "npm run build:preload && npm run test:e2e",
     "verify:consync:full": "npm run verify:consync && npm run verify:consync:e2e",
     "verify:scaffoldai": "node src/test/verify.js --surface=scaffoldai",
+    "scaffoldai:status": "node src/index.js scaffoldai status",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test": "npm run test:unit && npm run test:integration",
