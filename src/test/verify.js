@@ -449,6 +449,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI verify command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-verify.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI closeout command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-closeout.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
   console.log("");
 
