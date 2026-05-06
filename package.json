@@ -32,6 +32,7 @@
     "scaffoldai:preflight": "node src/index.js scaffoldai preflight",
     "scaffoldai:verify": "node src/index.js scaffoldai verify",
     "scaffoldai:closeout": "node src/index.js scaffoldai closeout",
+    "scaffoldai:question": "node src/index.js scaffoldai question",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test": "npm run test:unit && npm run test:integration",

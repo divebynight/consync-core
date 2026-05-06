@@ -3,6 +3,7 @@ const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status");
 const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight");
 const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify");
 const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout");
+const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
@@ -252,6 +253,10 @@ async function main() {
     }
     if (subcommand === "closeout") {
       runScaffoldaiCloseoutCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "question") {
+      runScaffoldaiQuestionCommand(process.argv.slice(4));
       return;
     }
     console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
