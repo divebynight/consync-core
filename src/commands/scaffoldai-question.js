@@ -21,6 +21,7 @@ const CATEGORIES = {
   TOOL_BOUNDARY_CONCERN: "TOOL_BOUNDARY_CONCERN",
   TEMP_ARTIFACT_BOUNDARY: "TEMP_ARTIFACT_BOUNDARY",
   RUNTIME_TERMINOLOGY_DRIFT: "RUNTIME_TERMINOLOGY_DRIFT",
+  EXECUTION_CLASS_BOUNDARY: "EXECUTION_CLASS_BOUNDARY",
 };
 
 // Severity levels within a question
@@ -261,6 +262,49 @@ function checkRequiredScripts() {
   return null;
 }
 
+function checkExecutionClassBoundary() {
+  const planningDir = path.join(repoRoot, ".scaffoldai", "planning");
+  const classificationDoc = path.join(planningDir, "scaffoldai-execution-classification-v1.md");
+
+  if (!fs.existsSync(classificationDoc)) {
+    return {
+      category: CATEGORIES.EXECUTION_CLASS_BOUNDARY,
+      severity: SEVERITY.QUESTION,
+      condition: "Execution classification planning doc not found (.scaffoldai/planning/scaffoldai-execution-classification-v1.md).",
+      why: "The execution classification model defines authority, verification requirements, and human approval tiers for all runtime actions. Without it, action boundaries are undefined.",
+      action: "Create and complete scaffoldai-execution-classification-v1.md in .scaffoldai/planning/.",
+    };
+  }
+
+  let content;
+  try {
+    content = fs.readFileSync(classificationDoc, "utf8");
+  } catch {
+    return {
+      category: CATEGORIES.EXECUTION_CLASS_BOUNDARY,
+      severity: SEVERITY.QUESTION,
+      condition: "Execution classification planning doc exists but could not be read.",
+      why: "The execution classification model cannot be verified without reading the planning doc.",
+      action: "Check file permissions or content of .scaffoldai/planning/scaffoldai-execution-classification-v1.md.",
+    };
+  }
+
+  // Check that status is DECIDED
+  const isDecided = content.split("\n").some((line) => /^Status:\s*DECIDED/i.test(line.trim()));
+
+  if (!isDecided) {
+    return {
+      category: CATEGORIES.EXECUTION_CLASS_BOUNDARY,
+      severity: SEVERITY.QUESTION,
+      condition: "Execution classification planning doc exists but has not reached DECIDED status.",
+      why: "Without a decided execution classification model, action boundaries and authority tiers are not finalized.",
+      action: "Complete the DECIDE phase for scaffoldai-execution-classification-v1.md.",
+    };
+  }
+
+  return null;
+}
+
 function checkTmpBoundary() {
   // Check if .scaffoldai/tmp/ directory exists (it should, after tmp boundary SDC)
   const tmpDir = path.join(repoRoot, ".scaffoldai", "tmp");
@@ -325,6 +369,7 @@ function runScaffoldaiQuestionCommand(argv) {
     checkNextActionAmbiguity(),
     checkRequiredScripts(),
     checkTmpBoundary(),
+    checkExecutionClassBoundary(),
   ];
 
   for (const finding of checks) {

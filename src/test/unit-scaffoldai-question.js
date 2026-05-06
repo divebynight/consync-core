@@ -192,6 +192,37 @@ function main() {
       }
     }
 
+    // 11. EXECUTION_CLASS_BOUNDARY category is present in the command module
+    {
+      const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
+      assert.ok(
+        typeof runScaffoldaiQuestionCommand === "function",
+        "Expected runScaffoldaiQuestionCommand to be a function"
+      );
+      // Read the source to confirm the category constant is defined
+      const src = require("fs").readFileSync(
+        require("path").join(repoRoot, "src", "commands", "scaffoldai-question.js"),
+        "utf8"
+      );
+      assert.ok(
+        src.includes("EXECUTION_CLASS_BOUNDARY"),
+        "Expected EXECUTION_CLASS_BOUNDARY category to be defined in scaffoldai-question.js"
+      );
+      console.log("  PASS: EXECUTION_CLASS_BOUNDARY category is defined in the command module");
+    }
+
+    // 12. In healthy repo (classification doc present and DECIDED): no EXECUTION_CLASS_BOUNDARY question raised
+    {
+      const result = runQuestion();
+      const out = result.stdout;
+
+      assert.ok(
+        !out.includes("EXECUTION_CLASS_BOUNDARY"),
+        `Expected no EXECUTION_CLASS_BOUNDARY question in healthy repo state. Got:\n${out}`
+      );
+      console.log("  PASS: no EXECUTION_CLASS_BOUNDARY question in healthy repo state");
+    }
+
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
