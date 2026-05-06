@@ -450,4 +450,64 @@ function runScaffoldaiQuestionCommand(argv) {
   }
 }
 
-module.exports = { runScaffoldaiQuestionCommand };
+// -----------------------------------------------------------------------
+// Exported data gatherer — reusable by MCP and other non-CLI surfaces
+// -----------------------------------------------------------------------
+
+/**
+ * Run all structural checks and return the raw result object.
+ * Does not print anything, does not set process.exitCode.
+ *
+ * @returns {{ questions: Question[], contract: object|null, inFlightPacket: string|null, streamName: string, status: string, resolvedVerify: object }}
+ */
+function gatherQuestions() {
+  const contract = readActiveContract(repoRoot);
+  const inFlightPacket = getInFlightPacket(repoRoot);
+
+  let streamName = "(unknown)";
+  try {
+    const content = fs.readFileSync(path.join(STATE_DIR, "active-stream.md"), "utf8");
+    const lines = content.split("\n").map((l) => l.trim());
+    const headerIdx = lines.findIndex((l) => l === "ACTIVE STREAM");
+    if (headerIdx !== -1) {
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        if (lines[i].length > 0) { streamName = lines[i]; break; }
+      }
+    }
+  } catch {
+    // handled by checkActiveStreamExists
+  }
+
+  const questions = [];
+  const checks = [
+    checkStateFilesPresent(),
+    checkContractCoherence(contract),
+    checkAllowedPacketTypes(contract),
+    checkVerifyCommandResolvable(contract),
+    checkActiveStreamExists(),
+    checkNextActionAmbiguity(),
+    checkRequiredScripts(),
+    checkTmpBoundary(),
+    checkExecutionClassBoundary(),
+  ];
+
+  for (const finding of checks) {
+    if (finding !== null) questions.push(finding);
+  }
+
+  const hasBlocked = questions.some((q) => q.severity === SEVERITY.BLOCKED);
+  const hasQuestion = questions.some((q) => q.severity === SEVERITY.QUESTION);
+  const hasWarning = questions.some((q) => q.severity === SEVERITY.WARNING);
+
+  let status;
+  if (hasBlocked) status = "BLOCKED";
+  else if (hasQuestion) status = "QUESTION";
+  else if (hasWarning) status = "WARNING";
+  else status = "CLEAR";
+
+  const resolvedVerify = resolveVerifyCommand(contract, {});
+
+  return { questions, contract, inFlightPacket, streamName, status, resolvedVerify };
+}
+
+module.exports = { runScaffoldaiQuestionCommand, gatherQuestions };

@@ -185,4 +185,51 @@ function runScaffoldaiPreflightCommand() {
   }
 }
 
-module.exports = { runScaffoldaiPreflightCommand };
+// -----------------------------------------------------------------------
+// Exported data gatherer — reusable by MCP and other non-CLI surfaces
+// -----------------------------------------------------------------------
+
+/**
+ * Run all preflight checks and return the raw result object.
+ * Does not print anything, does not set process.exitCode.
+ *
+ * @returns {{ blockers: string[], warnings: string[], status: string }}
+ */
+function gatherPreflightResults() {
+  const blockers = [];
+  const warnings = [];
+
+  const stateFileResults = checkStateFiles();
+  for (const f of stateFileResults.filter((r) => !r.exists)) {
+    blockers.push(`Missing required state file: ${f.filename}`);
+  }
+
+  const contractCheck = checkContract();
+  if (!contractCheck.ok) {
+    blockers.push(contractCheck.reason);
+  }
+
+  const inFlightPacket = getInFlightPacket(repoRoot);
+  if (inFlightPacket) {
+    warnings.push(`Active in-flight packet detected: ${inFlightPacket}`);
+  }
+
+  const git = getGitStatus(repoRoot);
+  if (!git.clean) {
+    warnings.push(`${git.count} uncommitted file(s) in working tree`);
+  }
+
+  const scriptResults = checkVerifyScripts();
+  for (const s of scriptResults.filter((r) => !r.exists)) {
+    blockers.push(`Missing required npm script: ${s.name}`);
+  }
+
+  let status;
+  if (blockers.length > 0) status = "BLOCKED";
+  else if (warnings.length > 0) status = "WARNING";
+  else status = "PASS";
+
+  return { blockers, warnings, status };
+}
+
+module.exports = { runScaffoldaiPreflightCommand, gatherPreflightResults };
