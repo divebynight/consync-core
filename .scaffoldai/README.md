@@ -6,6 +6,102 @@ It is **not** the Consync product. It is the harness around the work.
 
 ---
 
+## Operational Overview
+
+Current runtime phase:
+
+```text
+READ_ONLY MCP + deterministic local Runtime Commands + human-authoritative workflow.
+```
+
+ScaffoldAI currently is:
+
+- a repo-local process harness for planning, executing, verifying, and closing focused work packets
+- the owner of live process state under `.scaffoldai/state/` and `.scaffoldai/streams/`
+- a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
+- a manual agent/process model where agents are invoked intentionally and never auto-dispatched
+- a read-only MCP observation surface for structured runtime state
+- a set of contracts, planning docs, prompts, and skills that keep work bounded and re-enterable
+
+ScaffoldAI is not yet:
+
+- an autonomous orchestrator
+- a write-capable MCP server
+- a remote service
+- a shell execution proxy
+- a closeout approver
+- a durable verify-evidence store
+- a replacement for human judgment
+- the Consync product UI or product runtime
+
+## Runtime Command Model
+
+Runtime Commands are human-visible local commands. They may inspect state, recommend a VERIFY COMMAND, report STATUS, and print a NEXT SAFE ACTION.
+
+Current ScaffoldAI Runtime Commands include:
+
+- `npm run scaffoldai:status`
+- `npm run scaffoldai:preflight`
+- `npm run scaffoldai:question`
+- `npm run scaffoldai:verify`
+- `npm run scaffoldai:closeout`
+- `npm run scaffoldai:mcp:snapshot`
+
+Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
+
+## Read-Only MCP Model
+
+The MCP surface is read-only observation only in the current phase. MCP tools return structured JSON with `execution_class: "READ_ONLY"` and do not approve, verify, close, commit, push, stage, edit, or mutate state.
+
+Current MCP tools:
+
+- `scaffoldai_status`
+- `scaffoldai_preflight`
+- `scaffoldai_question`
+- `scaffoldai_verify_recommend`
+- `scaffoldai_closeout_readiness`
+
+MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, and recommend a human-controlled next step. They must not treat MCP output as authority to execute.
+
+## Snapshot and Reentry Model
+
+There are two different snapshot concepts:
+
+- `.scaffoldai/state/snapshot.md` — human-readable live-loop state for fast reentry; part of authoritative ScaffoldAI state.
+- `.scaffoldai/tmp/mcp-runtime-snapshot.json` — generated read-only MCP observation bundle for paste/upload into AI clients; runtime artifact only.
+
+For reentry, start with:
+
+1. `.scaffoldai/state/snapshot.md`
+2. `.scaffoldai/state/next-action.md`
+3. `.scaffoldai/state/handoff.md`
+4. `npm run scaffoldai:status`
+5. `npm run scaffoldai:question`
+
+Use `npm run scaffoldai:mcp:snapshot` when an MCP-aware or external AI client needs one deterministic JSON bundle of the current read-only MCP observations.
+
+## Human Authority Model
+
+Humans remain final authority for:
+
+- choosing or approving work
+- resolving ambiguity
+- running VERIFY COMMANDS
+- accepting verification evidence
+- approving closeout
+- staging, committing, pushing, branching, or creating PRs
+- changing process state under `.scaffoldai/state/` or `.scaffoldai/streams/`
+
+Tool output is evidence or recommendation. It is not approval.
+
+## Future Planning Notes
+
+The Tool Router plan is recommend-only. It may later help classify a request and suggest a target such as ChatGPT, Copilot, Codex, MCP read-only tools, local CLI, or human/manual review. It does not exist as an execution system today.
+
+Future write-capable MCP or dispatch behavior would require a separate contract, authority model, tests, and explicit human approval rules.
+
+---
+
 ## What Lives Here
 
 | Folder | Category | Purpose | Status |
