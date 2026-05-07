@@ -260,7 +260,7 @@ async function runReentryCheckCommand(options) {
   if (answer === "yes" || answer === "y") {
     console.log("Re-entry confirmed. System is ready for next mount.");
   } else {
-    console.log("Review .consync/state/ before proceeding. Run check:state-preflight for detailed integrity check.");
+    console.log("Review .scaffoldai/state/ before proceeding. Run check:state-preflight for detailed integrity check.");
     process.exitCode = 1;
   }
 }

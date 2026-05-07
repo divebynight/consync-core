@@ -2,15 +2,44 @@
 
 ## Authority Boundary
 
-`.consync/` is the authoritative Consync process layer.
+`.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
 
-Use `.consync/state/*`, `.consync/docs/runbook.md`, and `.consync/agents/*` as the source of truth for workflow behavior.
+`.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
 
-`.consync/agents/` defines agent roles, invocation points, and binding status. `.consync/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+Use `.scaffoldai/state/*`, `.scaffoldai/process/runbook.process.md`, and `.scaffoldai/agents/*` as the source of truth for workflow behavior.
 
-`.consync/agents/entry-adapter.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
+`.scaffoldai/agents/` defines agent roles, invocation points, and binding status. `.scaffoldai/skills/*` contains reusable procedures/skills that agents may reference; it is not the primary role-definition surface.
+
+`.scaffoldai/agents/entry-adapter.agent.md` is a manual input-classification adapter. It may recommend which existing Consync agent a human should invoke next, but it must not auto-dispatch, execute agents, modify repo state, or act as a runner, dispatcher, or orchestrator.
 
 Treat `.github/` as a thin Copilot/GitHub adapter layer only.
+
+## Temp and Runtime Artifact Boundary
+
+**HARD RULE: Never write to `/tmp`, `/var/tmp`, `~/`, `~/Desktop`, `~/Downloads`, or any path outside the repo root.**
+
+Do NOT write temporary files, logs, generated artifacts, or runtime scratch output outside the project root unless explicitly approved by the human.
+
+Use `.scaffoldai/tmp/` for all ScaffoldAI and tooling temp/debug/verify output. This directory is gitignored (contents excluded, directory tracked via `.gitkeep`).
+
+Treat `/tmp` usage as a process boundary violation. It is not acceptable as a shortcut for piping or tail operations.
+
+This applies to: shell commands, subagent queries, inline terminal commands, execution subagents, and any code that writes runtime artifacts.
+
+**Correct pattern — pipe or redirect to `.scaffoldai/tmp/`:**
+```
+npm run verify:scaffoldai > .scaffoldai/tmp/verify_sai.log 2>&1 && tail -n 8 .scaffoldai/tmp/verify_sai.log
+```
+
+**Forbidden — do not use `/tmp` for any command output:**
+```
+npm run verify:scaffoldai > /tmp/check_output 2>&1   ← VIOLATION
+```
+
+If you need to capture and inspect output without leaving a log file, use a pipeline instead:
+```
+npm run verify:scaffoldai 2>&1 | tail -n 8
+```
 
 ## Agent Invocation Rules
 
@@ -66,9 +95,9 @@ Do not build for hypothetical future features unless explicitly asked.
 
 ## How to Approach Work
 
-Implement only the task described by the current authoritative `.consync/state/*` files.
+Implement only the task described by the current authoritative `.scaffoldai/state/*` files.
 
-Use `.consync/docs/runbook.md` as the practical process entrypoint.
+Use `.scaffoldai/process/runbook.process.md` as the practical process entrypoint.
 
 When working:
 1. keep scope narrow
@@ -124,7 +153,7 @@ Prefer this structure:
 - `src/index.js` → entry point
 - `src/commands/` → command handlers
 - `src/lib/` → reusable logic
-- `.consync/state/` → specs, handoff docs, logs
+- `.scaffoldai/state/` → specs, handoff docs, logs
 - `scripts/` → project scripts if needed
 
 Keep CLI parsing separate from business logic.

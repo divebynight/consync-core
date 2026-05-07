@@ -2,17 +2,18 @@
 
 Authoritative workflow note:
 
-- `.consync/` is the source of truth for Consync closeout behavior.
-- The Closeout agent is bound to `.consync/skills/closeout-agent.md` as its current prompt/process execution surface.
+- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
+- `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+- The Closeout agent is bound to `.scaffoldai/skills/closeout-agent.md` as its current prompt/process execution surface.
 - Treat this file as a GitHub/Copilot adapter only.
 
 Read the current handoff state:
 
-.consync/state/handoff.md
+.scaffoldai/state/handoff.md
 
 Read the authoritative Closeout agent workflow at:
 
-.consync/skills/closeout-agent.md
+.scaffoldai/skills/closeout-agent.md
 
 ---
 
@@ -25,7 +26,7 @@ Finalize the most recent Work Packet using the existing handoff.
 ## Behavior
 
 - Use handoff.md as the source of truth
-- Apply the closeout rules from `.consync/skills/closeout-agent.md`
+- Apply the closeout rules from `.scaffoldai/skills/closeout-agent.md`
 - Do not modify source files
 - Do not re-run tests
 - Do not introduce new work
@@ -36,11 +37,11 @@ Finalize the most recent Work Packet using the existing handoff.
 
 Write full result to:
 
-.consync/state/handoff.md
+.scaffoldai/state/handoff.md
 
 Overwrite the file completely.
 
-The final handoff in `.consync/state/handoff.md` must include these sections:
+The final handoff in `.scaffoldai/state/handoff.md` must include these sections:
 - Status
 - Summary
 - Files Created
@@ -57,7 +58,7 @@ Do NOT print the full response in chat.
 
 Only reply with:
 
-Wrote closeout to .consync/state/handoff.md
+Wrote closeout to .scaffoldai/state/handoff.md
 
 ---
 

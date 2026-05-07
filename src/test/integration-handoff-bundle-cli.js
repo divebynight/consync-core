@@ -33,7 +33,7 @@ function runSuccessScenario() {
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
-      relativePath: path.join(".consync", "docs", "runbook.md"),
+      relativePath: path.join(".scaffoldai", "process", "runbook.process.md"),
       content: "# Consync Runbook\n\nRead state first.\n",
     },
   ];
@@ -53,7 +53,7 @@ function runSuccessScenario() {
     assert.match(result.stdout, /^CONSYNC HANDOFF BUNDLE/m);
     assert.match(result.stdout, /^SOURCE OF TRUTH$/m);
     assert.match(result.stdout, /^RUNBOOK POINTER$/m);
-    assert.match(result.stdout, /For operating rules, read \.consync\/docs\/runbook\.md in the repo\./);
+    assert.match(result.stdout, /For operating rules, read \.scaffoldai\/process\/runbook\.process\.md in the repo\./);
 
     for (const file of files.slice(0, 2)) {
       assert.match(result.stdout, new RegExp(`===== BEGIN ${escapeRegExp(file.relativePath)} =====`));
@@ -86,7 +86,7 @@ function runFullScenario() {
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
-      relativePath: path.join(".consync", "docs", "runbook.md"),
+      relativePath: path.join(".scaffoldai", "process", "runbook.process.md"),
       content: "# Consync Runbook\n\nRead state first.\n",
     },
   ];
@@ -152,9 +152,49 @@ function runMissingFullRunbookScenario() {
     });
 
     assert.notStrictEqual(result.status, 0, "Expected non-zero exit status when full mode runbook is missing");
-    assert.match(result.stderr, /Missing required file: \.consync\/docs\/runbook\.md/);
+    assert.match(result.stderr, /Missing required file: \.scaffoldai\/process\/runbook\.process\.md/);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+function runRunbookPathBoundaryScenario() {
+  const repoRoot = path.resolve(__dirname, "..", "..");
+  const cliPath = path.join(repoRoot, "src", "index.js");
+
+  // Part 1: seeding runbook at .scaffoldai/process/runbook.process.md → --full succeeds
+  const tempDirNew = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-boundary-new-"));
+  try {
+    writeFile(tempDirNew, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDirNew, path.join(".consync", "state", "snapshot.md"), "# Consync Snapshot\n");
+    writeFile(tempDirNew, path.join(".scaffoldai", "process", "runbook.process.md"), "# Runbook\n");
+
+    const result = spawnSync(process.execPath, [cliPath, "handoff-bundle", "--full"], {
+      cwd: tempDirNew,
+      encoding: "utf8",
+    });
+
+    assert.strictEqual(result.status, 0, `Expected success with .scaffoldai path. stderr: ${result.stderr}`);
+  } finally {
+    fs.rmSync(tempDirNew, { recursive: true, force: true });
+  }
+
+  // Part 2: seeding runbook at .consync/process/runbook.process.md (old path) → --full fails
+  const tempDirOld = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-boundary-old-"));
+  try {
+    writeFile(tempDirOld, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDirOld, path.join(".consync", "state", "snapshot.md"), "# Consync Snapshot\n");
+    writeFile(tempDirOld, path.join(".consync", "process", "runbook.process.md"), "# Runbook\n");
+
+    const result = spawnSync(process.execPath, [cliPath, "handoff-bundle", "--full"], {
+      cwd: tempDirOld,
+      encoding: "utf8",
+    });
+
+    assert.notStrictEqual(result.status, 0, "Expected failure when runbook is only at old .consync/process/ path");
+    assert.match(result.stderr, /Missing required file: \.scaffoldai\/process\/runbook\.process\.md/);
+  } finally {
+    fs.rmSync(tempDirOld, { recursive: true, force: true });
   }
 }
 
@@ -174,6 +214,9 @@ function main() {
 
   console.log(`[${TEST_NAME}] Running missing full runbook scenario`);
   runMissingFullRunbookScenario();
+
+  console.log(`[${TEST_NAME}] Running runbook path boundary scenario`);
+  runRunbookPathBoundaryScenario();
 
   console.log(`[${TEST_NAME}] PASS`);
 }

@@ -13,7 +13,7 @@ function writeFile(rootPath, relativePath, content) {
 function createBaseFixture(rootPath) {
   writeFile(
     rootPath,
-    ".consync/state/active-stream.md",
+    ".scaffoldai/state/active-stream.md",
     [
       "ACTIVE STREAM",
       "",
@@ -41,14 +41,14 @@ function createBaseFixture(rootPath) {
       "",
       "LIVE OWNER NOTE",
       "",
-      "Only `process` currently owns `.consync/state/next-action.md` and `.consync/state/handoff.md`.",
+      "Only `process` currently owns `.scaffoldai/state/next-action.md` and `.scaffoldai/state/handoff.md`.",
       "",
     ].join("\n")
   );
 
   writeFile(
     rootPath,
-    ".consync/state/next-action.md",
+    ".scaffoldai/state/next-action.md",
     [
       "TYPE: PROCESS",
       "PACKAGE: sample_current_package",
@@ -74,7 +74,7 @@ function createBaseFixture(rootPath) {
 
   writeFile(
     rootPath,
-    ".consync/state/snapshot.md",
+    ".scaffoldai/state/snapshot.md",
     [
       "# Consync Snapshot",
       "",
@@ -121,7 +121,7 @@ function createBaseFixture(rootPath) {
 
   writeFile(
     rootPath,
-    ".consync/streams/process/stream.md",
+    ".scaffoldai/streams/process/stream.md",
     [
       "# Stream",
       "",
@@ -137,7 +137,7 @@ function createBaseFixture(rootPath) {
 
   writeFile(
     rootPath,
-    ".consync/streams/electron_ui/stream.md",
+    ".scaffoldai/streams/electron_ui/stream.md",
     [
       "# Stream",
       "",
@@ -159,7 +159,7 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/handoff.md",
+    ".scaffoldai/state/handoff.md",
     [
       "TYPE: PROCESS",
       "PACKAGE: previous_package",
@@ -203,7 +203,7 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/handoff.md",
+    ".scaffoldai/state/handoff.md",
     [
       "TYPE: PROCESS",
       "PACKAGE: sample_current_package",
@@ -248,7 +248,7 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/handoff.md",
+    ".scaffoldai/state/handoff.md",
     [
       "TYPE: PROCESS",
       "PACKAGE: sample_current_package",
@@ -294,7 +294,7 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/handoff.md",
+    ".scaffoldai/state/handoff.md",
     [
       "TYPE: FEATURE",
       "PACKAGE: previous_completed_package",
@@ -340,9 +340,9 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/snapshot.md",
+    ".scaffoldai/state/snapshot.md",
     fs
-      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
+      .readFileSync(path.join(rootPath, ".scaffoldai/state/snapshot.md"), "utf8")
       .replace("`process`", "`electron_ui`")
   );
 
@@ -355,17 +355,17 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/state/snapshot.md",
+    ".scaffoldai/state/snapshot.md",
     fs
-      .readFileSync(path.join(rootPath, ".consync/state/snapshot.md"), "utf8")
+      .readFileSync(path.join(rootPath, ".scaffoldai/state/snapshot.md"), "utf8")
       .replace("`electron_ui`", "`process`")
   );
 
   writeFile(
     rootPath,
-    ".consync/streams/process/stream.md",
+    ".scaffoldai/streams/process/stream.md",
     fs
-      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
+      .readFileSync(path.join(rootPath, ".scaffoldai/streams/process/stream.md"), "utf8")
       .replace("- status: active", "- status: paused")
   );
 
@@ -378,9 +378,9 @@ function main() {
 
   writeFile(
     rootPath,
-    ".consync/streams/process/stream.md",
+    ".scaffoldai/streams/process/stream.md",
     fs
-      .readFileSync(path.join(rootPath, ".consync/streams/process/stream.md"), "utf8")
+      .readFileSync(path.join(rootPath, ".scaffoldai/streams/process/stream.md"), "utf8")
       .replace("- status: paused", "- status: active")
   );
 

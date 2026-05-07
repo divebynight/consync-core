@@ -251,6 +251,64 @@ function main() {
     ]);
   });
 
+  withTemporarySessionDir(() => {
+    resetSessionState();
+
+    const keywordState = createBookmark({
+      createdAt: "2026-04-29T14:30:00.000Z",
+      filePath: "consync://standalone-note",
+      kind: "standalone-note",
+      keywords: ["Bridge", "arrangement", "bridge", "  chorus  ", ""],
+      note: "Bridge arrangement concept",
+      timeLabel: null,
+      timeSeconds: null,
+    });
+    const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
+
+    assert.deepStrictEqual(keywordState.bookmarks, [
+      {
+        id: "bookmark-1",
+        createdAt: "2026-04-29T14:30:00.000Z",
+        filePath: "consync://standalone-note",
+        kind: "standalone-note",
+        keywords: ["bridge", "arrangement", "chorus"],
+        note: "Bridge arrangement concept",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+    ]);
+    assert.deepStrictEqual(persistedArtifact.bookmarks, keywordState.bookmarks);
+  });
+
+  withTemporarySessionDir(() => {
+    resetSessionState();
+
+    const ideaState = createBookmark({
+      createdAt: "2026-04-29T15:00:00.000Z",
+      filePath: "consync://standalone-note",
+      idea: "  Song 3 Arrangement  ",
+      kind: "standalone-note",
+      note: "Idea attachment test",
+      timeLabel: null,
+      timeSeconds: null,
+    });
+    const persistedArtifact = JSON.parse(fs.readFileSync(getLatestSessionArtifactPath(), "utf8"));
+
+    assert.deepStrictEqual(ideaState.bookmarks, [
+      {
+        id: "bookmark-1",
+        createdAt: "2026-04-29T15:00:00.000Z",
+        filePath: "consync://standalone-note",
+        idea: "Song 3 Arrangement",
+        kind: "standalone-note",
+        note: "Idea attachment test",
+        timeLabel: null,
+        timeSeconds: null,
+      },
+    ]);
+    assert.deepStrictEqual(persistedArtifact.bookmarks, ideaState.bookmarks);
+  });
+
   console.log("PASS");
 }
 

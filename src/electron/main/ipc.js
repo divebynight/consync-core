@@ -18,6 +18,7 @@ const {
   updateBookmark,
 } = require("../../core/session");
 const { IPC_CHANNELS } = require("../shared/ipc-channels");
+const { summarizeFolder } = require("../../lib/folder-summary");
 
 const E2E_AUDIO_FIXTURE_BASE64 = "UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
 
@@ -234,6 +235,23 @@ function registerDesktopIpcHandlers(ipcMainLike, options = {}) {
     return diagnostics.exportSupportBundle();
   });
   ipcMainLike.handle(IPC_CHANNELS.ping, (_event, message) => createDesktopPingResponse(message));
+  ipcMainLike.handle(IPC_CHANNELS.getFolderSummary, (_event, targetPath) => summarizeFolder(targetPath || ""));
+  ipcMainLike.handle(IPC_CHANNELS.selectWorkspace, async () => {
+    if (process.env.CONSYNC_E2E_WORKSPACE_FIXTURE) {
+      return { ok: true, path: process.env.CONSYNC_E2E_WORKSPACE_FIXTURE };
+    }
+
+    const selection = await dialogLike.showOpenDialog({
+      properties: ["openDirectory"],
+      title: "Select Workspace Folder",
+    });
+
+    if (!selection || selection.canceled || !Array.isArray(selection.filePaths) || !selection.filePaths[0]) {
+      return { ok: false, canceled: true };
+    }
+
+    return { ok: true, path: selection.filePaths[0] };
+  });
 }
 
 module.exports = {

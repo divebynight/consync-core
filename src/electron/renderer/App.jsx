@@ -1,3 +1,22 @@
+// Minimal tooltip for note preview
+function NotePreviewTooltip({ content, children }) {
+  const [hovered, setHovered] = React.useState(false);
+  return (
+    <span
+      className="note-preview-hover-target"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ position: "relative", display: "inline-block" }}
+    >
+      {children}
+      {hovered && content ? (
+        <span className="note-preview-tooltip">
+          {content.length > 100 ? content.slice(0, 100) + "…" : content}
+        </span>
+      ) : null}
+    </span>
+  );
+}
 import React, { useEffect, useRef, useState } from "react";
 import {
   createBookmarkAndReadSessionState,
@@ -11,6 +30,42 @@ import {
   getSelectedMockSearchDetail,
 } from "./mock-search-panel.mjs";
 import { getSessionPanelRows } from "./session-panel.mjs";
+import { groupStandaloneNotesByIdea } from "./notes-panel.mjs";
+import { getFolderSummaryExtensionRows, getFolderSummaryRows } from "./folder-summary-panel.mjs";
+import { getWorkspacePanelRows, hasActiveWorkspace } from "./workspace-panel.mjs";
+
+const STANDALONE_NOTE_FILE_PATH = "consync://standalone-note";
+const STANDALONE_NOTE_KIND = "standalone-note";
+const NOTE_KEYWORD_STOPWORDS = new Set([
+  "about",
+  "after",
+  "again",
+  "also",
+  "and",
+  "are",
+  "because",
+  "but",
+  "can",
+  "for",
+  "from",
+  "have",
+  "here",
+  "into",
+  "just",
+  "later",
+  "like",
+  "note",
+  "notes",
+  "now",
+  "remember",
+  "should",
+  "that",
+  "the",
+  "then",
+  "this",
+  "was",
+  "with",
+]);
 
 function formatTimeLabel(totalSeconds) {
   const normalizedMilliseconds = Math.max(0, Math.round((Number(totalSeconds) || 0) * 1000));
@@ -56,6 +111,68 @@ function getBookmarkDisplayNote(bookmark) {
   }
 
   return "Untitled note";
+}
+
+function getStandaloneNoteTimestamp(bookmark) {
+  if (!bookmark || typeof bookmark.createdAt !== "string" || !bookmark.createdAt.trim()) {
+    return "Saved locally";
+  }
+
+  const createdAt = new Date(bookmark.createdAt);
+
+  if (Number.isNaN(createdAt.getTime())) {
+    return "Saved locally";
+  }
+
+  return createdAt.toLocaleString([], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function getNoteKeywordSuggestions(noteText, acceptedKeywords = []) {
+  if (typeof noteText !== "string" || !noteText.trim()) {
+    return [];
+  }
+
+  const acceptedKeywordSet = new Set(
+    acceptedKeywords
+      .filter(keyword => typeof keyword === "string")
+      .map(keyword => keyword.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const keywordCounts = new Map();
+
+  for (const rawWord of noteText.toLowerCase().match(/[a-z0-9][a-z0-9'-]*/g) || []) {
+    const keyword = rawWord.replace(/^'+|'+$/g, "");
+
+    if (keyword.length < 3 || NOTE_KEYWORD_STOPWORDS.has(keyword) || acceptedKeywordSet.has(keyword)) {
+      continue;
+    }
+
+    keywordCounts.set(keyword, (keywordCounts.get(keyword) || 0) + 1);
+  }
+
+  return [...keywordCounts.entries()]
+    .sort((left, right) => {
+      if (right[1] !== left[1]) {
+        return right[1] - left[1];
+      }
+
+      return left[0].localeCompare(right[0]);
+    })
+    .slice(0, 5)
+    .map(([keyword]) => keyword);
+}
+
+function isStandaloneNoteBookmark(bookmark) {
+  return Boolean(
+    bookmark &&
+    (
+      bookmark.kind === STANDALONE_NOTE_KIND ||
+      bookmark.filePath === STANDALONE_NOTE_FILE_PATH
+    )
+  );
 }
 
 function getFileName(filePath) {
@@ -496,7 +613,9 @@ function getDesktopBridge() {
     typeof desktopBridge.logRendererEvent !== "function" ||
     typeof desktopBridge.selectAudioFile !== "function" ||
     typeof desktopBridge.revealSearchResult !== "function" ||
-    typeof desktopBridge.runMockSearch !== "function"
+    typeof desktopBridge.runMockSearch !== "function" ||
+    typeof desktopBridge.getFolderSummary !== "function" ||
+    typeof desktopBridge.selectWorkspace !== "function"
   ) {
     throw new Error("Consync desktop bridge is unavailable.");
   }
@@ -754,6 +873,15 @@ export function App() {
   const [selectedBookmarkId, setSelectedBookmarkId] = useState(null);
   const [supportBundleStatus, setSupportBundleStatus] = useState(null);
   const [supportBundleErrorMessage, setSupportBundleErrorMessage] = useState(null);
+  const [folderSummaryPath, setFolderSummaryPath] = useState("sandbox/fixtures/mixed-flat-small");
+  const [folderSummary, setFolderSummary] = useState(null);
+  const [folderSummaryErrorMessage, setFolderSummaryErrorMessage] = useState(null);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const [standaloneNoteText, setStandaloneNoteText] = useState("");
+  const [standaloneNoteIdea, setStandaloneNoteIdea] = useState("");
+  const [acceptedStandaloneNoteKeywords, setAcceptedStandaloneNoteKeywords] = useState([]);
+  const [standaloneNoteKeywordFilter, setStandaloneNoteKeywordFilter] = useState("");
+  const [isStandaloneNoteInputOpen, setIsStandaloneNoteInputOpen] = useState(false);
   const audioPlayerRef = useRef(null);
   const bookmarkNoteInputRef = useRef(null);
   const activeEditableMarkerIdRef = useRef(null);
@@ -997,6 +1125,56 @@ export function App() {
     } catch (error) {
       setSessionErrorMessage(error.message);
     }
+  }
+
+  async function handleCreateStandaloneNote(event) {
+    event.preventDefault();
+
+    if (!standaloneNoteText.trim()) {
+      return;
+    }
+
+    try {
+      const desktopBridge = getDesktopBridge();
+      const nextSessionState = await createBookmarkAndReadSessionState(desktopBridge, {
+        createdAt: new Date().toISOString(),
+        filePath: STANDALONE_NOTE_FILE_PATH,
+        ...(standaloneNoteIdea.trim() ? { idea: standaloneNoteIdea.trim() } : {}),
+        kind: STANDALONE_NOTE_KIND,
+        keywords: acceptedStandaloneNoteKeywords,
+        note: standaloneNoteText.trim(),
+        timeLabel: null,
+        timeSeconds: null,
+      });
+
+      setSessionState(nextSessionState);
+      setSessionErrorMessage(null);
+      setStandaloneNoteText("");
+      setStandaloneNoteIdea("");
+      setAcceptedStandaloneNoteKeywords([]);
+      setIsStandaloneNoteInputOpen(false);
+      logRendererEvent("ui-action", {
+        action: "standalone-note-created",
+      });
+    } catch (error) {
+      setSessionErrorMessage(error.message);
+    }
+  }
+
+  function handleAcceptStandaloneNoteKeyword(keyword) {
+    if (typeof keyword !== "string" || !keyword.trim()) {
+      return;
+    }
+
+    setAcceptedStandaloneNoteKeywords(currentKeywords => {
+      const normalizedKeyword = keyword.trim().toLowerCase();
+
+      if (currentKeywords.includes(normalizedKeyword)) {
+        return currentKeywords;
+      }
+
+      return [...currentKeywords, normalizedKeyword];
+    });
   }
 
   async function handleSelectAudioFile() {
@@ -1243,8 +1421,52 @@ export function App() {
     });
   }
 
-  async function handleExportSupportBundle() {
+  async function handleRunFolderSummary(event) {
+    event.preventDefault();
+
+    if (!folderSummaryPath.trim()) {
+      return;
+    }
+
     try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.getFolderSummary(folderSummaryPath.trim());
+
+      if (!result.ok) {
+        setFolderSummaryErrorMessage(result.error || "Folder summary failed.");
+        setFolderSummary(null);
+        return;
+      }
+
+      setFolderSummary(result);
+      setFolderSummaryErrorMessage(null);
+      logRendererEvent("ui-action", { action: "folder-summary-run", path: folderSummaryPath.trim() });
+    } catch (error) {
+      setFolderSummaryErrorMessage(error.message);
+      setFolderSummary(null);
+    }
+  }
+
+  async function handleSelectWorkspace() {
+    try {
+      const desktopBridge = getDesktopBridge();
+      const result = await desktopBridge.selectWorkspace();
+
+      if (!result.ok || !result.path) {
+        return;
+      }
+
+      setActiveWorkspace(result.path);
+      setFolderSummaryPath(result.path);
+      setFolderSummary(null);
+      setFolderSummaryErrorMessage(null);
+      logRendererEvent("ui-action", { action: "workspace-selected", path: result.path });
+    } catch (error) {
+      logRendererEvent("ui-action", { action: "workspace-select-error", error: error.message });
+    }
+  }
+
+  async function handleExportSupportBundle() {    try {
       const desktopBridge = getDesktopBridge();
       const result = await desktopBridge.exportSupportBundle();
 
@@ -1268,6 +1490,27 @@ export function App() {
   const selectedAudioBookmarks = sessionState && selectedAudioFile
     ? sessionState.bookmarks.filter(bookmark => bookmark.filePath === selectedAudioFile.filePath)
     : [];
+  const standaloneNotes = sessionState
+    ? sessionState.bookmarks.filter(bookmark => isStandaloneNoteBookmark(bookmark))
+    : [];
+  const normalizedStandaloneNoteKeywordFilter = standaloneNoteKeywordFilter.trim().toLowerCase();
+  const filteredStandaloneNotes = normalizedStandaloneNoteKeywordFilter
+    ? standaloneNotes.filter(bookmark => (
+      (Array.isArray(bookmark.keywords) &&
+        bookmark.keywords.some(keyword => (
+          typeof keyword === "string" &&
+          keyword.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
+        ))
+      ) ||
+      (typeof bookmark.idea === "string" &&
+        bookmark.idea.toLowerCase().includes(normalizedStandaloneNoteKeywordFilter)
+      )
+    ))
+    : standaloneNotes;
+  const standaloneNoteKeywordSuggestions = getNoteKeywordSuggestions(
+    standaloneNoteText,
+    acceptedStandaloneNoteKeywords
+  );
   const selectedAudioBookmarkGroups = splitBookmarksByTiming(selectedAudioBookmarks);
   const activeTimelineMarkerIndex = getActiveTimelineMarkerIndex(
     selectedAudioBookmarkGroups.timelineMarkers,
@@ -1313,8 +1556,28 @@ export function App() {
               >
                 Help / About
               </NavigationButton>
+              <NavigationButton
+                active={activeView === "folder-summary"}
+                onClick={() => handleNavigationAction("view-folder-summary", () => setActiveView("folder-summary"))}
+              >
+                Folder Summary
+              </NavigationButton>
             </div>
             <p className="sidebar-helper-text">Need help? Open Help / About.</p>
+          </article>
+
+          <article className="panel panel-secondary">
+            <h2>Active Workspace</h2>
+            {getWorkspacePanelRows(activeWorkspace).map(row => (
+              <StatusRow key={row.label} label={row.label} value={row.value} />
+            ))}
+            <button
+              className="bookmark-button bookmark-button-secondary"
+              onClick={handleSelectWorkspace}
+              type="button"
+            >
+              {hasActiveWorkspace(activeWorkspace) ? "Change Workspace" : "Choose Workspace"}
+            </button>
           </article>
 
           <article className="panel panel-secondary">
@@ -1372,7 +1635,9 @@ export function App() {
                 ? "Session Timeline"
                 : activeView === "help"
                   ? "Help / About"
-                  : "Session Summary"}
+                  : activeView === "folder-summary"
+                    ? "Folder Summary"
+                    : "Session Summary"}
             </h2>
           </div>
 
@@ -1389,6 +1654,58 @@ export function App() {
               supportBundleErrorMessage={supportBundleErrorMessage}
               supportBundleStatus={supportBundleStatus}
             />
+          ) : activeView === "folder-summary" ? (
+            <section className="workspace-stack">
+              <article className="panel">
+                <h3>Folder Summary</h3>
+                <p className="empty-state">Enter a folder path to scan its contents.</p>
+                <form className="search-form" onSubmit={handleRunFolderSummary}>
+                  <label className="bookmark-label" htmlFor="folder-summary-path">
+                    Folder path
+                  </label>
+                  <input
+                    id="folder-summary-path"
+                    className="bookmark-input"
+                    value={folderSummaryPath}
+                    onChange={event => {
+                      setFolderSummaryPath(event.target.value);
+                      setFolderSummary(null);
+                      setFolderSummaryErrorMessage(null);
+                    }}
+                    placeholder="e.g. sandbox/fixtures/mixed-flat-small"
+                    type="text"
+                  />
+                  <button className="bookmark-button" disabled={!folderSummaryPath.trim()} type="submit">
+                    Run Summary
+                  </button>
+                </form>
+
+                {folderSummaryErrorMessage ? (
+                  <section className="panel panel-inline panel-secondary search-error-panel">
+                    <h4>Error</h4>
+                    <p className="empty-state">{folderSummaryErrorMessage}</p>
+                  </section>
+                ) : null}
+
+                {folderSummary ? (
+                  <div className="mock-search-summary">
+                    {getFolderSummaryRows(folderSummary).map(row => (
+                      <StatusRow key={row.label} label={row.label} value={row.value} />
+                    ))}
+                    {getFolderSummaryExtensionRows(folderSummary).length > 0 ? (
+                      <section className="bookmark-section">
+                        <h4>Extensions</h4>
+                        {getFolderSummaryExtensionRows(folderSummary).map(row => (
+                          <StatusRow key={row.label} label={row.label} value={row.value} />
+                        ))}
+                      </section>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="empty-state">Run a summary to see file counts, folder counts, and extension breakdown.</p>
+                )}
+              </article>
+            </section>
           ) : activeView === "timeline" ? (
             <section className="timeline-stage">
               <SessionTimelineShell onSelectBookmark={setSelectedBookmarkId} sessionState={sessionState} />
@@ -1467,6 +1784,18 @@ export function App() {
                     type="button"
                   >
                     Search
+                  </button>
+                  <button
+                    className="bookmark-button bookmark-button-secondary"
+                    onClick={() => {
+                      handleNavigationAction("open-notes", () => {
+                        setActiveView("workspace");
+                        setActiveWorkspaceSection("notes");
+                      });
+                    }}
+                    type="button"
+                  >
+                    Notes
                   </button>
                   <button
                     className="bookmark-button bookmark-button-secondary"
@@ -1584,7 +1913,9 @@ export function App() {
                             {selectedAudioBookmarkGroups.fileNotes.map((bookmark, index) => (
                               <li className="bookmark-item" key={`${bookmark.id || "bookmark"}-file-${bookmark.note || "note"}-${index}`}>
                                 <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                <NotePreviewTooltip content={bookmark.note || ""}>
+                                  <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                </NotePreviewTooltip>
                               </li>
                             ))}
                           </ul>
@@ -1610,7 +1941,9 @@ export function App() {
                                     type="button"
                                   >
                                     <span className="bookmark-time">{getBookmarkTimeLabel(bookmark)}</span>
-                                    <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                    <NotePreviewTooltip content={bookmark.note || ""}>
+                                      <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                    </NotePreviewTooltip>
                                   </button>
                                   <button
                                     aria-label={`Delete marker ${getBookmarkDisplayNote(bookmark)}`}
@@ -1714,6 +2047,156 @@ export function App() {
                       Enter a root and query to preview the grouped mock search flow in the desktop shell.
                     </p>
                   )}
+                </article>
+              ) : null}
+
+              {activeWorkspaceSection === "notes" ? (
+                <article className="panel">
+                  <div className="audio-panel-header">
+                    <div>
+                      <h3>Notes</h3>
+                      <p className="empty-state">Save a quick standalone note without attaching it to an audio file yet.</p>
+                    </div>
+                    <button
+                      className="bookmark-button bookmark-button-secondary"
+                      onClick={() => setIsStandaloneNoteInputOpen(true)}
+                      type="button"
+                    >
+                      Add Note
+                    </button>
+                  </div>
+
+                  {isStandaloneNoteInputOpen ? (
+                    <form className="bookmark-form" onSubmit={handleCreateStandaloneNote}>
+                      <label className="bookmark-label" htmlFor="standalone-note-text">
+                        Note text
+                      </label>
+                      <input
+                        id="standalone-note-text"
+                        className="bookmark-input"
+                        value={standaloneNoteText}
+                        onChange={event => setStandaloneNoteText(event.target.value)}
+                        placeholder="Write a note to remember"
+                        type="text"
+                      />
+                      <label className="bookmark-label" htmlFor="standalone-note-idea">
+                        Idea or category (optional)
+                      </label>
+                      <input
+                        id="standalone-note-idea"
+                        className="bookmark-input"
+                        value={standaloneNoteIdea}
+                        onChange={event => setStandaloneNoteIdea(event.target.value)}
+                        placeholder="e.g. Song 3 arrangement, Book chapter 4"
+                        type="text"
+                      />
+                      {standaloneNoteKeywordSuggestions.length > 0 ? (
+                        <div className="keyword-chip-group" aria-label="Keyword suggestions">
+                          {standaloneNoteKeywordSuggestions.map(keyword => (
+                            <button
+                              className="keyword-chip"
+                              key={keyword}
+                              onClick={() => handleAcceptStandaloneNoteKeyword(keyword)}
+                              type="button"
+                            >
+                              {keyword}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      {acceptedStandaloneNoteKeywords.length > 0 ? (
+                        <div className="keyword-chip-group" aria-label="Accepted keywords">
+                          {acceptedStandaloneNoteKeywords.map(keyword => (
+                            <span className="keyword-chip keyword-chip-selected" key={keyword}>
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="bookmark-action-row">
+                        <button className="bookmark-button" disabled={!standaloneNoteText.trim()} type="submit">
+                          Save Note
+                        </button>
+                        <button
+                          className="bookmark-button bookmark-button-secondary"
+                          onClick={() => {
+                            setStandaloneNoteText("");
+                            setStandaloneNoteIdea("");
+                            setAcceptedStandaloneNoteKeywords([]);
+                            setIsStandaloneNoteInputOpen(false);
+                          }}
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+
+                  <section className="bookmark-section">
+                    <h4>Saved Notes</h4>
+                    <label className="bookmark-label" htmlFor="standalone-note-keyword-filter">
+                      Filter by keyword or idea
+                    </label>
+                    <input
+                      id="standalone-note-keyword-filter"
+                      className="bookmark-input"
+                      value={standaloneNoteKeywordFilter}
+                      onChange={event => setStandaloneNoteKeywordFilter(event.target.value)}
+                      placeholder="Type a keyword or idea name"
+                      type="text"
+                    />
+                    {standaloneNotes.length > 0 ? (
+                      filteredStandaloneNotes.length > 0 ? (
+                        (() => {
+                          const { groups, other } = groupStandaloneNotesByIdea(filteredStandaloneNotes);
+                          const ideaKeys = Object.keys(groups);
+                          return (
+                            <div className="notes-grouped">
+                              {ideaKeys.map(idea => (
+                                <section className="notes-idea-group" key={idea}>
+                                  <h5 className="notes-idea-heading">{idea}</h5>
+                                  <ul className="bookmark-list">
+                                    {groups[idea].map((bookmark, index) => (
+                                      <li className="bookmark-item" key={`${bookmark.id || "note"}-idea-${idea}-${index}`}>
+                                        <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                                        <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                        {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                                          <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </section>
+                              ))}
+                              {other.length > 0 ? (
+                                <section className="notes-idea-group" key="__other__">
+                                  {ideaKeys.length > 0 ? (
+                                    <h5 className="notes-idea-heading">Other notes</h5>
+                                  ) : null}
+                                  <ul className="bookmark-list">
+                                    {other.map((bookmark, index) => (
+                                      <li className="bookmark-item" key={`${bookmark.id || "note"}-other-${index}`}>
+                                        <span className="bookmark-time">{getStandaloneNoteTimestamp(bookmark)}</span>
+                                        <span className="bookmark-note">{getBookmarkDisplayNote(bookmark)}</span>
+                                        {Array.isArray(bookmark.keywords) && bookmark.keywords.length > 0 ? (
+                                          <span className="bookmark-note-keywords">{bookmark.keywords.join(", ")}</span>
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </section>
+                              ) : null}
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <p className="empty-state">No notes match that keyword.</p>
+                      )
+                    ) : (
+                      <p className="empty-state">No standalone notes saved yet.</p>
+                    )}
+                  </section>
                 </article>
               ) : null}
 

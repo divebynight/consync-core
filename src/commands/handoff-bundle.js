@@ -6,7 +6,7 @@ const LEAN_FILES = [
   path.join(".consync", "state", "snapshot.md"),
 ];
 
-const RUNBOOK_PATH = path.join(".consync", "docs", "runbook.md");
+const RUNBOOK_PATH = path.join(".scaffoldai", "process", "runbook.process.md");
 const RUNBOOK_POINTER = `For operating rules, read ${RUNBOOK_PATH} in the repo.`;
 
 function readRequiredFile(relativePath) {
@@ -63,7 +63,7 @@ function runHandoffBundleCommand(options = {}) {
   console.log("CONSYNC HANDOFF BUNDLE");
   console.log("");
   console.log("SOURCE OF TRUTH");
-  console.log("Local repo files under .consync/ remain canonical.");
+  console.log("Local repo files under .scaffoldai/ remain canonical.");
   console.log("This bundle is a transport artifact for re-entry.");
   console.log("");
 

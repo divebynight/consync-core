@@ -3,8 +3,8 @@ const path = require("path");
 const { validateLoopTexts } = require("../src/lib/handoffContractChecker");
 
 const repoRoot = path.resolve(__dirname, "..");
-const nextActionPath = path.join(repoRoot, ".consync", "state", "next-action.md");
-const handoffPath = path.join(repoRoot, ".consync", "state", "handoff.md");
+const nextActionPath = path.join(repoRoot, ".scaffoldai", "state", "next-action.md");
+const handoffPath = path.join(repoRoot, ".scaffoldai", "state", "handoff.md");
 
 function main() {
   const nextActionText = fs.readFileSync(nextActionPath, "utf8");

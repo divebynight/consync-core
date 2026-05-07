@@ -1,4 +1,9 @@
 const { runNewGuidCommand } = require("../commands/new-guid");
+const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status");
+const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight");
+const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify");
+const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout");
+const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
@@ -16,6 +21,11 @@ const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-c
 const { runPortableCommand } = require("../commands/portable");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
 const { runReentryCheckCommand } = require("../commands/reentry-check");
+const { runDryRunCheckCommand } = require("../commands/dry-run-check");
+const { runConsyncRunCommand } = require("../commands/consync-run");
+const { runIntakeRunCommand } = require("../commands/intake-run");
+const { runReferenceAuditCommand } = require("../commands/reference-audit");
+const { runFolderSummaryCommand } = require("../commands/folder-summary");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -187,6 +197,70 @@ async function main() {
 
   if (command === "reentry-check") {
     await runReentryCheckCommand();
+    return;
+  }
+
+  if (command === "dry-run-check") {
+    runDryRunCheckCommand(process.argv.slice(3));
+    return;
+  }
+
+  if (command === "consync-run") {
+    await runConsyncRunCommand(process.argv.slice(3));
+    return;
+  }
+
+  if (command === "intake-run") {
+    runIntakeRunCommand(process.argv.slice(3));
+    return;
+  }
+
+  if (command === "reference-audit") {
+    runReferenceAuditCommand();
+    return;
+  }
+
+  if (command === "folder-summary") {
+    runFolderSummaryCommand(process.argv[3]);
+    return;
+  }
+
+    if (command === "preflight-run") {
+      const { runPreflightRunCommand } = require("../commands/preflight-run");
+      runPreflightRunCommand(process.argv.slice(3));
+      return;
+    }
+
+      if (command === "verify-run") {
+        const { runVerifyRunCommand } = require("../commands/verify-run");
+        runVerifyRunCommand(process.argv.slice(3));
+        return;
+      }
+
+  if (command === "scaffoldai") {
+    const subcommand = process.argv[3];
+    if (subcommand === "status") {
+      runScaffoldaiStatusCommand();
+      return;
+    }
+    if (subcommand === "preflight") {
+      runScaffoldaiPreflightCommand();
+      return;
+    }
+    if (subcommand === "verify") {
+      runScaffoldaiVerifyCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "closeout") {
+      runScaffoldaiCloseoutCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "question") {
+      runScaffoldaiQuestionCommand(process.argv.slice(4));
+      return;
+    }
+    console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
+    process.exitCode = 1;
     return;
   }
 

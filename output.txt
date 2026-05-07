@@ -1,0 +1,261 @@
+
+> consync-core@0.0.11 verify
+> node src/test/verify.js
+
+[verify] Starting verification
+
+[verify] Core CLI behavior: unit new-guid
+[unit-new-guid] Running
+[32m[unit-new-guid] PASS[0m
+
+[verify] Core CLI behavior: integration new-guid
+[integration-new-guid-cli] Running interactive mode
+[integration-new-guid-cli] Running --note mode
+[32m[integration-new-guid-cli] PASS[0m
+
+[verify] Desktop scaffold boundary
+[32mPASS[0m
+
+[verify] Renderer session panel slice
+[32mPASS[0m
+
+[verify] Renderer mock search panel slice
+[32mPASS[0m
+
+[verify] Renderer search flow UI slice
+> consync-core@0.0.11 test:ui-search
+> vitest run --environment jsdom src/test/app-search-flow.test.jsx
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/Users/markhughes/Projects/consync-core[39m
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2madds a file-level note through the shared bookmark system
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2madds a new time-based bookmark to the workspace surfaces after bookmark capture
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mshows a millisecond playback readout near the native audio player
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mrenders file notes and timeline markers separately for the selected audio file
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mhighlights the nearest timeline marker at or before the current playback time
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mseeks the audio player when a timeline marker is clicked
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mtracks recent audio files and switches context without reopening the picker
+[22m[39mConsync audio file selected { fileName: [32m'first.mp3'[39m, fileUrl: [32m'file:///tmp/first.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mtracks recent audio files and switches context without reopening the picker
+[22m[39mConsync audio file selected { fileName: [32m'second.mp3'[39m, fileUrl: [32m'file:///tmp/second.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mdrops a timestamp marker with B and focuses the note input without interrupting playback
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mupdates the hotkey-created marker note instead of creating a duplicate marker
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mblurs the note input after Enter so B can drop another marker
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mfinalizes an empty hotkey marker on Enter and exits edit mode
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mdoes not drop a marker with B while typing in the note input
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mremoves the most recently created marker with Cmd+Z in LIFO order
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mdoes not remove markers with Cmd+Z while typing in the note input
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mdeletes only the clicked middle marker from the timeline marker list
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mdeletes only the clicked marker when multiple markers share the same timestamp
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+[90mstdout[2m | src/test/app-search-flow.test.jsx[2m > [22m[2mApp search flow[2m > [22m[2mkeeps non-search session errors separate from search-panel errors
+[22m[39mConsync audio file selected { fileName: [32m'sample.mp3'[39m, fileUrl: [32m'file:///tmp/sample.mp3'[39m }
+
+ [32m✓[39m src/test/app-search-flow.test.jsx [2m([22m[2m42 tests[22m[2m)[22m[33m 8606[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a workspace summary by default and keeps timeline behind a view toggle [33m 365[2mms[22m[39m
+     [33m[2m✓[22m[39m adds a file-level note through the shared bookmark system [33m 324[2mms[22m[39m
+     [33m[2m✓[22m[39m adds a standalone note through the shared bookmark system [33m 865[2mms[22m[39m
+     [33m[2m✓[22m[39m saves and displays the optional idea field on a standalone note [33m 722[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m42 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 14:13:49
+[2m   Duration [22m 10.14s[2m (transform 208ms, setup 0ms, import 413ms, tests 8.61s, environment 906ms)[22m
+
+[verify] Renderer bookmark read-after-write slice
+[32mPASS[0m
+
+[verify] Bookmark write/read/render loop slice
+[32mPASS[0m
+
+[verify] Standalone notes grouping
+[unit-standalone-notes-grouping] Running
+[32m  PASS: empty array[0m
+[32m  PASS: null input treated as empty[0m
+[32m  PASS: all notes without valid idea go to other[0m
+[32m  PASS: all notes with ideas, groups sorted case-insensitive alphabetically[0m
+[32m  PASS: mixed notes — ideas grouped, no-idea goes to other[0m
+[32m  PASS: multiple notes with same idea preserve insertion order[0m
+[32m  PASS: whitespace-only idea treated as no idea[0m
+[32m  PASS: input array not mutated[0m
+[32m[unit-standalone-notes-grouping] PASS[0m
+
+[verify] Fixture verification: basic-mixed
+[32mPASS[0m
+
+[verify] Fixture verification: nested-mixed
+[32mPASS[0m
+
+[verify] Descriptive layer: basic-mixed
+PATH: sandbox/fixtures/basic-mixed
+TOTAL FILES: 6
+FILE TYPES:
+- audio: 1
+- design: 1
+- image: 3
+- text: 1
+NOTES:
+- mixed media directory
+- contains non-standard filename patterns
+
+[verify] Descriptive layer: nested-mixed
+PATH: sandbox/fixtures/nested-mixed
+TOTAL FILES: 4
+FILE TYPES:
+- audio: 1
+- design: 1
+- image: 1
+- text: 1
+NOTES:
+- mixed media directory
+
+[verify] Nested anchor discovery trial
+[32mPASS[0m
+
+[verify] Nested anchor search trial
+[32mPASS[0m
+
+[verify] Desktop mock search flow
+[32mPASS[0m
+
+[verify] Proposal layer: basic-mixed
+[32mPASS[0m
+
+[verify] Proposal layer: nested-mixed
+[32mPASS[0m
+
+[verify] Proposal layer: single-type-flat
+[32mPASS[0m
+
+[verify] Proposal layer: mixed-flat-small
+[32mPASS[0m
+
+[verify] Sandbox catalog
+SANDBOX CATALOG
+FIXTURES
+- basic-mixed
+- nested-mixed
+- nested-anchor-trial
+- single-type-flat
+- mixed-flat-small
+SCAN EXPECTATIONS
+- basic-mixed -> basic-mixed-scan
+- nested-mixed -> nested-mixed-scan
+DISCOVERY EXPECTATIONS
+- nested-anchor-trial -> nested-anchor-trial-discover
+SEARCH EXPECTATIONS
+- nested-anchor-trial + moss -> nested-anchor-trial-search-moss
+DESKTOP SEARCH EXPECTATIONS
+- nested-anchor-trial + moss -> nested-anchor-trial-desktop-search-moss
+PROPOSE EXPECTATIONS
+- basic-mixed -> basic-mixed-propose
+- nested-mixed -> nested-mixed-propose
+- single-type-flat -> single-type-flat-propose
+- mixed-flat-small -> mixed-flat-small-propose
+
+[verify] Gatekeeper decision rules
+[unit-dry-run-check] Running
+[32m  PASS: product packet blocked by mode lock[0m
+[32m  PASS: process packet allowed by mode lock[0m
+[32m  PASS: dirty git blocks new SDC[0m
+[32m  PASS: CLOSEOUT allowed despite dirty git[0m
+[32m  PASS: in-flight packet blocks new SDC[0m
+[32m  PASS: DRY_RUN request always allowed[0m
+[32m  PASS: agent packet blocked by mode lock[0m
+[32m  PASS: RECOVERY request always allowed[0m
+[32m  PASS: SUPERSEDE with in-flight packet requires approval[0m
+[32m  PASS: dry-run reads in-flight from state (PACKAGE: pattern)[0m
+[32m  PASS: dry-run reads in-flight from state (PACKET_ID: pattern)[0m
+[32m  PASS: CLI override wins over state[0m
+[32m  PASS: no next-action file treats in-flight as null[0m
+[32m[unit-dry-run-check] PASS[0m
+
+[verify] In-flight packet state reader
+[unit-get-in-flight-packet] Running
+[32m  PASS: missing file returns null[0m
+[32m  PASS: empty file returns null[0m
+[32m  PASS: file with no matching key returns null[0m
+[32m  PASS: PACKET_ID: is parsed[0m
+[32m  PASS: PACKAGE: is parsed[0m
+[32m  PASS: first matching line wins[0m
+[32m  PASS: whitespace around value is trimmed[0m
+[32m  PASS: PACKAGE: NONE returns null[0m
+[32m  PASS: PACKET_ID: NONE returns null[0m
+[32m[unit-get-in-flight-packet] PASS[0m
+
+[verify] Bridge integrity checks
+[bridge-integrity-checks] Running
+[32m  PASS: required Bridge state files exist[0m
+[32m  PASS: required stream files exist[0m
+[32m  PASS: active-contract.json is valid JSON[0m
+[32m  PASS: active-contract.json and next-action.md agree on no active packet state[0m
+[32m  PASS: active-stream.md references an existing stream directory[0m
+[32m  PASS: handoff.md is non-empty[0m
+[32m  PASS: snapshot.md is non-empty[0m
+[32m[bridge-integrity-checks] PASS[0m
+
+[verify] Handoff bundle integration
+[integration-handoff-bundle-cli] Running lean scenario
+[integration-handoff-bundle-cli] Running full scenario
+[integration-handoff-bundle-cli] Running missing lean file scenario
+[integration-handoff-bundle-cli] Running missing full runbook scenario
+[integration-handoff-bundle-cli] Running runbook path boundary scenario
+[32m[integration-handoff-bundle-cli] PASS[0m
+
+[verify] Consync-run command
+[unit-consync-run] Running
+[31m[unit-consync-run] FAIL[0m
+AssertionError [ERR_ASSERTION]: Expected report header. Got:
+
+    at /Users/markhughes/Projects/consync-core/src/test/unit-consync-run.js:77:14
+    at withTempDir (/Users/markhughes/Projects/consync-core/src/test/unit-consync-run.js:21:5)
+    at main (/Users/markhughes/Projects/consync-core/src/test/unit-consync-run.js:72:5)
+    at Object.<anonymous> (/Users/markhughes/Projects/consync-core/src/test/unit-consync-run.js:187:1)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+
+[36mVERIFY SUMMARY[0m
+
+CLI / COMMAND TESTS: [31mFAIL[0m ([verify] Consync-run command)
+BRIDGE / STATE TESTS: [32mPASS[0m
+SYSTEM TESTS: NOT RUN
+RENDERER TESTS: [32mPASS[0m
+E2E TESTS: NOT RUN
+
+OVERALL: [31mFAIL[0m

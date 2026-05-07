@@ -2,12 +2,12 @@ const fs = require("fs");
 const path = require("path");
 
 const CORE_STATE_FILES = {
-  activeStream: path.join(".consync", "state", "active-stream.md"),
-  nextAction: path.join(".consync", "state", "next-action.md"),
-  handoff: path.join(".consync", "state", "handoff.md"),
-  snapshot: path.join(".consync", "state", "snapshot.md"),
+  activeStream: path.join(".scaffoldai", "state", "active-stream.md"),
+  nextAction: path.join(".scaffoldai", "state", "next-action.md"),
+  handoff: path.join(".scaffoldai", "state", "handoff.md"),
+  snapshot: path.join(".scaffoldai", "state", "snapshot.md"),
 };
-const STREAMS_ROOT = path.join(".consync", "streams");
+const STREAMS_ROOT = path.join(".scaffoldai", "streams");
 
 const REQUIRED_HANDOFF_SECTIONS = [
   "STATUS",
@@ -246,18 +246,23 @@ function evaluateStateIntegrity(rootPath, mode) {
   }
 
   const ok = failures.length === 0;
-  const systemState = nextAction.packageName ? "OPEN" : "CLOSED";
+  const isPackageMounted = Boolean(nextAction.packageName && nextAction.packageName !== "NONE");
+  const systemState = isPackageMounted ? "OPEN" : "CLOSED";
   let nextSafeAction = "reconcile live state before continuing";
 
   if (ok && normalizedMode === "preflight") {
-    nextSafeAction = `execute mounted package ${nextAction.packageName}`;
+    nextSafeAction = isPackageMounted
+      ? `execute mounted package ${nextAction.packageName}`
+      : "no active package; define and mount the next work package";
   }
 
   if (ok && normalizedMode === "postflight") {
-    if (nextAction.packageName && handoff.packageName && nextAction.packageName === handoff.packageName) {
+    if (isPackageMounted && handoff.packageName && nextAction.packageName === handoff.packageName) {
       nextSafeAction = `accept closeout for ${handoff.packageName} and mount the next package intentionally`;
-    } else {
+    } else if (isPackageMounted) {
       nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; mounted package ${nextAction.packageName} is now live`;
+    } else {
+      nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; no active package mounted`;
     }
   }
 

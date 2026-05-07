@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const PORTABLE_TEMPLATE_DIR = path.resolve(__dirname, "..", "..", ".consync", "templates", "portable");
+const PORTABLE_TEMPLATE_DIR = path.resolve(__dirname, "..", "..", ".scaffoldai", "templates", "portable");
 
 function collectTemplateFiles(rootPath, relativePath = "") {
   const currentPath = path.join(rootPath, relativePath);

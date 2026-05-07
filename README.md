@@ -7,7 +7,6 @@ Consync is a small local-first tool for tracking creative work. It organizes ses
 - Captures session context and artifact metadata locally
 - Runs structured development loops: plan → packet → test → verify → commit
 - Provides a desktop scaffold for browsing and searching work
-- Keeps a portable `.consync/` process boundary that travels with the repo
 
 ## How work happens
 
@@ -40,23 +39,98 @@ Invocation rules:
 - **SHOULD** use the Entry Adapter when the next agent is unclear.
 - **MAY SKIP** the Entry Adapter when the human explicitly invokes a specific agent or command.
 
+## What you can run today
+
+The first explicit Intake Runtime Command is `intake-run`. It runs the Intake agent's classification logic in a single, inspectable step.
+
+```
+node src/index.js intake-run --prompt "describe the work here"
+```
+
+Other current Runtime Commands:
+
+- `dry-run-check` — simulation only (prints a Gatekeeper decision report, no prompt, no execution)
+- `consync-run` — approval only (prompts on ALLOW, no execution wiring)
+
+This system is still fully manual and non-orchestrated. No agent auto-dispatches. No pipeline exists.
+
+## Manual Execution Flow
+
+The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
+
+`.scaffoldai/process/manual-execution-flow.process.md`
+
+This system remains manual and non-orchestrated. Intake and Preflight have explicit CLI commands.
+
 ## Where to go next
 
 **Feature development process:**
-- How to plan and break down a feature → [`.consync/docs/feature-planning-and-packetization.md`](.consync/docs/feature-planning-and-packetization.md)
-- Coordination model for multi-packet features → [`.consync/docs/feature-packet-execution.md`](.consync/docs/feature-packet-execution.md)
-- Canonical example (Search Panel e2e coverage) → [`.consync/docs/examples/search-panel-feature-example.md`](.consync/docs/examples/search-panel-feature-example.md)
+- How to plan and break down a feature — [Feature planning and packetization](.scaffoldai/process/feature-planning-and-packetization.process.md)
+- Coordination model for multi-packet features — [Feature packet execution](.scaffoldai/process/feature-packet-execution.process.md)
+- Canonical example (Search Panel e2e coverage) — [Search panel feature example](.scaffoldai/examples/search-panel-feature-example.md)
 
 **Running the project:**
 - Start the desktop app: `npm run start:desktop`
 - Run unit + integration tests: `npm test`
 - Run normal verification: `npm run verify`
 - Run full verification (includes e2e): `npm run verify:full`
+- See the full command model: [Verification Model](#verification-model)
+
+## Verification Model
+
+Consync uses targeted VERIFY COMMANDS to separate fast feedback from full system validation.
+
+**Consync product commands:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify:consync` | Fast product checks. Does NOT launch Electron. | Active development — tight feedback loop. |
+| `npm run verify:consync:e2e` | Electron end-to-end tests using Playwright. Launches the full app. | When explicitly testing Electron behavior. |
+| `npm run verify:consync:full` | Fast product checks + Electron e2e. | Before shipping product changes. |
+
+**ScaffoldAI process command:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify:scaffoldai` | Process state, packets, and system integrity checks. | Before or after process-layer changes. |
+
+**Combined commands:**
+
+| Command | What it runs | When to use |
+|---------|-------------|-------------|
+| `npm run verify` | All fast checks across Consync and ScaffoldAI. | Default development command. |
+| `npm run verify:full` | Full system verification: preflight checks, unit tests, Electron e2e, and postflight validation. | Before committing or merging. |
+
+> **Note:** Electron e2e tests can take over the system and should be run explicitly when needed.
+
+## Repo structure
+
+Each major folder has a local `README.md` that describes its boundary rules and what belongs there.
+
+| Folder | Purpose | README |
+|--------|---------|--------|
+| `src/` | Consync runtime/product code — CLI, lib, commands, Electron, tests | [src/README.md](src/README.md) |
+| `src/lib/` | Reusable product logic called by commands and Electron | [src/lib/README.md](src/lib/README.md) |
+| `src/commands/` | Thin CLI command handlers — gather input, call lib, output results | [src/commands/README.md](src/commands/README.md) |
+| `src/electron/` | Electron runtime shell: main, preload, renderer, shared | [src/electron/README.md](src/electron/README.md) |
+| `src/test/` | Automated verification: unit, integration, renderer slice, e2e | [src/test/README.md](src/test/README.md) |
+| `.scaffoldai/` | ScaffoldAI process/harness layer: agents, skills, state, streams, packets | [.scaffoldai/README.md](.scaffoldai/README.md) |
+| `.github/` | GitHub/Copilot adapter layer only — not the canonical process model | [.github/README.md](.github/README.md) |
+| `sandbox/` | Deterministic dev/test artifacts: fixtures, expectations, probes | [sandbox/README.md](sandbox/README.md) |
+| `scripts/` | Project utility scripts | [scripts/README.md](scripts/README.md) |
+
+**Central boundary:**
+
+- Consync product/runtime code belongs in `src/`
+- ScaffoldAI process harness and live state belong in `.scaffoldai/`
+- `.github/` is a thin adapter layer — GitHub and Copilot files are not the canonical process model
+
+---
 
 ## For AI tools
 
 For structured execution context, system architecture, and process constraints:
 
-> `.consync/docs/ai-context.md`
+> `.scaffoldai/process/ai-context.process.md`
 
-Agent role contracts live in `.consync/agents/`. Reusable procedures and skills live in `.consync/skills/`. GitHub and Copilot files are adapters only, not the canonical process model.
+Agent role contracts live in `.scaffoldai/agents/`. Reusable procedures and skills live in `.scaffoldai/skills/`. GitHub and Copilot files are adapters only, not the canonical process model.

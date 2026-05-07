@@ -1,25 +1,26 @@
 Authoritative workflow note:
 
-- `.consync/` is the source of truth for Consync execution workflow.
-- Use `.consync/state/*` and `.consync/docs/runbook.md` as authoritative.
+- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
+- `.scaffoldai/` is the authoritative ScaffoldAI process/harness layer.
+- Use `.scaffoldai/state/*` and `.scaffoldai/process/runbook.process.md` as authoritative.
 - Treat this file as a GitHub/Copilot adapter only.
 
 Read the file at:
 
-.consync/state/next-action.md
+.scaffoldai/state/next-action.md
 
 Execute it exactly as written.
 
 Follow all constraints in the document.
 
 Output behavior:
-- Write the full result to: .consync/state/handoff.md
+- Write the full result to: .scaffoldai/state/handoff.md
 - Overwrite the file completely
 
 Do NOT print the full response in chat.
 
 Only reply with:
-Wrote full handoff to .consync/state/handoff.md
+Wrote full handoff to .scaffoldai/state/handoff.md
 
 ## Handoff Output Rules
 

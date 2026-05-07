@@ -16,9 +16,9 @@ CONTEXT
 
 This repository uses a stream-based workflow:
 
-- Work is executed via next_action → handoff → verify
-- Streams are defined under .consync/streams/
-- The active stream is tracked in .consync/orchestration/active_foreground_stream.txt
+- Work is executed via next-action → handoff → verify
+- Streams are defined under .scaffoldai/streams/
+- The active stream is tracked in .scaffoldai/state/active-stream.md
 - Tests define behavioral truth
 - Docs and stream state define expected system understanding
 

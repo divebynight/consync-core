@@ -11,15 +11,24 @@ test-results/
 sandbox/current/*.json
 
 # Generated runtime log
-.consync/state/history/events.log
+.scaffoldai/state/history/events.log
 
 sandbox/probes/audio-session-capture/workdir/*
 
-# Consync runtime state (do not track)
-.consync/state/next-action.md
-.consync/state/snapshot.md
-.consync/state/active-stream.md
+# ScaffoldAI bridge state (do not track)
+.scaffoldai/state/next-action.md
+.scaffoldai/state/snapshot.md
+.scaffoldai/state/active-stream.md
 
 # Optional: if you later add logs/history
-.consync/state/history/
-.consync/packets/
+.scaffoldai/state/history/
+.scaffoldai/packets/
+
+# ScaffoldAI runtime temp output (logs, debug artifacts, scratch)
+# Keep the directory tracked via .gitkeep; ignore its contents
+.scaffoldai/tmp/*
+!.scaffoldai/tmp/.gitkeep
+
+# Prevent ScaffoldAI verify/debug logs from landing at repo root
+.scaffoldai_verify.log
+.scaffoldai_*.log
