@@ -158,6 +158,7 @@ Healthy repo expected:
   "status": "ON_TRACK",
   "data": {
     "contract": { "mode": "...", "allowed_packet_types": [...], ... },
+    "active_stream": "electron_ui",
     "in_flight_packet": null,
     "git_clean": false,
     "git_file_count": <n>,

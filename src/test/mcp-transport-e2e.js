@@ -87,6 +87,10 @@ async function main() {
         check(parsed.execution_class === "READ_ONLY", 'scaffoldai_status returns execution_class "READ_ONLY"');
         check(typeof parsed.status === "string" && parsed.status.length > 0, "scaffoldai_status returns a valid status field");
         check(parsed.data !== null && typeof parsed.data === "object", "scaffoldai_status returns a data object");
+        check(
+          typeof parsed.data.active_stream === "string" || parsed.data.active_stream === null,
+          "scaffoldai_status returns active_stream as string or null"
+        );
         check(typeof parsed.next_safe_action === "string" && parsed.next_safe_action.length > 0, "scaffoldai_status returns next_safe_action");
       }
     }

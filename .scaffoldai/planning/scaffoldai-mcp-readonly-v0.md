@@ -117,11 +117,14 @@ Five read-only tools. All classified as execution class `READ_ONLY`.
 {
   "tool": "scaffoldai_status",
   "execution_class": "READ_ONLY",
-  "active_packet": "(none)" | "<packet_id>",
-  "stream": "<stream_name>",
-  "git_status": "clean" | "dirty (<n> file(s))",
-  "mode": "<contract_mode>",
-  "verify_command": "<command>",
+  "data": {
+    "contract": { "mode": "<contract_mode>" },
+    "active_stream": "<stream_name>" | null,
+    "in_flight_packet": null | "<packet_id>",
+    "git_clean": true,
+    "git_file_count": 0,
+    "verify_command": "<command>"
+  },
   "next_safe_action": "<text>",
   "status": "ON_TRACK" | "WARNING" | "BLOCKED"
 }

@@ -6,6 +6,7 @@ const { getGitStatus } = require("../lib/gitStatus");
 const { gatherQuestions } = require("../commands/scaffoldai-question");
 const { gatherPreflightResults } = require("../commands/scaffoldai-preflight");
 const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");
+const { readActiveStream } = require("../commands/scaffoldai-status");
 
 const path = require("path");
 
@@ -18,6 +19,7 @@ const EXECUTION_CLASS = "READ_ONLY";
 
 function runStatusTool() {
   const contract = readActiveContract(repoRoot);
+  const activeStream = readActiveStream();
   const inFlightPacket = getInFlightPacket(repoRoot);
   const git = getGitStatus(repoRoot);
   const resolved = resolveVerifyCommand(contract, {});
@@ -32,6 +34,7 @@ function runStatusTool() {
     status,
     data: {
       contract: contract || null,
+      active_stream: activeStream || null,
       in_flight_packet: inFlightPacket || null,
       git_clean: git.clean,
       git_file_count: git.count,

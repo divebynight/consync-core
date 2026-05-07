@@ -186,4 +186,4 @@ function runScaffoldaiStatusCommand() {
   console.log(`STATUS: ${overallStatus}`);
 }
 
-module.exports = { runScaffoldaiStatusCommand };
+module.exports = { runScaffoldaiStatusCommand, readActiveStream };

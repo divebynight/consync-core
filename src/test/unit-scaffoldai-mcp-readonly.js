@@ -75,7 +75,20 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 8: runQuestionTool returns 0 questions in healthy repo
+// Test 8: runStatusTool returns active_stream when state is readable
+// -----------------------------------------------------------------------
+
+{
+  const result = tools.runStatusTool();
+  check(
+    result.data &&
+      (typeof result.data.active_stream === "string" || result.data.active_stream === null),
+    "runStatusTool returns active_stream as string or null"
+  );
+}
+
+// -----------------------------------------------------------------------
+// Test 9: runQuestionTool returns 0 questions in healthy repo
 // -----------------------------------------------------------------------
 
 {
@@ -87,7 +100,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 9: runVerifyRecommendTool returns a non-empty verify_command string
+// Test 10: runVerifyRecommendTool returns a non-empty verify_command string
 // -----------------------------------------------------------------------
 
 {
@@ -101,7 +114,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 10: runVerifyRecommendTool does NOT return PASS or FAIL status
+// Test 11: runVerifyRecommendTool does NOT return PASS or FAIL status
 // -----------------------------------------------------------------------
 
 {
@@ -111,7 +124,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 11: runCloseoutReadinessTool status is not READY_FOR_REVIEW
+// Test 12: runCloseoutReadinessTool status is not READY_FOR_REVIEW
 // -----------------------------------------------------------------------
 
 {
@@ -120,7 +133,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 12: runCloseoutReadinessTool always returns verify_evidence: "not provided"
+// Test 13: runCloseoutReadinessTool always returns verify_evidence: "not provided"
 // -----------------------------------------------------------------------
 
 {
