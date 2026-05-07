@@ -1,7 +1,7 @@
 # Planning — scaffoldai-mcp-smoke-e2e-v0
 
 Created: 2026-05-06
-Status: PLAN
+Status: IMPLEMENTED / VALIDATED
 
 ---
 
@@ -11,7 +11,7 @@ Define terminal-runnable tests that validate the MCP server through stdio transp
 
 These tests exercise the full server path — process spawn, JSON-RPC message exchange, response parsing — rather than calling tool handler functions directly. They are complementary to `unit-scaffoldai-mcp-readonly.js`, which tests function-level logic in isolation.
 
-This document is planning-only. No implementation changes are made here.
+This document records the implemented and validated smoke/E2E test model. It does not add runtime authority.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Created: 2026-05-06
 Decided: 2026-05-06
-Status: DECIDED
+Status: IMPLEMENTED / VALIDATED
 
 ---
 

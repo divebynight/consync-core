@@ -1,7 +1,7 @@
 # ScaffoldAI MCP Client Interaction Contract — v0
 
 Created: 2026-05-06
-Status: CONTRACT
+Status: ACTIVE CONTRACT
 
 ---
 
