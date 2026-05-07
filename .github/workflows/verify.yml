@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -31,25 +32,47 @@ jobs:
         run: npm test
 
   e2e:
-    name: Renderer E2E (non-blocking)
+    name: Renderer E2E (non-blocking, path-scoped)
     runs-on: ubuntu-latest
     continue-on-error: true
+    # Only runs when renderer, Electron, or E2E test files change.
+    # Skip this job for docs/process/runtime-only changes.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(toJson(github.event.pull_request.changed_files), 'src/electron/') ||
+      true
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for UI/Electron file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ui:
+              - 'src/electron/**'
+              - 'src/renderer/**'
+              - 'src/test/e2e/**'
+              - 'vite.renderer.config.mjs'
+              - 'playwright.config.js'
+
       - name: Setup Node 20
+        if: steps.changes.outputs.ui == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
+        if: steps.changes.outputs.ui == 'true' || github.event_name == 'workflow_dispatch'
         run: npm ci
 
       - name: Install Playwright browsers
+        if: steps.changes.outputs.ui == 'true' || github.event_name == 'workflow_dispatch'
         run: npx playwright install --with-deps chromium
 
       - name: Run renderer E2E tests
+        if: steps.changes.outputs.ui == 'true' || github.event_name == 'workflow_dispatch'
         run: npm run test:e2e
