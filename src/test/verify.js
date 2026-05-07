@@ -231,7 +231,7 @@ function printSummary() {
   console.log("");
   console.log(cyan("VERIFY SUMMARY"));
   console.log("");
-  console.log(`VERIFY SURFACE............. ${surfaceLabel()}`);
+  console.log(`VERIFY TARGET: ${surfaceLabel()}`);
   console.log("");
 
   for (const [group, result] of groupResults) {
