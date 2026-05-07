@@ -57,7 +57,7 @@ function main() {
 
       assert.ok(out.includes("ACTIVE STREAM:"), `Missing ACTIVE STREAM section. Got:\n${out}`);
       assert.ok(out.includes("ACTIVE PACKET:"), `Missing ACTIVE PACKET section. Got:\n${out}`);
-      assert.ok(out.includes("NEXT ACTION:"), `Missing NEXT ACTION section. Got:\n${out}`);
+      assert.ok(out.includes("NEXT SAFE ACTION:"), `Missing NEXT SAFE ACTION section. Got:\n${out}`);
       assert.ok(out.includes("GIT STATUS:"), `Missing GIT STATUS section. Got:\n${out}`);
       assert.ok(out.includes("VERIFY COMMAND:"), `Missing VERIFY COMMAND section. Got:\n${out}`);
       console.log("  PASS: output includes all expected sections");

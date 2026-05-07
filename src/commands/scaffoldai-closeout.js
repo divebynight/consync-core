@@ -171,8 +171,12 @@ function runScaffoldaiCloseoutCommand(argv) {
   const prefix = inferCommitPrefix(git.files, contract);
   const suggestion = buildCommitSuggestion(prefix, inFlightPacket);
 
-  const commitPrefixLine = prefix || "(none — mixed or unclear changes)";
-  const commitSuggestionLine = suggestion;
+  const commitPrefixLine = hasChanges
+    ? (prefix || "(none — mixed or unclear changes)")
+    : "(none — no changed files)";
+  const commitSuggestionLine = hasChanges
+    ? suggestion
+    : "(none — no changed files)";
 
   // --- Determine STATUS ---
   let status;

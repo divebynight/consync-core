@@ -154,7 +154,7 @@ function runScaffoldaiStatusCommand() {
   console.log("");
   console.log(`ACTIVE STREAM:    ${activeStream || "(unknown)"}`);
   console.log(`ACTIVE PACKET:    ${inFlightPacket || "(none)"}`);
-  console.log(`NEXT ACTION:      ${nextActionSummary || "(none — see next-action.md)"}`);
+  console.log(`NEXT SAFE ACTION: ${nextActionSummary || "(none — see next-action.md)"}`);
 
   if (git.error) {
     console.log(`GIT STATUS:       (unavailable — ${git.error})`);
