@@ -1,136 +1,158 @@
 # consync-core
 
-Consync is a small local-first tool for tracking creative work. It organizes sessions, artifacts, and development loops without requiring a server, network, or external service.
+`consync-core` is an experimental local-first creativity and context system.
 
-## What it does
+It combines:
+- creative file and session tracking
+- contextual reentry tooling
+- structured runtime state
+- an AI development harness designed to make collaboration with AI tools more deterministic and less chaotic
 
-- Captures session context and artifact metadata locally
-- Runs structured development loops: plan → packet → test → verify → commit
-- Provides a desktop scaffold for browsing and searching work
+The project explores ways to preserve creative context over time, reduce reentry friction, and build operational tooling that keeps both humans and AI tools oriented during long, interrupted, or complex work sessions.
 
-## How work happens
-
-```
-Plan → Break into packets → Implement → Verify → Commit
-```
-
-Each piece of work is a **work packet** — a small, focused task with a clear goal, a verification step, and a commit. Larger features are broken into a sequence of packets.
-
-Consync uses manual, explicit agent invocation for process judgment. There is no orchestrator, runner, automatic dispatcher, or hidden agent pipeline.
-
-The post-Phase 2 entry flow is:
-
-1. use the Entry Adapter when incoming input needs classification
-2. receive one recommended agent
-3. have a human manually invoke that agent
-
-Current agent roles:
-
-- **Preflight** checks whether repo and process state are safe before work begins.
-- **Intake** classifies new work and its boundaries before execution.
-- **Verify** runs and reports verification evidence.
-- **Closeout** summarizes changed files, verification, risks, and commit readiness.
-- **Reentry** reconstructs context after interruption, stale state, or unclear handoff.
-
-Invocation rules:
-
-- **MUST** invoke agents manually; no doc or command auto-dispatches them.
-- **MUST** use `Verify` evidence before reporting clean closeout.
-- **SHOULD** use the Entry Adapter when the next agent is unclear.
-- **MAY SKIP** the Entry Adapter when the human explicitly invokes a specific agent or command.
-
-## What you can run today
-
-The first explicit Intake Runtime Command is `intake-run`. It runs the Intake agent's classification logic in a single, inspectable step.
-
-```
-node src/index.js intake-run --prompt "describe the work here"
-```
-
-Other current Runtime Commands:
-
-- `dry-run-check` — simulation only (prints a Gatekeeper decision report, no prompt, no execution)
-- `consync-run` — approval only (prompts on ALLOW, no execution wiring)
-
-This system is still fully manual and non-orchestrated. No agent auto-dispatches. No pipeline exists.
-
-## Manual Execution Flow
-
-The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
-
-`.scaffoldai/process/manual-execution-flow.process.md`
-
-This system remains manual and non-orchestrated. Intake and Preflight have explicit CLI commands.
-
-## Where to go next
-
-**Feature development process:**
-- How to plan and break down a feature — [Feature planning and packetization](.scaffoldai/process/feature-planning-and-packetization.process.md)
-- Coordination model for multi-packet features — [Feature packet execution](.scaffoldai/process/feature-packet-execution.process.md)
-- Canonical example (Search Panel e2e coverage) — [Search panel feature example](.scaffoldai/examples/search-panel-feature-example.md)
-
-**Running the project:**
-- Start the desktop app: `npm run start:desktop`
-- Run unit + integration tests: `npm test`
-- Run normal verification: `npm run verify`
-- Run full verification (includes e2e): `npm run verify:full`
-- See the full command model: [Verification Model](#verification-model)
-
-## Verification Model
-
-Consync uses targeted VERIFY COMMANDS to separate fast feedback from full system validation.
-
-**Consync product commands:**
-
-| Command | What it runs | When to use |
-|---------|-------------|-------------|
-| `npm run verify:consync` | Fast product checks. Does NOT launch Electron. | Active development — tight feedback loop. |
-| `npm run verify:consync:e2e` | Electron end-to-end tests using Playwright. Launches the full app. | When explicitly testing Electron behavior. |
-| `npm run verify:consync:full` | Fast product checks + Electron e2e. | Before shipping product changes. |
-
-**ScaffoldAI process command:**
-
-| Command | What it runs | When to use |
-|---------|-------------|-------------|
-| `npm run verify:scaffoldai` | Process state, packets, and system integrity checks. | Before or after process-layer changes. |
-
-**Combined commands:**
-
-| Command | What it runs | When to use |
-|---------|-------------|-------------|
-| `npm run verify` | All fast checks across Consync and ScaffoldAI. | Default development command. |
-| `npm run verify:full` | Full system verification: preflight checks, unit tests, Electron e2e, and postflight validation. | Before committing or merging. |
-
-> **Note:** Electron e2e tests can take over the system and should be run explicitly when needed.
-
-## Repo structure
-
-Each major folder has a local `README.md` that describes its boundary rules and what belongs there.
-
-| Folder | Purpose | README |
-|--------|---------|--------|
-| `src/` | Consync runtime/product code — CLI, lib, commands, Electron, tests | [src/README.md](src/README.md) |
-| `src/lib/` | Reusable product logic called by commands and Electron | [src/lib/README.md](src/lib/README.md) |
-| `src/commands/` | Thin CLI command handlers — gather input, call lib, output results | [src/commands/README.md](src/commands/README.md) |
-| `src/electron/` | Electron runtime shell: main, preload, renderer, shared | [src/electron/README.md](src/electron/README.md) |
-| `src/test/` | Automated verification: unit, integration, renderer slice, e2e | [src/test/README.md](src/test/README.md) |
-| `.scaffoldai/` | ScaffoldAI process/harness layer: agents, skills, state, streams, packets | [.scaffoldai/README.md](.scaffoldai/README.md) |
-| `.github/` | GitHub/Copilot adapter layer only — not the canonical process model | [.github/README.md](.github/README.md) |
-| `sandbox/` | Deterministic dev/test artifacts: fixtures, expectations, probes | [sandbox/README.md](sandbox/README.md) |
-| `scripts/` | Project utility scripts | [scripts/README.md](scripts/README.md) |
-
-**Central boundary:**
-
-- Consync product/runtime code belongs in `src/`
-- ScaffoldAI process harness and live state belong in `.scaffoldai/`
-- `.github/` is a thin adapter layer — GitHub and Copilot files are not the canonical process model
+It is experimental but operational. Everything in this repo can be used without a network connection, a cloud service, or a background server.
 
 ---
 
-## For AI tools
+## Why This Exists
 
-For structured execution context, system architecture, and process constraints:
+Creative work — audio, writing, design, code — generates a lot of context that is easy to lose. Sessions get interrupted. You return days later with no clear sense of where you were, what decisions were made, or what still needs to happen.
 
-> `.scaffoldai/process/ai-context.process.md`
+Consync is an attempt to solve that in a local-first way: small files, explicit timestamps, GUID-based identity for tracked concepts, and just enough structure to make reentry fast.
 
-Agent role contracts live in `.scaffoldai/agents/`. Reusable procedures and skills live in `.scaffoldai/skills/`. GitHub and Copilot files are adapters only, not the canonical process model.
+The same problem applies to AI-assisted development. AI tools lose context between sessions, give inconsistent results when context is thin, and lack a stable way to verify their own work. ScaffoldAI is the development harness in this repo that addresses that problem — providing deterministic runtime commands, state checkpoints, and structured verification so that AI collaboration stays grounded.
+
+---
+
+## What Currently Works
+
+- **Session and file tracking** — timestamped event artifacts, GUID-based identity metadata, local JSON
+- **Desktop workspace** — Electron app with audio file loading, markers, bookmarks, search, and workspace browsing
+- **Runtime CLI** — commands for system status, preflight checks, structured verification, and handoff/closeout
+- **Verification loop** — fast local checks that report PASS/FAIL across all major runtime areas
+- **MCP integration (read-only)** — a local stdio MCP server exposing 5 read-only tools for AI clients
+- **CI** — GitHub Actions workflow running core verification on every PR and push to main
+
+---
+
+## Current Major Components
+
+### Consync
+
+Consync is the product: a local-first desktop and CLI tool for tracking creative work.
+
+It tracks sessions, files, markers, bookmarks, and annotations as small local artifacts — timestamped events and GUID metadata — rather than in a database or cloud service.
+
+The desktop app is built on Electron + React. The CLI commands live under `src/commands/`. Creative tracking logic lives under `src/lib/`.
+
+### ScaffoldAI
+
+ScaffoldAI is the development harness that wraps the Consync build process.
+
+It provides runtime commands you can invoke from the CLI, a verification loop, state snapshot/handoff docs, and a read-only MCP server that AI clients can query. It is designed to keep AI-assisted work predictable: state is explicit, verification is runnable, and no autonomous action happens without human approval.
+
+ScaffoldAI lives under `.scaffoldai/`. It is not part of the Consync product.
+
+---
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start the desktop app
+npm run start:desktop
+
+# Run core tests
+npm test
+
+# Run all fast verification
+npm run verify
+```
+
+---
+
+## Common Commands
+
+| Command | What it does |
+|---|---|
+| `npm test` | Runs unit and integration tests |
+| `npm run verify` | All fast non-E2E checks |
+| `npm run verify:scaffoldai` | ScaffoldAI runtime checks, state, MCP coverage |
+| `npm run verify:consync` | Fast Consync product checks |
+| `npm run test:e2e` | Playwright renderer E2E (requires preload build) |
+| `npm run start:desktop` | Launches the Electron desktop app |
+| `npm run scaffoldai:status` | Current runtime posture summary |
+| `npm run scaffoldai:preflight` | Pre-work safety check |
+| `npm run scaffoldai:mcp` | Starts the local MCP server (stdio) |
+
+---
+
+## Current Status
+
+- Local-first development, no cloud or network dependency
+- Desktop app operational (audio, markers, bookmarks, search, workspace browser)
+- CLI runtime commands operational (status, preflight, verify, handoff, closeout)
+- Read-only MCP server at v0 over local stdio — no remote exposure
+- Verification loop passing across all surfaces
+- CI running core verification on pull_request and push to main
+- Human approval required for verification acceptance, commits, pushes, and PRs
+- Runtime temp/log artifacts stay under `.scaffoldai/tmp/`
+
+This is experimental software. APIs and structure will change. Planned layers (write-capable MCP, durable verify evidence, persistent event store) are not yet implemented.
+
+---
+
+## Repository Layout
+
+```
+src/                   Consync CLI, commands, lib, Electron app, and tests
+.scaffoldai/           ScaffoldAI process layer: state, agents, planning, skills, contracts
+.github/               GitHub Actions CI and Copilot adapter
+sandbox/               Deterministic fixtures and probes for local verification
+scripts/               Project utility scripts
+```
+
+Deeper layout documentation: [src/README.md](src/README.md), [.scaffoldai/README.md](.scaffoldai/README.md)
+
+---
+
+## Documentation Map
+
+| What you want | Where to look |
+|---|---|
+| What Consync is building | [src/README.md](src/README.md) |
+| CLI commands reference | [src/commands/README.md](src/commands/README.md) |
+| ScaffoldAI runtime state | [.scaffoldai/reference/current-runtime-state.reference.md](.scaffoldai/reference/current-runtime-state.reference.md) |
+| ScaffoldAI process guide | [.scaffoldai/process/runbook.process.md](.scaffoldai/process/runbook.process.md) |
+| MCP client contract | [.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md](.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md) |
+| Desktop/Electron layer | [src/electron/README.md](src/electron/README.md) |
+| Sandbox fixtures | [sandbox/README.md](sandbox/README.md) |
+
+---
+
+## Development Notes
+
+Keep work small and focused. One packet or PR at a time.
+
+Before starting any substantive change:
+
+```bash
+npm run scaffoldai:preflight
+npm run scaffoldai:question
+```
+
+Before committing:
+
+```bash
+npm run verify
+```
+
+For Electron/renderer changes, also run:
+
+```bash
+npm run test:e2e
+```
+
+This repo uses a human-controlled workflow. AI tools assist; humans approve, commit, and push.
