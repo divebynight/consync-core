@@ -49,6 +49,9 @@ This contract assumes:
 - MCP observations can become stale when files change, verification runs, branches switch, or a human resumes work after interruption.
 - User claims are important context, but MCP observations are the current structured ScaffoldAI runtime evidence available to the client.
 - MCP observations do not replace the underlying `.scaffoldai/state/` and `.scaffoldai/streams/` source-of-truth surfaces.
+- MCP Inspector is a local validation UI, not runtime authority or production transport.
+- MCP transport tests validate protocol behavior and read-only contracts, not closeout approval or verification evidence.
+- The runtime snapshot JSON is a generated observation bundle, not an interactive MCP session.
 - Human approval is required before any action above `READ_ONLY`.
 
 ---
@@ -125,6 +128,7 @@ An MCP-aware AI client must not:
 - Treat a recommendation as permission to execute a shell command.
 - Treat `scaffoldai_verify_recommend` as verification evidence.
 - Treat `scaffoldai_closeout_readiness` as human approval.
+- Treat MCP Inspector success or MCP transport test success as closeout approval or product verification evidence.
 - Infer `READY_FOR_REVIEW` unless the tool explicitly returns that status in a future phase and the human accepts the evidence model.
 - Commit, push, stage, edit, delete, move, or rename files through MCP.
 - Modify `.scaffoldai/state/` or `.scaffoldai/streams/` based on MCP output.

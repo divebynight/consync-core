@@ -19,6 +19,15 @@ The command will call the existing 5 MCP read-only tools through local stdio tra
 
 The snapshot is an observation artifact. It is not an execution authority, state transition, verification result, or closeout approval.
 
+## 1.1 Boundary Clarification
+
+- The runtime snapshot is a Runtime Command output, not the MCP server itself.
+- The command calls the 5 read-only MCP tools through local stdio transport.
+- The command does not use MCP Inspector, HTTP, SSE, WebSocket, ngrok, or remote access.
+- The only permitted write is `.scaffoldai/tmp/mcp-runtime-snapshot.json`.
+- The snapshot is a machine-readable observation bundle. It does not approve closeout, provide VERIFY COMMAND evidence, or authorize an AI client to execute the NEXT SAFE ACTION.
+- The top-level summary describes snapshot/tool-call health only; authoritative runtime observations remain under the individual tool outputs.
+
 ---
 
 ## 2. Non-Goals
@@ -108,6 +117,7 @@ The bundle should be one pretty-printed JSON object with stable top-level key or
     "server_command": "node",
     "server_args": ["src/mcp/server.js"],
     "remote_access": false,
+    "ngrok": false,
     "http": false
   },
   "output": {
@@ -180,6 +190,7 @@ Recommended fields:
 - `client.server_command`
 - `client.server_args`
 - `client.remote_access`
+- `client.ngrok`
 - `client.http`
 - `output.path`
 - `output.format`

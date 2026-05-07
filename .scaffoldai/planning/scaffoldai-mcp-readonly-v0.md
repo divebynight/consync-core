@@ -56,10 +56,18 @@ The goal is observation, not authority. An MCP client reading these tools should
 - What is the current ScaffoldAI state?
 - Is it safe to begin work?
 - What questions are open?
-- What verify command should be run?
+- Which VERIFY COMMAND and TARGET are recommended?
 - Is this work ready for human review?
 
 It cannot use these tools to modify files, execute verification, commit code, approve work, or act as an orchestrator.
+
+## 1.1 Current v0 Boundary Clarification
+
+- The MCP server is a local stdio process (`npm run scaffoldai:mcp` / `node src/mcp/server.js`).
+- The MCP Inspector is a local validation UI only. It may provide a localhost browser interface while connecting to the stdio server, but it is not runtime authority and is not a production transport.
+- MCP transport tests validate protocol behavior, tool registration, and read-only semantic contracts over stdio. They do not add authority, tools, or runtime execution.
+- `.scaffoldai/tmp/mcp-runtime-snapshot.json` is produced by a separate Runtime Command that calls these MCP tools over local stdio and writes only that snapshot artifact.
+- v0 MCP clients may observe and recommend only. MCP output does not approve closeout, provide verification evidence, or authorize a client to run a VERIFY COMMAND.
 
 ---
 

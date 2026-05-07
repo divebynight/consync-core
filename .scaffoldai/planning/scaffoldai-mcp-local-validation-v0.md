@@ -55,6 +55,13 @@ This single command:
 
 No config file, no server setup, no remote exposure.
 
+Inspector boundary:
+
+- The Inspector is a local development and validation UI, not the ScaffoldAI runtime authority.
+- Its browser UI may be served from localhost, but the ScaffoldAI MCP server still communicates over local stdio.
+- Inspector success does not approve closeout, provide verification evidence, or grant permission to run Runtime Commands.
+- The Inspector must not be treated as remote exposure, production transport, orchestration, or an MCP client behavior contract.
+
 ### Alternative: `mcp-cli` (lightweight, terminal-only)
 
 If you prefer a terminal-only client:
@@ -296,7 +303,8 @@ These checks are already covered by `src/test/unit-scaffoldai-mcp-readonly.js` (
 - No new MCP tools
 - No writes to any path outside `.scaffoldai/tmp/`
 - No ngrok or remote tunnel exposure
-- No HTTP server or SSE transport
+- No HTTP server or SSE transport for the ScaffoldAI MCP server
+- No production or runtime authority from the Inspector's localhost validation UI
 - No Claude Desktop or other AI client integration
 - No persistent session state
 - No authentication or access control

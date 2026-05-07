@@ -36,6 +36,13 @@ Two tests are planned:
 | Smoke | `src/test/mcp-smoke.js` | Server starts; `tools/list` returns all 5 expected tools |
 | Transport E2E | `src/test/mcp-transport-e2e.js` | All 5 tools are callable via stdio; semantic contracts hold |
 
+Authority boundary:
+
+- These tests validate MCP protocol behavior, tool registration, and read-only response contracts.
+- They do not add MCP tools, run Runtime Commands, execute verification, approve closeout, or create new execution authority.
+- A passing transport test means the local stdio observation path works; it is not verification evidence for product work.
+- The tests use the same stdio transport class the MCP Inspector uses, but they do not validate the Inspector UI itself.
+
 ---
 
 ## 3. Implementation Approach

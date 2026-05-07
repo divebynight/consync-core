@@ -61,6 +61,8 @@ Current MCP tools:
 - `scaffoldai_verify_recommend`
 - `scaffoldai_closeout_readiness`
 
+The MCP server runs locally over stdio. MCP Inspector is a local validation UI for development/testing; it is not the runtime itself, does not add authority, and does not change the no-remote/no-HTTP v0 boundary for ScaffoldAI MCP.
+
 MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, and recommend a human-controlled next step. They must not treat MCP output as authority to execute.
 
 ## Snapshot and Reentry Model
