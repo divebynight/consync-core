@@ -72,6 +72,23 @@ consync-core/
 | `.scaffoldai/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.scaffoldai/skills/closeout-agent.md` |
 | `.scaffoldai/skills/closeout-agent.md` | Current Closeout agent prompt/process binding after human approval |
 
+### Runtime and Reentry Artifacts
+
+Use these artifacts deliberately:
+
+| Artifact or command | Use | Authority |
+|---|---|---|
+| `.scaffoldai/state/snapshot.md` | Human-curated continuity summary for fast reentry | Long-lived ScaffoldAI state context |
+| `.scaffoldai/state/handoff.md` | Human/process closeout record for the last completed package | Authoritative closeout record |
+| Runtime Commands | Current local operational queries for STATUS, VERIFY COMMAND, TARGET, and NEXT SAFE ACTION | Authoritative runtime observation |
+| `.scaffoldai/tmp/mcp-runtime-snapshot.json` | Machine-readable MCP observation bundle for AI/client paste or upload | Ephemeral read-only runtime artifact |
+| Handoff bundles | Portable bootstrap context for another AI session | Transport copy of local truth |
+| MCP Inspector | Manual development/testing UI for MCP tool validation | Test interface only |
+
+Do not confuse `.scaffoldai/state/snapshot.md` with `.scaffoldai/tmp/mcp-runtime-snapshot.json`.
+
+The state snapshot is curated process continuity. The MCP runtime snapshot JSON is generated on demand by `npm run scaffoldai:mcp:snapshot`, calls the read-only MCP tools, and carries `execution_class: "READ_ONLY"`. It is useful for ChatGPT, Codex, Copilot, or future MCP-aware clients, but it does not approve work, record verify evidence, or mutate state.
+
 ---
 
 ## 4. Execution Model
@@ -137,6 +154,12 @@ This matters in multi-agent and multi-session workflows.
 2. `.scaffoldai/state/next-action.md`
 3. `.scaffoldai/state/handoff.md`
 4. `.scaffoldai/state/active-stream.md`
+
+**Query current runtime state when needed:**
+- `npm run scaffoldai:status`
+- `npm run scaffoldai:question`
+- `npm run scaffoldai:verify` to see the recommended VERIFY COMMAND and TARGET
+- `npm run scaffoldai:mcp:snapshot` only when a machine-readable MCP observation bundle is useful
 
 **Write during execution:**
 - `.scaffoldai/state/handoff.md` — overwrite at packet closeout

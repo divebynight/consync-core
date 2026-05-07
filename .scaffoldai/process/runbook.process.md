@@ -32,18 +32,38 @@ This file is not the full spec. It is the practical decision layer above the dee
 
 ## How To Start A Session
 
-Read these files in order:
+Read the long-lived state files in order:
 
 1. `.scaffoldai/state/snapshot.md`
 2. `.scaffoldai/state/next-action.md`
 3. `.scaffoldai/state/handoff.md`
 4. `.scaffoldai/state/active-stream.md`
 
-Then check the repo state:
+Then ask the local runtime for current observations:
+
+1. `npm run scaffoldai:status`
+2. `npm run scaffoldai:question`
+3. the deeper reference docs only if the live state is unclear
+
+Then check the repo state only when needed for the task:
 
 1. `git status --short`
 2. any files named in the current package
-3. the deeper reference docs only if the live state is unclear
+
+### Reentry Artifacts and Authority
+
+| Artifact or command | What it is | When to use | Authority |
+|---|---|---|---|
+| `.scaffoldai/state/snapshot.md` | Human/process continuity artifact | First read in a new session or after context loss | Long-lived curated state context |
+| `.scaffoldai/state/handoff.md` | Last closeout record | When checking what just completed or what evidence was recorded | Authoritative closeout state for the last package |
+| Runtime Commands | Local operational queries | When current status, questions, VERIFY COMMAND, TARGET, or NEXT SAFE ACTION is needed | Authoritative local runtime observation |
+| `.scaffoldai/tmp/mcp-runtime-snapshot.json` | Generated MCP runtime observation bundle | When a ChatGPT/Codex/Copilot/MCP-aware client needs one machine-readable view | Ephemeral, read-only, generated on demand |
+| Handoff bundle | Portable AI-session bootstrap context | When local handoff truth must be copied or uploaded into another session | Transport copy of local truth, not a new source of truth |
+| MCP Inspector | Development/testing interface for MCP tools | When manually validating local stdio MCP behavior | Test/development interface, not the runtime itself |
+
+The state files remain the source of truth. Runtime Commands and MCP snapshots are ways to observe or package that truth; they do not replace it.
+
+The MCP runtime snapshot is machine-generated and read-only. Its summary reports MCP call health and tool observations. It does not approve closeout, prove verification passed, or grant write authority.
 
 ## Manual Execution Flow
 
