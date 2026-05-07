@@ -410,7 +410,7 @@ function runScaffoldaiQuestionCommand(argv) {
   } else if (status === "QUESTION" || status === "WARNING") {
     nextSafeAction = "Review the question(s) above. No automatic action is taken.";
   } else {
-    nextSafeAction = "No open structural questions. Proceed with scaffoldai closeout.";
+    nextSafeAction = "No open structural questions. Run the recommended VERIFY COMMAND before closeout.";
   }
 
   // --- Print output ---

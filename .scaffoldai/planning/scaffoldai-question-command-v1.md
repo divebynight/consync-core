@@ -176,7 +176,7 @@ STREAM:          electron_ui
 
 QUESTIONS DETECTED: 0
 
-NEXT SAFE ACTION: No open questions. Proceed with scaffoldai closeout.
+NEXT SAFE ACTION: No open structural questions. Run the recommended VERIFY COMMAND before closeout.
 
 STATUS: CLEAR
 ```

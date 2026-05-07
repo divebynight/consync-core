@@ -213,7 +213,7 @@ Healthy repo expected:
     "in_flight_packet": null,
     "stream": "electron_ui"
   },
-  "next_safe_action": "No open structural questions. Proceed with scaffoldai closeout."
+  "next_safe_action": "No open structural questions. Run the recommended VERIFY COMMAND before closeout."
 }
 ```
 

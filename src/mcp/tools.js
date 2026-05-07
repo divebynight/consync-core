@@ -89,7 +89,7 @@ function runQuestionTool() {
     },
     next_safe_action:
       result.status === "CLEAR"
-        ? "No open structural questions. Proceed with scaffoldai closeout."
+        ? "No open structural questions. Run the recommended VERIFY COMMAND before closeout."
         : "Review the question(s) above. No automatic action is taken.",
   };
 }
