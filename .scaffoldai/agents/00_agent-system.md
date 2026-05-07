@@ -45,7 +45,7 @@ The Entry Adapter is unbound and manual unless explicitly invoked. It does not e
 
 ## Manual Execution Flow
 
-The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
 
 `.scaffoldai/process/manual-execution-flow.process.md`
 
@@ -57,13 +57,13 @@ The system remains manual and non-orchestrated.
    - Establish current repo/process state before work begins.
    - Answer: can work safely start from this repo and process state?
    - Invoke before intake or execution when a packet is mounted or a human asks to begin work.
-   - Current concrete surface: `npm run check:state-preflight`.
+   - Current concrete Runtime Command binding: `npm run check:state-preflight`.
 
 2. **Intake**
-   - Classify the requested work and decide the correct surface.
+   - Classify the requested work and decide the correct boundary.
    - Answer: what kind of work is this, and which boundaries apply?
    - Invoke before new work is converted into a packet, after preflight passes when repo/process state must be checked first.
-   - Current concrete surface: `node src/index.js intake-run --prompt "..."` (first explicit agent execution surface).
+   - Current concrete Runtime Command binding: `node src/index.js intake-run --prompt "..."` (first explicit Intake Runtime Command).
    - Preserve scope boundaries before implementation begins.
 
 3. **Execution/tool adapter**
@@ -73,27 +73,27 @@ The system remains manual and non-orchestrated.
    - Keep runtime and process changes inside the declared packet scope.
 
 4. **Verify**
-   - Run the smallest appropriate checks required by the changed surfaces.
+   - Run the smallest appropriate checks required by the changed files and boundaries.
    - Invoke after execution changes are complete and before closeout.
-   - Current concrete surface: existing verification commands documented in `.consync/docs/verification-ladder.md`.
+   - Current concrete VERIFY COMMAND model: existing verification commands documented in `.scaffoldai/verification/verification-ladder.md`.
    - Escalate to broader verification when source, state contracts, UI, or process integrity require it.
 
 5. **Closeout**
    - Summarize changed files, verification, risks, and commit readiness.
    - Invoke after verify completes, or when failed verification must be reported as blocked.
-   - Current concrete surface: `.scaffoldai/skills/closeout-agent.md`.
+   - Current concrete process binding: `.scaffoldai/skills/closeout-agent.md`.
    - Do not report a clean closeout if verification is failing.
 
 6. **Reentry**
    - Prepare the next operator or future session to resume safely.
 
-## Execution Surfaces (Current)
+## Runtime Commands (Current)
 
 The following CLI commands execute agent logic directly. All invocation remains manual.
 
 | Command | Agent | Behavior |
 | --- | --- | --- |
-| `intake-run --prompt "..."` | Intake | Executes Intake classification — first explicit agent execution surface |
+| `intake-run --prompt "..."` | Intake | Executes Intake classification — first explicit Intake Runtime Command |
 | `dry-run-check` | Gatekeeper | Simulation only — prints decision report, no prompt, no execution |
 | `consync-run` | Gatekeeper | Approval only — prompts on ALLOW, no execution wiring |
    - Invoke when work resumes after interruption, context loss, stale conversation state, unclear handoff, or incomplete closeout.
@@ -102,13 +102,13 @@ The following CLI commands execute agent logic directly. All invocation remains 
 
 ## Execution Bindings
 
-Agent execution bindings are incremental. A binding means an existing command, prompt, or process is the current concrete execution surface for an agent role. It does not create a full orchestrator, imply automatic agent dispatch, or add a new runner.
+Agent execution bindings are incremental. A binding means an existing command, prompt, or process is the current concrete binding for an agent role. It does not create a full orchestrator, imply automatic agent dispatch, or add a new runner.
 
 Current bindings:
 
 - **Preflight agent** → `npm run check:state-preflight`
 - **Intake agent** → prompt-only work-classification contract
-- **Verify agent** → existing verification commands documented in `.consync/docs/verification-ladder.md`
+- **Verify agent** → existing verification commands documented in `.scaffoldai/verification/verification-ladder.md`
 - **Closeout agent** → `.scaffoldai/skills/closeout-agent.md`
 - **Reentry agent** → prompt-only recovery and context-reconstruction contract
 

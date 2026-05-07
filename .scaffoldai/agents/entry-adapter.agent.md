@@ -98,7 +98,7 @@ STATUS: PASS
 INPUT_TYPE: before_repo_changes
 RECOMMENDED_AGENT: Preflight
 REASON: The input asks for a safety check before repository changes begin.
-REQUIRED_HUMAN_ACTION: Manually invoke Preflight through its current command surface.
+REQUIRED_HUMAN_ACTION: Manually invoke Preflight through its current Runtime Command binding.
 ```
 
 ### Verification/Evidence Request
@@ -114,7 +114,7 @@ STATUS: PASS
 INPUT_TYPE: verification_evidence_request
 RECOMMENDED_AGENT: Verify
 REASON: The input asks for command evidence and verification status rather than new work or closeout.
-REQUIRED_HUMAN_ACTION: Manually invoke Verify to run the appropriate verification surface and report evidence.
+REQUIRED_HUMAN_ACTION: Manually invoke Verify to run the appropriate VERIFY COMMAND and report evidence.
 ```
 
 ### Closeout/Commit Readiness

@@ -10,7 +10,7 @@ Invoke after execution changes are complete and before closeout.
 
 ## Binding Status
 
-Bound to the existing verification command surface documented in `.consync/docs/verification-ladder.md`.
+Bound to the existing verification command model documented in `.scaffoldai/verification/verification-ladder.md`.
 
 This is a command-based evidence contract, not a runner, orchestrator, automatic dispatcher, or subjective review agent.
 
@@ -18,7 +18,7 @@ This is a command-based evidence contract, not a runner, orchestrator, automatic
 
 The Verify agent uses existing package scripts and verification levels only:
 
-- `npm run verify` for the repo's normal verification surface.
+- `npm run verify` for the repo's normal VERIFY COMMAND.
 - `npm test` for `FAST_CHECK`.
 - `npm run test:e2e` for `UI_CHECK`.
 - `npm run verify:full` for `FULL_VERIFY`.
@@ -36,7 +36,7 @@ The packet, trigger level, or human instruction determines which existing comman
 
 - Changed files
 - Packet verification instructions
-- `.consync/docs/verification-ladder.md`
+- `.scaffoldai/verification/verification-ladder.md`
 - Package scripts from `package.json`
 - Any relevant failure output
 
@@ -68,7 +68,7 @@ The packet, trigger level, or human instruction determines which existing comman
 - Do not delete, skip, or weaken failing tests to get green results.
 - Do not claim unrun checks passed.
 
-## Execution Binding (Explicit Agent Execution Surface)
+## Execution Binding (Explicit Runtime Command)
 
 - CLI: `verify-run`
 - Inputs: original prompt and reported result

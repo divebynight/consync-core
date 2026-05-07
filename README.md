@@ -41,13 +41,13 @@ Invocation rules:
 
 ## What you can run today
 
-The first explicit agent execution surface is `intake-run`. It runs the Intake agent's classification logic in a single, inspectable step.
+The first explicit Intake Runtime Command is `intake-run`. It runs the Intake agent's classification logic in a single, inspectable step.
 
 ```
 node src/index.js intake-run --prompt "describe the work here"
 ```
 
-Other current execution surfaces:
+Other current Runtime Commands:
 
 - `dry-run-check` — simulation only (prints a Gatekeeper decision report, no prompt, no execution)
 - `consync-run` — approval only (prompts on ALLOW, no execution wiring)
@@ -56,7 +56,7 @@ This system is still fully manual and non-orchestrated. No agent auto-dispatches
 
 ## Manual Execution Flow
 
-The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
 
 `.scaffoldai/process/manual-execution-flow.process.md`
 
@@ -78,7 +78,7 @@ This system remains manual and non-orchestrated. Intake and Preflight have expli
 
 ## Verification Model
 
-Consync uses a surface-based verification model to separate fast feedback from full system validation.
+Consync uses targeted VERIFY COMMANDS to separate fast feedback from full system validation.
 
 **Consync product commands:**
 

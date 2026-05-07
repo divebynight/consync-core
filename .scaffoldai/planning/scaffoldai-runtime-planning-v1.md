@@ -76,7 +76,7 @@ npm run scaffoldai:status
   - Count of modified/untracked files if not clean.
   - List files if fewer than 10; truncate with a count note if more.
 
-### 3.5 Recommended verify surface
+### 3.5 Recommended VERIFY COMMAND
 
 - If active packet is a process/scaffoldai packet → recommend `npm run verify:scaffoldai`
 - If active packet is a product/Consync packet → recommend `npm run verify:consync`
@@ -101,7 +101,7 @@ npm run scaffoldai:status
 | `.scaffoldai/state/next-action.md` | Next safe action text |
 | `.scaffoldai/state/handoff.md` | Last closeout evidence |
 | `.scaffoldai/state/snapshot.md` | System snapshot summary |
-| `package.json` scripts | Verify surface detection |
+| `package.json` scripts | VERIFY COMMAND detection |
 | `git status --short` | Working tree cleanliness |
 | `.scaffoldai/state/cleanup-complete-checkpoint.md` | Cleanup phase state, if relevant |
 
@@ -121,7 +121,7 @@ ACTIVE STREAM:    process
 ACTIVE PACKET:    scaffoldai-status-command-v1
 NEXT ACTION:      Implement scaffoldai status command
 GIT STATUS:       3 modified files
-VERIFY SURFACE:   npm run verify:scaffoldai
+VERIFY COMMAND:   npm run verify:scaffoldai
 WARNINGS:         none
 
 STATUS: ON_TRACK
@@ -151,7 +151,7 @@ These are noted for planning purposes only. Each will require its own packet.
 | Command | Purpose |
 |---------|---------|
 | `scaffoldai preflight` | Verify process state is safe before mounting a new packet |
-| `scaffoldai verify` | Run the correct verify surface for the active packet type |
+| `scaffoldai verify` | Run or recommend the correct VERIFY COMMAND for the active packet type |
 | `scaffoldai closeout` | Summarize completed work, verify evidence, and check commit readiness |
 | `scaffoldai reentry` | Reconstruct context after interruption or stale state |
 

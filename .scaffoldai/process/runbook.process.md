@@ -39,7 +39,7 @@ Read these files in order:
 3. `.scaffoldai/state/handoff.md`
 4. `.scaffoldai/state/active-stream.md`
 
-Then check the repo surface:
+Then check the repo state:
 
 1. `git status --short`
 2. any files named in the current package
@@ -47,7 +47,7 @@ Then check the repo surface:
 
 ## Manual Execution Flow
 
-The current manual execution flow (including Intake and Preflight CLI surfaces) is documented in:
+The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
 
 `.scaffoldai/process/manual-execution-flow.md`
 
@@ -82,7 +82,7 @@ Use a core command when the operation is deterministic and success is checkable:
 Use an agent when bounded process judgment is required:
 - Preflight — checks whether repo and process state are safe before work begins
 - Intake — classifies new work and its boundaries before execution
-  - Executable: `node src/index.js intake-run --prompt "describe the work"` (first explicit agent execution surface)
+  - Executable: `node src/index.js intake-run --prompt "describe the work"` (first explicit Intake Runtime Command)
 - Verify — runs and reports verification evidence
 - Closeout — summarizes changed files, verification, risks, and commit readiness
 - Reentry — reconstructs context after interruption, stale state, or unclear handoff
@@ -111,7 +111,7 @@ The Entry Adapter remains a manual prompt/document classification layer. These e
 | --- | --- | --- | --- | --- |
 | `MODE: IMPLEMENT PACKET_ID: entry-adapter-real-usage-v1` requesting this runbook validation section. | `new_work_request` | Intake | yes | Manually invoked Intake-style classification by treating the request as a docs-only packet with no code, commands, automation, or agent contract changes. Outcome: proceeded with a scoped runbook edit. |
 | Before editing `.scaffoldai/process/runbook.md`, confirm the repo and process state are safe to work from. | `before_repo_changes` | Preflight | yes | Manually invoked Preflight through `npm run check:state-preflight`. Outcome: PASS before modifying the runbook. |
-| Run the required checks for this packet and report evidence. | `verification_evidence_request` | Verify | yes | Manually invoked Verify by running the required verification surface for this packet. Outcome: command evidence is recorded in the packet output. |
+| Run the required checks for this packet and report evidence. | `verification_evidence_request` | Verify | yes | Manually invoked Verify by running the required VERIFY COMMAND for this packet. Outcome: command evidence is recorded in the packet output. |
 | `MODE: CLOSEOUT PACKET_ID: entry-adapter-examples-v1` requesting commit readiness for the examples packet. | `closeout_commit_readiness` | Closeout | yes | Manually invoked Closeout by reviewing the docs-only diff, confirming no runtime behavior changed, rerunning checks, and committing `153e198`. |
 | Session context resumed from a compact handoff with prior packet history and current repo state needing confirmation before continuing. | `stale_lost_context` | Reentry | yes | Manually invoked Reentry-style reconstruction by checking the provided handoff summary, `git status --short`, current `HEAD`, and relevant docs before starting new work. Outcome: safe continuation without inventing missing state. |
 

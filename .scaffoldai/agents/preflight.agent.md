@@ -10,7 +10,7 @@ Invoke before intake or execution when a packet is mounted or a human asks to be
 
 ## Command Binding
 
-The current concrete execution surface for the Preflight agent is:
+The current concrete Runtime Command binding for the Preflight agent is:
 
 ```sh
 npm run check:state-preflight
@@ -18,7 +18,7 @@ npm run check:state-preflight
 
 This is an implicit command binding to the existing state preflight check, not a full orchestrator and not a new runner.
 
-## Execution Binding (Explicit Agent Execution Surface)
+## Execution Binding (Explicit Runtime Command)
 
 - CLI: `preflight-run`
 - Input: prompt string
@@ -61,7 +61,7 @@ Preflight must block any packet missing these fields:
 - TASK or GOAL
 - OUTPUT FORMAT
 
-Preflight must also block if the declared EXECUTION SURFACE does not match the current execution surface.
+Preflight must also block if the declared EXECUTION SURFACE packet field does not match the current runtime binding.
 
 ## Guardrails
 

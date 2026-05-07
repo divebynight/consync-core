@@ -10,7 +10,7 @@ Invoke after verify completes, or when failed verification must be reported as b
 
 ## Process Binding
 
-The current concrete execution surface for the Closeout agent is:
+The current concrete process binding for the Closeout agent is:
 
 ```text
 .scaffoldai/skills/closeout-agent.md
@@ -29,7 +29,7 @@ This is a prompt/process binding to the existing closeout workflow, not a full o
 
 ## Responsibilities
 
-- Summarize the final change surface.
+- Summarize the final changed files and affected boundaries.
 - Confirm verification passed or report why closeout is blocked.
 - Identify whether docs, work-log, or coverage maps require updates.
 - Confirm that runtime behavior was not changed when the packet was docs-only.

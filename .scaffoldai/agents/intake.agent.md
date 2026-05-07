@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Classify incoming work and route it to the correct Consync or ScaffoldAi surface before implementation.
+Classify incoming work and route it to the correct Consync or ScaffoldAI boundary before implementation.
 
 ## Invocation Point
 
@@ -14,9 +14,9 @@ Bound as a prompt-only work-classification contract.
 
 This binding does not create a command, runner, orchestrator, automatic dispatcher, or file mutation authority.
 
-## Execution Binding (First Explicit Agent Execution Surface)
+## Execution Binding (First Explicit Runtime Command)
 
-`intake-run` is the first explicit agent execution surface in Consync.
+`intake-run` is the first explicit Intake Runtime Command in Consync.
 
 It runs the Intake agent's classification logic directly from the CLI:
 

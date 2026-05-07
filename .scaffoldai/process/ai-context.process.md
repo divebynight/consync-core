@@ -70,7 +70,7 @@ consync-core/
 | `.scaffoldai/verification/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
 | `.scaffoldai/templates/work-packet-v3.md` | Copy-paste work packet template with idempotency detection |
 | `.scaffoldai/agents/closeout.agent.md` | Closeout agent role definition; currently bound to `.scaffoldai/skills/closeout-agent.md` |
-| `.scaffoldai/skills/closeout-agent.md` | Current Closeout agent prompt/process execution surface after human approval |
+| `.scaffoldai/skills/closeout-agent.md` | Current Closeout agent prompt/process binding after human approval |
 
 ---
 

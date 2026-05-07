@@ -322,7 +322,7 @@ Optional follow-up after the command stabilizes:
 - Consider including `test:mcp:snapshot` in `test:mcp`.
 - Defer inclusion in `verify:scaffoldai` until the snapshot write behavior is accepted as part of normal ScaffoldAI verification.
 
-Recommendation: treat the snapshot command as a runtime command first and a test target second. It writes an artifact, so it should not silently become part of the core verify surface until the team agrees that `.scaffoldai/tmp/mcp-runtime-snapshot.json` churn is acceptable.
+Recommendation: treat the snapshot command as a Runtime Command first and a test target second. It writes an artifact, so it should not silently become part of the core VERIFY COMMAND until the team agrees that `.scaffoldai/tmp/mcp-runtime-snapshot.json` churn is acceptable.
 
 ---
 

@@ -228,7 +228,7 @@ V1 operator command and current Preflight agent binding:
 
 - `npm run check:state-preflight`
 
-This is the existing concrete execution surface for the Preflight agent. It is an implicit command binding, not a full agent orchestrator.
+This is the existing concrete Runtime Command binding for the Preflight agent. It is an implicit command binding, not a full agent orchestrator.
 
 Meaning:
 
