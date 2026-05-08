@@ -68,7 +68,7 @@ Diagnostic MCP tools must remain:
 - bounded in input and output
 - manually invoked
 - non-authoritative
-- isolated from `.scaffoldai/state/` and `.scaffoldai/streams/`
+- isolated from authoritative ScaffoldAI workflow state
 - unable to execute commands or trigger follow-on actions
 
 Diagnostic records may be useful for connection checks and client visibility tests.
