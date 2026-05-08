@@ -1,6 +1,6 @@
 # ScaffoldAI MCP Client Setup for Copilot and Codex
 
-Updated: 2026-05-07
+Updated: 2026-05-08
 Status: CURRENT / EXPERIMENTAL REFERENCE
 
 ---
@@ -27,17 +27,22 @@ ScaffoldAI MCP v0 is:
 - backed by existing Runtime Command semantics
 - human-authoritative
 
-Supported server command:
-
-```text
-npm run scaffoldai:mcp
-```
-
-Underlying server entrypoint:
+Supported server command for stdio MCP clients:
 
 ```text
 node src/mcp/server.js
 ```
+
+Client configuration shape:
+
+```text
+command: node
+args: ["src/mcp/server.js"]
+```
+
+Do not launch stdio MCP clients through npm wrappers. stdio MCP clients require protocol-clean stdout: stdout must contain only MCP protocol messages, while human-readable logs, diagnostics, warnings, and startup notes belong on stderr. npm lifecycle output can contaminate stdout and break or degrade client parsing.
+
+Direct Node execution is the recommended and verified approach for both Codex and Copilot. Codex proved stricter about stdout contamination. Copilot tolerated malformed startup output but produced parse warnings. Both clients successfully connected after switching to direct Node execution.
 
 Unsupported transports:
 
@@ -125,14 +130,8 @@ When configuring Copilot manually, use:
 
 - transport: local stdio
 - working directory: repo root
-- command: `npm`
-- args: `run scaffoldai:mcp`
-
-Equivalent server entrypoint:
-
-```text
-node src/mcp/server.js
-```
+- command: `node`
+- args: `["src/mcp/server.js"]`
 
 Before relying on the setup, confirm that Copilot can see the six ScaffoldAI tools listed in this guide.
 
@@ -150,14 +149,8 @@ When configuring Codex manually, use:
 
 - transport: local stdio
 - working directory: repo root
-- command: `npm`
-- args: `run scaffoldai:mcp`
-
-Equivalent server entrypoint:
-
-```text
-node src/mcp/server.js
-```
+- command: `node`
+- args: `["src/mcp/server.js"]`
 
 Codex may use MCP observations for orientation and recommendations. It should use Runtime Commands only through the normal human-authorized workspace execution path, not through MCP.
 
@@ -328,7 +321,8 @@ When a client cannot connect:
 
 - confirm it is using local stdio
 - confirm its working directory is the repo root
-- confirm the server command is `npm run scaffoldai:mcp` or `node src/mcp/server.js`
+- confirm the server command is `node src/mcp/server.js`
+- confirm stdout contains only MCP protocol messages and human-readable logs go to stderr
 - confirm it is not using HTTP, SSE, WebSocket, ngrok, browser transport, or remote access
 - run `npm run test:mcp`
 - use `npm run scaffoldai:mcp:snapshot` as a fallback context bundle
