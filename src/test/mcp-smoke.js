@@ -21,6 +21,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_question",
   "scaffoldai_verify_recommend",
   "scaffoldai_closeout_readiness",
+  "scaffoldai_signal",
 ];
 
 // Write-capable patterns that must never appear in any tool name
@@ -120,15 +121,23 @@ async function main() {
   }
 }
 
-Promise.race([
-  main(),
-  new Promise((_, reject) =>
-    setTimeout(
-      () => reject(new Error(`Test timed out after ${OVERALL_TIMEOUT_MS}ms`)),
-      OVERALL_TIMEOUT_MS
-    )
-  ),
-]).catch((err) => {
+function withOverallTimeout(promise, timeoutMs) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error(`Test timed out after ${timeoutMs}ms`)),
+      timeoutMs
+    );
+    if (typeof timeoutId.unref === "function") timeoutId.unref();
+  });
+
+  return Promise.race([
+    promise.finally(() => clearTimeout(timeoutId)),
+    timeoutPromise,
+  ]);
+}
+
+withOverallTimeout(main(), OVERALL_TIMEOUT_MS).catch((err) => {
   console.error(`[${TEST_NAME}] FATAL: ${err.message}`);
   process.exitCode = 1;
   process.exit(1);

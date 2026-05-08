@@ -82,7 +82,7 @@ The human remains final authority for:
 
 ## 4. Shared vs Separate MCP Surface
 
-Recommended model: Copilot and Codex should use the same ScaffoldAI MCP server and receive the same read-only five-tool surface.
+Recommended model: Copilot and Codex should use the same ScaffoldAI MCP server and receive the same six-tool surface: five read-only observation tools plus `scaffoldai_signal` for bounded non-authoritative local signaling.
 
 Reasons:
 
@@ -93,7 +93,7 @@ Reasons:
 
 Do not create Copilot-only or Codex-only MCP tools in v0.
 
-Do not give one client write-capable behavior while the other remains read-only.
+Do not give one client write-capable behavior beyond `scaffoldai_signal` while the other remains read-only plus signal-only.
 
 ---
 

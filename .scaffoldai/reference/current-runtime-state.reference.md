@@ -10,7 +10,7 @@ Status: CURRENT REFERENCE
 ScaffoldAI is currently in this phase:
 
 ```text
-READ_ONLY MCP + deterministic local Runtime Commands + human-authoritative workflow
+READ_ONLY MCP + append-only local signal + deterministic Runtime Commands + human-authoritative workflow
 ```
 
 ScaffoldAI is the repo-local process and AI development system used to build `consync-core`. It is not the Consync product UI, product runtime, or user-facing application behavior.
@@ -30,7 +30,7 @@ Use this reference for orientation. Use Runtime Commands, `.scaffoldai/state/`, 
 | Reentry | The process of restoring context after time away or a new session, using state files, handoff, snapshots, and Runtime Commands. |
 | Runtime Commands | Local human-visible commands that inspect or report current ScaffoldAI state and recommend the next human-controlled step. |
 | Snapshot | A continuity artifact. `.scaffoldai/state/snapshot.md` is curated state context; `.scaffoldai/tmp/mcp-runtime-snapshot.json` is generated MCP observation JSON. |
-| MCP Surface | The local stdio read-only tool layer that exposes structured ScaffoldAI observations to MCP-aware clients. |
+| MCP Surface | The local stdio MCP layer that exposes five read-only ScaffoldAI observations plus one append-only non-authoritative signal tool. |
 | Stream | A named work context under `.scaffoldai/streams/`; the active stream scopes current process state and reentry assumptions. |
 
 ---
@@ -40,7 +40,7 @@ Use this reference for orientation. Use Runtime Commands, `.scaffoldai/state/`, 
 ScaffoldAI currently is:
 
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
-- a read-only MCP v0 observation surface over existing runtime state
+- a local MCP v0 surface over existing runtime state, with five read-only tools and one append-only non-authoritative signal tool
 - a snapshot and reentry support system for humans and AI sessions
 - a human-authoritative process model for planning, verifying, and closing focused work
 - a set of contracts, planning docs, process docs, prompts, and skills that keep work bounded and re-enterable
@@ -52,7 +52,7 @@ ScaffoldAI currently is:
 ScaffoldAI is not currently:
 
 - an autonomous orchestrator
-- a write-capable MCP server
+- a general write-capable MCP server
 - a remote service
 - an HTTP, SSE, WebSocket, or ngrok-exposed runtime
 - a shell execution proxy
@@ -60,7 +60,7 @@ ScaffoldAI is not currently:
 - a durable verification-evidence store
 - a replacement for human judgment
 
-Future write-capable MCP, routing, dispatch, or durable verify evidence would require a separate contract, authority model, tests, and explicit human approval rules.
+Future write-capable MCP beyond the bounded signal log, routing, dispatch, or durable verify evidence would require a separate contract, authority model, tests, and explicit human approval rules.
 
 ---
 
@@ -96,7 +96,7 @@ Deeper command planning lives in:
 
 ## MCP Surface
 
-MCP v0 is local stdio only. It is read-only observation. It does not use HTTP, SSE, WebSocket, ngrok, or remote exposure.
+MCP v0 is local stdio only. It exposes five read-only observation tools and one minimal append-only signal tool. It does not use HTTP, SSE, WebSocket, ngrok, or remote exposure.
 
 | Tool | Purpose | execution_class | Authority | Notes |
 |---|---|---|---|---|
@@ -105,8 +105,9 @@ MCP v0 is local stdio only. It is read-only observation. It does not use HTTP, S
 | `scaffoldai_question` | Open structural questions | `READ_ONLY` | Observe | CLEAR means no currently detected structural questions, not universal certainty |
 | `scaffoldai_verify_recommend` | Recommended VERIFY COMMAND and TARGET | `READ_ONLY` | Recommend | Does not run verification |
 | `scaffoldai_closeout_readiness` | Closeout readiness observation | `READ_ONLY` | Recommend | Never returns `READY_FOR_REVIEW` in MCP v0; verify evidence is not provided |
+| `scaffoldai_signal` | Append a tiny local presence/capability signal | `LOCAL_SIGNAL_APPEND_ONLY` | Diagnostic signal only | Writes only `.scaffoldai/tmp/mcp-signals.jsonl`; non-authoritative and ephemeral |
 
-MCP clients may summarize and cite observations. They must not infer approval, verification success, write authority, commit readiness, or permission to execute.
+MCP clients may summarize and cite observations. They may use `scaffoldai_signal` only for local connection validation, capability visibility claims, and presence/check-in diagnostics. They must not infer approval, verification success, general write authority, commit readiness, or permission to execute.
 
 Deeper MCP references:
 
@@ -127,6 +128,7 @@ These are current runtime boundaries:
 - TARGET identifies what verification applies to, such as `scaffoldai`, `consync`, or `full`.
 - NEXT SAFE ACTION is advisory guidance for a human-controlled next step.
 - `execution_class: READ_ONLY` never grants mutation authority.
+- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` grants only bounded append-only signal writes under `.scaffoldai/tmp/`; it is not repo mutation authority.
 - MCP clients observe and recommend only.
 - MCP output does not approve closeout or provide verify evidence in v0.
 - Temp, log, and generated runtime artifacts must stay inside `.scaffoldai/tmp/`.
@@ -145,10 +147,11 @@ There are multiple reentry/runtime artifacts. They have different authority.
 | `.scaffoldai/state/next-action.md` | Live next-action state | Current loop | Authoritative state | Determine mounted or idle work |
 | `.scaffoldai/state/handoff.md` | Latest closeout handoff | Updated after closeout | Authoritative state/history | Understand last completed work |
 | `.scaffoldai/tmp/mcp-runtime-snapshot.json` | MCP runtime observation bundle | Ephemeral/generated | Read-only runtime artifact | Paste/upload into AI clients |
+| `.scaffoldai/tmp/mcp-signals.jsonl` | MCP client signal log | Ephemeral/generated | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
 | Handoff bundles | Portable session bootstrap | Generated on demand | Context bundle | Rehydrate another AI session |
 | Runtime Command output | Current local observation | Moment-in-time | Operational evidence | Check current status before acting |
 
-The MCP runtime snapshot JSON is generated by `npm run scaffoldai:mcp:snapshot`. It calls the five MCP tools over local stdio and writes only `.scaffoldai/tmp/mcp-runtime-snapshot.json`.
+The MCP runtime snapshot JSON is generated by `npm run scaffoldai:mcp:snapshot`. It calls the five read-only MCP tools over local stdio and writes only `.scaffoldai/tmp/mcp-runtime-snapshot.json`. It does not call `scaffoldai_signal`.
 
 Reentry docs:
 
@@ -164,7 +167,7 @@ Current validation commands:
 
 | Command | Validates |
 |---|---|
-| `npm run verify:scaffoldai` | ScaffoldAI Runtime Commands, process boundary checks, state integrity, and MCP read-only unit coverage |
+| `npm run verify:scaffoldai` | ScaffoldAI Runtime Commands, process boundary checks, state integrity, MCP read-only unit coverage, and bounded signal boundary coverage |
 | `npm run test:mcp` | MCP smoke and stdio transport E2E behavior |
 | `npm run verify` | Full non-E2E repo verification, including ScaffoldAI |
 | `npm run verify:full` | Full verification including E2E where configured |
@@ -177,9 +180,9 @@ Passing validation is evidence. Human acceptance of that evidence remains requir
 
 The following are planned or conceptual, not current authority:
 
-- execution classification beyond the current read-only vocabulary
+- execution classification beyond the current read-only and append-only signal vocabulary
 - recommend-only tool router
-- future write-capable MCP phases
+- future write-capable MCP phases beyond append-only signaling
 - durable verify evidence model
 - any autonomous dispatch or orchestration
 
@@ -228,7 +231,8 @@ AI tools must not:
 - infer that verification has passed unless actual verification output is provided and accepted
 - infer `READY_FOR_REVIEW` from MCP v0
 - use remote MCP access, HTTP, ngrok, SSE, or WebSocket transport
-- add MCP tools or write capability without a new contract and explicit human approval
+- treat `scaffoldai_signal` as authoritative state, verification evidence, closeout approval, or general write authority
+- add MCP tools or broader write capability without a new contract and explicit human approval
 
 ---
 

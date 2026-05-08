@@ -34,6 +34,15 @@ try {
   process.exit(1);
 }
 
+let signal;
+try {
+  signal = require("../mcp/signal");
+  pass("signal.js loads without error");
+} catch (err) {
+  fail(`signal.js threw on require: ${err.message}`);
+  process.exit(1);
+}
+
 // -----------------------------------------------------------------------
 // Test 2: All 5 tool functions are exported
 // -----------------------------------------------------------------------
@@ -145,7 +154,103 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 13: No MCP server/tool source file contains write operations
+// Test 14: scaffoldai_signal is bounded append-only diagnostic signaling
+// -----------------------------------------------------------------------
+
+{
+  function removeSignalFile(filePath) {
+    try {
+      fs.unlinkSync(filePath);
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+  }
+
+  removeSignalFile(signal.signalPath);
+  removeSignalFile(signal.rotatedSignalPath);
+  signal.resetSignalRateLimitsForTest();
+
+  const accepted = signal.runSignalTool({
+    client_id: "unit-signal-client",
+    signal_type: "connected",
+    message: "unit signal",
+    capabilities: ["mcp_read_only", "signal_append_only"],
+  });
+
+  check(accepted.status === "accepted", "runSignalTool accepts a valid connected signal");
+  check(
+    accepted.execution_class === "LOCAL_SIGNAL_APPEND_ONLY",
+    'runSignalTool returns execution_class "LOCAL_SIGNAL_APPEND_ONLY"'
+  );
+  check(accepted.path === ".scaffoldai/tmp/mcp-signals.jsonl", "runSignalTool reports the bounded signal path");
+  check(accepted.non_authoritative === true, "runSignalTool marks accepted signals non_authoritative");
+  check(fs.existsSync(signal.signalPath), "runSignalTool writes only the signal JSONL artifact");
+
+  const line = fs.readFileSync(signal.signalPath, "utf8").trim();
+  const record = JSON.parse(line);
+  check(record.client_id === "unit-signal-client", "signal JSONL stores client_id");
+  check(record.signal_type === "connected", "signal JSONL stores signal_type");
+  check(typeof record.timestamp === "string" && record.timestamp.length > 0, "signal JSONL stores server timestamp");
+
+  const unknownField = signal.runSignalTool({
+    client_id: "unit-unknown-field",
+    signal_type: "note",
+    extra: "nope",
+  });
+  check(unknownField.status === "rejected", "runSignalTool rejects unknown fields");
+
+  const nestedObject = signal.runSignalTool({
+    client_id: "unit-nested-object",
+    signal_type: "note",
+    message: { text: "nope" },
+  });
+  check(nestedObject.status === "rejected", "runSignalTool rejects nested objects");
+
+  signal.resetSignalRateLimitsForTest();
+  const heartbeatStart = new Date("2026-05-07T00:00:00.000Z");
+  const heartbeatAfterWindow = new Date("2026-05-07T00:01:00.000Z");
+  const firstHeartbeat = signal.runSignalTool(
+    { client_id: "unit-heartbeat-client", signal_type: "heartbeat" },
+    { now: heartbeatStart }
+  );
+  const immediateHeartbeat = signal.runSignalTool(
+    { client_id: "unit-heartbeat-client", signal_type: "heartbeat" },
+    { now: heartbeatStart }
+  );
+  const laterHeartbeat = signal.runSignalTool(
+    { client_id: "unit-heartbeat-client", signal_type: "heartbeat" },
+    { now: heartbeatAfterWindow }
+  );
+  check(firstHeartbeat.status === "accepted", "runSignalTool accepts first heartbeat with injected time");
+  check(immediateHeartbeat.status === "rejected", "runSignalTool rejects immediate second heartbeat with injected time");
+  check(laterHeartbeat.status === "accepted", "runSignalTool accepts heartbeat after simulated 60s window");
+
+  signal.resetSignalRateLimitsForTest();
+  const noteStart = new Date("2026-05-07T01:00:00.000Z");
+  const noteAfterWindow = new Date("2026-05-07T01:00:10.000Z");
+  const firstNote = signal.runSignalTool(
+    { client_id: "unit-note-client", signal_type: "note" },
+    { now: noteStart }
+  );
+  const immediateNote = signal.runSignalTool(
+    { client_id: "unit-note-client", signal_type: "capability_check" },
+    { now: noteStart }
+  );
+  const laterNote = signal.runSignalTool(
+    { client_id: "unit-note-client", signal_type: "capability_check" },
+    { now: noteAfterWindow }
+  );
+  check(firstNote.status === "accepted", "runSignalTool accepts first non-heartbeat with injected time");
+  check(immediateNote.status === "rejected", "runSignalTool rejects immediate second non-heartbeat with injected time");
+  check(laterNote.status === "accepted", "runSignalTool accepts non-heartbeat after simulated 10s window");
+
+  removeSignalFile(signal.signalPath);
+  removeSignalFile(signal.rotatedSignalPath);
+  signal.resetSignalRateLimitsForTest();
+}
+
+// -----------------------------------------------------------------------
+// Test 15: No MCP server/tool source file contains write operations
 // -----------------------------------------------------------------------
 
 {
@@ -166,7 +271,31 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 14: Snapshot runtime has exactly the planned local write boundary
+// Test 16: Signal source has exactly the planned local write boundary
+// -----------------------------------------------------------------------
+
+{
+  const signalSourcePath = path.join(__dirname, "..", "mcp", "signal.js");
+
+  try {
+    const source = fs.readFileSync(signalSourcePath, "utf8");
+
+    check(source.includes('".scaffoldai/tmp/mcp-signals.jsonl"'), "signal.js writes the planned signal path");
+    check(source.includes("fs.appendFileSync(signalPath"), "signal.js appends only to the signal output variable");
+    check(source.includes("fs.mkdirSync(signalDir"), "signal.js creates only the signal tmp directory variable");
+    check(!source.includes("child_process"), "signal.js does not import child_process");
+    check(!source.includes(".scaffoldai/state"), "signal.js does not reference .scaffoldai/state");
+    check(!source.includes(".scaffoldai/streams"), "signal.js does not reference .scaffoldai/streams");
+    check(!source.includes("http://"), "signal.js does not include an HTTP URL");
+    check(!source.includes("https://"), "signal.js does not include a remote URL");
+    check(!source.includes("ngrok.com"), "signal.js does not include ngrok usage");
+  } catch {
+    fail("Could not read signal.js for signal boundary check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 17: Snapshot runtime has exactly the planned local write boundary
 // -----------------------------------------------------------------------
 
 {
@@ -192,7 +321,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 15: server.js is not imported by src/cli/index.js or src/index.js
+// Test 18: server.js is not imported by src/cli/index.js or src/index.js
 // -----------------------------------------------------------------------
 
 {
@@ -215,7 +344,7 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
-// Test 16: No MCP source file contains /tmp path usage
+// Test 19: No MCP source file contains /tmp path usage
 // -----------------------------------------------------------------------
 
 {

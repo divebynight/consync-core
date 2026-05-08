@@ -4,9 +4,16 @@
 // Transport: StdioClientTransport (CJS: @modelcontextprotocol/sdk/client/stdio.js)
 // Client:    Client              (CJS: @modelcontextprotocol/sdk/client/index.js)
 
+const fs = require("fs");
 const path = require("path");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const {
+  MAX_LOG_BYTES,
+  rotatedSignalPath,
+  signalPath,
+  signalPathRelative,
+} = require("../mcp/signal");
 
 const TEST_NAME = "mcp-transport-e2e";
 const OVERALL_TIMEOUT_MS = 30000;
@@ -33,9 +40,26 @@ function check(condition, msg) {
  * Call a tool and parse the JSON from content[0].text.
  * Returns { result, parsed } or throws on call failure.
  */
-async function callTool(client, name) {
+function removeFileIfPresent(filePath) {
+  try {
+    fs.unlinkSync(filePath);
+  } catch (err) {
+    if (err.code !== "ENOENT") throw err;
+  }
+}
+
+function readSignalRecords() {
+  const text = fs.readFileSync(signalPath, "utf8");
+  return text
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
+async function callTool(client, name, args = {}) {
   const result = await client.callTool(
-    { name, arguments: {} },
+    { name, arguments: args },
     undefined,
     { timeout: CALL_TIMEOUT_MS }
   );
@@ -51,6 +75,8 @@ async function callTool(client, name) {
 
 async function main() {
   console.log(`[${TEST_NAME}] Running`);
+  removeFileIfPresent(signalPath);
+  removeFileIfPresent(rotatedSignalPath);
 
   const transport = new StdioClientTransport({
     command: "node",
@@ -209,8 +235,127 @@ async function main() {
       }
     }
 
+    // -----------------------------------------------------------------------
+    // scaffoldai_signal
+    // -----------------------------------------------------------------------
+
+    {
+      let parsed;
+      try {
+        ({ parsed } = await callTool(client, "scaffoldai_signal", {
+          client_id: "mcp-e2e-client",
+          signal_type: "connected",
+          message: "transport e2e connected",
+          capabilities: ["mcp_read_only", "signal_append_only"],
+        }));
+        pass("scaffoldai_signal valid connected call succeeds");
+      } catch (err) {
+        fail(`scaffoldai_signal valid connected call failed: ${err.message}`);
+        parsed = null;
+      }
+
+      if (parsed) {
+        check(parsed.status === "accepted", 'scaffoldai_signal returns status "accepted" for valid connected signal');
+        check(parsed.execution_class === "LOCAL_SIGNAL_APPEND_ONLY", 'scaffoldai_signal returns execution_class "LOCAL_SIGNAL_APPEND_ONLY"');
+        check(parsed.path === signalPathRelative, "scaffoldai_signal reports the repo-local signal path");
+        check(parsed.non_authoritative === true, "scaffoldai_signal marks the record non_authoritative");
+        check(typeof parsed.timestamp === "string" && parsed.timestamp.length > 0, "scaffoldai_signal returns an accepted timestamp");
+      }
+
+      if (fs.existsSync(signalPath)) {
+        pass("scaffoldai_signal writes the signal file under .scaffoldai/tmp/");
+        const records = readSignalRecords();
+        const record = records[records.length - 1];
+        check(record.client_id === "mcp-e2e-client", "signal record stores client_id");
+        check(record.signal_type === "connected", "signal record stores signal_type");
+        check(record.message === "transport e2e connected", "signal record stores optional message");
+        check(Array.isArray(record.capabilities) && record.capabilities.length === 2, "signal record stores capabilities array");
+      } else {
+        fail("scaffoldai_signal did not write the signal file under .scaffoldai/tmp/");
+      }
+    }
+
+    {
+      const cases = [
+        [
+          "unknown signal type is rejected",
+          { client_id: "bad-type-client", signal_type: "unknown_signal" },
+        ],
+        [
+          "unknown fields are rejected",
+          { client_id: "unknown-field-client", signal_type: "note", extra: "nope" },
+        ],
+        [
+          "oversized message is rejected",
+          { client_id: "oversized-message-client", signal_type: "note", message: "x".repeat(251) },
+        ],
+        [
+          "invalid client_id is rejected",
+          { client_id: "bad client", signal_type: "note" },
+        ],
+      ];
+
+      for (const [label, args] of cases) {
+        let parsed;
+        try {
+          ({ parsed } = await callTool(client, "scaffoldai_signal", args));
+        } catch (err) {
+          fail(`scaffoldai_signal ${label} call failed unexpectedly: ${err.message}`);
+          parsed = null;
+        }
+        if (parsed) {
+          check(parsed.status === "rejected", `scaffoldai_signal ${label}`);
+          check(typeof parsed.reason === "string" && parsed.reason.length > 0, `scaffoldai_signal ${label} includes a reason`);
+        }
+      }
+    }
+
+    {
+      const first = await callTool(client, "scaffoldai_signal", {
+        client_id: "heartbeat-rate-client",
+        signal_type: "heartbeat",
+      });
+      const second = await callTool(client, "scaffoldai_signal", {
+        client_id: "heartbeat-rate-client",
+        signal_type: "heartbeat",
+      });
+
+      check(first.parsed && first.parsed.status === "accepted", "scaffoldai_signal accepts first heartbeat");
+      check(second.parsed && second.parsed.status === "rejected", "scaffoldai_signal enforces heartbeat rate limit");
+    }
+
+    {
+      const first = await callTool(client, "scaffoldai_signal", {
+        client_id: "non-heartbeat-rate-client",
+        signal_type: "note",
+      });
+      const second = await callTool(client, "scaffoldai_signal", {
+        client_id: "non-heartbeat-rate-client",
+        signal_type: "capability_check",
+      });
+
+      check(first.parsed && first.parsed.status === "accepted", "scaffoldai_signal accepts first non-heartbeat signal");
+      check(second.parsed && second.parsed.status === "rejected", "scaffoldai_signal enforces non-heartbeat rate limit");
+    }
+
+    {
+      fs.writeFileSync(signalPath, "x".repeat(MAX_LOG_BYTES - 10), "utf8");
+      removeFileIfPresent(rotatedSignalPath);
+
+      const rotated = await callTool(client, "scaffoldai_signal", {
+        client_id: "rotation-client",
+        signal_type: "connected",
+      });
+
+      check(rotated.parsed && rotated.parsed.status === "accepted", "scaffoldai_signal accepts signal when rotating full log");
+      check(fs.existsSync(rotatedSignalPath), "scaffoldai_signal rotates the signal log at 64 KB");
+      check(readSignalRecords().length === 1, "scaffoldai_signal starts a fresh active log after rotation");
+    }
+
   } finally {
     await client.close().catch(() => {});
+    removeFileIfPresent(signalPath);
+    removeFileIfPresent(rotatedSignalPath);
   }
 
   if (process.exitCode !== 1) {
@@ -218,15 +363,23 @@ async function main() {
   }
 }
 
-Promise.race([
-  main(),
-  new Promise((_, reject) =>
-    setTimeout(
-      () => reject(new Error(`Test timed out after ${OVERALL_TIMEOUT_MS}ms`)),
-      OVERALL_TIMEOUT_MS
-    )
-  ),
-]).catch((err) => {
+function withOverallTimeout(promise, timeoutMs) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error(`Test timed out after ${timeoutMs}ms`)),
+      timeoutMs
+    );
+    if (typeof timeoutId.unref === "function") timeoutId.unref();
+  });
+
+  return Promise.race([
+    promise.finally(() => clearTimeout(timeoutId)),
+    timeoutPromise,
+  ]);
+}
+
+withOverallTimeout(main(), OVERALL_TIMEOUT_MS).catch((err) => {
   console.error(`[${TEST_NAME}] FATAL: ${err.message}`);
   process.exitCode = 1;
   process.exit(1);

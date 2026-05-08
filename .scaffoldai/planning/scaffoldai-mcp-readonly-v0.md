@@ -2,7 +2,9 @@
 
 Created: 2026-05-06
 Decided: 2026-05-06
-Status: IMPLEMENTED / VALIDATED
+Status: IMPLEMENTED / VALIDATED / PARTIALLY SUPERSEDED
+
+Note: This document remains the historical/current contract for the original five read-only observation tools. The current MCP surface also includes `scaffoldai_signal` with `execution_class: LOCAL_SIGNAL_APPEND_ONLY`, planned in [minimal-writable-mcp-signaling-v1.md](minimal-writable-mcp-signaling-v1.md). The signal tool is not general write access and does not change the read-only behavior of the five observation tools.
 
 ---
 

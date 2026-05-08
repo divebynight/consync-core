@@ -49,9 +49,11 @@ Current ScaffoldAI Runtime Commands include:
 
 Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
 
-## Read-Only MCP Model
+## MCP Model
 
-The MCP surface is read-only observation only in the current phase. MCP tools return structured JSON with `execution_class: "READ_ONLY"` and do not approve, verify, close, commit, push, stage, edit, or mutate state.
+The MCP surface has five read-only observation tools and one bounded append-only signal tool in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only ephemeral, non-authoritative signal records under `.scaffoldai/tmp/mcp-signals.jsonl`.
+
+MCP does not approve, verify, close, commit, push, stage, edit, execute shell commands, orchestrate workflow, or mutate authoritative state.
 
 Current MCP tools:
 
@@ -60,10 +62,11 @@ Current MCP tools:
 - `scaffoldai_question`
 - `scaffoldai_verify_recommend`
 - `scaffoldai_closeout_readiness`
+- `scaffoldai_signal`
 
 The MCP server runs locally over stdio. MCP Inspector is a local validation UI for development/testing; it is not the runtime itself, does not add authority, and does not change the no-remote/no-HTTP v0 boundary for ScaffoldAI MCP.
 
-MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, and recommend a human-controlled next step. They must not treat MCP output as authority to execute.
+MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, append bounded local presence/capability signals, and recommend a human-controlled next step. They must not treat MCP output or signal records as authority to execute.
 
 ## Snapshot and Reentry Model
 
@@ -80,7 +83,7 @@ For reentry, start with:
 4. `npm run scaffoldai:status`
 5. `npm run scaffoldai:question`
 
-Use `npm run scaffoldai:mcp:snapshot` when an MCP-aware or external AI client needs one deterministic JSON bundle of the current read-only MCP observations.
+Use `npm run scaffoldai:mcp:snapshot` when an MCP-aware or external AI client needs one deterministic JSON bundle of the current read-only MCP observations. The snapshot command does not call `scaffoldai_signal`.
 
 ## Human Authority Model
 

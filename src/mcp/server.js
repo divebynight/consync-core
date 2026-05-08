@@ -2,6 +2,7 @@
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
+const { z } = require("zod");
 
 const {
   runStatusTool,
@@ -10,6 +11,7 @@ const {
   runVerifyRecommendTool,
   runCloseoutReadinessTool,
 } = require("./tools");
+const { runSignalTool } = require("./signal");
 
 const server = new McpServer({
   name: "scaffoldai-consync",
@@ -24,11 +26,16 @@ function formatError(err) {
   return err && err.message ? err.message : String(err);
 }
 
+function formatLogToken(value) {
+  if (typeof value !== "string" || value.length === 0) return "(unknown)";
+  return value.replace(/[^A-Za-z0-9_.-]/g, "?").slice(0, 64);
+}
+
 function withToolLogging(name, handler) {
-  return async () => {
+  return async (args) => {
     logMcp(`tool call: ${name}`);
     try {
-      const response = await handler();
+      const response = await handler(args);
       logMcp(`tool complete: ${name}`);
       return response;
     } catch (err) {
@@ -84,6 +91,28 @@ server.tool(
   {},
   withToolLogging("scaffoldai_closeout_readiness", async () => {
     const result = runCloseoutReadinessTool();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_signal",
+  {
+    description:
+      "Append one bounded local ScaffoldAI client signal for presence and connection testing. Non-authoritative and not general write access.",
+    inputSchema: z.object({}).passthrough(),
+  },
+  withToolLogging("scaffoldai_signal", async (args) => {
+    const result = runSignalTool(args || {});
+    const clientId = formatLogToken(result.client_id);
+    const signalType = formatLogToken(result.signal_type);
+
+    if (result.status === "accepted") {
+      logMcp(`signal accepted: ${signalType} ${clientId}`);
+    } else {
+      logMcp(`signal rejected: ${signalType} ${clientId}`);
+    }
+
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );
