@@ -22,6 +22,7 @@ ScaffoldAI MCP v0 is:
 - local stdio only
 - five read-only observe/recommend tools
 - one append-only local signal tool
+- diagnostic shared-memory POC tools
 - `execution_class: READ_ONLY` for observation tools
 - `execution_class: LOCAL_SIGNAL_APPEND_ONLY` for `scaffoldai_signal`
 - backed by existing Runtime Command semantics
@@ -57,7 +58,7 @@ Unsupported transports:
 
 ## 3. Shared Client Model
 
-Copilot and Codex should use the same local ScaffoldAI MCP server and receive the same six tools: five read-only tools plus `scaffoldai_signal`.
+Copilot and Codex should use the same local ScaffoldAI MCP server and receive the same bounded tool surface: five read-only tools, `scaffoldai_signal`, and the diagnostic shared-memory POC tools.
 
 Differences belong in client behavior and human workflow, not in MCP server capability.
 
@@ -105,7 +106,7 @@ The human remains final authority for:
 
 ## 4. Expected Tools
 
-The current MCP server exposes six tools: five read-only tools and one append-only signal tool.
+The current MCP server exposes five read-only tools, one append-only signal tool, and diagnostic shared-memory POC tools.
 
 | Tool | Purpose | Authority |
 |---|---|---|
@@ -115,8 +116,12 @@ The current MCP server exposes six tools: five read-only tools and one append-on
 | `scaffoldai_verify_recommend` | Recommend VERIFY COMMAND and TARGET. | Read-only recommendation |
 | `scaffoldai_closeout_readiness` | Observe closeout readiness. | Read-only recommendation |
 | `scaffoldai_signal` | Append a bounded local signal for connection, heartbeat, capability check, tool visibility, disconnect, or note diagnostics. | Non-authoritative append-only signal |
+| `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message. | Diagnostic POC only |
+| `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages. | Diagnostic POC only |
 
 No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/tmp/mcp-signals.jsonl`, which is ephemeral, local, safe to delete, and not ScaffoldAI runtime truth.
+
+`scaffoldai_memory_write` and `scaffoldai_memory_read` are diagnostic-only, append-only where writing, non-authoritative, manually invoked, and isolated from production workflow state. Shared-memory messages are data only, not executable intent.
 
 ---
 
