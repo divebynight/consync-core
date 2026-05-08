@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "scaffoldai": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["src/mcp/server.js"],
+      "cwd": "/Users/markhughes/Projects/consync-core"
+    }
+  }
+}

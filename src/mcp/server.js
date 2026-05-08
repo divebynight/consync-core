@@ -12,6 +12,7 @@ const {
   runCloseoutReadinessTool,
 } = require("./tools");
 const { runSignalTool } = require("./signal");
+const { runMemoryWriteTool, runMemoryReadTool } = require("./shared-memory");
 
 const server = new McpServer({
   name: "scaffoldai-consync",
@@ -113,6 +114,41 @@ server.registerTool(
       logMcp(`signal rejected: ${signalType} ${clientId}`);
     }
 
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_memory_write",
+  {
+    description:
+      "Append a message to the ScaffoldAI shared memory surface. Used for MCP-mediated communication between AI clients. Append-only; no delete or edit.",
+    inputSchema: z.object({
+      from: z.string().describe("Sender identity (required, max 80 chars)."),
+      to: z.string().describe("Recipient identity or 'all' (required, max 80 chars)."),
+      topic: z.string().optional().describe("Optional topic label (max 80 chars)."),
+      message: z.string().describe("Message body (required, max 1000 chars)."),
+    }),
+  },
+  withToolLogging("scaffoldai_memory_write", async (args) => {
+    const result = runMemoryWriteTool(args || {});
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_memory_read",
+  {
+    description:
+      "Read recent messages from the ScaffoldAI shared memory surface for a given audience. Read-only.",
+    inputSchema: z.object({
+      audience: z.string().describe("Recipient to filter by (required)."),
+      limit: z.number().optional().describe("Max messages to return (1–25, default 10)."),
+      includeAll: z.boolean().optional().describe("Also include messages addressed to 'all' (default true)."),
+    }),
+  },
+  withToolLogging("scaffoldai_memory_read", async (args) => {
+    const result = runMemoryReadTool(args || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );
