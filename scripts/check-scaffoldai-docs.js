@@ -100,7 +100,7 @@ function lineMatches(relativePath, matcher) {
       relativePath,
       line: index + 1,
       text,
-      context: lines.slice(Math.max(0, index - 2), Math.min(lines.length, index + 3)).join(' '),
+      context: lines.slice(Math.max(0, index - 6), Math.min(lines.length, index + 7)).join(' '),
     }))
     .filter((match) => matcher(match));
 }
@@ -110,7 +110,7 @@ function printFinding(prefix, finding) {
 }
 
 function hasNegativeContext(text) {
-  return /\b(not|no|never|without|forbidden|disallowed|blocked|block|blocking|invalid|negative example|rejects?|rejected|fails?|failure|conflicts?|outside|non-goals?|does not|do not|must not|avoid|out of scope|drift|doesn't)\b/i.test(text);
+  return /\b(not|no|never|without|forbidden|disallowed|blocked|block|blocking|invalid|negative example|rejects?|rejected|fails?|failure|conflicts?|outside|non-goals?|does not|do not|must not|avoid|out of scope|drift|drifted|doesn't)\b/i.test(text);
 }
 
 function runDocsCheck() {

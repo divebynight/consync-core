@@ -13,7 +13,7 @@ This is still definition-only. It does not implement validators, agents, or perm
 
 ## Core State Contracts
 
-### `.consync/state/active-stream.md`
+### `.scaffoldai/state/active-stream.md`
 
 Represents:
 
@@ -47,7 +47,7 @@ Must always be true:
 - paused/supporting/blocked lists do not contradict the active stream
 - the live-owner note agrees with the active stream and the foreground marker
 
-### `.consync/state/next-action.md`
+### `.scaffoldai/state/next-action.md`
 
 Represents:
 
@@ -81,7 +81,7 @@ Must always be true:
 - the instructions are executable without guessing the intended outcome
 - the package is not stale relative to the current ownership state
 
-### `.consync/state/handoff.md`
+### `.scaffoldai/state/handoff.md`
 
 Represents:
 
@@ -112,7 +112,7 @@ Must always be true:
 - verification notes describe observed results, not invented ones
 - the handoff does not silently close a different package than `next-action.md` mounted during execution
 
-### `.consync/state/snapshot.md`
+### `.scaffoldai/state/snapshot.md`
 
 Represents:
 
@@ -213,10 +213,10 @@ Preflight must verify:
 
 Minimum preflight read surface:
 
-- `.consync/state/active-stream.md`
-- `.consync/state/next-action.md`
-- `.consync/state/handoff.md`
-- `.consync/state/snapshot.md`
+- `.scaffoldai/state/active-stream.md`
+- `.scaffoldai/state/next-action.md`
+- `.scaffoldai/state/handoff.md`
+- `.scaffoldai/state/snapshot.md`
 - current repo status
 
 Preflight result meanings:
@@ -288,9 +288,9 @@ Artifacts that may change during a package, but only if they stay contract-valid
 
 Examples:
 
-- `.consync/state/snapshot.md`
-- `.consync/state/active-stream.md` during a stream switch
-- `.consync/state/next-action.md` when mounting the next package as part of a switch or package-defined closeout
+- `.scaffoldai/state/snapshot.md`
+- `.scaffoldai/state/active-stream.md` during a stream switch
+- `.scaffoldai/state/next-action.md` when mounting the next package as part of a switch or package-defined closeout
 
 ### Protected Artifacts
 
