@@ -25,6 +25,11 @@ This document is an orientation layer. It names the current command surfaces,
 check semantics, documentation hierarchy, and high-level relationships without
 adding runtime behavior.
 
+Visual companion:
+`.scaffoldai/reference/scaffoldai-flowchart-v0.reference.md` is the supporting
+visual operational/documentation map. This baseline remains the textual
+operational orientation reference.
+
 ---
 
 ## 2. Current Stable Operational State

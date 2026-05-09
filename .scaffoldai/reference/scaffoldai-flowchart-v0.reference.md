@@ -28,6 +28,11 @@ This map is explanatory. It is not executable, not a runtime graph, and not
 authoritative by itself. It supports the authoritative contracts, operational
 baseline, process docs, and verification surfaces.
 
+Textual companion:
+`.scaffoldai/reference/operational-baseline-v0.reference.md` remains the
+authoritative operational orientation reference. This flowchart is its
+supporting visual map.
+
 ---
 
 ## 2. Layer Overview
