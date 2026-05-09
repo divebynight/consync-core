@@ -74,12 +74,13 @@ atomically in the same migration packet.
 ### Decision 3 — `START_HERE.md` Strategy
 
 **Question:** Should `START_HERE.md` remain in `.consync/docs/` during
-transition, or should a new `.scaffoldai/START_HERE.md` be introduced before
+transition, or should a new ScaffoldAI root `START_HERE.md` be introduced before
 migration to pre-orient readers?
 
 **Decision:** Keep a single entry point. `START_HERE.md` remains in
-`.consync/docs/` throughout the PROCESS migration. No `.scaffoldai/START_HERE.md`
-is created. Dual entry points create navigation ambiguity and reader confusion.
+`.consync/docs/` throughout the PROCESS migration. No ScaffoldAI root
+`START_HERE.md` is created. Dual entry points create navigation ambiguity and
+reader confusion.
 
 After migration is complete, a single migration note may be added to
 `START_HERE.md` pointing readers toward `.scaffoldai/` for process/harness
@@ -87,7 +88,7 @@ material. That update is deferred to the post-migration closeout, not this
 packet.
 
 **Conclusion:** `START_HERE.md` stays in `.consync/docs/` during migration.
-Do not create `.scaffoldai/START_HERE.md` yet.
+Do not create a ScaffoldAI root `START_HERE.md` yet.
 
 ---
 

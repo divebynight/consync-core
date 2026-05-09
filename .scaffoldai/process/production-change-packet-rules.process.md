@@ -132,6 +132,6 @@ A STOP condition in a coverage packet is not a failure — it is information. It
 
 ## Reference
 
-- `.scaffoldai/process/feature-planning-and-packetization.md` — packet design rules and execution loop
+- `.scaffoldai/process/feature-planning-and-packetization.process.md` — packet design rules and execution loop
 - `.scaffoldai/templates/work-packet-v3.md` — ALLOWED FILES, STOP conditions, and output contract
 - `.scaffoldai/verification/verification-ladder.md` — FAST_CHECK, UI_CHECK, FULL_VERIFY definitions

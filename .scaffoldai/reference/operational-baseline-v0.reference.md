@@ -1,6 +1,7 @@
 # Operational Baseline Reference v0
 
 Status: first-pass reference
+Role: authoritative operational reference
 Scope: documentation and operational orientation only
 
 ---

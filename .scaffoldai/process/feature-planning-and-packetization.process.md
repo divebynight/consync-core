@@ -234,4 +234,4 @@ The final packet was a dedicated closeout: read the coverage map, remove stale s
 
 Canonical example: `.consync/examples/search-panel-feature-example.md`
 
-For packets that require production changes: `.scaffoldai/process/production-change-packet-rules.md`
+For packets that require production changes: `.scaffoldai/process/production-change-packet-rules.process.md`

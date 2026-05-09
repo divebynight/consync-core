@@ -1,5 +1,5 @@
 .PHONY: help \
-	scaffoldai-status scaffoldai-docs-check scaffoldai-drift-check scaffoldai-leak-check scaffoldai-test \
+	scaffoldai-status scaffoldai-docs-check scaffoldai-drift-check scaffoldai-link-audit scaffoldai-leak-check scaffoldai-test \
 	consync-test consync-e2e \
 	repo-status repo-test repo-full-audit verify-full \
 	status verify-scaffoldai verify-consync docs-check drift-check leak-check kick-tires
@@ -13,8 +13,9 @@ help:
 	@echo "  make scaffoldai-status       Print branch and git status for process work"
 	@echo "  make scaffoldai-docs-check   Check expected ScaffoldAI docs exist"
 	@echo "  make scaffoldai-drift-check  Scan ScaffoldAI docs for drift warnings"
+	@echo "  make scaffoldai-link-audit   Audit ScaffoldAI doc links and command references"
 	@echo "  make scaffoldai-leak-check   Print manual Leak Check prompts"
-	@echo "  make scaffoldai-test         Run ScaffoldAI status, docs, drift, verify, leak prompts"
+	@echo "  make scaffoldai-test         Run ScaffoldAI status, docs, link audit, drift, verify, leak prompts"
 	@echo ""
 	@echo "Consync:"
 	@echo "  make consync-test            Run npm run verify:consync (fast product/runtime checks, no e2e)"
@@ -52,6 +53,9 @@ scaffoldai-docs-check:
 scaffoldai-drift-check:
 	@node scripts/check-scaffoldai-docs.js drift
 
+scaffoldai-link-audit:
+	@node scripts/check-scaffoldai-links-and-commands.js
+
 scaffoldai-leak-check:
 	@echo "[scaffoldai-leak-check] Manual prompts only. No answers are inferred."
 	@echo ""
@@ -79,6 +83,7 @@ scaffoldai-test:
 	@echo "[scaffoldai-test] ScaffoldAI process/harness checks"
 	@$(MAKE) scaffoldai-status
 	@$(MAKE) scaffoldai-docs-check
+	@$(MAKE) scaffoldai-link-audit
 	@$(MAKE) scaffoldai-drift-check
 	@echo "[scaffoldai-test] npm run verify:scaffoldai"
 	@npm run verify:scaffoldai
@@ -155,4 +160,3 @@ leak-check:
 kick-tires:
 	@echo "[kick-tires] legacy alias -> make scaffoldai-test"
 	@$(MAKE) scaffoldai-test
-

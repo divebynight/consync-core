@@ -2,6 +2,7 @@
 
 Created: 2026-05-08
 Status: REFERENCE / EXAMPLES
+Role: supporting reference
 
 ---
 

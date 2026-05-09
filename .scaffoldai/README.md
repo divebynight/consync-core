@@ -1,5 +1,7 @@
 # .scaffoldai/
 
+Role: operational orientation
+
 ScaffoldAI is the process and AI development system used to build `consync-core`.
 
 It is **not** the Consync product. It is the harness around the work.

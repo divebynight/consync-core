@@ -64,7 +64,7 @@ consync-core/
 | `.scaffoldai/process/runbook.process.md` | Operating entrypoint — how to start a session, core loop, trigger levels |
 | `.consync/docs/current-system.md` | Current product and process truth |
 | `.scaffoldai/verification/verification-ladder.md` | Three verification levels (FAST_CHECK, UI_CHECK, FULL_VERIFY) |
-| `.scaffoldai/process/feature-planning-and-packetization.md` | How to break a feature into packets and execute them |
+| `.scaffoldai/process/feature-planning-and-packetization.process.md` | How to break a feature into packets and execute them |
 | `.scaffoldai/process/feature-packet-execution.process.md` | Coordination model for multi-packet features (roles, readiness, loop) |
 | `.scaffoldai/process/work-log.log.md` | Append-only log of completed work — one entry per packet |
 | `.scaffoldai/verification/ui-e2e-coverage-map.md` | e2e test coverage by surface — update when adding specs |
@@ -114,7 +114,7 @@ For features with two or more independently testable concerns, use the feature p
 - Execute packets sequentially — do not advance if any packet returns STOPPED
 - Run a dedicated closeout packet at the end
 
-See: `.scaffoldai/process/feature-planning-and-packetization.md`
+See: `.scaffoldai/process/feature-planning-and-packetization.process.md`
 
 ---
 
@@ -189,4 +189,4 @@ This matters in multi-agent and multi-session workflows.
 
 Canonical feature example: `.consync/examples/search-panel-feature-example.md`
 
-Production-change packet rules (when source changes are allowed): `.scaffoldai/process/production-change-packet-rules.md`
+Production-change packet rules (when source changes are allowed): `.scaffoldai/process/production-change-packet-rules.process.md`

@@ -3,6 +3,7 @@
 
 Captured: 2026-05-08
 Status: first-pass process document
+Role: operational process reference
 
 ---
 
@@ -213,4 +214,3 @@ process should already show that it can:
 If the manual version feels unclear, heavy, or inconsistent, automation is not
 yet ready. The correct next step is to improve the manual process, not to encode
 the ambiguity.
-

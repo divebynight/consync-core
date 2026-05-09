@@ -1,5 +1,7 @@
 # System Identity Contract
 
+Role: authoritative contract
+
 ## Purpose
 
 This document defines the core terminology and architectural boundaries for Consync and ScaffoldAI.
