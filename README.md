@@ -1,61 +1,253 @@
-# consync-core
+# Consync + ScaffoldAI
 
-`consync-core` is an experimental local-first creativity and context system.
+## Governed AI-Assisted Systems for Real-World Workflows
+
+`consync-core` is an experimental but operational repository exploring how AI-assisted systems can be built safely, transparently, and deterministically.
 
 It combines:
-- creative file and session tracking
-- contextual reentry tooling
+
+- **ScaffoldAI** — a governance and development harness for AI-assisted workflows
+- **Consync** — an experimental local-first creative tracking system used as the implementation target
+
+The goal is not autonomous AI orchestration.
+
+The goal is creating architectures where:
+
+- authority is explicit
+- execution boundaries are observable
+- AI systems remain inspectable
+- workflows remain verifiable
+- humans remain the final authority layer
+
+Everything in this repository is designed to work locally-first:
+- without cloud dependencies
+- without background services
+- without hidden orchestration
+- and without requiring autonomous execution
+
+---
+
+# Why This Repository Exists
+
+Modern AI systems are increasingly capable of:
+
+- executing tools
+- modifying files
+- coordinating workflows
+- managing long-running tasks
+- interacting with external systems
+
+But most AI-assisted workflows still struggle with:
+
+- hidden execution
+- unclear authority boundaries
+- unsafe orchestration
+- prompt drift
+- unverifiable state mutation
+- uncontrolled agent behavior
+- poor operational visibility
+
+At the same time, creative work generates large amounts of fragile context:
+- interrupted sessions
+- disconnected files
+- forgotten decisions
+- incomplete handoffs
+- unclear project state
+
+This repository explores practical architectural approaches for solving both problems:
+- preserving creative and operational context
+- while maintaining explicit governance and deterministic workflows
+
+---
+
+# System Overview
+
+## ScaffoldAI
+
+ScaffoldAI is the governance and process layer.
+
+It provides:
+
+- verification surfaces
+- operational contracts
+- handoff systems
+- advisory-only coordination patterns
+- MCP boundary management
+- deterministic workflow structure
+- explicit execution semantics
 - structured runtime state
-- an AI development harness designed to make collaboration with AI tools more deterministic and less chaotic
 
-The project explores ways to preserve creative context over time, reduce reentry friction, and build operational tooling that keeps both humans and AI tools oriented during long, interrupted, or complex work sessions.
+ScaffoldAI is intentionally:
 
-It is experimental but operational. Everything in this repo can be used without a network connection, a cloud service, or a background server.
+- manual-first
+- observable
+- inspectable
+- verification-oriented
+- non-autonomous by default
+
+It is NOT:
+
+- an autonomous orchestration engine
+- a hidden agent runtime
+- a self-modifying system
+- an unrestricted execution framework
+
+ScaffoldAI lives under `.scaffoldai/`.
+
+It is not part of the Consync runtime product.
 
 ---
 
-## Why This Exists
+## Consync
 
-Creative work — audio, writing, design, code — generates a lot of context that is easy to lose. Sessions get interrupted. You return days later with no clear sense of where you were, what decisions were made, or what still needs to happen.
+Consync is the runtime product being built within the ScaffoldAI environment.
 
-Consync is an attempt to solve that in a local-first way: small files, explicit timestamps, GUID-based identity for tracked concepts, and just enough structure to make reentry fast.
+Consync explores:
 
-The same problem applies to AI-assisted development. AI tools lose context between sessions, give inconsistent results when context is thin, and lack a stable way to verify their own work. ScaffoldAI is the development harness in this repo that addresses that problem — providing deterministic runtime commands, state checkpoints, and structured verification so that AI collaboration stays grounded.
+- creative session tracking
+- AI-assisted file organization
+- metadata generation
+- contextual memory systems
+- media analysis workflows
+- long-term creative archives
+
+Consync acts as the real-world pressure test for ScaffoldAI.
+
+The desktop runtime is built using:
+- Electron
+- React
+- local JSON/state artifacts
+- timestamped event tracking
+- GUID-based metadata identity
 
 ---
 
-## What Currently Works
+# Design Position
+
+This repository intentionally favors:
+
+- explicit workflows
+- deterministic verification
+- human authority
+- advisory-first systems
+- bounded capability exposure
+- observable operational state
+- contracts over implicit behavior
+
+Over:
+
+- hidden orchestration
+- unrestricted autonomy
+- implicit execution
+- opaque agent behavior
+- uncontrolled multi-agent swarms
+
+AI systems here are treated as managed workers operating within governed boundaries.
+
+---
+
+# Core Principles
+
+## Human-First Architecture
+
+Humans remain the final authority layer.
+
+---
+
+## Explicit Authority Boundaries
+
+Execution capability should never be ambiguous.
+
+---
+
+## Advisory-First Systems
+
+Systems should recommend before they execute.
+
+---
+
+## Observable Operational Surfaces
+
+Actions, verification, and workflow boundaries should remain inspectable.
+
+---
+
+## Contracts Over Implicit Behavior
+
+Operational expectations should be documented and verifiable.
+
+---
+
+## Deterministic Verification
+
+Verification should rely on observable evidence instead of hidden assumptions.
+
+---
+
+## AI as Managed Worker, Not Autonomous Swarm
+
+AI systems should operate within governed boundaries rather than unrestricted orchestration.
+
+---
+
+# What Currently Works
 
 - **Session and file tracking** — timestamped event artifacts, GUID-based identity metadata, local JSON
 - **Desktop workspace** — Electron app with audio file loading, markers, bookmarks, search, and workspace browsing
 - **Runtime CLI** — commands for system status, preflight checks, structured verification, and handoff/closeout
-- **Verification loop** — fast local checks that report PASS/FAIL across all major runtime areas
-- **MCP integration (read-only)** — a local stdio MCP server exposing 5 read-only tools for AI clients
-- **CI** — GitHub Actions workflow running core verification on every PR and push to main
+- **Verification loop** — fast local checks that report PASS/FAIL across major runtime areas
+- **MCP integration (read-only)** — local stdio MCP server exposing constrained operational tooling
+- **CI** — GitHub Actions workflow running core verification on PRs and pushes
 
 ---
 
-## Current Major Components
+# Operational Model
 
-### Consync
+This repository intentionally favors:
 
-Consync is the product: a local-first desktop and CLI tool for tracking creative work.
+- manual orchestration
+- explicit workflows
+- constrained MCP capabilities
+- deterministic verification
+- visible operational state
+- human approval for critical actions
 
-It tracks sessions, files, markers, bookmarks, and annotations as small local artifacts — timestamped events and GUID metadata — rather than in a database or cloud service.
+The system intentionally avoids:
 
-The desktop app is built on Electron + React. The CLI commands live under `src/commands/`. Creative tracking logic lives under `src/lib/`.
+- hidden execution
+- unrestricted autonomous behavior
+- implicit approval semantics
+- uncontrolled multi-agent orchestration
 
-### ScaffoldAI
+AI tools assist.
 
-ScaffoldAI is the development harness that wraps the Consync build process.
-
-It provides runtime commands you can invoke from the CLI, a verification loop, state snapshot/handoff docs, and a read-only MCP server that AI clients can query. It is designed to keep AI-assisted work predictable: state is explicit, verification is runnable, and no autonomous action happens without human approval.
-
-ScaffoldAI lives under `.scaffoldai/`. It is not part of the Consync product.
+Humans approve, commit, and push.
 
 ---
 
-## Quick Start
+# MCP Philosophy
+
+MCP servers in this repository are treated as:
+
+- controlled interface boundaries
+- capability exposure layers
+- operational surfaces
+
+NOT as unrestricted autonomous runtimes.
+
+Current MCP experimentation focuses on:
+
+- status visibility
+- verification guidance
+- operational inspection
+- bounded shared-memory experiments
+- explicit capability exposure
+
+Current MCP tooling is intentionally constrained and primarily read-only.
+
+---
+
+# Quick Start
 
 ```bash
 # Install dependencies
@@ -67,13 +259,13 @@ npm run start:desktop
 # Run core tests
 npm test
 
-# Run all fast verification
+# Run fast verification
 npm run verify
 ```
 
 ---
 
-## Common Commands
+# Common Commands
 
 | Command | What it does |
 |---|---|
@@ -81,7 +273,7 @@ npm run verify
 | `npm run verify` | All fast non-E2E checks |
 | `npm run verify:scaffoldai` | ScaffoldAI runtime checks, state, MCP coverage |
 | `npm run verify:consync` | Fast Consync product checks |
-| `npm run test:e2e` | Playwright renderer E2E (requires preload build) |
+| `npm run test:e2e` | Playwright renderer E2E |
 | `npm run start:desktop` | Launches the Electron desktop app |
 | `npm run scaffoldai:status` | Current runtime posture summary |
 | `npm run scaffoldai:preflight` | Pre-work safety check |
@@ -89,70 +281,129 @@ npm run verify
 
 ---
 
-## Current Status
+# Repository Layout
 
-- Local-first development, no cloud or network dependency
-- Desktop app operational (audio, markers, bookmarks, search, workspace browser)
-- CLI runtime commands operational (status, preflight, verify, handoff, closeout)
-- Read-only MCP server at v0 over local stdio — no remote exposure
-- Verification loop passing across all surfaces
-- CI running core verification on pull_request and push to main
-- Human approval required for verification acceptance, commits, pushes, and PRs
-- Runtime temp/log artifacts stay under `.scaffoldai/tmp/`
+```text
+consync-core/
+  .github/       -> Tool adapter layer (Copilot, etc.)
+  .scaffoldai/   -> ScaffoldAI bridge/state/process layer
+  src/           -> Consync runtime/product source
+  test/          -> Verification and runtime tests
+  scripts/       -> Deterministic operational tooling
+  sandbox/       -> Deterministic fixtures and local probes
+```
 
-This is experimental software. APIs and structure will change. Planned layers (write-capable MCP, durable verify evidence, persistent event store) are not yet implemented.
+Additional documentation:
+- `src/README.md`
+- `.scaffoldai/README.md`
 
 ---
 
-## Repository Layout
-
-```
-src/                   Consync CLI, commands, lib, Electron app, and tests
-.scaffoldai/           ScaffoldAI process layer: state, agents, planning, skills, contracts
-.github/               GitHub Actions CI and Copilot adapter
-sandbox/               Deterministic fixtures and probes for local verification
-scripts/               Project utility scripts
-```
-
-Deeper layout documentation: [src/README.md](src/README.md), [.scaffoldai/README.md](.scaffoldai/README.md)
-
----
-
-## Documentation Map
+# Documentation Map
 
 | What you want | Where to look |
 |---|---|
-| What Consync is building | [src/README.md](src/README.md) |
-| CLI commands reference | [src/commands/README.md](src/commands/README.md) |
-| ScaffoldAI runtime state | [.scaffoldai/reference/current-runtime-state.reference.md](.scaffoldai/reference/current-runtime-state.reference.md) |
-| ScaffoldAI process guide | [.scaffoldai/process/runbook.process.md](.scaffoldai/process/runbook.process.md) |
-| MCP client contract | [.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md](.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md) |
-| Desktop/Electron layer | [src/electron/README.md](src/electron/README.md) |
-| Sandbox fixtures | [sandbox/README.md](sandbox/README.md) |
+| What Consync is building | `src/README.md` |
+| CLI commands reference | `src/commands/README.md` |
+| ScaffoldAI runtime state | `.scaffoldai/reference/current-runtime-state.reference.md` |
+| ScaffoldAI process guide | `.scaffoldai/process/runbook.process.md` |
+| MCP client contract | `.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md` |
+| Desktop/Electron layer | `src/electron/README.md` |
+| Sandbox fixtures | `sandbox/README.md` |
 
 ---
 
-## Development Notes
+# Current Status
 
-Keep work small and focused. One packet or PR at a time.
+## Active Areas
 
-Before starting any substantive change:
+- ScaffoldAI governance patterns
+- MCP experimentation
+- verification surfaces
+- operational contracts
+- Consync runtime development
+- AI-assisted workflow architecture
 
-```bash
-npm run scaffoldai:preflight
-npm run scaffoldai:question
+## Operational Characteristics
+
+- Local-first development
+- No cloud dependency required
+- Desktop runtime operational
+- CLI verification operational
+- Read-only MCP operational over stdio
+- CI verification operational
+- Human approval required for commits, pushes, and PRs
+
+## Intentionally Deferred
+
+- autonomous orchestration
+- unrestricted execution
+- self-modifying systems
+- hidden workflow automation
+- production-scale agent autonomy
+
+This is experimental software.
+
+APIs, architecture, and operational patterns will evolve over time.
+
+---
+
+# Why Open Source This?
+
+This repository is intentionally public because:
+
+- AI governance patterns should be inspectable
+- operational architectures benefit from peer review
+- deterministic workflows are easier to improve collaboratively
+- other engineers may want reusable patterns
+- the ecosystem needs more practical examples of constrained AI systems
+
+This is an exploratory engineering repository, not a finished platform.
+
+---
+
+# AI Tool Compatibility
+
+This repository is intentionally structured for:
+
+- humans
+- ChatGPT
+- Copilot
+- Codex
+- MCP clients
+- future AI-assisted tooling
+
+The repository emphasizes:
+
+- discoverability
+- explicit structure
+- operational readability
+- deterministic navigation
+- layered documentation
+
+---
+
+# Long-Term Direction
+
+Future exploration areas include:
+
+- governed execution systems
+- action classification models
+- stronger operational contracts
+- supervised agent workflows
+- controlled memory systems
+- creative runtime evolution
+- AI-assisted development governance
+
+---
+
+# Relationship Between Systems
+
+```text
+ScaffoldAI is used to build consync-core
+consync-core produces Consync
 ```
 
-Before committing:
+ScaffoldAI and Consync intentionally remain separate systems.
 
-```bash
-npm run verify
-```
-
-For Electron/renderer changes, also run:
-
-```bash
-npm run test:e2e
-```
-
-This repo uses a human-controlled workflow. AI tools assist; humans approve, commit, and push.
+That separation is foundational to the architecture.
