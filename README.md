@@ -407,3 +407,22 @@ consync-core produces Consync
 ScaffoldAI and Consync intentionally remain separate systems.
 
 That separation is foundational to the architecture.
+
+This repository uses lightweight commit prefixes to help distinguish:
+- features
+- fixes
+- docs
+- process/governance changes
+- tests
+- maintenance work
+
+Examples:
+
+feature: add MCP verification surface
+docs: reframe repository architecture
+process: tighten approval boundaries
+fix: correct preload bridge validation
+
+See:
+- CONTRIBUTING.md
+- .scaffoldai/process/

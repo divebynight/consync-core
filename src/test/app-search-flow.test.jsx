@@ -78,7 +78,7 @@ function createDesktopBridge(overrides = {}) {
   return {
     getBackendSummary: vi.fn().mockResolvedValue({
       platform: "darwin",
-      cwd: "/Users/markhughes/Projects/consync-core",
+      cwd: process.cwd(),
     }),
     getBridgeStatus: vi.fn().mockResolvedValue({
       status: "ok",

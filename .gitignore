@@ -36,3 +36,8 @@ sandbox/probes/audio-session-capture/workdir/*
 .scaffoldai_verify.log
 .scaffoldai_*.log
 .vscode/
+
+# Test/verification output artifacts
+output.txt
+verification_output.txt
+verify-run-files.txt

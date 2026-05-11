@@ -38,7 +38,7 @@ That command starts the probe in `sandbox/probes/audio-session-capture/workdir`,
 If you want to use a different folder as the session context, `cd` into that folder first and run:
 
 ```sh
-node /Users/markhughes/Projects/consync-core/sandbox/probes/audio-session-capture/capture-session.js
+node sandbox/probes/audio-session-capture/capture-session.js
 ```
 
 ## Commands
