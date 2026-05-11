@@ -35,3 +35,4 @@ sandbox/probes/audio-session-capture/workdir/*
 # Prevent ScaffoldAI verify/debug logs from landing at repo root
 .scaffoldai_verify.log
 .scaffoldai_*.log
+.vscode/
