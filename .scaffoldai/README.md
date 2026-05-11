@@ -1,5 +1,7 @@
 # .scaffoldai/
 
+Role: operational orientation
+
 ScaffoldAI is the process and AI development system used to build `consync-core`.
 
 It is **not** the Consync product. It is the harness around the work.
@@ -11,22 +13,24 @@ It is **not** the Consync product. It is the harness around the work.
 Current runtime phase:
 
 ```text
-READ_ONLY MCP + deterministic local Runtime Commands + human-authoritative workflow.
+CONTROLLED MCP ACCESS + deterministic local Runtime Commands + human-authoritative workflow.
 ```
 
 ScaffoldAI currently is:
 
 - a repo-local process harness for planning, executing, verifying, and closing focused work packets
-- the owner of live process state under `.scaffoldai/state/` and `.scaffoldai/streams/`
+- the owner of shared process state under `.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/`
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
 - a manual agent/process model where agents are invoked intentionally and never auto-dispatched
-- a read-only MCP observation surface for structured runtime state
+- a controlled MCP capability/access layer for local AI clients such as Codex and Copilot
 - a set of contracts, planning docs, prompts, and skills that keep work bounded and re-enterable
 
-ScaffoldAI is not yet:
+ScaffoldAI is not currently:
 
 - an autonomous orchestrator
-- a write-capable MCP server
+- an MCP orchestration engine
+- an autonomous agent runner
+- an automatic tool dispatcher
 - a remote service
 - a shell execution proxy
 - a closeout approver
@@ -49,9 +53,21 @@ Current ScaffoldAI Runtime Commands include:
 
 Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
 
-## Read-Only MCP Model
+## MCP Model
 
-The MCP surface is read-only observation only in the current phase. MCP tools return structured JSON with `execution_class: "READ_ONLY"` and do not approve, verify, close, commit, push, stage, edit, or mutate state.
+ScaffoldAI MCP is the current controlled access layer between local AI clients and ScaffoldAI capabilities/state:
+
+```text
+AI client
+  -> ScaffoldAI MCP
+  -> controlled ScaffoldAI capabilities/state
+```
+
+Current MCP clients include Codex and Copilot. Each client launches an ephemeral local stdio MCP server instance directly with Node; shared ScaffoldAI state persists independently of any MCP process lifetime.
+
+The MCP surface has read-only observation tools, one bounded append-only signal tool, and a diagnostic shared-memory POC in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only ephemeral, non-authoritative signal records under `.scaffoldai/tmp/mcp-signals.jsonl`.
+
+MCP is not currently an orchestration engine. It does not approve, verify, close, commit, push, stage, edit, execute shell commands, orchestrate workflow, dispatch tools automatically, run autonomous agents, or mutate authoritative state. MCP messages are data only, not executable intent.
 
 Current MCP tools:
 
@@ -60,10 +76,15 @@ Current MCP tools:
 - `scaffoldai_question`
 - `scaffoldai_verify_recommend`
 - `scaffoldai_closeout_readiness`
+- `scaffoldai_signal`
+- `scaffoldai_memory_write`
+- `scaffoldai_memory_read`
 
-The MCP server runs locally over stdio. MCP Inspector is a local validation UI for development/testing; it is not the runtime itself, does not add authority, and does not change the no-remote/no-HTTP v0 boundary for ScaffoldAI MCP.
+`scaffoldai_memory_write` and `scaffoldai_memory_read` are diagnostic-only, append-only, non-authoritative, manually invoked, and isolated from production workflow state. They are for validating MCP client-to-client visibility only; they are not long-term memory, workflow state, a task queue, a listener, an agent bus, or an automation surface.
 
-MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, and recommend a human-controlled next step. They must not treat MCP output as authority to execute.
+The MCP server runs locally over stdio. stdout must remain protocol-clean for MCP messages only; human-readable logs belong on stderr. MCP Inspector is a local validation UI for development/testing; it is not the runtime itself, does not add authority, and does not change the no-remote/no-HTTP v0 boundary for ScaffoldAI MCP.
+
+MCP clients may summarize tool observations, cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`, append bounded local presence/capability signals, use diagnostic shared-memory manually when requested, and recommend a human-controlled next step. They must not treat MCP output, signal records, or shared-memory messages as authority to execute.
 
 ## Snapshot and Reentry Model
 
@@ -80,7 +101,7 @@ For reentry, start with:
 4. `npm run scaffoldai:status`
 5. `npm run scaffoldai:question`
 
-Use `npm run scaffoldai:mcp:snapshot` when an MCP-aware or external AI client needs one deterministic JSON bundle of the current read-only MCP observations.
+Use `npm run scaffoldai:mcp:snapshot` when an MCP-aware or external AI client needs one deterministic JSON bundle of the current read-only MCP observations. The snapshot command does not call `scaffoldai_signal`.
 
 ## Human Authority Model
 

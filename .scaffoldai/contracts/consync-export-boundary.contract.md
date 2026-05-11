@@ -189,9 +189,9 @@ These should never appear in a shared/user-facing app bundle unless a future
 product decision explicitly turns a narrow subset into public user content:
 
 ```text
-.consync/state/**
-.consync/streams/**
-.consync/packets/**
+.scaffoldai/state/**
+.scaffoldai/streams/**
+.scaffoldai/packets/**
 .scaffoldai/prompts/**
 .scaffoldai/agents/**
 .scaffoldai/skills/**
@@ -210,7 +210,7 @@ source maps or raw source files exposing process internals
 ```
 
 The strongest rule is that live Consync process state and governance surfaces
-must not ship: `.consync/state/**`, `.consync/streams/**`, packets, prompts,
+must not ship: `.scaffoldai/state/**`, `.scaffoldai/streams/**`, packets, prompts,
 agent definitions, skills, and internal docs are repo/operator context, not user
 runtime content.
 

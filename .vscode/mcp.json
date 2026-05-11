@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "scaffoldai": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["src/mcp/server.js"],
+      "cwd": "/Users/markhughes/Projects/consync-core"
+    },
+    "mock-scaffoldai": {
+      "type": "http",
+      "url": "https://vegas-feel-respect-resorts.trycloudflare.com/mcp"
+    }
+  }
+}

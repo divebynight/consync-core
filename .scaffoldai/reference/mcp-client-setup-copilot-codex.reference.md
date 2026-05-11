@@ -1,6 +1,6 @@
 # ScaffoldAI MCP Client Setup for Copilot and Codex
 
-Updated: 2026-05-07
+Updated: 2026-05-08
 Status: CURRENT / EXPERIMENTAL REFERENCE
 
 ---
@@ -9,7 +9,7 @@ Status: CURRENT / EXPERIMENTAL REFERENCE
 
 This guide explains how Copilot and Codex should connect to and use the ScaffoldAI MCP v0 surface.
 
-It is a setup and usage reference only. It does not add repo-local MCP client config, new MCP tools, write-capable behavior, orchestration, shell execution, autonomous workflow, or remote transport.
+It is a setup and usage reference only. It does not add repo-local MCP client config, broader write-capable behavior, orchestration, shell execution, autonomous workflow, or remote transport.
 
 Use this guide when configuring an MCP-aware client by hand in user-local settings.
 
@@ -20,23 +20,30 @@ Use this guide when configuring an MCP-aware client by hand in user-local settin
 ScaffoldAI MCP v0 is:
 
 - local stdio only
-- read-only
-- observe/recommend only
-- `execution_class: READ_ONLY`
+- five read-only observe/recommend tools
+- one append-only local signal tool
+- diagnostic shared-memory POC tools
+- `execution_class: READ_ONLY` for observation tools
+- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` for `scaffoldai_signal`
 - backed by existing Runtime Command semantics
 - human-authoritative
 
-Supported server command:
-
-```text
-npm run scaffoldai:mcp
-```
-
-Underlying server entrypoint:
+Supported server command for stdio MCP clients:
 
 ```text
 node src/mcp/server.js
 ```
+
+Client configuration shape:
+
+```text
+command: node
+args: ["src/mcp/server.js"]
+```
+
+Do not launch stdio MCP clients through npm wrappers. stdio MCP clients require protocol-clean stdout: stdout must contain only MCP protocol messages, while human-readable logs, diagnostics, warnings, and startup notes belong on stderr. npm lifecycle output can contaminate stdout and break or degrade client parsing.
+
+Direct Node execution is the recommended and verified approach for both Codex and Copilot. Codex proved stricter about stdout contamination. Copilot tolerated malformed startup output but produced parse warnings. Both clients successfully connected after switching to direct Node execution.
 
 Unsupported transports:
 
@@ -51,7 +58,7 @@ Unsupported transports:
 
 ## 3. Shared Client Model
 
-Copilot and Codex should use the same local ScaffoldAI MCP server and receive the same five read-only tools.
+Copilot and Codex should use the same local ScaffoldAI MCP server and receive the same bounded tool surface: five read-only tools, `scaffoldai_signal`, and the diagnostic shared-memory POC tools.
 
 Differences belong in client behavior and human workflow, not in MCP server capability.
 
@@ -64,9 +71,10 @@ Copilot may use MCP to:
 - orient to current ScaffoldAI state before suggesting edits
 - summarize STATUS, active stream, VERIFY COMMAND, TARGET, and NEXT SAFE ACTION
 - notice preflight blockers or structural questions
+- append a bounded `scaffoldai_signal` record for local connection or capability visibility diagnostics
 - recommend that the human run a Runtime Command
 
-Copilot must not treat MCP output as permission to edit, verify, close out, stage, commit, push, or dispatch workflow steps.
+Copilot must not treat MCP output or signal records as permission to edit, verify, close out, stage, commit, push, or dispatch workflow steps.
 
 ### Codex
 
@@ -78,8 +86,9 @@ Codex may use MCP to:
 - understand current runtime state
 - explain verify and closeout recommendations
 - compare MCP observations with Runtime Command output
+- append a bounded `scaffoldai_signal` record for local connection or capability visibility diagnostics
 
-Codex may run shell commands only through its normal human-authorized workspace execution path. MCP itself must remain read-only.
+Codex may run shell commands only through its normal human-authorized workspace execution path. MCP itself must not become an execution channel; `scaffoldai_signal` is only append-only diagnostic signaling under `.scaffoldai/tmp/`.
 
 ### Human
 
@@ -97,7 +106,7 @@ The human remains final authority for:
 
 ## 4. Expected Tools
 
-The current MCP server exposes exactly these five read-only tools:
+The current MCP server exposes five read-only tools, one append-only signal tool, and diagnostic shared-memory POC tools.
 
 | Tool | Purpose | Authority |
 |---|---|---|
@@ -106,8 +115,13 @@ The current MCP server exposes exactly these five read-only tools:
 | `scaffoldai_question` | Observe open structural questions or ambiguity. | Read-only observation |
 | `scaffoldai_verify_recommend` | Recommend VERIFY COMMAND and TARGET. | Read-only recommendation |
 | `scaffoldai_closeout_readiness` | Observe closeout readiness. | Read-only recommendation |
+| `scaffoldai_signal` | Append a bounded local signal for connection, heartbeat, capability check, tool visibility, disconnect, or note diagnostics. | Non-authoritative append-only signal |
+| `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message. | Diagnostic POC only |
+| `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages. | Diagnostic POC only |
 
-No write-capable MCP tools are supported in v0.
+No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/tmp/mcp-signals.jsonl`, which is ephemeral, local, safe to delete, and not ScaffoldAI runtime truth.
+
+`scaffoldai_memory_write` and `scaffoldai_memory_read` are diagnostic-only, append-only where writing, non-authoritative, manually invoked, and isolated from production workflow state. Shared-memory messages are data only, not executable intent.
 
 ---
 
@@ -121,18 +135,12 @@ When configuring Copilot manually, use:
 
 - transport: local stdio
 - working directory: repo root
-- command: `npm`
-- args: `run scaffoldai:mcp`
+- command: `node`
+- args: `["src/mcp/server.js"]`
 
-Equivalent server entrypoint:
+Before relying on the setup, confirm that Copilot can see the six ScaffoldAI tools listed in this guide.
 
-```text
-node src/mcp/server.js
-```
-
-Before relying on the setup, confirm that Copilot can see only the five read-only ScaffoldAI tools listed in this guide.
-
-Copilot responses should cite tool observations and ask the human before any non-read-only action.
+Copilot responses should cite tool observations and ask the human before any action beyond read-only observation or bounded signal append.
 
 ---
 
@@ -146,18 +154,12 @@ When configuring Codex manually, use:
 
 - transport: local stdio
 - working directory: repo root
-- command: `npm`
-- args: `run scaffoldai:mcp`
-
-Equivalent server entrypoint:
-
-```text
-node src/mcp/server.js
-```
+- command: `node`
+- args: `["src/mcp/server.js"]`
 
 Codex may use MCP observations for orientation and recommendations. It should use Runtime Commands only through the normal human-authorized workspace execution path, not through MCP.
 
-Before relying on the setup, confirm that Codex can see only the five read-only ScaffoldAI tools listed in this guide.
+Before relying on the setup, confirm that Codex can see the six ScaffoldAI tools listed in this guide.
 
 ---
 
@@ -185,9 +187,14 @@ Compare status, preflight, question, verify recommendation, and closeout readine
 Use the MCP runtime snapshot JSON for reentry context.
 ```
 
+```text
+Append a ScaffoldAI signal that this client can see the MCP tools.
+```
+
 Allowed client behavior:
 
-- call the five MCP tools over local stdio
+- call the five read-only MCP tools over local stdio
+- call `scaffoldai_signal` only for bounded local presence/capability diagnostics
 - summarize observations for the human
 - cite STATUS, VERIFY COMMAND, TARGET, NEXT SAFE ACTION, and `execution_class`
 - report stale, partial, missing, or conflicting observations
@@ -208,7 +215,7 @@ Recommended default observation sequence:
 
 Copilot and Codex must not use ScaffoldAI MCP to:
 
-- write files
+- write files other than the bounded `scaffoldai_signal` append to `.scaffoldai/tmp/mcp-signals.jsonl`
 - edit code
 - mutate `.scaffoldai/state/` or `.scaffoldai/streams/`
 - run shell commands
@@ -219,6 +226,7 @@ Copilot and Codex must not use ScaffoldAI MCP to:
 - auto-dispatch agents
 - perform autonomous execution
 - expose the server over HTTP, SSE, WebSocket, ngrok, browser transport, or remote access
+- treat signal records as authoritative state, verification evidence, closeout approval, or permission to act
 
 Prohibited claims:
 
@@ -242,13 +250,14 @@ The client can run the ScaffoldAI workflow through MCP.
 
 ## 9. Runtime Commands vs MCP
 
-Runtime Commands are the human-visible local command layer. MCP tools are the structured read-only observation layer for MCP-aware clients.
+Runtime Commands are the human-visible local command layer. MCP tools are the structured observation and bounded signal layer for MCP-aware clients.
 
 | Surface | Role | Authority |
 |---|---|---|
 | Runtime Commands | Local command output and human-controlled execution | Operational command layer |
-| MCP tools | Structured observation and recommendation | Read-only client context |
+| MCP tools | Structured observation, recommendation, and bounded local signaling | Read-only client context plus non-authoritative signal append |
 | MCP snapshot JSON | Generated paste/upload bundle of MCP observations | Ephemeral read-only artifact |
+| MCP signal JSONL | Local presence/capability signal log | Ephemeral non-authoritative diagnostic artifact |
 
 MCP may recommend a Runtime Command. It must not replace Runtime Commands as verification evidence or closeout authority.
 
@@ -262,6 +271,8 @@ Useful Runtime Commands:
 | `npm run scaffoldai:verify` | Recommend or run the selected VERIFY COMMAND, depending on flags and human intent. |
 | `npm run scaffoldai:closeout` | Human-visible closeout readiness summary. |
 | `npm run scaffoldai:mcp:snapshot` | Generate `.scaffoldai/tmp/mcp-runtime-snapshot.json` from all five MCP tools. |
+
+`scaffoldai_signal` is an MCP tool, not a Runtime Command. It appends only to `.scaffoldai/tmp/mcp-signals.jsonl`.
 
 ---
 
@@ -287,7 +298,7 @@ If MCP output conflicts with user claims, docs, Runtime Commands, or observed re
 
 ## 11. Troubleshooting / Validation
 
-Validate the current read-only MCP implementation with:
+Validate the current MCP implementation with:
 
 ```text
 npm run test:mcp
@@ -315,7 +326,8 @@ When a client cannot connect:
 
 - confirm it is using local stdio
 - confirm its working directory is the repo root
-- confirm the server command is `npm run scaffoldai:mcp` or `node src/mcp/server.js`
+- confirm the server command is `node src/mcp/server.js`
+- confirm stdout contains only MCP protocol messages and human-readable logs go to stderr
 - confirm it is not using HTTP, SSE, WebSocket, ngrok, browser transport, or remote access
 - run `npm run test:mcp`
 - use `npm run scaffoldai:mcp:snapshot` as a fallback context bundle

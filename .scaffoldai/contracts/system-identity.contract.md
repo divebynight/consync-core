@@ -1,5 +1,7 @@
 # System Identity Contract
 
+Role: authoritative contract
+
 ## Purpose
 
 This document defines the core terminology and architectural boundaries for Consync and ScaffoldAI.
@@ -51,8 +53,9 @@ It is:
 
 It provides:
 - handoff system (`next-action`, `handoff`, `snapshot`)
-- process orchestration
+- manual process coordination
 - structured development flow
+- controlled MCP access to bounded ScaffoldAI capabilities/state
 
 Important:
 > ScaffoldAI is NOT part of Consync as a product.
@@ -92,6 +95,7 @@ This folder contains:
 - streams
 - packets
 - process runtime data
+- controlled MCP-facing process diagnostics
 
 Important:
 > `.scaffoldai/` belongs to ScaffoldAI, not Consync.

@@ -184,7 +184,7 @@ Each step should be independently testable.
 ### Contract Gate
 - Validates that an SDC is consistent with current mode and state.
 - Enforces BLOCKED WORK declarations.
-- May be implemented as a script (`npm run check:contract` or similar) in a
+- May be implemented as a future deterministic contract-check script in a
   future packet.
 - Returns a machine-readable gate decision (see §5).
 

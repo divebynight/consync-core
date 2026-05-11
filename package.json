@@ -35,11 +35,19 @@
     "scaffoldai:question": "node src/index.js scaffoldai question",
     "scaffoldai:mcp": "node src/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/mcp/snapshot.js",
+    "scaffoldai:mcp:readonly:stdio": "node src/mcp-readonly/stdio.js",
+    "scaffoldai:mcp:readonly:http": "node src/mcp-readonly/http.js",
     "test:unit": "node src/test/unit-new-guid.js",
     "test:integration": "node src/test/integration-new-guid-cli.js",
     "test:mcp:smoke": "node src/test/mcp-smoke.js",
     "test:mcp:e2e": "node src/test/mcp-transport-e2e.js",
     "test:mcp": "npm run test:mcp:smoke && npm run test:mcp:e2e",
+    "test:mcp:readonly:unit": "node src/test/mcp-readonly-unit.js",
+    "test:mcp:readonly:security": "node src/test/mcp-readonly-security.js",
+    "test:mcp:readonly:stdio": "node src/test/mcp-readonly-stdio-e2e.js",
+    "test:mcp:readonly:http": "node src/test/mcp-readonly-http-e2e.js",
+    "test:mcp:readonly:chatgpt": "node src/test/mcp-readonly-chatgpt-compatibility.js",
+    "test:mcp:readonly": "npm run test:mcp:readonly:unit && npm run test:mcp:readonly:security && npm run test:mcp:readonly:stdio && npm run test:mcp:readonly:http && npm run test:mcp:readonly:chatgpt",
     "test": "npm run test:unit && npm run test:integration",
     "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"
   },
@@ -61,6 +69,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "zod": "^4.4.3"
   }
 }

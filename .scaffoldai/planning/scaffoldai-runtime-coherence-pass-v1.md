@@ -297,11 +297,11 @@ ScaffoldAI runtime coherence v1 is achieved when:
 - The difference between Runtime Commands, MCP tools, and runtime snapshots is explicit.
 - `VERIFY COMMAND`, `TARGET`, `NEXT SAFE ACTION`, `execution_class`, and `Runtime Commands` are used consistently in current docs.
 - `STATUS` values are documented as surface-specific but predictable.
-- MCP v0 is clearly read-only observation only.
+- MCP v0 is clearly five read-only observations plus bounded append-only local signaling.
 - Snapshot output is paste-friendly and does not overstate authority.
 - Reentry docs explain how to combine state files, Runtime Commands, and optional MCP snapshot.
 - Router planning remains recommend-only and does not imply dispatch.
-- No docs imply write-capable MCP, autonomous behavior, or hidden orchestration.
+- No docs imply write-capable MCP beyond bounded signaling, autonomous behavior, or hidden orchestration.
 - `npm run verify:scaffoldai` passes after all coherence changes.
 
 ---

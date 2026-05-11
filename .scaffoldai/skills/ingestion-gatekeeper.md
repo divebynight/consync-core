@@ -42,7 +42,7 @@ Choose the narrowest bucket that preserves meaning without over-modeling the con
   - use when the content is valuable to keep, but not yet shaped enough for a doc or plan
 
 - `future_plan`
-  - destination: `.scaffoldai/planning/next-steps.md` or `.consync/backlog/`
+  - destination: `.scaffoldai/planning/next-steps.plan.md` or `.consync/backlog/`
   - use when the content is clearly about later work, sequencing, or next-step choices
 
 - `product_direction`
@@ -58,7 +58,7 @@ Choose the narrowest bucket that preserves meaning without over-modeling the con
   - use when completed behavior changed and the result should be remembered concisely
 
 - `backlog_item`
-  - destination: `.consync/backlog/` or `.scaffoldai/planning/next-steps.md`
+  - destination: `.consync/backlog/` or `.scaffoldai/planning/next-steps.plan.md`
   - use when the content is a concrete candidate task but not current live work
 
 - `reject_or_off_topic`
@@ -103,7 +103,7 @@ If rejecting:
 When unsure, prefer:
 
 1. `.consync/discussions/` for unshaped but potentially useful material
-2. `.scaffoldai/planning/next-steps.md` for future-oriented planning
+2. `.scaffoldai/planning/next-steps.plan.md` for future-oriented planning
 3. `.scaffoldai/process/work-log.log.md` only for completed behavior or meaningful process observations
 
 Do not force ambiguous content into a durable process or product doc just to avoid a raw discussion file.

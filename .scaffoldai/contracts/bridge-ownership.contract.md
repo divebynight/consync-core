@@ -2,10 +2,11 @@
 
 ## Purpose
 
-Define a provisional ownership boundary between Consync, ScaffoldAI, and the
-Bridge control surface before any structural split.
+Define the ownership boundary between Consync, ScaffoldAI, and the Bridge
+control surface after the ScaffoldAI process-state migration.
 
-This contract does not move, rename, or restructure files.
+This contract does not move, rename, or restructure files. It records the
+current ownership model.
 
 Related target separation note:
 `.scaffoldai/contracts/scaffoldai-consync-separation.contract.md`
@@ -19,8 +20,8 @@ Related target separation note:
 
 ## Bridge Owns
 
-- `.consync/state/**`
-- `.consync/streams/**`
+- `.scaffoldai/state/**`
+- `.scaffoldai/streams/**`
 - Verification and control expectations that connect process and runtime
 - Gatekeeper, dry-run, and state-integrity behavior
 - Handoff and snapshot surfaces
@@ -45,11 +46,11 @@ Related target separation note:
 
 ## Directory Map
 
-Explicit classification of `.consync/` subdirectories by ownership layer.
+Explicit classification of process and product directories by ownership layer.
 
 **BRIDGE** — shared control surface; runtime code reads/writes these:
-- `.consync/state/` — live execution state
-- `.consync/streams/` — per-stream state files
+- `.scaffoldai/state/` — live execution state
+- `.scaffoldai/streams/` — per-stream state files
 
 **SCAFFOLDAI (PROCESS)** — process harness; no runtime code dependency:
 - `.scaffoldai/process/` — operating procedures and workflow docs
@@ -69,7 +70,7 @@ Explicit classification of `.consync/` subdirectories by ownership layer.
 
 **MIXED / HISTORICAL:**
 - `.consync/archive/` — historical records; no active runtime dependency
-- `.consync/packets/` — packet staging; Bridge-adjacent, access is manual
+- `.scaffoldai/packets/` — completed packet archive; Bridge-adjacent, access is manual
 - `.consync/quarantine/` — held/unclassified material
 
 ## Boundary Rules
@@ -81,6 +82,6 @@ Explicit classification of `.consync/` subdirectories by ownership layer.
 
 ## Status
 
-- Provisional contract.
+- Active contract.
 - No files are moved or renamed by this contract.
 - Future structural splits must update references and pass verify.

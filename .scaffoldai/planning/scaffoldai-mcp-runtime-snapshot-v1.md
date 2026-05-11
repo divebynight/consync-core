@@ -35,8 +35,8 @@ The snapshot is an observation artifact. It is not an execution authority, state
 - No remote MCP exposure.
 - No ngrok.
 - No HTTP, SSE, WebSocket, or localhost browser transport.
-- No write-capable MCP tools.
-- No new MCP tools beyond the current 5 read-only tools.
+- No write-capable MCP tools are called by the snapshot command.
+- No snapshot tool calls beyond the current 5 read-only tools; `scaffoldai_signal` is intentionally excluded.
 - No direct imports of MCP tool functions in the snapshot command.
 - No direct reads of ScaffoldAI state files from the snapshot command, except what the MCP server already reads inside its tools.
 - No execution of verify commands.
@@ -300,7 +300,7 @@ Test assertions:
 - Confirms no output path outside `.scaffoldai/tmp/`.
 - Confirms snapshot JSON parses.
 - Confirms top-level schema keys.
-- Confirms exactly 5 tool entries.
+- Confirms exactly 5 read-only tool entries; `scaffoldai_signal` is excluded because snapshot generation must not append signals.
 - Confirms all tool calls use MCP transport, not direct tool function imports.
 - Confirms no HTTP/ngrok/remote URL appears in metadata.
 - Confirms partial-failure serialization with a mock or injectable client only if this can be done without weakening the stdio-path test.

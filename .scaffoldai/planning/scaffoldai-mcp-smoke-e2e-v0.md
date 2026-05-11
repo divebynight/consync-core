@@ -1,6 +1,10 @@
 # Planning — scaffoldai-mcp-smoke-e2e-v0
 
 Created: 2026-05-06
+Updated: 2026-05-07
+Status: IMPLEMENTED / VALIDATED / UPDATED FOR SIGNAL TOOL
+
+Note: Original examples in this plan targeted the five read-only MCP tools. The current smoke/E2E tests now expect six tools: the original five read-only tools plus `scaffoldai_signal`, the bounded `LOCAL_SIGNAL_APPEND_ONLY` diagnostic signal tool.
 Status: IMPLEMENTED / VALIDATED
 
 ---
@@ -113,12 +117,12 @@ main().catch((err) => {
 
 ## 4. Smoke Test Contract — `mcp-smoke.js`
 
-**Purpose:** Confirm the server process starts, negotiates MCP protocol, and lists all 5 expected tools.
+**Purpose:** Confirm the server process starts, negotiates MCP protocol, and lists all expected tools.
 
 **Steps:**
 1. Spawn `node src/mcp/server.js` via `StdioClientTransport`
 2. Call `client.listTools()`
-3. Assert the returned tool names match the expected 5 exactly
+3. Assert the returned tool names match the expected list exactly
 4. Close client
 
 **Assertions:**
@@ -126,12 +130,13 @@ main().catch((err) => {
 ```
 PASS: server starts and connects without error
 PASS: tools/list returns a non-empty result
-PASS: tools/list returns exactly 5 tools
+PASS: tools/list returns exactly 6 tools
 PASS: tool "scaffoldai_status" is listed
 PASS: tool "scaffoldai_preflight" is listed
 PASS: tool "scaffoldai_question" is listed
 PASS: tool "scaffoldai_verify_recommend" is listed
 PASS: tool "scaffoldai_closeout_readiness" is listed
+PASS: tool "scaffoldai_signal" is listed
 ```
 
 **Total: 8 assertions**
@@ -310,7 +315,7 @@ Both test files emit the same format used across all test files in this repo:
 ```
 [mcp-smoke] Running
   PASS: server starts and connects without error
-  PASS: tools/list returns exactly 5 tools
+  PASS: tools/list returns exactly 6 tools
   ...
 [mcp-smoke] PASS
 ```
@@ -319,7 +324,7 @@ Both test files emit the same format used across all test files in this repo:
 ```
 [mcp-smoke] Running
   PASS: server starts and connects without error
-  FAIL: tools/list returns exactly 5 tools — got 4
+  FAIL: tools/list returns exactly 6 tools — got 5
 [mcp-smoke] (exit code 1)
 ```
 

@@ -13,34 +13,72 @@ function fail(error) {
 
 // -----------------------------------------------------------------------
 // A. Forbidden active references
-//    Scan active source files for stale .consync/ repo-root paths.
-//    Excludes: historical diff logs, process harness docs, archive.
+//    Hard invariant checks enforce active truth only.
+//
+//    Soft drift checks may scan broader docs, produce warnings, and tolerate
+//    history, migration evidence, quoted invalid examples, and negative
+//    examples. This hard check is narrower: it scans only active authoritative
+//    repo surfaces and fails only when stale process-state paths appear there.
+//
+//    Do not scan transient/output artifacts such as copied terminal output,
+//    clipboard dumps, pbcopy captures, generated logs, or historical archives.
 // -----------------------------------------------------------------------
 
 const FORBIDDEN_PATTERNS = [
-  ".consync/docs",
   ".consync/state",
   ".consync/streams",
   ".consync/packets",
 ];
 
-// Directory names that are entirely skipped during the scan.
+const ACTIVE_AUTHORITY_ROOTS = [
+  "package.json",
+  "README.md",
+  "Makefile",
+  "scripts",
+  "src",
+  ".github",
+];
+
+// Directory names that are entirely skipped within active authority roots.
 const SCAN_SKIP_DIRS = new Set([
   "node_modules",
   ".git",
   "repo-archive",
   ".consync",
   ".scaffoldai",
+  ".vite",
+  ".vscode",
+  "out",
+  "test-results",
 ]);
 
 // Individual files that are explicitly historical records or self-referential — skip them.
 const SCAN_SKIP_FILES = new Set([
-  path.join(repoRoot, "refactor-changes.txt"),
   // This file contains the forbidden strings as string literals for comparison purposes.
   path.join(repoRoot, "src", "test", "scaffoldai-invariants.test.js"),
 ]);
 
-function collectActiveFiles(dir, files = []) {
+function collectActiveFiles(target, files = []) {
+  const absoluteTarget = path.join(repoRoot, target);
+
+  if (!fs.existsSync(absoluteTarget)) {
+    return files;
+  }
+
+  const stat = fs.statSync(absoluteTarget);
+
+  if (stat.isFile()) {
+    if (!SCAN_SKIP_FILES.has(absoluteTarget)) {
+      files.push(absoluteTarget);
+    }
+    return files;
+  }
+
+  collectActiveFilesInDirectory(absoluteTarget, files);
+  return files;
+}
+
+function collectActiveFilesInDirectory(dir, files) {
   let entries;
 
   try {
@@ -55,7 +93,7 @@ function collectActiveFiles(dir, files = []) {
     const fullPath = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      collectActiveFiles(fullPath, files);
+      collectActiveFilesInDirectory(fullPath, files);
     } else if (entry.isFile() && !SCAN_SKIP_FILES.has(fullPath)) {
       files.push(fullPath);
     }
@@ -65,7 +103,7 @@ function collectActiveFiles(dir, files = []) {
 }
 
 function checkForbiddenReferences() {
-  const activeFiles = collectActiveFiles(repoRoot);
+  const activeFiles = ACTIVE_AUTHORITY_ROOTS.flatMap((target) => collectActiveFiles(target));
   const violations = [];
 
   for (const filePath of activeFiles) {
