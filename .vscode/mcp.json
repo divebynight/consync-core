@@ -4,7 +4,10 @@
       "type": "stdio",
       "command": "node",
       "args": ["src/mcp/server.js"],
-      "cwd": "/Users/markhughes/Projects/consync-core"
+      "cwd": "/Users/markhughes/Projects/consync-core",
+      "env": {
+        "SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"
+      }
     },
     "mock-scaffoldai": {
       "type": "http",
