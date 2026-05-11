@@ -1,5 +1,13 @@
 # AGENTS
 
+**AI Tool Entrypoint:** This repository uses ScaffoldAI as the development harness.
+
+**Access Contract:** See `.scaffoldai/contracts/ai-tool-access.contract.md` for AI tool interaction rules.
+
+**Process Overview:** See `.scaffoldai/README.md` for ScaffoldAI operational model.
+
+---
+
 Consync BRIDGE truth lives under `.scaffoldai/state/` and `.scaffoldai/streams/`. ScaffoldAI PROCESS truth lives under `.scaffoldai/`.
 
 Use these boundaries when working in this repo:

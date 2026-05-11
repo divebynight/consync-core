@@ -1,5 +1,11 @@
 # Copilot Instructions — Consync Core
 
+**ScaffoldAI Repository:** This repository uses ScaffoldAI as the development harness.
+
+**AI Tool Access:** See `AGENTS.md` and `.scaffoldai/contracts/ai-tool-access.contract.md` for interaction rules.
+
+---
+
 ## Authority Boundary
 
 `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state.
