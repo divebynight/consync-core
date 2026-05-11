@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
-const { getGitStatus } = require("../lib/gitStatus");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 
@@ -93,7 +92,8 @@ function recommendedVerifySurface(contract) {
 // Main command
 // -----------------------------------------------------------------------
 
-function runScaffoldaiStatusCommand() {
+function gatherStatus(options = {}) {
+  const includeGit = options.includeGit !== false;
   const warnings = [];
 
   // Active stream
@@ -141,7 +141,11 @@ function runScaffoldaiStatusCommand() {
   }
 
   // Git status
-  const git = getGitStatus(repoRoot);
+  let git = null;
+  if (includeGit) {
+    const { getGitStatus } = require("../lib/gitStatus");
+    git = getGitStatus(repoRoot);
+  }
 
   // Verify command
   const verifySurface = recommendedVerifySurface(contract);
@@ -150,11 +154,32 @@ function runScaffoldaiStatusCommand() {
   const hasBlocker = warnings.some((w) => w.startsWith("BLOCKER"));
   const overallStatus = hasBlocker ? "BLOCKED" : "ON_TRACK";
 
+  return {
+    tool: "scaffoldai_status",
+    execution_class: "READ_ONLY",
+    status: overallStatus,
+    data: {
+      active_stream: activeStream || null,
+      active_packet: inFlightPacket || null,
+      next_safe_action: nextActionSummary || "(none — see next-action.md)",
+      contract: contract || null,
+      verify_command: verifySurface,
+      warnings,
+      ...(includeGit ? { git } : { git: "not included" }),
+    },
+    next_safe_action: nextActionSummary || "(none — see next-action.md)",
+  };
+}
+
+function runScaffoldaiStatusCommand() {
+  const result = gatherStatus({ includeGit: true });
+  const git = result.data.git;
+
   console.log("[scaffoldai status]");
   console.log("");
-  console.log(`ACTIVE STREAM:    ${activeStream || "(unknown)"}`);
-  console.log(`ACTIVE PACKET:    ${inFlightPacket || "(none)"}`);
-  console.log(`NEXT SAFE ACTION: ${nextActionSummary || "(none — see next-action.md)"}`);
+  console.log(`ACTIVE STREAM:    ${result.data.active_stream || "(unknown)"}`);
+  console.log(`ACTIVE PACKET:    ${result.data.active_packet || "(none)"}`);
+  console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
 
   if (git.error) {
     console.log(`GIT STATUS:       (unavailable — ${git.error})`);
@@ -172,18 +197,18 @@ function runScaffoldaiStatusCommand() {
     }
   }
 
-  console.log(`VERIFY COMMAND:   ${verifySurface}`);
+  console.log(`VERIFY COMMAND:   ${result.data.verify_command}`);
 
-  if (warnings.length === 0) {
+  if (result.data.warnings.length === 0) {
     console.log("WARNINGS:         none");
   } else {
-    for (const warning of warnings) {
+    for (const warning of result.data.warnings) {
       console.log(`WARNING:          ${warning}`);
     }
   }
 
   console.log("");
-  console.log(`STATUS: ${overallStatus}`);
+  console.log(`STATUS: ${result.status}`);
 }
 
-module.exports = { runScaffoldaiStatusCommand, readActiveStream };
+module.exports = { runScaffoldaiStatusCommand, readActiveStream, gatherStatus };

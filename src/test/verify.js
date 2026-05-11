@@ -458,6 +458,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI MCP read-only surface", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-readonly.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
   console.log("");
 
