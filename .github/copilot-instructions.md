@@ -1,5 +1,35 @@
 # Copilot Instructions — Consync Core
 
+## STOP BEFORE EDITING FILES
+
+⚠️ **REQUIRED: Pre-Edit Pause Gate** ⚠️
+
+Before any repository file mutation, you MUST stop and display the acknowledgement block below.
+
+Do not create, edit, delete, move, rename, format, generate, patch, stage, or otherwise modify repository files until the human answers.
+
+This applies even to trivial edits and explicitly requested edits.
+
+**Acknowledgement block:**
+
+```
+SCAFFOLDAI ACK
+
+I have been instructed to use the ScaffoldAI development harness for this repository.
+
+Current profile: DEFAULT_DEV
+Interaction mode: PASSIVE
+Execution mode: LIVE
+
+Before modifying files, should I:
+1. continue through the ScaffoldAI process loop
+2. or bypass the harness for this request?
+```
+
+Wait for the human's response before taking action.
+
+---
+
 **ScaffoldAI Repository:** This repository uses ScaffoldAI as the development harness.
 
 **AI Tool Access:** See `AGENTS.md` and `.scaffoldai/contracts/ai-tool-access.contract.md` for interaction rules.

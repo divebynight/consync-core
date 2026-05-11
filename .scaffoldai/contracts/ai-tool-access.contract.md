@@ -1,9 +1,10 @@
 # AI Tool Access Contract v0
 
 **Status:** Active  
-**Mode:** PASSIVE  
 **Purpose:** Advisory acknowledgement and discoverability POC for AI tool interaction with ScaffoldAI  
 **Authority:** Advisory only — no enforcement, hooks, or runtime interception  
+
+**Process Profiles:** See `.scaffoldai/contracts/process-profile.contract.md` for interaction and execution mode definitions.
 
 ---
 
@@ -12,6 +13,45 @@
 This contract defines how AI tools (Copilot, Codex, ChatGPT, Claude, etc.) should interact with repositories using ScaffoldAI as the development harness.
 
 **Key Principle:** AI tools are **clients** of ScaffoldAI, not owners of ScaffoldAI state.
+
+---
+
+## Pre-Edit Pause Gate
+
+**Definition:** Before any repository file mutation, AI tools must stop and display the ScaffoldAI ACK block unless the human has already explicitly answered the ScaffoldAI bypass/continue question for the current request.
+
+**Repository file mutation** includes:
+- creating files
+- editing files
+- deleting files
+- moving or renaming files
+- formatting files
+- generating files
+- applying patches
+- staging files
+- otherwise modifying repository contents
+
+**Acknowledgement Pattern:**
+
+```
+SCAFFOLDAI ACK
+
+I have been instructed to use the ScaffoldAI development harness for this repository.
+
+Current profile: DEFAULT_DEV
+Interaction mode: PASSIVE
+Execution mode: LIVE
+
+Before modifying files, should I:
+1. continue through the ScaffoldAI process loop
+2. or bypass the harness for this request?
+```
+
+**Note:** The profile, interaction mode, and execution mode shown in the ACK block should reflect the active process profile. See `.scaffoldai/contracts/process-profile.contract.md` for profile definitions.
+
+This applies to all file mutations, including trivial edits and explicitly requested edits.
+
+After the human responds, proceed accordingly.
 
 ---
 
@@ -87,29 +127,14 @@ AI tools operating in PASSIVE mode **must**:
 
 1. **Acknowledge ScaffoldAI** when first interacting with the repository
 2. **Notify the user** that this repository uses the ScaffoldAI development harness
-3. **Ask the user** whether to:
+3. **Apply the Pre-Edit Pause Gate** (see above) before any repository file mutation
+4. **Ask the user** whether to:
    - Continue through the ScaffoldAI process loop (recommended)
    - Bypass the harness for this specific request
 
 **PASSIVE mode is advisory only.** It is not enforcement. It is a discoverability and acknowledgement layer.
 
-### Expected AI Acknowledgement Pattern
-
-When an AI tool first encounters a ScaffoldAI repository or receives a request that would modify process state, respond with:
-
-```
-SCAFFOLDAI ACK
-
-I have been instructed to use the ScaffoldAI development harness for this repository.
-
-Current mode: PASSIVE
-
-Before modifying files, should I:
-1. continue through the ScaffoldAI process loop
-2. or bypass the harness for this request?
-```
-
-After receiving user input, proceed accordingly.
+See § Pre-Edit Pause Gate above for the required acknowledgement pattern and complete definition of repository file mutation.
 
 ---
 
