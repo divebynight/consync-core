@@ -125,7 +125,100 @@ No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writ
 
 ---
 
-## 5. Copilot Setup Notes
+## 5. Process Profile Configuration
+
+ScaffoldAI process profiles control interaction mode (PASSIVE, STRICT, BYPASS) and execution mode (LIVE, DRY_RUN). Profiles are selected at process startup via the `SCAFFOLDAI_PROCESS_PROFILE` environment variable and cannot be changed at runtime.
+
+See `.scaffoldai/contracts/process-profile.contract.md` for the full profile contract.
+
+### Profile Selection for MCP Clients
+
+**Important:** Terminal environment variables do not affect MCP server processes launched by Copilot, Codex, or other MCP clients. Client-managed MCP servers need environment variables configured in the client's MCP configuration file.
+
+For VS Code/Copilot, add the `env` block to `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "scaffoldai": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["src/mcp/server.js"],
+      "cwd": "/path/to/consync-core",
+      "env": {
+        "SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"
+      }
+    }
+  }
+}
+```
+
+### Available Profiles
+
+**DEFAULT_DEV** (recommended for normal use)
+- Interaction mode: PASSIVE — AI pauses before mutations and asks
+- Execution mode: LIVE — Real changes allowed
+- Use case: Standard local development work
+
+Example config:
+```json
+"env": {
+  "SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"
+}
+```
+
+**PROCESS_TEST** (dry-run process testing only)
+- Interaction mode: STRICT — Must route through ScaffoldAI process
+- Execution mode: DRY_RUN — No real changes, responses use "would" language
+- Use case: Testing A-to-Z process flows without side effects
+
+Example config:
+```json
+"env": {
+  "SCAFFOLDAI_PROCESS_PROFILE": "PROCESS_TEST"
+}
+```
+
+**Warning:** Only use PROCESS_TEST when explicitly testing the process loop in dry-run mode. Do not use PROCESS_TEST for normal development work.
+
+**FULL_GOVERNED** (strict governance with real changes)
+- Interaction mode: STRICT — Must route through ScaffoldAI process
+- Execution mode: LIVE — Real changes allowed through process
+- Use case: Critical work requiring enforced process discipline
+
+**DIRECT_WORK** (bypass governance)
+- Interaction mode: BYPASS — ScaffoldAI governance bypassed
+- Execution mode: LIVE — Real changes allowed directly
+- Use case: Quick fixes where process overhead not justified
+
+### Profile Observation via MCP
+
+All ScaffoldAI MCP tools report the active profile in their responses:
+
+```json
+{
+  "tool": "scaffoldai_status",
+  "execution_class": "READ_ONLY",
+  "profile": "DEFAULT_DEV",
+  "interaction_mode": "PASSIVE",
+  "execution_mode": "LIVE",
+  ...
+}
+```
+
+MCP clients may observe the profile but must not change it. Profile switching requires restarting the MCP server process with a different environment variable value.
+
+### No Runtime Profile Switching
+
+There is no `set_mode` or `set_profile` MCP tool. Profiles are startup configuration only, not runtime switches. This is intentional — profile changes should be deliberate configuration decisions, not runtime behavior changes.
+
+To change profiles:
+1. Update the `env` block in the MCP client configuration
+2. Restart the MCP server process (disconnect and reconnect in Copilot/Codex)
+
+---
+
+## 6. Copilot Setup Notes
 
 Use documented/user-local setup only.
 
@@ -137,6 +230,7 @@ When configuring Copilot manually, use:
 - working directory: repo root
 - command: `node`
 - args: `["src/mcp/server.js"]`
+- env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
 Before relying on the setup, confirm that Copilot can see the six ScaffoldAI tools listed in this guide.
 
@@ -144,7 +238,7 @@ Copilot responses should cite tool observations and ask the human before any act
 
 ---
 
-## 6. Codex Setup Notes
+## 7. Codex Setup Notes
 
 Use documented/user-local setup only.
 
@@ -156,6 +250,7 @@ When configuring Codex manually, use:
 - working directory: repo root
 - command: `node`
 - args: `["src/mcp/server.js"]`
+- env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
 Codex may use MCP observations for orientation and recommendations. It should use Runtime Commands only through the normal human-authorized workspace execution path, not through MCP.
 
@@ -163,7 +258,7 @@ Before relying on the setup, confirm that Codex can see the six ScaffoldAI tools
 
 ---
 
-## 7. Allowed Usage Examples
+## 8. Allowed Usage Examples
 
 Allowed client requests:
 
@@ -211,7 +306,7 @@ Recommended default observation sequence:
 
 ---
 
-## 8. Prohibited Usage
+## 9. Prohibited Usage
 
 Copilot and Codex must not use ScaffoldAI MCP to:
 
@@ -248,7 +343,7 @@ The client can run the ScaffoldAI workflow through MCP.
 
 ---
 
-## 9. Runtime Commands vs MCP
+## 10. Runtime Commands vs MCP
 
 Runtime Commands are the human-visible local command layer. MCP tools are the structured observation and bounded signal layer for MCP-aware clients.
 
@@ -276,7 +371,7 @@ Useful Runtime Commands:
 
 ---
 
-## 10. Human Authority Rules
+## 11. Human Authority Rules
 
 MCP observations are evidence and recommendations. They are not approval.
 
@@ -296,7 +391,7 @@ If MCP output conflicts with user claims, docs, Runtime Commands, or observed re
 
 ---
 
-## 11. Troubleshooting / Validation
+## 12. Troubleshooting / Validation
 
 Validate the current MCP implementation with:
 
@@ -347,7 +442,7 @@ Temp, log, and generated runtime artifacts must stay under:
 
 ---
 
-## 12. Links to Deeper Docs
+## 13. Links to Deeper Docs
 
 - [Current runtime state reference](current-runtime-state.reference.md)
 - [MCP client interaction contract](../contracts/scaffoldai-mcp-client-interaction-v0.contract.md)

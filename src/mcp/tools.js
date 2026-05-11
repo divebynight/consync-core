@@ -7,11 +7,15 @@ const { gatherQuestions } = require("../commands/scaffoldai-question");
 const { gatherPreflightResults } = require("../commands/scaffoldai-preflight");
 const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");
 const { readActiveStream } = require("../commands/scaffoldai-status");
+const { resolveProfile } = require("../lib/profileResolver");
 
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const EXECUTION_CLASS = "READ_ONLY";
+
+// Resolve profile once at module load
+const PROFILE = resolveProfile();
 
 // -----------------------------------------------------------------------
 // scaffoldai_status
@@ -31,6 +35,9 @@ function runStatusTool() {
   return {
     tool: "scaffoldai_status",
     execution_class: EXECUTION_CLASS,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
     status,
     data: {
       contract: contract || null,
@@ -59,6 +66,9 @@ function runPreflightTool() {
   return {
     tool: "scaffoldai_preflight",
     execution_class: EXECUTION_CLASS,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
     status: result.status,
     data: {
       blockers: result.blockers,
@@ -83,6 +93,9 @@ function runQuestionTool() {
   return {
     tool: "scaffoldai_question",
     execution_class: EXECUTION_CLASS,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
     status: result.status,
     data: {
       question_count: result.questions.length,
@@ -109,6 +122,9 @@ function runVerifyRecommendTool() {
     return {
       tool: "scaffoldai_verify_recommend",
       execution_class: EXECUTION_CLASS,
+      profile: PROFILE.profile,
+      interaction_mode: PROFILE.interaction_mode,
+      execution_mode: PROFILE.execution_mode,
       error: true,
       error_message: resolved.error,
     };
@@ -117,6 +133,9 @@ function runVerifyRecommendTool() {
   return {
     tool: "scaffoldai_verify_recommend",
     execution_class: EXECUTION_CLASS,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
     status: "RECOMMEND",
     data: {
       verify_command: resolved.command,
@@ -151,6 +170,9 @@ function runCloseoutReadinessTool() {
   return {
     tool: "scaffoldai_closeout_readiness",
     execution_class: EXECUTION_CLASS,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
     status,
     data: {
       changed_file_count: git.clean ? 0 : git.count,
