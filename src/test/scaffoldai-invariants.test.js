@@ -147,7 +147,7 @@ const ACTIVE_READMES = [
   "src/electron/README.md",
   "sandbox/README.md",
   "scripts/README.md",
-  ".github/README.md",
+  ".github/OVERVIEW.md",
   ".scaffoldai/README.md",
 ];
 
@@ -272,15 +272,15 @@ function checkArchitectureInvariants() {
   );
   console.log("  PASS: .consync/ does not exist at repo root");
 
-  const githubReadmePath = path.join(repoRoot, ".github", "README.md");
-  assert.ok(fs.existsSync(githubReadmePath), "Expected .github/README.md to exist");
+  const githubOverviewPath = path.join(repoRoot, ".github", "OVERVIEW.md");
+  assert.ok(fs.existsSync(githubOverviewPath), "Expected .github/OVERVIEW.md to exist");
 
-  const githubReadme = fs.readFileSync(githubReadmePath, "utf8").toLowerCase();
+  const githubOverview = fs.readFileSync(githubOverviewPath, "utf8").toLowerCase();
   assert.ok(
-    githubReadme.includes("adapter"),
-    "Expected .github/README.md to describe .github/ as an adapter layer, not a canonical source"
+    githubOverview.includes("adapter"),
+    "Expected .github/OVERVIEW.md to describe .github/ as an adapter layer, not a canonical source"
   );
-  console.log("  PASS: .github/README.md describes .github/ as an adapter layer");
+  console.log("  PASS: .github/OVERVIEW.md describes .github/ as an adapter layer");
 }
 
 // -----------------------------------------------------------------------
