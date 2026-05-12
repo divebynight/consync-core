@@ -1,4 +1,4 @@
-const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
 /**
  * Read .scaffoldai/state/next-action.md and extract the in-flight packet identifier.

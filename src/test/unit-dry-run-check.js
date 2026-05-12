@@ -3,7 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+const { applyGatekeeperRules } = require("../lib/gatekeeperDecision.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
 
 const TEST_NAME = "unit-dry-run-check";

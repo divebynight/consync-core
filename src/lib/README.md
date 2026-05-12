@@ -17,8 +17,8 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - `newGuidTool.js` — new-guid workflow logic (called by the `new-guid` command)
 - `sandbox-anchors.js` — anchor resolution logic for sandbox discovery and search
 - `portableScaffold.js` — portable scaffold generation logic
-- `gatekeeperDecision.js` — Gatekeeper gate decision logic (pure function, no side effects)
-- `gatekeeperMount.js` / `gatekeeperClose.js` / `gatekeeperSwitch.js` — Gatekeeper state transition helpers
+- `gatekeeperDecision.auth.scaffoldai.js` — Gatekeeper gate decision logic (pure function, no side effects)
+- `gatekeeperMount.auth.scaffoldai.js` / `gatekeeperClose.auth.scaffoldai.js` / `gatekeeperSwitch.auth.scaffoldai.js` — Gatekeeper state transition helpers
 - `getInFlightPacket.js` — reads `.scaffoldai/state/next-action.md` to determine in-flight packet state
 - `stateIntegrityCheck.js` — preflight/postflight state integrity checks
 - `handoffContractChecker.js` — verifies required fields in handoff and next-action state files

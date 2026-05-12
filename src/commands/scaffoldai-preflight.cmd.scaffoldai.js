@@ -3,7 +3,7 @@ const {
   gatherPreflightResults,
   formatStateFileRow,
   formatScriptRow,
-} = require("../lib/scaffoldaiPreflight.scaffoldai");
+} = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 

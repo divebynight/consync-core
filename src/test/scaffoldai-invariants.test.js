@@ -506,10 +506,10 @@ function checkScaffoldaiAuthorityBoundary() {
 // -----------------------------------------------------------------------
 // H. ScaffoldAI state write authority boundary
 //    Enforce that all writes to .scaffoldai/state/* go through the approved
-//    state authority module: src/lib/scaffoldaiState.scaffoldai.js
+//    state authority module: src/lib/scaffoldaiState.state.scaffoldai.js
 //
 //    Write boundary rules:
-//      - Only scaffoldaiState.scaffoldai.js may contain writeFileSync/writeFile
+//      - Only scaffoldaiState.state.scaffoldai.js may contain writeFileSync/writeFile
 //        calls that write directly to .scaffoldai/state/*
 //      - src/mcp/* must not write to .scaffoldai/state/*
 //      - src/commands/* must not write to .scaffoldai/state/*
@@ -526,7 +526,7 @@ function checkScaffoldaiStateWriteBoundary() {
   // Files exempt from state write boundary checks
   const exemptPatterns = [
     /src\/test\//,
-    /src\/lib\/scaffoldaiState\.scaffoldai\.js$/,
+    /src\/lib\/scaffoldaiState\.state\.scaffoldai\.js$/,
   ];
 
   function isExempt(filePath) {
@@ -573,13 +573,13 @@ function checkScaffoldaiStateWriteBoundary() {
 
   assert.ok(
     violations.length === 0,
-    `All writes to .scaffoldai/state/* must go through src/lib/scaffoldaiState.scaffoldai.js:\n${violations.join("\n")}`
+    `All writes to .scaffoldai/state/* must go through src/lib/scaffoldaiState.state.scaffoldai.js:\n${violations.join("\n")}`
   );
   console.log("  PASS: All state writes go through scaffoldaiState authority module");
 
-  // Verify scaffoldaiState.scaffoldai.js exists and exports expected functions
-  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.scaffoldai.js");
-  assert.ok(fs.existsSync(stateAuthPath), "scaffoldaiState.scaffoldai.js must exist");
+  // Verify scaffoldaiState.state.scaffoldai.js exists and exports expected functions
+  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.state.scaffoldai.js");
+  assert.ok(fs.existsSync(stateAuthPath), "scaffoldaiState.state.scaffoldai.js must exist");
 
   const stateAuthContent = fs.readFileSync(stateAuthPath, "utf8");
   const expectedExports = [
@@ -593,13 +593,13 @@ function checkScaffoldaiStateWriteBoundary() {
   for (const exportName of expectedExports) {
     assert.ok(
       stateAuthContent.includes(exportName),
-      `scaffoldaiState.scaffoldai.js must export ${exportName}`
+      `scaffoldaiState.state.scaffoldai.js must export ${exportName}`
     );
   }
-  console.log("  PASS: scaffoldaiState.scaffoldai.js exports all required functions");
+  console.log("  PASS: scaffoldaiState.state.scaffoldai.js exports all required functions");
 
   // Verify gatekeeper files use scaffoldaiState module
-  const gatekeeperFiles = ["gatekeeperMount.js", "gatekeeperClose.js", "gatekeeperSwitch.js"];
+  const gatekeeperFiles = ["gatekeeperMount.auth.scaffoldai.js", "gatekeeperClose.auth.scaffoldai.js", "gatekeeperSwitch.auth.scaffoldai.js"];
   for (const gkFile of gatekeeperFiles) {
     const gkPath = path.join(repoRoot, "src", "lib", gkFile);
     if (!fs.existsSync(gkPath)) continue;
@@ -616,7 +616,7 @@ function checkScaffoldaiStateWriteBoundary() {
 // -----------------------------------------------------------------------
 // K. ScaffoldAI State Read Authority Boundary
 //    Verify that all reads from .scaffoldai/state/* go through the
-//    approved authority layer (src/lib/scaffoldaiState.scaffoldai.js).
+//    approved authority layer (src/lib/scaffoldaiState.state.scaffoldai.js).
 //
 //    Architecture:
 //      CLI / MCP → authority functions → scaffoldaiState → .scaffoldai/state/*
@@ -628,9 +628,9 @@ function checkScaffoldaiStateReadBoundary() {
   // Files exempt from state read boundary checks
   const exemptPatterns = [
     /src\/test\//,
-    /src\/lib\/scaffoldaiState\.scaffoldai\.js$/,
+    /src\/lib\/scaffoldaiState\.state\.scaffoldai\.js$/,
     /src\/lib\/stateIntegrityCheck\.js$/,  // Diagnostic/integrity checking
-    /src\/lib\/gatekeeperMount\.js$/,      // Already uses scaffoldaiState
+    /src\/lib\/gatekeeperMount\.auth\.scaffoldai\.js$/,      // Already uses scaffoldaiState
   ];
 
   function isExempt(filePath) {
@@ -675,12 +675,12 @@ function checkScaffoldaiStateReadBoundary() {
 
   assert.ok(
     violations.length === 0,
-    `All reads from .scaffoldai/state/* in command/MCP surface must go through src/lib/scaffoldaiState.scaffoldai.js:\n${violations.join("\n")}`
+    `All reads from .scaffoldai/state/* in command/MCP surface must go through src/lib/scaffoldaiState.state.scaffoldai.js:\n${violations.join("\n")}`
   );
   console.log("  PASS: Command and MCP surface reads go through scaffoldaiState authority module");
 
-  // Verify scaffoldaiState.scaffoldai.js exports read functions
-  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.scaffoldai.js");
+  // Verify scaffoldaiState.state.scaffoldai.js exports read functions
+  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.state.scaffoldai.js");
   const stateAuthContent = fs.readFileSync(stateAuthPath, "utf8");
   const expectedReadExports = [
     "readNextAction",
@@ -694,10 +694,10 @@ function checkScaffoldaiStateReadBoundary() {
   for (const exportName of expectedReadExports) {
     assert.ok(
       stateAuthContent.includes(exportName),
-      `scaffoldaiState.scaffoldai.js must export ${exportName}`
+      `scaffoldaiState.state.scaffoldai.js must export ${exportName}`
     );
   }
-  console.log("  PASS: scaffoldaiState.scaffoldai.js exports all required read functions");
+  console.log("  PASS: scaffoldaiState.state.scaffoldai.js exports all required read functions");
 }
 
 // -----------------------------------------------------------------------

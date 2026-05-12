@@ -1,5 +1,5 @@
 const path = require("path");
-const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.scaffoldai");
+const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 

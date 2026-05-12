@@ -1,9 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
-const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
+const { applyGatekeeperRules } = require("../lib/gatekeeperDecision.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
-const scaffoldaiState = require("../lib/scaffoldaiState.scaffoldai");
+const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
 
 const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
 

@@ -1,7 +1,7 @@
 const assert = require("node:assert");
-const { evaluateReadiness } = require("../lib/gatekeeperMount");
-const { detectCloseMode } = require("../lib/gatekeeperClose");
-const { evaluateSwitch } = require("../lib/gatekeeperSwitch");
+const { evaluateReadiness } = require("../lib/gatekeeperMount.auth.scaffoldai");
+const { detectCloseMode } = require("../lib/gatekeeperClose.auth.scaffoldai");
+const { evaluateSwitch } = require("../lib/gatekeeperSwitch.auth.scaffoldai");
 
 // ---------------------------------------------------------------------------
 // State builder helpers

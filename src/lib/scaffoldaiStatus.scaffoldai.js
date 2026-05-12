@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket");
 
 // -----------------------------------------------------------------------

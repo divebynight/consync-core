@@ -4,8 +4,8 @@ const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVeri
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
 const { getGitStatus } = require("../lib/gitStatus.shared");
 const { gatherQuestions } = require("../lib/scaffoldaiQuestion.scaffoldai");
-const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.scaffoldai");
-const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.scaffoldai");
+const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
+const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.scaffoldai");
 const { resolveProfile } = require("../lib/profileResolver");
 

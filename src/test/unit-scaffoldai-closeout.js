@@ -1,7 +1,7 @@
 const assert = require("assert");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.scaffoldai");
+const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
 const { parseArgs } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-closeout";
