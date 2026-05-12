@@ -46,6 +46,29 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - **State file writes should be intentional** — document any function that writes state; do not write state files silently
 - **Future MCP tools should call lib directly** — keep this layer portable; avoid coupling it to Electron or CLI internals
 
+### ScaffoldAI Authority Boundary (Hardened)
+
+After extracting ScaffoldAI business logic from CLI commands to shared lib modules, the following architectural layers are enforced:
+
+```text
+Surface Layer:   src/commands/scaffoldai-*.js (CLI)
+                 src/mcp/* (MCP tools)
+                      ↓
+Authority Layer: src/lib/*.scaffoldai.js
+                      ↓
+State Layer:     .scaffoldai/state/*
+```
+
+**Allowed:**
+- `src/commands/scaffoldai-*.js` → `src/lib/*.scaffoldai.js`
+- `src/mcp/*` → `src/lib/*.scaffoldai.js`
+
+**Forbidden (enforced by `scaffoldai-invariants.test.js`):**
+- `src/mcp/*` → `src/commands/*` (MCP must never import CLI command files)
+- `src/lib/*.scaffoldai.js` → `src/commands/*` (authority layer must not depend on surface layer)
+
+ScaffoldAI CLI commands and MCP tools should be thin wrappers that call the same shared authority functions with a `repoRoot` parameter.
+
 ---
 
 ## Related Folders

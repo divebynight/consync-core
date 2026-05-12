@@ -31,6 +31,13 @@ Tests here validate that the product works correctly, that state contracts are u
 - `gatekeeper-checks.js` — Gatekeeper decision rule contracts
 - `handoff-contract-checker.js` — handoff and next-action required field contracts
 
+### Architectural invariant tests — boundary enforcement
+- `scaffoldai-invariants.test.js` — enforces ScaffoldAI architectural boundaries:
+  - No forbidden `.consync/` references in active files
+  - README link integrity
+  - Verify surface invariants
+  - ScaffoldAI authority boundary (MCP/CLI → lib isolation)
+
 ### Renderer slice tests — UI logic without full Electron
 - `renderer-session-panel.js` — session panel row logic
 - `renderer-mock-search-panel.js` — mock search panel behavior
