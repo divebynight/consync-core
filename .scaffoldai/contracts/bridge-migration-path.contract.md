@@ -2,9 +2,10 @@
 
 ## Status
 
-PLANNED ONLY
+COMPLETE — Executed May 3, 2026 (commit b2e5561)
 
-No files have been moved, renamed, or restructured by this document.
+All files were moved from `.consync/state/` and `.consync/streams/` to 
+`.scaffoldai/state/` and `.scaffoldai/streams/` as planned in this contract.
 
 Related audit:
 `.scaffoldai/audits/scaffoldai-bridge-migration-preflight.audit.md`

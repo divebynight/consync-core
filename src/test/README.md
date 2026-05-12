@@ -17,7 +17,7 @@ Tests here validate that the product works correctly, that state contracts are u
 - `unit-new-guid.js` — GUID generation logic
 - `unit-dry-run-check.js` — Gatekeeper decision rules (pure logic, temp dir fixtures)
 - `unit-get-in-flight-packet.js` — in-flight packet state reader
-- `unit-consync-run.js` — consync-run command behavior
+- `unit-consync-run.js` — consync-run.cmd.scaffoldai command behavior
 - `unit-intake-run.js` / `unit-preflight-run.js` / `unit-verify-run.js` — agent execution entry points
 - `unit-standalone-notes-grouping.js` — notes grouping logic
 

@@ -13,8 +13,8 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - `new-guid.js` — creates a new GUID metadata artifact
 - `list-guid.js` / `show-guid.js` — list and display GUID artifacts
 - `dry-run-check.check.scaffoldai.js` — runs the Gatekeeper decision logic in simulation mode; prints a report without prompting
-- `consync-run.js` — runs the Gatekeeper decision logic with a user approval prompt; does not execute work
-- `gatekeeper.js` — Gatekeeper mount/close/switch subcommands
+- `consync-run.cmd.scaffoldai.js` — runs the Gatekeeper decision logic with a user approval prompt; does not execute work
+- `gatekeeper.cmd.scaffoldai.js` — Gatekeeper mount/close/switch subcommands
 - `state-integrity-check.check.scaffoldai.js` — preflight and postflight state integrity check
 - `reentry-check.agent.scaffoldai.js` — checks re-entry readiness
 - `system-check.check.system.js` — verifies required system files across all surfaces (ScaffoldAI, Consync, Electron)
