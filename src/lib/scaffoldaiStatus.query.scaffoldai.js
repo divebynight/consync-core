@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
-const { getInFlightPacket } = require("./getInFlightPacket");
+const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 
 // -----------------------------------------------------------------------
 // State file readers

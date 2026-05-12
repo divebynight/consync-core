@@ -194,7 +194,7 @@ function main() {
 
     // 11. EXECUTION_CLASS_BOUNDARY category is present in the lib module
     {
-      const { CATEGORIES } = require("../lib/scaffoldaiQuestion.scaffoldai");
+      const { CATEGORIES } = require("../lib/scaffoldaiQuestion.query.scaffoldai");
       assert.ok(
         CATEGORIES.EXECUTION_CLASS_BOUNDARY === "EXECUTION_CLASS_BOUNDARY",
         "Expected EXECUTION_CLASS_BOUNDARY category to be defined in CATEGORIES"

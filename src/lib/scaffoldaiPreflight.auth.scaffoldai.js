@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getInFlightPacket } = require("./getInFlightPacket");
+const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { getGitStatus } = require("./gitStatus.shared");
 
 const REQUIRED_STATE_FILES = [

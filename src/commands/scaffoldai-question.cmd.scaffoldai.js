@@ -4,7 +4,7 @@ const {
   CATEGORIES,
   SEVERITY,
   NOISE_THRESHOLD,
-} = require("../lib/scaffoldaiQuestion.scaffoldai");
+} = require("../lib/scaffoldaiQuestion.query.scaffoldai");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 

@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand");
-const { getInFlightPacket } = require("./getInFlightPacket");
+const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand.query.scaffoldai");
+const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 
 // Maximum questions before we flag structural noise
 const NOISE_THRESHOLD = 3;

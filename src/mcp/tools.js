@@ -1,12 +1,12 @@
 "use strict";
 
-const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVerifyCommand");
-const { getInFlightPacket } = require("../lib/getInFlightPacket");
+const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVerifyCommand.query.scaffoldai");
+const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 const { getGitStatus } = require("../lib/gitStatus.shared");
-const { gatherQuestions } = require("../lib/scaffoldaiQuestion.scaffoldai");
+const { gatherQuestions } = require("../lib/scaffoldaiQuestion.query.scaffoldai");
 const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
 const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
-const { gatherStatus } = require("../lib/scaffoldaiStatus.scaffoldai");
+const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
 const { resolveProfile } = require("../lib/profileResolver");
 
 const path = require("path");

@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require("path");
-const { gatherStatus } = require("../../lib/scaffoldaiStatus.scaffoldai");
+const { gatherStatus } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
 const { errorText } = require("../lib/errors");
 const { jsonText } = require("../lib/response");
 

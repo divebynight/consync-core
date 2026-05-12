@@ -1,5 +1,5 @@
 const path = require("path");
-const { gatherStatus, readActiveStream } = require("../lib/scaffoldaiStatus.scaffoldai");
+const { gatherStatus, readActiveStream } = require("../lib/scaffoldaiStatus.query.scaffoldai");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 

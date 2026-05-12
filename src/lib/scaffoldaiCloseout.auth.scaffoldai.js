@@ -1,6 +1,6 @@
 const { getGitStatus } = require("./gitStatus.shared");
-const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand");
-const { getInFlightPacket } = require("./getInFlightPacket");
+const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand.query.scaffoldai");
+const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 
 // -----------------------------------------------------------------------
 // Commit prefix inference
