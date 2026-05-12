@@ -143,7 +143,7 @@ function gatherStatus(options = {}) {
   // Git status
   let git = null;
   if (includeGit) {
-    const { getGitStatus } = require("../lib/gitStatus");
+    const { getGitStatus } = require("../lib/gitStatus.shared");
     git = getGitStatus(repoRoot);
   }
 

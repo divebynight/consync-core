@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
-const { getGitStatus } = require("../lib/gitStatus");
+const { getGitStatus } = require("../lib/gitStatus.shared");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");

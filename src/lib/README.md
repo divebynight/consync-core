@@ -11,7 +11,7 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 ## What Belongs Here
 
 - `guid.js` — GUID generation and formatting
-- `time.js` — timestamp utilities
+- `time.shared.js` — timestamp utilities
 - `fs.js` — filesystem helpers used across CLI and Electron
 - `clipboard.js` — clipboard access utility
 - `newGuidTool.js` — new-guid workflow logic (called by the `new-guid` command)

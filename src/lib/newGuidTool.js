@@ -1,5 +1,5 @@
 const { createGuid } = require("./guid");
-const { createFileTimestamp, createIsoTimestamp } = require("./time");
+const { createFileTimestamp, createIsoTimestamp } = require("./time.shared");
 const { writeJsonArtifact, appendEventLog } = require("./fs");
 const { copyToClipboard } = require("./clipboard");
 

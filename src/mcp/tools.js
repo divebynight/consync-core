@@ -2,7 +2,7 @@
 
 const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVerifyCommand");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
-const { getGitStatus } = require("../lib/gitStatus");
+const { getGitStatus } = require("../lib/gitStatus.shared");
 const { gatherQuestions } = require("../commands/scaffoldai-question");
 const { gatherPreflightResults } = require("../commands/scaffoldai-preflight");
 const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");

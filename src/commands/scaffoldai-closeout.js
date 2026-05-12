@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getGitStatus } = require("../lib/gitStatus");
+const { getGitStatus } = require("../lib/gitStatus.shared");
 const { resolveVerifyCommand, readActiveContract } = require("../lib/resolveVerifyCommand");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
 
