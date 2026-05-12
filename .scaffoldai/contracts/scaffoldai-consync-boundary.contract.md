@@ -26,7 +26,7 @@ These areas are part of the ScaffoldAi-facing product surface or app runtime:
 | App/core runtime logic | `src/core/` | Shared app/session concepts used by the product surface. |
 | Reusable runtime utilities | `src/lib/` | Mixed today; some files support product behavior, while others support process workflows. |
 | CLI entrypoint and command routing | `src/index.js`, `src/cli/` | Mixed today; some commands are product-like, others are process/harness-only. |
-| Product-oriented commands | `src/commands/new-guid.js`, `src/commands/list-guid.js`, `src/commands/show-guid.js`, `src/commands/portable.js`, selected sandbox commands | Candidate product-facing commands, depending on future product framing. |
+| Product-oriented commands | `src/commands/new-guid.js`, `src/commands/list-guid.js`, `src/commands/show-guid.js`, `src/commands/portable.process.scaffoldai.js`, selected sandbox commands | Candidate product-facing commands, depending on future product framing. |
 | Product tests | `src/test/*renderer*`, `src/test/*session*`, `src/test/e2e/` | UI and runtime behavior checks for the desktop/app surface. |
 | Desktop packaging/build config | `forge.config.js`, `vite.*.config.mjs`, `playwright.config.js` | Build and verification config for the app surface. |
 
@@ -46,7 +46,7 @@ repo-local operating model:
 | GitHub adapter | `.github/` | Thin tool adapter only; not canonical process truth. |
 | Gatekeeper commands | `src/commands/gatekeeper.js`, `src/lib/gatekeeper*.js` | Process lifecycle commands. |
 | State integrity commands | `src/commands/state-integrity-check.js`, `src/lib/stateIntegrityCheck.js` | Process verification and guardrail logic. |
-| Handoff/process checks | `src/commands/handoff-bundle.js`, `scripts/check-handoff-contract.js`, related tests | Process contract verification. |
+| Handoff/process checks | `src/commands/handoff-bundle.process.scaffoldai.js`, `scripts/check-handoff-contract.js`, related tests | Process contract verification. |
 | Dev harness server/artifacts | `dev-harness/` | Local development harness material, not product runtime. |
 | Sandbox fixtures/probes | `sandbox/` | Mixed test/probe surface; currently supports both product discovery and harness verification. |
 

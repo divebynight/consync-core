@@ -495,7 +495,7 @@ Once v0 is live and verified:
 
 2. **`scaffoldai_closeout_readiness --verify-passed`** (v1) — Accepts a verify evidence token (timestamp + command + result) rather than a self-reported flag. Requires the evidence model from verify_run.
 
-3. **`scaffoldai_intake_classify`** (v1) — Returns classification result for a proposed packet type. Read-only, reuses `intakeClassify.js`.
+3. **`scaffoldai_intake_classify`** (v1) — Returns classification result for a proposed packet type. Read-only, reuses `intakeClassify.agent.scaffoldai.js`.
 
 4. **`scaffoldai_question` with execution class filter** (v1) — Allows filtering by category, e.g., return only `EXECUTION_CLASS_BOUNDARY` questions.
 

@@ -16,13 +16,13 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - `clipboard.util.shared.js` — clipboard access utility
 - `newGuidTool.js` — new-guid workflow logic (called by the `new-guid` command)
 - `sandbox-anchors.js` — anchor resolution logic for sandbox discovery and search
-- `portableScaffold.js` — portable scaffold generation logic
+- `portableScaffold.process.scaffoldai.js` — portable scaffold generation logic
 - `gatekeeperDecision.auth.scaffoldai.js` — Gatekeeper gate decision logic (pure function, no side effects)
 - `gatekeeperMount.auth.scaffoldai.js` / `gatekeeperClose.auth.scaffoldai.js` / `gatekeeperSwitch.auth.scaffoldai.js` — Gatekeeper state transition helpers
 - `getInFlightPacket.js` — reads `.scaffoldai/state/next-action.md` to determine in-flight packet state
 - `stateIntegrityCheck.check.scaffoldai.js` — preflight/postflight state integrity checks
 - `handoffContractChecker.check.scaffoldai.js` — verifies required fields in handoff and next-action state files
-- `intakeClassify.js` — intake classification logic
+- `intakeClassify.agent.scaffoldai.js` — intake classification logic
 
 ---
 

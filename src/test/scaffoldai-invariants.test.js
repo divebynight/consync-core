@@ -290,8 +290,8 @@ function checkArchitectureInvariants() {
 // -----------------------------------------------------------------------
 
 function checkIntakeClassifyDocsRouting() {
-  const classifyPath = path.join(repoRoot, "src", "lib", "intakeClassify.js");
-  assert.ok(fs.existsSync(classifyPath), "Expected src/lib/intakeClassify.js to exist");
+  const classifyPath = path.join(repoRoot, "src", "lib", "intakeClassify.agent.scaffoldai.js");
+  assert.ok(fs.existsSync(classifyPath), "Expected src/lib/intakeClassify.agent.scaffoldai.js to exist");
 
   const { classifyInput } = require(classifyPath);
 

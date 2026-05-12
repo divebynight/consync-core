@@ -6,7 +6,7 @@ const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeou
 const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question.cmd.scaffoldai");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
-const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
+const { runHandoffBundleCommand } = require("../commands/handoff-bundle.process.scaffoldai");
 const { runSandboxScanCommand } = require("../commands/sandbox-scan");
 const { runSandboxVerifyCommand } = require("../commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("../commands/sandbox-describe");
@@ -18,12 +18,12 @@ const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-
 const { runSystemCheckCommand } = require("../commands/system-check.check.scaffoldai");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
 const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check.check.scaffoldai");
-const { runPortableCommand } = require("../commands/portable");
+const { runPortableCommand } = require("../commands/portable.process.scaffoldai");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
-const { runReentryCheckCommand } = require("../commands/reentry-check");
+const { runReentryCheckCommand } = require("../commands/reentry-check.agent.scaffoldai");
 const { runDryRunCheckCommand } = require("../commands/dry-run-check.check.scaffoldai");
 const { runConsyncRunCommand } = require("../commands/consync-run");
-const { runIntakeRunCommand } = require("../commands/intake-run");
+const { runIntakeRunCommand } = require("../commands/intake-run.agent.scaffoldai");
 const { runReferenceAuditCommand } = require("../commands/reference-audit.check.scaffoldai");
 const { runFolderSummaryCommand } = require("../commands/folder-summary");
 
@@ -226,13 +226,13 @@ async function main() {
   }
 
     if (command === "preflight-run") {
-      const { runPreflightRunCommand } = require("../commands/preflight-run");
+      const { runPreflightRunCommand } = require("../commands/preflight-run.agent.scaffoldai");
       runPreflightRunCommand(process.argv.slice(3));
       return;
     }
 
       if (command === "verify-run") {
-        const { runVerifyRunCommand } = require("../commands/verify-run");
+        const { runVerifyRunCommand } = require("../commands/verify-run.agent.scaffoldai");
         runVerifyRunCommand(process.argv.slice(3));
         return;
       }

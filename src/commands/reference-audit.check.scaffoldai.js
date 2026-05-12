@@ -20,7 +20,7 @@ const REFERENCE_CATEGORIES = [
   {
     name: "templates",
     needle: ".scaffoldai/templates/",
-    expectedZones: [".scaffoldai/", "src/lib/portableScaffold.js"],
+    expectedZones: [".scaffoldai/", "src/lib/portableScaffold.process.scaffoldai.js"],
   },
   {
     name: "contracts",

@@ -7,7 +7,7 @@ const { gatherQuestions } = require("../lib/scaffoldaiQuestion.query.scaffoldai"
 const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
 const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
-const { resolveProfile } = require("../lib/profileResolver");
+const { resolveProfile } = require("../lib/profileResolver.process.scaffoldai");
 
 const path = require("path");
 

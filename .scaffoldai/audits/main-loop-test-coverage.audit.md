@@ -125,7 +125,7 @@ PROCESS paths back to `.consync/` would not be caught automatically.
    runNodeStep("[verify] Handoff bundle scenarios", [path.join(repoRoot, "src", "test", "integration-handoff-bundle-cli.js")], GROUPS.CLI);
    ```
 2. Add to `src/test/integration-handoff-bundle-cli.js` a new scenario:
-   `runRunbookPathBoundaryScenario()` — asserts that `RUNBOOK_PATH` contains `.scaffoldai/process/` by reading the constant from `handoff-bundle.js` or running the CLI with a temp dir seeded at the new path, confirming it succeeds, and confirming it fails when only the old `.consync/process/` path is seeded.
+   `runRunbookPathBoundaryScenario()` — asserts that `RUNBOOK_PATH` contains `.scaffoldai/process/` by reading the constant from `handoff-bundle.process.scaffoldai.js` or running the CLI with a temp dir seeded at the new path, confirming it succeeds, and confirming it fails when only the old `.consync/process/` path is seeded.
 3. Update the verify coverage map in `verify.js` to add `handoff_bundle_path_boundary` to COVERED.
 
 **Why this is the smallest safe next packet:**
@@ -153,6 +153,6 @@ These should each be a separate, small packet after the first test packet is ver
 | Packet | Scope |
 |---|---|
 | `wire-gatekeeper-state-integrity-into-verify-v1` | Add `gatekeeper-checks.js` and `state-integrity-checks.js` to `npm run verify` under BRIDGE group. Evaluate whether `handoff-contract-checker.js` belongs in verify or verify:full. |
-| `path-boundary-regression-suite-v1` | Add a dedicated test file that asserts all known PROCESS paths (`handoff-bundle.js`, `intakeClassify.js`, `reference-audit.js`) point to `.scaffoldai/`. Fails if any path regresses. |
+| `path-boundary-regression-suite-v1` | Add a dedicated test file that asserts all known PROCESS paths (`handoff-bundle.process.scaffoldai.js`, `intakeClassify.agent.scaffoldai.js`, `reference-audit.js`) point to `.scaffoldai/`. Fails if any path regresses. |
 | `preflight-postflight-in-verify-v1` | Evaluate wiring `check:state-preflight` and `check:state-postflight` into `npm run verify` so state integrity is always checked, not only in `verify:full`. Requires confirming that state file presence is guaranteed in all dev environments. |
 | `manual-verification-checklist-v1` | Create `.scaffoldai/verification/manual-verification-checklist.md` listing verification steps that cannot be automated (prompt references, UX review, semantic correctness). Provides a structured pre-commit checklist for humans. |

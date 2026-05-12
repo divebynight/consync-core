@@ -157,7 +157,7 @@ any migration.
 |---|---|---|
 | `.consync/contracts/bridge-ownership.contract.md` is obsolete but still present — diverged from canonical `.scaffoldai/` copy | LOW | Cleanup was missed during PROCESS migration |
 | `.github/agents/` files are self-contained behavioral prompts that do not declare adapter status | LOW | Covered in github-adapter-boundary.audit.md |
-| `src/lib/intakeClassify.js` and `src/commands/reference-audit.js` contain hardcoded zone path strings | LOW | Strings only, no file reads; will need updates if zone names change |
+| `src/lib/intakeClassify.agent.scaffoldai.js` and `src/commands/reference-audit.js` contain hardcoded zone path strings | LOW | Strings only, no file reads; will need updates if zone names change |
 | `.consync/quarantine/` is unclassified | INFO | No operational impact; just unclear ownership |
 | If `scaffoldai/` (no-dot) is created before a decision is recorded, `.scaffoldai/` zone ownership becomes ambiguous | MEDIUM | Preempt with a decision record before any move |
 
@@ -166,7 +166,7 @@ any migration.
 ## Runtime and Verify Dependencies
 
 **HIGH risk (must not move without a dedicated bridge migration packet):**
-- `.consync/state/` — hardcoded in `src/commands/system-check.js`, `dry-run-check.js`, `consync-run.js`, `handoff-bundle.js`, `src/lib/getInFlightPacket.js`, `src/lib/gatekeeperSwitch.js`, `scripts/check-handoff-contract.js`, `src/test/state-integrity-checks.js`
+- `.consync/state/` — hardcoded in `src/commands/system-check.js`, `dry-run-check.js`, `consync-run.js`, `handoff-bundle.process.scaffoldai.js`, `src/lib/getInFlightPacket.js`, `src/lib/gatekeeperSwitch.js`, `scripts/check-handoff-contract.js`, `src/test/state-integrity-checks.js`
 - `.consync/streams/` — hardcoded in test assertions and state integrity checks
 
 **ZERO runtime dependency (safe to reorganize with no src/ changes):**
