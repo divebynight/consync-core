@@ -2,7 +2,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { evaluateStateIntegrity } = require("../lib/stateIntegrityCheck");
+const { evaluateStateIntegrity } = require("../lib/stateIntegrityCheck.check.scaffoldai");
 
 function writeFile(rootPath, relativePath, content) {
   const absolutePath = path.join(rootPath, relativePath);

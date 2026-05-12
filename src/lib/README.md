@@ -20,8 +20,8 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - `gatekeeperDecision.auth.scaffoldai.js` — Gatekeeper gate decision logic (pure function, no side effects)
 - `gatekeeperMount.auth.scaffoldai.js` / `gatekeeperClose.auth.scaffoldai.js` / `gatekeeperSwitch.auth.scaffoldai.js` — Gatekeeper state transition helpers
 - `getInFlightPacket.js` — reads `.scaffoldai/state/next-action.md` to determine in-flight packet state
-- `stateIntegrityCheck.js` — preflight/postflight state integrity checks
-- `handoffContractChecker.js` — verifies required fields in handoff and next-action state files
+- `stateIntegrityCheck.check.scaffoldai.js` — preflight/postflight state integrity checks
+- `handoffContractChecker.check.scaffoldai.js` — verifies required fields in handoff and next-action state files
 - `intakeClassify.js` — intake classification logic
 
 ---
@@ -42,7 +42,7 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 - **Commands call lib, not the reverse** — `src/commands/` files should be thin: parse input, call a lib function, print output
 - **Electron main calls lib through explicit imports** — do not put reusable logic in `electron/main/` when it belongs here
 - **Lib functions should have clear inputs and outputs** — no implicit globals, no hidden filesystem side effects beyond what is documented
-- **State file reads are allowed** — `lib/` may read `.scaffoldai/state/` files as part of its contracts (e.g. `getInFlightPacket.js`, `stateIntegrityCheck.js`)
+- **State file reads are allowed** — `lib/` may read `.scaffoldai/state/` files as part of its contracts (e.g. `getInFlightPacket.js`, `stateIntegrityCheck.check.scaffoldai.js`)
 - **State file writes should be intentional** — document any function that writes state; do not write state files silently
 - **Future MCP tools should call lib directly** — keep this layer portable; avoid coupling it to Electron or CLI internals
 
@@ -126,8 +126,8 @@ scaffoldaiState.scaffoldai.js (single read/write boundary)
 ```
 
 **Allowed (exempt from read boundary enforcement):**
-- `src/lib/stateIntegrityCheck.js` — diagnostic/integrity checking utilities
-- `src/lib/gatekeeperMount.js` — already uses scaffoldaiState for state reads
+- `src/lib/stateIntegrityCheck.check.scaffoldai.js` — diagnostic/integrity checking utilities
+- `src/lib/gatekeeperMount.auth.scaffoldai.js` — already uses scaffoldaiState for state reads
 - `src/test/*` — test files may read state directly for fixture verification
 
 **Forbidden (enforced by `scaffoldai-invariants.test.js`):**

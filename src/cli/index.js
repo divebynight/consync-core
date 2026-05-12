@@ -15,16 +15,16 @@ const { runSandboxCatalogCommand } = require("../commands/sandbox-catalog");
 const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover");
 const { runSandboxSearchCommand } = require("../commands/sandbox-search");
 const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search");
-const { runSystemCheckCommand } = require("../commands/system-check");
+const { runSystemCheckCommand } = require("../commands/system-check.check.scaffoldai");
 const { runSystemSummaryCommand } = require("../commands/system-summary");
-const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check");
+const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check.check.scaffoldai");
 const { runPortableCommand } = require("../commands/portable");
 const { runGatekeeperCommand } = require("../commands/gatekeeper");
 const { runReentryCheckCommand } = require("../commands/reentry-check");
-const { runDryRunCheckCommand } = require("../commands/dry-run-check");
+const { runDryRunCheckCommand } = require("../commands/dry-run-check.check.scaffoldai");
 const { runConsyncRunCommand } = require("../commands/consync-run");
 const { runIntakeRunCommand } = require("../commands/intake-run");
-const { runReferenceAuditCommand } = require("../commands/reference-audit");
+const { runReferenceAuditCommand } = require("../commands/reference-audit.check.scaffoldai");
 const { runFolderSummaryCommand } = require("../commands/folder-summary");
 
 function parseNewGuidOptions(argv) {

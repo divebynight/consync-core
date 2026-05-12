@@ -12,16 +12,16 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 
 - `new-guid.js` — creates a new GUID metadata artifact
 - `list-guid.js` / `show-guid.js` — list and display GUID artifacts
-- `dry-run-check.js` — runs the Gatekeeper decision logic in simulation mode; prints a report without prompting
+- `dry-run-check.check.scaffoldai.js` — runs the Gatekeeper decision logic in simulation mode; prints a report without prompting
 - `consync-run.js` — runs the Gatekeeper decision logic with a user approval prompt; does not execute work
 - `gatekeeper.js` — Gatekeeper mount/close/switch subcommands
-- `state-integrity-check.js` — preflight and postflight state integrity check
+- `state-integrity-check.check.scaffoldai.js` — preflight and postflight state integrity check
 - `reentry-check.js` — checks re-entry readiness
-- `system-check.js` — verifies required system files are present
+- `system-check.check.scaffoldai.js` — verifies required system files are present
 - `system-summary.js` — prints a summary of the current system surface
 - `handoff-bundle.js` — bundles the current handoff state for delivery
 - `intake-run.js` / `preflight-run.js` / `verify-run.js` — agent execution entry points
-- `reference-audit.js` — audits path references across the repo
+- `reference-audit.check.scaffoldai.js` — audits path references across the repo
 - `portable.js` — generates a portable scaffold
 - `sandbox-verify.js` / `sandbox-catalog.js` / `sandbox-describe.js` / `sandbox-discover.js` — sandbox fixture inspection commands
 - `sandbox-scan.js` / `sandbox-search.js` / `sandbox-propose.js` / `sandbox-desktop-search.js` — sandbox query and proposal commands

@@ -334,8 +334,8 @@ function checkIntakeClassifyDocsRouting() {
 // -----------------------------------------------------------------------
 
 function checkReferenceAuditPathTargets() {
-  const auditPath = path.join(repoRoot, "src", "commands", "reference-audit.js");
-  assert.ok(fs.existsSync(auditPath), "Expected src/commands/reference-audit.js to exist");
+  const auditPath = path.join(repoRoot, "src", "commands", "reference-audit.check.scaffoldai.js");
+  assert.ok(fs.existsSync(auditPath), "Expected src/commands/reference-audit.check.scaffoldai.js to exist");
 
   const content = fs.readFileSync(auditPath, "utf8");
 
@@ -629,7 +629,7 @@ function checkScaffoldaiStateReadBoundary() {
   const exemptPatterns = [
     /src\/test\//,
     /src\/lib\/scaffoldaiState\.state\.scaffoldai\.js$/,
-    /src\/lib\/stateIntegrityCheck\.js$/,  // Diagnostic/integrity checking
+    /src\/lib\/stateIntegrityCheck\.check\.scaffoldai\.js$/,  // Diagnostic/integrity checking
     /src\/lib\/gatekeeperMount\.auth\.scaffoldai\.js$/,      // Already uses scaffoldaiState
   ];
 

@@ -70,7 +70,7 @@ function runReferenceAuditCommand() {
   for (const filePath of listTextFiles(rootPath)) {
     const relativePath = normalizePath(path.relative(rootPath, filePath));
 
-    if (relativePath === "src/commands/reference-audit.js") {
+    if (relativePath === "src/commands/reference-audit.check.scaffoldai.js") {
       continue;
     }
 
