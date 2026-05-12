@@ -476,10 +476,10 @@ function checkScaffoldaiAuthorityBoundary() {
 
   // Check a representative CLI command imports from lib
   const representativeCommands = [
-    "scaffoldai-status.js",
-    "scaffoldai-preflight.js",
-    "scaffoldai-question.js",
-    "scaffoldai-closeout.js",
+    "scaffoldai-status.cmd.scaffoldai.js",
+    "scaffoldai-preflight.cmd.scaffoldai.js",
+    "scaffoldai-question.cmd.scaffoldai.js",
+    "scaffoldai-closeout.cmd.scaffoldai.js",
   ];
 
   let cliLibImportFound = false;

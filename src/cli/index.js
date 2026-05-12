@@ -1,9 +1,9 @@
 const { runNewGuidCommand } = require("../commands/new-guid");
-const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status");
-const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight");
-const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify");
-const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout");
-const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
+const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status.cmd.scaffoldai");
+const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight.cmd.scaffoldai");
+const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify.cmd.scaffoldai");
+const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
+const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question.cmd.scaffoldai");
 const { runListGuidCommand } = require("../commands/list-guid");
 const { runShowGuidCommand } = require("../commands/show-guid");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
