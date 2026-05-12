@@ -102,9 +102,32 @@ function collectActiveFilesInDirectory(dir, files) {
   return files;
 }
 
+function isScaffoldaiProcessSurface(filePath) {
+  const relPath = path.relative(repoRoot, filePath).split(path.sep).join("/");
+
+  return (
+    relPath.startsWith("src/mcp/") ||
+    relPath.startsWith("src/mcp-readonly/") ||
+    relPath.startsWith("scripts/") ||
+    relPath === "package.json" ||
+    relPath === "Makefile" ||
+    relPath === "AGENTS.md" ||
+    relPath === "README.md" ||
+    relPath === "src/cli/index.js" ||
+    relPath === "src/test/scaffoldai-invariants.test.js" ||
+    /^src\/commands\/.*\.scaffoldai\.js$/.test(relPath) ||
+    /^src\/lib\/.*\.scaffoldai\.js$/.test(relPath)
+  );
+}
+
 function checkForbiddenReferences() {
   const activeFiles = ACTIVE_AUTHORITY_ROOTS.flatMap((target) => collectActiveFiles(target));
   const violations = [];
+  const constructedPathPatterns = [
+    /path\s*\.\s*join\s*\(\s*["']\.consync["']\s*,\s*["']state["']/,
+    /path\s*\.\s*join\s*\(\s*["']\.consync["']\s*,\s*["']streams["']/,
+    /path\s*\.\s*join\s*\(\s*["']\.consync["']\s*,\s*["']packets["']/,
+  ];
 
   for (const filePath of activeFiles) {
     let content;
@@ -120,6 +143,14 @@ function checkForbiddenReferences() {
     for (const pattern of FORBIDDEN_PATTERNS) {
       if (content.includes(pattern)) {
         violations.push(`  ${relPath}: contains "${pattern}"`);
+      }
+    }
+
+    if (isScaffoldaiProcessSurface(filePath)) {
+      for (const pattern of constructedPathPatterns) {
+        if (pattern.test(content)) {
+          violations.push(`  ${relPath}: contains constructed legacy ScaffoldAI process path matching ${pattern}`);
+        }
       }
     }
   }

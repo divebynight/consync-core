@@ -25,11 +25,11 @@ function runSuccessScenario() {
 
   const files = [
     {
-      relativePath: path.join(".consync", "state", "handoff.md"),
+      relativePath: path.join(".scaffoldai", "state", "handoff.md"),
       content: "TYPE: FEATURE\nPACKAGE: sample\n\nSTATUS\n\nPASS\n",
     },
     {
-      relativePath: path.join(".consync", "state", "snapshot.md"),
+      relativePath: path.join(".scaffoldai", "state", "snapshot.md"),
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
@@ -78,11 +78,11 @@ function runFullScenario() {
 
   const files = [
     {
-      relativePath: path.join(".consync", "state", "handoff.md"),
+      relativePath: path.join(".scaffoldai", "state", "handoff.md"),
       content: "TYPE: FEATURE\nPACKAGE: sample\n\nSTATUS\n\nPASS\n",
     },
     {
-      relativePath: path.join(".consync", "state", "snapshot.md"),
+      relativePath: path.join(".scaffoldai", "state", "snapshot.md"),
       content: "# Consync Snapshot\n\n## Current Package\n\n- none\n",
     },
     {
@@ -123,7 +123,7 @@ function runMissingLeanFileScenario() {
   const cliPath = path.join(repoRoot, "src", "index.js");
 
   try {
-    writeFile(tempDir, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDir, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
 
     const result = spawnSync(process.execPath, [cliPath, "handoff-bundle"], {
       cwd: tempDir,
@@ -131,7 +131,7 @@ function runMissingLeanFileScenario() {
     });
 
     assert.notStrictEqual(result.status, 0, "Expected non-zero exit status when a required file is missing");
-    assert.match(result.stderr, /Missing required file: \.consync\/state\/snapshot\.md/);
+    assert.match(result.stderr, /Missing required file: \.scaffoldai\/state\/snapshot\.md/);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -143,8 +143,8 @@ function runMissingFullRunbookScenario() {
   const cliPath = path.join(repoRoot, "src", "index.js");
 
   try {
-    writeFile(tempDir, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
-    writeFile(tempDir, path.join(".consync", "state", "snapshot.md"), "# Consync Snapshot\n");
+    writeFile(tempDir, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDir, path.join(".scaffoldai", "state", "snapshot.md"), "# Consync Snapshot\n");
 
     const result = spawnSync(process.execPath, [cliPath, "handoff-bundle", "--full"], {
       cwd: tempDir,
@@ -165,8 +165,8 @@ function runRunbookPathBoundaryScenario() {
   // Part 1: seeding runbook at .scaffoldai/process/runbook.process.md → --full succeeds
   const tempDirNew = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-boundary-new-"));
   try {
-    writeFile(tempDirNew, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
-    writeFile(tempDirNew, path.join(".consync", "state", "snapshot.md"), "# Consync Snapshot\n");
+    writeFile(tempDirNew, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDirNew, path.join(".scaffoldai", "state", "snapshot.md"), "# Consync Snapshot\n");
     writeFile(tempDirNew, path.join(".scaffoldai", "process", "runbook.process.md"), "# Runbook\n");
 
     const result = spawnSync(process.execPath, [cliPath, "handoff-bundle", "--full"], {
@@ -182,8 +182,8 @@ function runRunbookPathBoundaryScenario() {
   // Part 2: seeding runbook at .consync/process/runbook.process.md (old path) → --full fails
   const tempDirOld = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-boundary-old-"));
   try {
-    writeFile(tempDirOld, path.join(".consync", "state", "handoff.md"), "TYPE: FEATURE\n");
-    writeFile(tempDirOld, path.join(".consync", "state", "snapshot.md"), "# Consync Snapshot\n");
+    writeFile(tempDirOld, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
+    writeFile(tempDirOld, path.join(".scaffoldai", "state", "snapshot.md"), "# Consync Snapshot\n");
     writeFile(tempDirOld, path.join(".consync", "process", "runbook.process.md"), "# Runbook\n");
 
     const result = spawnSync(process.execPath, [cliPath, "handoff-bundle", "--full"], {

@@ -2,8 +2,8 @@ const fs = require("fs");
 const path = require("path");
 
 const LEAN_FILES = [
-  path.join(".consync", "state", "handoff.md"),
-  path.join(".consync", "state", "snapshot.md"),
+  path.join(".scaffoldai", "state", "handoff.md"),
+  path.join(".scaffoldai", "state", "snapshot.md"),
 ];
 
 const RUNBOOK_PATH = path.join(".scaffoldai", "process", "runbook.process.md");
