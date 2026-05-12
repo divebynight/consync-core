@@ -2,8 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
 const { execSync } = require("child_process");
+const scaffoldaiState = require("../lib/scaffoldaiState.scaffoldai");
 
-const STATE_ROOT = path.join(".consync", "state");
+const STATE_ROOT = path.join(".scaffoldai", "state");
 
 function readFile(rootPath, relativePath) {
   const absolutePath = path.join(rootPath, relativePath);
@@ -195,9 +196,9 @@ function makePromptSession() {
 async function runReentryCheckCommand(options) {
   const rootPath = options && options.rootPath ? path.resolve(options.rootPath) : process.cwd();
 
-  const activeStreamText = readFile(rootPath, path.join(STATE_ROOT, "active-stream.md"));
-  const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
-  const handoffText = readFile(rootPath, path.join(STATE_ROOT, "handoff.md"));
+  const activeStreamText = scaffoldaiState.readActiveStream(rootPath);
+  const snapshotText = scaffoldaiState.readSnapshot(rootPath);
+  const handoffText = scaffoldaiState.readHandoff(rootPath);
 
   if (!activeStreamText || !snapshotText || !handoffText) {
     console.log("RE-ENTRY CHECK: state files missing — run check:state-preflight for details");

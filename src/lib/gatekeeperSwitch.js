@@ -11,16 +11,6 @@ const STATE_ROOT = path.join(".scaffoldai", "state");
 const FIXED_STREAMS = ["process", "electron_ui"];
 
 // ---------------------------------------------------------------------------
-// File helpers
-// ---------------------------------------------------------------------------
-
-function readFile(rootPath, relativePath) {
-  const absolutePath = path.join(rootPath, relativePath);
-  if (!fs.existsSync(absolutePath)) return null;
-  return fs.readFileSync(absolutePath, "utf8");
-}
-
-// ---------------------------------------------------------------------------
 // Derived facts
 // ---------------------------------------------------------------------------
 
@@ -241,8 +231,7 @@ function makePromptSession() {
 
 function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pausedStreams, packageName) {
   // 1. Pause the old stream
-  const fromStreamPath = path.join(STREAMS_ROOT, fromStream, "stream.md");
-  const fromStreamText = readFile(rootPath, fromStreamPath);
+  const fromStreamText = scaffoldaiState.readStreamDoc(rootPath, fromStream);
 
   if (fromStreamText) {
     let updated = fromStreamText.replace(/^(- status:\s*).*$/m, "$1paused");
@@ -254,8 +243,7 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
   }
 
   // 2. Activate the new stream
-  const toStreamPath = path.join(STREAMS_ROOT, toStream, "stream.md");
-  const toStreamText = readFile(rootPath, toStreamPath);
+  const toStreamText = scaffoldaiState.readStreamDoc(rootPath, toStream);
 
   if (toStreamText) {
     let updated = toStreamText.replace(/^(- status:\s*).*$/m, "$1active");
@@ -270,7 +258,7 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
   scaffoldaiState.writeActiveStream(rootPath, activeStreamContent);
 
   // 4. Update snapshot.md — active stream value + clear Current Package
-  const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
+  const snapshotText = scaffoldaiState.readSnapshot(rootPath);
 
   if (snapshotText) {
     let updated = updateSnapshotActiveStream(snapshotText, toStream);
@@ -311,7 +299,7 @@ async function runGatekeeperSwitch(rootPath, targetStream) {
 
   // Read and inject target stream doc for evaluation
   const targetStreamDocText = targetStream
-    ? readFile(rootPath, path.join(STREAMS_ROOT, targetStream, "stream.md"))
+    ? scaffoldaiState.readStreamDoc(rootPath, targetStream)
     : undefined;
 
   state._targetStreamDocText = targetStreamDocText;

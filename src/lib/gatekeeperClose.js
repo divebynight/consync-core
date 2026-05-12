@@ -10,16 +10,6 @@ const STREAMS_ROOT = path.join(".scaffoldai", "streams");
 const STATE_ROOT = path.join(".scaffoldai", "state");
 
 // ---------------------------------------------------------------------------
-// File helpers
-// ---------------------------------------------------------------------------
-
-function readFile(rootPath, relativePath) {
-  const absolutePath = path.join(rootPath, relativePath);
-  if (!fs.existsSync(absolutePath)) return null;
-  return fs.readFileSync(absolutePath, "utf8");
-}
-
-// ---------------------------------------------------------------------------
 // Mode detection
 // ---------------------------------------------------------------------------
 
@@ -134,7 +124,7 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
   scaffoldaiState.writeHandoff(rootPath, handoffContent);
 
   // 2. Update snapshot.md Current Package section
-  const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
+  const snapshotText = scaffoldaiState.readSnapshot(rootPath);
 
   if (snapshotText) {
     const updated = clearSnapshotCurrentPackage(snapshotText);
@@ -147,8 +137,7 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
   }
 
   // 3. Update stream.md summary line
-  const streamDocPath = path.join(STREAMS_ROOT, activeStreamName, "stream.md");
-  const streamDocText = readFile(rootPath, streamDocPath);
+  const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
 
   if (streamDocText) {
     const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${status})`);
@@ -160,7 +149,7 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
 
 function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamName) {
   // 1. Update snapshot.md — do NOT touch handoff.md or next-action.md
-  const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
+  const snapshotText = scaffoldaiState.readSnapshot(rootPath);
 
   if (snapshotText) {
     const updated = clearSnapshotCurrentPackage(snapshotText);
@@ -173,8 +162,7 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
   }
 
   // 2. Update stream.md summary line
-  const streamDocPath = path.join(STREAMS_ROOT, activeStreamName, "stream.md");
-  const streamDocText = readFile(rootPath, streamDocPath);
+  const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
 
   if (streamDocText) {
     const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${handoffStatus})`);

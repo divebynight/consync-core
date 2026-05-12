@@ -16,28 +16,14 @@ const STREAM_TYPE_MAP = {
 };
 
 // ---------------------------------------------------------------------------
-// File helpers
-// ---------------------------------------------------------------------------
-
-function readFile(rootPath, relativePath) {
-  const absolutePath = path.join(rootPath, relativePath);
-
-  if (!fs.existsSync(absolutePath)) {
-    return null;
-  }
-
-  return fs.readFileSync(absolutePath, "utf8");
-}
-
-// ---------------------------------------------------------------------------
 // State reading
 // ---------------------------------------------------------------------------
 
 function readGatekeeperState(rootPath) {
-  const activeStreamText = readFile(rootPath, path.join(STATE_ROOT, "active-stream.md"));
-  const nextActionText = readFile(rootPath, path.join(STATE_ROOT, "next-action.md"));
-  const handoffText = readFile(rootPath, path.join(STATE_ROOT, "handoff.md"));
-  const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
+  const activeStreamText = scaffoldaiState.readActiveStream(rootPath);
+  const nextActionText = scaffoldaiState.readNextAction(rootPath);
+  const handoffText = scaffoldaiState.readHandoff(rootPath);
+  const snapshotText = scaffoldaiState.readSnapshot(rootPath);
 
   const activeStream = activeStreamText ? parseActiveStream(activeStreamText) : null;
   const nextAction = nextActionText ? parseNextAction(nextActionText) : null;
@@ -45,7 +31,7 @@ function readGatekeeperState(rootPath) {
 
   const activeStreamName = activeStream ? activeStream.activeStream : null;
   const streamDocText = activeStreamName
-    ? readFile(rootPath, path.join(STREAMS_ROOT, activeStreamName, "stream.md"))
+    ? scaffoldaiState.readStreamDoc(rootPath, activeStreamName)
     : null;
 
   return {

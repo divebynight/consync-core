@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
+const scaffoldaiState = require("../lib/scaffoldaiState.scaffoldai");
 
 const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
 
@@ -62,19 +63,13 @@ function validateFlags(flags) {
 }
 
 function loadActiveContract(rootDir) {
-  const contractPath = path.join(rootDir, ACTIVE_CONTRACT_PATH);
+  const contract = scaffoldaiState.readActiveContract(rootDir);
 
-  if (!fs.existsSync(contractPath)) {
-    throw new Error(`active-contract.json not found at: ${contractPath}`);
+  if (!contract) {
+    throw new Error(`active-contract.json not found or invalid at: ${rootDir}/.scaffoldai/state/`);
   }
 
-  const raw = fs.readFileSync(contractPath, "utf8");
-
-  try {
-    return JSON.parse(raw);
-  } catch (err) {
-    throw new Error(`Failed to parse active-contract.json: ${err.message}`);
-  }
+  return contract;
 }
 
 function formatReport(input, contract, decision) {

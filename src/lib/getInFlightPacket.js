@@ -1,7 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-
-const NEXT_ACTION_PATH = ".scaffoldai/state/next-action.md";
+const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
 
 /**
  * Read .scaffoldai/state/next-action.md and extract the in-flight packet identifier.
@@ -17,13 +14,9 @@ const NEXT_ACTION_PATH = ".scaffoldai/state/next-action.md";
  */
 function getInFlightPacket(rootDir) {
   const resolvedRoot = rootDir || process.cwd();
-  const filePath = path.join(resolvedRoot, NEXT_ACTION_PATH);
+  const content = scaffoldaiState.readNextAction(resolvedRoot);
 
-  let content;
-
-  try {
-    content = fs.readFileSync(filePath, "utf8");
-  } catch (_err) {
+  if (!content) {
     return null;
   }
 

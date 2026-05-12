@@ -98,6 +98,42 @@ scaffoldaiState.scaffoldai.js (single write boundary)
 - `src/mcp/*` must not write directly to `.scaffoldai/state/*`
 - `src/commands/*` must not write directly to `.scaffoldai/state/*`
 - `src/lib/gatekeeper*.js` must use `scaffoldaiState.*` functions, not direct `writeFileSync`
+
+### ScaffoldAI State Read Authority Boundary (Hardened)
+
+All reads from ScaffoldAI operational state files in command and MCP surface layers must go through the approved state authority module:
+
+**Approved State Authority:** `src/lib/scaffoldaiState.scaffoldai.js`
+
+This module provides explicit read functions for each ScaffoldAI state file:
+- `readNextAction(rootPath)` → `.scaffoldai/state/next-action.md`
+- `readHandoff(rootPath)` → `.scaffoldai/state/handoff.md`
+- `readSnapshot(rootPath)` → `.scaffoldai/state/snapshot.md`
+- `readActiveStream(rootPath)` → `.scaffoldai/state/active-stream.md`
+- `readActiveContract(rootPath)` → `.scaffoldai/state/active-contract.json` (parsed)
+- `readStreamDoc(rootPath, streamName)` → `.scaffoldai/streams/{streamName}/stream.md`
+
+**Architecture:**
+
+```text
+CLI / MCP / tools
+       ↓
+ScaffoldAI authority functions (gatekeeper*.js, getInFlightPacket.js, scaffoldaiStatus.scaffoldai.js, etc.)
+       ↓
+scaffoldaiState.scaffoldai.js (single read/write boundary)
+       ↓
+.scaffoldai/state/* (operational state files)
+```
+
+**Allowed (exempt from read boundary enforcement):**
+- `src/lib/stateIntegrityCheck.js` — diagnostic/integrity checking utilities
+- `src/lib/gatekeeperMount.js` — already uses scaffoldaiState for state reads
+- `src/test/*` — test files may read state directly for fixture verification
+
+**Forbidden (enforced by `scaffoldai-invariants.test.js`):**
+- `src/mcp/*` must not read directly from `.scaffoldai/state/*`
+- `src/commands/*` must not read directly from `.scaffoldai/state/*`
+- `src/lib/` authority modules should use `scaffoldaiState.*` read functions for operational state access
 - Random helpers, scripts, or commands must not mutate state files directly
 
 **Rationale:**

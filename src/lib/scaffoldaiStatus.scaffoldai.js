@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket");
 
 // -----------------------------------------------------------------------
@@ -7,59 +8,47 @@ const { getInFlightPacket } = require("./getInFlightPacket");
 // -----------------------------------------------------------------------
 
 function readActiveStream(repoRoot) {
-  const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const ACTIVE_STREAM_PATH = path.join(STATE_DIR, "active-stream.md");
+  const content = scaffoldaiState.readActiveStream(repoRoot);
 
-  try {
-    const content = fs.readFileSync(ACTIVE_STREAM_PATH, "utf8");
-    const lines = content.split(/\r?\n/);
-    const idx = lines.findIndex((l) => l.trim() === "ACTIVE STREAM");
+  if (!content) {
+    return null;
+  }
 
-    if (idx === -1) return null;
+  const lines = content.split(/\r?\n/);
+  const idx = lines.findIndex((l) => l.trim() === "ACTIVE STREAM");
 
-    for (const line of lines.slice(idx + 1)) {
-      const v = line.trim();
-      if (v) return v;
-    }
-  } catch {
-    // file missing or unreadable
+  if (idx === -1) return null;
+
+  for (const line of lines.slice(idx + 1)) {
+    const v = line.trim();
+    if (v) return v;
   }
 
   return null;
 }
 
 function readActiveContract(repoRoot) {
-  const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const ACTIVE_CONTRACT_PATH = path.join(STATE_DIR, "active-contract.json");
-
-  try {
-    const raw = fs.readFileSync(ACTIVE_CONTRACT_PATH, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return scaffoldaiState.readActiveContract(repoRoot);
 }
 
 function readNextActionSummary(repoRoot) {
-  const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const NEXT_ACTION_PATH = path.join(STATE_DIR, "next-action.md");
+  const content = scaffoldaiState.readNextAction(repoRoot);
 
-  try {
-    const content = fs.readFileSync(NEXT_ACTION_PATH, "utf8");
-    // Return first non-empty, non-heading line that looks like a summary.
-    for (const line of content.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (
-        trimmed &&
-        !trimmed.startsWith("#") &&
-        !trimmed.startsWith("---") &&
-        trimmed.length > 4
-      ) {
-        return trimmed.length > 120 ? trimmed.slice(0, 117) + "..." : trimmed;
-      }
+  if (!content) {
+    return null;
+  }
+
+  // Return first non-empty, non-heading line that looks like a summary.
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (
+      trimmed &&
+      !trimmed.startsWith("#") &&
+      !trimmed.startsWith("---") &&
+      trimmed.length > 4
+    ) {
+      return trimmed.length > 120 ? trimmed.slice(0, 117) + "..." : trimmed;
     }
-  } catch {
-    // file missing
   }
 
   return null;

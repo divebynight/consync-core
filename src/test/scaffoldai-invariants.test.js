@@ -614,6 +614,93 @@ function checkScaffoldaiStateWriteBoundary() {
 }
 
 // -----------------------------------------------------------------------
+// K. ScaffoldAI State Read Authority Boundary
+//    Verify that all reads from .scaffoldai/state/* go through the
+//    approved authority layer (src/lib/scaffoldaiState.scaffoldai.js).
+//
+//    Architecture:
+//      CLI / MCP → authority functions → scaffoldaiState → .scaffoldai/state/*
+// -----------------------------------------------------------------------
+
+function checkScaffoldaiStateReadBoundary() {
+  const violations = [];
+
+  // Files exempt from state read boundary checks
+  const exemptPatterns = [
+    /src\/test\//,
+    /src\/lib\/scaffoldaiState\.scaffoldai\.js$/,
+    /src\/lib\/stateIntegrityCheck\.js$/,  // Diagnostic/integrity checking
+    /src\/lib\/gatekeeperMount\.js$/,      // Already uses scaffoldaiState
+  ];
+
+  function isExempt(filePath) {
+    return exemptPatterns.some((pattern) => pattern.test(filePath));
+  }
+
+  // Scan command and MCP surface files (these should not directly read state)
+  const surfaceDirs = ["src/commands", "src/mcp"];
+
+  for (const srcDir of surfaceDirs) {
+    const dirPath = path.join(repoRoot, srcDir);
+    if (!fs.existsSync(dirPath)) continue;
+
+    const files = fs
+      .readdirSync(dirPath)
+      .filter((f) => f.endsWith(".js"))
+      .map((f) => path.join(dirPath, f));
+
+    for (const filePath of files) {
+      if (isExempt(filePath)) continue;
+
+      const content = fs.readFileSync(filePath, "utf8");
+      const relPath = path.relative(repoRoot, filePath);
+
+      // Check for direct reads from .scaffoldai/state/*
+      // Pattern: readFileSync or readFile with ".scaffoldai/state/" or ".scaffoldai", "state"
+      const stateReadPatterns = [
+        /readFileSync\s*\([^)]*\.scaffoldai[\/\\]state/,
+        /readFile\s*\([^)]*\.scaffoldai[\/\\]state/,
+      ];
+
+      for (const pattern of stateReadPatterns) {
+        if (pattern.test(content)) {
+          violations.push(
+            `  ${relPath}: contains direct read from .scaffoldai/state/* (should use scaffoldaiState module)`
+          );
+          break;
+        }
+      }
+    }
+  }
+
+  assert.ok(
+    violations.length === 0,
+    `All reads from .scaffoldai/state/* in command/MCP surface must go through src/lib/scaffoldaiState.scaffoldai.js:\n${violations.join("\n")}`
+  );
+  console.log("  PASS: Command and MCP surface reads go through scaffoldaiState authority module");
+
+  // Verify scaffoldaiState.scaffoldai.js exports read functions
+  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.scaffoldai.js");
+  const stateAuthContent = fs.readFileSync(stateAuthPath, "utf8");
+  const expectedReadExports = [
+    "readNextAction",
+    "readHandoff",
+    "readSnapshot",
+    "readActiveStream",
+    "readActiveContract",
+    "readStreamDoc",
+  ];
+
+  for (const exportName of expectedReadExports) {
+    assert.ok(
+      stateAuthContent.includes(exportName),
+      `scaffoldaiState.scaffoldai.js must export ${exportName}`
+    );
+  }
+  console.log("  PASS: scaffoldaiState.scaffoldai.js exports all required read functions");
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -629,6 +716,7 @@ function main() {
     checkReferenceAuditPathTargets();
     checkScaffoldaiAuthorityBoundary();
     checkScaffoldaiStateWriteBoundary();
+    checkScaffoldaiStateReadBoundary();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
