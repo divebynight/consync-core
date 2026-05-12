@@ -1,8 +1,5 @@
-const fs = require("fs");
 const path = require("path");
-const { getGitStatus } = require("../lib/gitStatus.shared");
-const { resolveVerifyCommand, readActiveContract } = require("../lib/resolveVerifyCommand");
-const { getInFlightPacket } = require("../lib/getInFlightPacket");
+const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.scaffoldai");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 
@@ -30,76 +27,7 @@ function parseArgs(argv) {
 }
 
 // -----------------------------------------------------------------------
-// Commit prefix inference
-// -----------------------------------------------------------------------
-
-/**
- * Infer an advisory commit prefix from changed file paths and contract state.
- *
- * @param {string[]} files - git status --short lines (e.g. "M src/commands/foo.js")
- * @param {object|null} contract
- * @returns {string|null}
- */
-function inferCommitPrefix(files, contract) {
-  if (!files || files.length === 0) return null;
-
-  const paths = files.map((line) => line.replace(/^..\s+/, "").trim());
-
-  const hasScaffoldai = paths.some((p) => p.startsWith(".scaffoldai/"));
-  const hasSrcCommands = paths.some((p) => p.startsWith("src/commands/") || p.startsWith("src/lib/") || p.startsWith("src/cli/"));
-  const hasSrcTest = paths.some((p) => p.startsWith("src/test/"));
-  const hasDocs = paths.some((p) => p.endsWith(".md") || p.startsWith("docs/"));
-  const hasPackageJson = paths.some((p) => p === "package.json");
-  const hasSrc = paths.some((p) => p.startsWith("src/"));
-
-  // Contract-informed override: process/planning packets dominate
-  if (contract) {
-    const allowed = contract.allowed_packet_types || [];
-    const isProcessContext =
-      allowed.includes("process") ||
-      allowed.includes("contract") ||
-      allowed.includes("planning");
-
-    if (isProcessContext && (hasScaffoldai || hasSrcCommands)) {
-      return "process:";
-    }
-  }
-
-  // Path-based heuristic (order matters — most specific first)
-  if (hasScaffoldai && !hasSrc) return "process:";
-  if (hasScaffoldai && hasSrcCommands) return "process:";
-  if (hasScaffoldai && hasSrcTest) return "process:";
-  if (hasSrcTest && !hasSrcCommands && !hasScaffoldai) return "test:";
-  if (hasSrcCommands && !hasScaffoldai) return "feat:";
-  if (hasDocs && !hasSrc && !hasScaffoldai) return "docs:";
-  if (hasPackageJson && paths.length === 1) return "chore:";
-
-  return null;
-}
-
-/**
- * Build a commit suggestion string from prefix and active packet.
- *
- * @param {string|null} prefix
- * @param {string|null} inFlightPacket
- * @returns {string}
- */
-function buildCommitSuggestion(prefix, inFlightPacket) {
-  if (!prefix) return "(no suggestion — prefix unclear)";
-
-  const bare = prefix.replace(/:$/, "");
-
-  if (inFlightPacket) {
-    // Convert packet-id underscores/hyphens to readable form
-    const label = inFlightPacket.replace(/[-_]/g, " ");
-    return `${prefix} ${label}`;
-  }
-
-  return `${prefix} <describe the change>`;
-}
-
-// -----------------------------------------------------------------------
-// Main command
+// CLI Command — Thin wrapper for terminal output
 // -----------------------------------------------------------------------
 
 function runScaffoldaiCloseoutCommand(argv) {
@@ -112,33 +40,9 @@ function runScaffoldaiCloseoutCommand(argv) {
     return;
   }
 
-  const { verifyPassed } = args;
-
-  const blockers = [];
-  const warnings = [];
-
-  // --- Read state ---
-  const contract = readActiveContract(repoRoot);
-  const inFlightPacket = getInFlightPacket(repoRoot);
-  const git = getGitStatus(repoRoot);
-  const resolved = resolveVerifyCommand(contract, {});
-
-  // --- Check contract coherence ---
-  if (contract) {
-    const blocked = contract.blocked_packet_types || [];
-    if (inFlightPacket && blocked.includes(inFlightPacket)) {
-      blockers.push(`in_flight_packet "${inFlightPacket}" is in blocked_packet_types`);
-    }
-  } else {
-    blockers.push("active-contract.json missing or malformed");
-  }
-
-  // --- Git status ---
-  if (git.error) {
-    blockers.push("git status failed — cannot evaluate changed files");
-  }
-
-  const hasChanges = !git.clean && !git.error;
+  const result = gatherCloseoutReadiness(repoRoot, { verifyPassed: args.verifyPassed });
+  const { blockers, warnings, status, data } = result;
+  const { inFlightPacket, git, resolvedVerify, commitPrefix, commitSuggestion, hasChanges, verificationEvidence } = data;
 
   // --- Format CHANGED FILES section ---
   let changedFilesLine;
@@ -154,43 +58,14 @@ function runScaffoldaiCloseoutCommand(argv) {
   }
 
   // --- Verify command ---
-  const verifyCommand = resolved.error ? "(unavailable)" : resolved.command;
-
-  // --- Verification evidence ---
-  let verificationEvidence;
-  if (verifyPassed) {
-    verificationEvidence = "--verify-passed provided (human attestation)";
-  } else {
-    verificationEvidence = "none — run verify and re-run with --verify-passed";
-    if (hasChanges) {
-      warnings.push("no verification evidence — run verify before committing");
-    }
-  }
-
-  // --- Commit recommendation ---
-  const prefix = inferCommitPrefix(git.files, contract);
-  const suggestion = buildCommitSuggestion(prefix, inFlightPacket);
+  const verifyCommand = resolvedVerify.error ? "(unavailable)" : resolvedVerify.command;
 
   const commitPrefixLine = hasChanges
-    ? (prefix || "(none — mixed or unclear changes)")
+    ? (commitPrefix || "(none — mixed or unclear changes)")
     : "(none — no changed files)";
   const commitSuggestionLine = hasChanges
-    ? suggestion
+    ? commitSuggestion
     : "(none — no changed files)";
-
-  // --- Determine STATUS ---
-  let status;
-
-  if (blockers.length > 0) {
-    status = "BLOCKED";
-  } else if (!hasChanges) {
-    // Nothing to commit
-    status = "CLEAN";
-  } else if (verifyPassed) {
-    status = warnings.length > 0 ? "WARNING" : "READY_FOR_REVIEW";
-  } else {
-    status = "NEEDS_VERIFICATION";
-  }
 
   // --- Next safe action ---
   let nextSafeAction;
@@ -201,10 +76,10 @@ function runScaffoldaiCloseoutCommand(argv) {
   } else if (status === "NEEDS_VERIFICATION") {
     nextSafeAction = `Run ${verifyCommand}, then re-run: node src/index.js scaffoldai closeout --verify-passed`;
   } else if (status === "WARNING") {
-    nextSafeAction = `Review warnings above. If acceptable, commit with: git commit -m "${suggestion}"`;
+    nextSafeAction = `Review warnings above. If acceptable, commit with: git commit -m "${commitSuggestion}"`;
   } else {
     // READY_FOR_REVIEW
-    nextSafeAction = `Commit with: git commit -m "${suggestion}"`;
+    nextSafeAction = `Commit with: git commit -m "${commitSuggestion}"`;
   }
 
   // --- Format blockers / warnings ---
@@ -242,4 +117,4 @@ function runScaffoldaiCloseoutCommand(argv) {
   }
 }
 
-module.exports = { runScaffoldaiCloseoutCommand, inferCommitPrefix, parseArgs };
+module.exports = { runScaffoldaiCloseoutCommand, parseArgs };

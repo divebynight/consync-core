@@ -1,7 +1,8 @@
 const assert = require("assert");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { inferCommitPrefix, parseArgs } = require("../commands/scaffoldai-closeout");
+const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.scaffoldai");
+const { parseArgs } = require("../commands/scaffoldai-closeout");
 
 const TEST_NAME = "unit-scaffoldai-closeout";
 const repoRoot = path.resolve(__dirname, "..", "..");

@@ -5,7 +5,7 @@ const { getInFlightPacket } = require("../lib/getInFlightPacket");
 const { getGitStatus } = require("../lib/gitStatus.shared");
 const { gatherQuestions } = require("../lib/scaffoldaiQuestion.scaffoldai");
 const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.scaffoldai");
-const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");
+const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.scaffoldai");
 const { resolveProfile } = require("../lib/profileResolver");
 
