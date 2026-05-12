@@ -17,7 +17,7 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - `gatekeeper.js` — Gatekeeper mount/close/switch subcommands
 - `state-integrity-check.check.scaffoldai.js` — preflight and postflight state integrity check
 - `reentry-check.agent.scaffoldai.js` — checks re-entry readiness
-- `system-check.check.scaffoldai.js` — verifies required system files are present
+- `system-check.check.system.js` — verifies required system files across all surfaces (ScaffoldAI, Consync, Electron)
 - `system-summary.js` — prints a summary of the current system surface
 - `handoff-bundle.process.scaffoldai.js` — bundles the current handoff state for delivery
 - `intake-run.agent.scaffoldai.js` / `preflight-run.agent.scaffoldai.js` / `verify-run.agent.scaffoldai.js` — agent execution entry points
