@@ -6,7 +6,7 @@ const { getGitStatus } = require("../lib/gitStatus.shared");
 const { gatherQuestions } = require("../commands/scaffoldai-question");
 const { gatherPreflightResults } = require("../commands/scaffoldai-preflight");
 const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");
-const { readActiveStream } = require("../commands/scaffoldai-status");
+const { gatherStatus } = require("../lib/scaffoldaiStatus.scaffoldai");
 const { resolveProfile } = require("../lib/profileResolver");
 
 const path = require("path");
@@ -22,15 +22,15 @@ const PROFILE = resolveProfile();
 // -----------------------------------------------------------------------
 
 function runStatusTool() {
-  const contract = readActiveContract(repoRoot);
-  const activeStream = readActiveStream();
-  const inFlightPacket = getInFlightPacket(repoRoot);
-  const git = getGitStatus(repoRoot);
-  const resolved = resolveVerifyCommand(contract, {});
+  const status = gatherStatus(repoRoot, { includeGit: true });
+  const git = status.data.git;
 
-  let status = "ON_TRACK";
-  if (!contract) status = "BLOCKED";
-  else if (!git.clean) status = "WARNING";
+  let mcpStatus = "ON_TRACK";
+  if (status.status === "BLOCKED") {
+    mcpStatus = "BLOCKED";
+  } else if (!git || git.error || !git.clean) {
+    mcpStatus = "WARNING";
+  }
 
   return {
     tool: "scaffoldai_status",
@@ -38,19 +38,19 @@ function runStatusTool() {
     profile: PROFILE.profile,
     interaction_mode: PROFILE.interaction_mode,
     execution_mode: PROFILE.execution_mode,
-    status,
+    status: mcpStatus,
     data: {
-      contract: contract || null,
-      active_stream: activeStream || null,
-      in_flight_packet: inFlightPacket || null,
-      git_clean: git.clean,
-      git_file_count: git.count,
-      verify_command: resolved.error ? null : resolved.command,
+      contract: status.data.contract,
+      active_stream: status.data.active_stream,
+      in_flight_packet: status.data.active_packet,
+      git_clean: git ? git.clean : null,
+      git_file_count: git ? git.count : null,
+      verify_command: status.data.verify_command,
     },
     next_safe_action:
-      status === "BLOCKED"
+      mcpStatus === "BLOCKED"
         ? "Resolve missing or malformed active-contract.json before continuing."
-        : status === "WARNING"
+        : mcpStatus === "WARNING"
         ? "Review uncommitted changes before proceeding."
         : "Repo is on track. Run scaffoldai preflight to confirm readiness.",
   };

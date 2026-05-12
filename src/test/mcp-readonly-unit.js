@@ -37,6 +37,7 @@ async function main() {
   }
 
   {
+    let receivedRepoRoot = null;
     let receivedOptions = null;
     const payload = {
       tool: "scaffoldai_status",
@@ -45,13 +46,16 @@ async function main() {
       data: { source: "unit-helper" },
     };
     const tool = createStatusTool({
-      gatherStatus: (options) => {
+      gatherStatus: (repoRoot, options) => {
+        receivedRepoRoot = repoRoot;
         receivedOptions = options;
         return payload;
       },
+      repoRoot: "/test/repo/root",
     });
 
     const result = parseToolResult(await tool({}));
+    assert.strictEqual(receivedRepoRoot, "/test/repo/root", "status MCP tool should pass repoRoot to gatherStatus");
     assert.deepStrictEqual(
       receivedOptions,
       { includeGit: false },
