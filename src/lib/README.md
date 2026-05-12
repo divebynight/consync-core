@@ -144,6 +144,35 @@ scaffoldaiState.scaffoldai.js (single read/write boundary)
 
 Test files in `src/test/` are exempt (they legitimately write temporary state for testing).
 
+### Shared Utility Boundary (Hardened)
+
+Shared utilities provide neutral mechanics and must not encode ScaffoldAI or Consync policy concepts.
+
+**Naming Convention:**
+- `*.shared.js` — Neutral utilities (e.g., `time.shared.js`, `gitStatus.shared.js`)
+- `*.scaffoldai.js` — ScaffoldAI-specific logic
+- `*.consync.js` — Consync-specific logic
+
+**Allowed Dependency Direction:**
+
+```text
+*.scaffoldai.js ─┐
+                 ├──> *.shared.js (neutral mechanics only)
+*.consync.js ────┘
+```
+
+**Forbidden (enforced by `scaffoldai-invariants.test.js`):**
+- `*.shared.js` must not import `*.scaffoldai.js` or `*.consync.js`
+- `*.shared.js` must not reference `.scaffoldai/` or `.consync/` paths
+- `*.shared.js` must not reference ScaffoldAI state file names (next-action.md, handoff.md, etc.)
+- `*.shared.js` must not encode Consync product concepts (sessions, bookmarks, annotations)
+
+**Current Shared Utilities:**
+- `time.shared.js` — Timestamp formatting (completely neutral)
+- `gitStatus.shared.js` — Git status wrapper (completely neutral)
+
+**Principle:** Shared utilities may provide mechanics. Shared utilities must not encode policy.
+
 ---
 
 ## Related Folders

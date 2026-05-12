@@ -701,6 +701,133 @@ function checkScaffoldaiStateReadBoundary() {
 }
 
 // -----------------------------------------------------------------------
+// L. Shared Utility Boundary
+//    Verify that *.shared.js files remain neutral mechanics and do not
+//    encode ScaffoldAI or Consync policy/state concepts.
+//
+//    Architecture:
+//      *.scaffoldai.js ─┐
+//                       ├──> *.shared.js (neutral mechanics only)
+//      *.consync.js ────┘
+//
+//    *.shared.js must not import back into domain-specific modules.
+// -----------------------------------------------------------------------
+
+function checkSharedUtilityBoundary() {
+  const violations = [];
+
+  // Find all *.shared.js files
+  const sharedFiles = fs
+    .readdirSync(path.join(repoRoot, "src", "lib"))
+    .filter((f) => f.endsWith(".shared.js"))
+    .map((f) => path.join(repoRoot, "src", "lib", f));
+
+  // Forbidden patterns in *.shared.js files
+  const DOMAIN_IMPORT_PATTERNS = [
+    /require\(["'].*\.scaffoldai\.js["']\)/,
+    /require\(["'].*\.scaffoldai["']\)/,
+    /require\(["'].*\.consync\.js["']\)/,
+    /require\(["'].*\.consync["']\)/,
+    /import\s+.*from\s+["'].*\.scaffoldai/,
+    /import\s+.*from\s+["'].*\.consync/,
+  ];
+
+  const DOMAIN_PATH_PATTERNS = [
+    /\.scaffoldai\/state/,
+    /\.scaffoldai\/streams/,
+    /\.scaffoldai\/packets/,
+    /\.consync\/state/,
+    /\.consync\/streams/,
+    /\.consync\/packets/,
+  ];
+
+  const SCAFFOLDAI_STATE_FILE_PATTERNS = [
+    /next-action\.md/,
+    /handoff\.md/,
+    /snapshot\.md/,
+    /active-contract\.json/,
+    /active-stream\.md/,
+  ];
+
+  const CONSYNC_PRODUCT_PATTERNS = [
+    /\bsession\b.*\bmetadata\b/i,
+    /\bbookmark\b.*\bmetadata\b/i,
+    /\bannotation\b.*\bmetadata\b/i,
+  ];
+
+  for (const filePath of sharedFiles) {
+    const content = fs.readFileSync(filePath, "utf8");
+    const relPath = path.relative(repoRoot, filePath);
+
+    // Check for domain-specific imports
+    for (const pattern of DOMAIN_IMPORT_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(
+          `  ${relPath}: imports domain-specific module (*.scaffoldai.js or *.consync.js) - shared utilities must remain neutral`
+        );
+        break;
+      }
+    }
+
+    // Check for domain-specific path references
+    for (const pattern of DOMAIN_PATH_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(
+          `  ${relPath}: references .scaffoldai/ or .consync/ paths - shared utilities must not encode domain paths`
+        );
+        break;
+      }
+    }
+
+    // Check for ScaffoldAI state file references
+    for (const pattern of SCAFFOLDAI_STATE_FILE_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(
+          `  ${relPath}: references ScaffoldAI state file names - shared utilities must not encode ScaffoldAI state concepts`
+        );
+        break;
+      }
+    }
+
+    // Check for Consync product concept patterns (more lenient - just warn in comments)
+    for (const pattern of CONSYNC_PRODUCT_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(
+          `  ${relPath}: appears to encode Consync product concepts (session/bookmark/annotation metadata) - consider renaming to *.consync.js`
+        );
+        break;
+      }
+    }
+  }
+
+  assert.ok(
+    violations.length === 0,
+    `Shared utilities (*.shared.js) must remain neutral mechanics without domain-specific imports or policy:\n${violations.join("\n")}`
+  );
+  console.log("  PASS: All *.shared.js files remain neutral without domain contamination");
+
+  // Verify dependency direction: domain files may import shared, not the reverse
+  const domainFiles = [
+    ...fs
+      .readdirSync(path.join(repoRoot, "src", "lib"))
+      .filter((f) => f.endsWith(".scaffoldai.js"))
+      .map((f) => path.join(repoRoot, "src", "lib", f)),
+    ...fs
+      .readdirSync(path.join(repoRoot, "src", "lib"))
+      .filter((f) => f.endsWith(".consync.js"))
+      .map((f) => path.join(repoRoot, "src", "lib", f)),
+  ];
+
+  // This is allowed and expected - just verify files exist
+  assert.ok(
+    sharedFiles.length > 0,
+    "Expected at least one *.shared.js file in src/lib/"
+  );
+  console.log(`  PASS: Found ${sharedFiles.length} shared utility files`);
+  console.log(`  PASS: Found ${domainFiles.length} domain-specific files (*.scaffoldai.js or *.consync.js)`);
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -717,6 +844,7 @@ function main() {
     checkScaffoldaiAuthorityBoundary();
     checkScaffoldaiStateWriteBoundary();
     checkScaffoldaiStateReadBoundary();
+    checkSharedUtilityBoundary();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
