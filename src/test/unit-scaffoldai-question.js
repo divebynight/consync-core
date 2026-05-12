@@ -192,21 +192,12 @@ function main() {
       }
     }
 
-    // 11. EXECUTION_CLASS_BOUNDARY category is present in the command module
+    // 11. EXECUTION_CLASS_BOUNDARY category is present in the lib module
     {
-      const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
+      const { CATEGORIES } = require("../lib/scaffoldaiQuestion.scaffoldai");
       assert.ok(
-        typeof runScaffoldaiQuestionCommand === "function",
-        "Expected runScaffoldaiQuestionCommand to be a function"
-      );
-      // Read the source to confirm the category constant is defined
-      const src = require("fs").readFileSync(
-        require("path").join(repoRoot, "src", "commands", "scaffoldai-question.js"),
-        "utf8"
-      );
-      assert.ok(
-        src.includes("EXECUTION_CLASS_BOUNDARY"),
-        "Expected EXECUTION_CLASS_BOUNDARY category to be defined in scaffoldai-question.js"
+        CATEGORIES.EXECUTION_CLASS_BOUNDARY === "EXECUTION_CLASS_BOUNDARY",
+        "Expected EXECUTION_CLASS_BOUNDARY category to be defined in CATEGORIES"
       );
       console.log("  PASS: EXECUTION_CLASS_BOUNDARY category is defined in the command module");
     }

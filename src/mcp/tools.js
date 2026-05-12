@@ -3,7 +3,7 @@
 const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVerifyCommand");
 const { getInFlightPacket } = require("../lib/getInFlightPacket");
 const { getGitStatus } = require("../lib/gitStatus.shared");
-const { gatherQuestions } = require("../commands/scaffoldai-question");
+const { gatherQuestions } = require("../lib/scaffoldaiQuestion.scaffoldai");
 const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.scaffoldai");
 const { inferCommitPrefix } = require("../commands/scaffoldai-closeout");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.scaffoldai");
@@ -88,7 +88,7 @@ function runPreflightTool() {
 // -----------------------------------------------------------------------
 
 function runQuestionTool() {
-  const result = gatherQuestions();
+  const result = gatherQuestions(repoRoot);
 
   return {
     tool: "scaffoldai_question",
