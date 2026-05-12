@@ -1,4 +1,4 @@
-const { getGitStatus } = require("./gitStatus.shared");
+const { getGitStatus } = require("./gitStatus.util.shared");
 const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand.query.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 

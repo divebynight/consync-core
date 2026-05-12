@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
-const { getGitStatus } = require("./gitStatus.shared");
+const { getGitStatus } = require("./gitStatus.util.shared");
 
 const REQUIRED_STATE_FILES = [
   "active-stream.md",

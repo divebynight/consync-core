@@ -11,9 +11,9 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 ## What Belongs Here
 
 - `guid.js` — GUID generation and formatting
-- `time.shared.js` — timestamp utilities
+- `time.util.shared.js` — timestamp utilities
 - `fs.js` — filesystem helpers used across CLI and Electron
-- `clipboard.js` — clipboard access utility
+- `clipboard.util.shared.js` — clipboard access utility
 - `newGuidTool.js` — new-guid workflow logic (called by the `new-guid` command)
 - `sandbox-anchors.js` — anchor resolution logic for sandbox discovery and search
 - `portableScaffold.js` — portable scaffold generation logic
@@ -149,7 +149,7 @@ Test files in `src/test/` are exempt (they legitimately write temporary state fo
 Shared utilities provide neutral mechanics and must not encode ScaffoldAI or Consync policy concepts.
 
 **Naming Convention:**
-- `*.shared.js` — Neutral utilities (e.g., `time.shared.js`, `gitStatus.shared.js`)
+- `*.util.shared.js` — Neutral utilities (e.g., `time.util.shared.js`, `gitStatus.util.shared.js`)
 - `*.scaffoldai.js` — ScaffoldAI-specific logic
 - `*.consync.js` — Consync-specific logic
 
@@ -168,8 +168,8 @@ Shared utilities provide neutral mechanics and must not encode ScaffoldAI or Con
 - `*.shared.js` must not encode Consync product concepts (sessions, bookmarks, annotations)
 
 **Current Shared Utilities:**
-- `time.shared.js` — Timestamp formatting (completely neutral)
-- `gitStatus.shared.js` — Git status wrapper (completely neutral)
+- `time.util.shared.js` — Timestamp formatting (completely neutral)
+- `gitStatus.util.shared.js` — Git status wrapper (completely neutral)
 
 **Principle:** Shared utilities may provide mechanics. Shared utilities must not encode policy.
 
