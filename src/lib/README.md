@@ -69,6 +69,45 @@ State Layer:     .scaffoldai/state/*
 
 ScaffoldAI CLI commands and MCP tools should be thin wrappers that call the same shared authority functions with a `repoRoot` parameter.
 
+### ScaffoldAI State Write Authority Boundary (Hardened)
+
+All writes to ScaffoldAI operational state files must go through the single approved state authority module:
+
+**Approved State Authority:** `src/lib/scaffoldaiState.scaffoldai.js`
+
+This module provides explicit write functions for each ScaffoldAI state file:
+- `writeNextAction(rootPath, content)` → `.scaffoldai/state/next-action.md`
+- `writeHandoff(rootPath, content)` → `.scaffoldai/state/handoff.md`
+- `writeSnapshot(rootPath, content)` → `.scaffoldai/state/snapshot.md`
+- `writeActiveStream(rootPath, content)` → `.scaffoldai/state/active-stream.md`
+- `writeStreamDoc(rootPath, streamName, content)` → `.scaffoldai/streams/{streamName}/stream.md`
+
+**Architecture:**
+
+```text
+CLI / MCP / tools
+       ↓
+ScaffoldAI authority functions (gatekeeper*.js, etc.)
+       ↓
+scaffoldaiState.scaffoldai.js (single write boundary)
+       ↓
+.scaffoldai/state/* (operational state files)
+```
+
+**Forbidden (enforced by `scaffoldai-invariants.test.js`):**
+- `src/mcp/*` must not write directly to `.scaffoldai/state/*`
+- `src/commands/*` must not write directly to `.scaffoldai/state/*`
+- `src/lib/gatekeeper*.js` must use `scaffoldaiState.*` functions, not direct `writeFileSync`
+- Random helpers, scripts, or commands must not mutate state files directly
+
+**Rationale:**
+- Ensures single deterministic write path for ScaffoldAI operational state
+- Makes state mutations explicit and auditable
+- Prevents uncontrolled state write proliferation
+- Supports future state evolution without breaking multiple write locations
+
+Test files in `src/test/` are exempt (they legitimately write temporary state for testing).
+
 ---
 
 ## Related Folders

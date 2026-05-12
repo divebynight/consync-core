@@ -3,9 +3,10 @@ const path = require("path");
 const readline = require("readline");
 
 const { parseActiveStream, parseNextAction, parseHandoff } = require("./stateIntegrityCheck");
+const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
 
-const STREAMS_ROOT = path.join(".consync", "streams");
-const STATE_ROOT = path.join(".consync", "state");
+const STREAMS_ROOT = path.join(".scaffoldai", "streams");
+const STATE_ROOT = path.join(".scaffoldai", "state");
 
 const FIXED_STREAMS = ["process", "electron_ui"];
 
@@ -26,12 +27,6 @@ function readFile(rootPath, relativePath) {
   }
 
   return fs.readFileSync(absolutePath, "utf8");
-}
-
-function writeFile(rootPath, relativePath, content) {
-  const absolutePath = path.join(rootPath, relativePath);
-  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-  fs.writeFileSync(absolutePath, content, "utf8");
 }
 
 // ---------------------------------------------------------------------------
@@ -488,16 +483,16 @@ function executeMountWrites(rootPath, packageName, type, integrityLevel, request
     : null;
 
   // Write next-action.md first — most critical
-  writeFile(rootPath, path.join(STATE_ROOT, "next-action.md"), nextActionContent);
+  scaffoldaiState.writeNextAction(rootPath, nextActionContent);
 
   if (updatedSnapshot) {
-    writeFile(rootPath, snapshotPath, updatedSnapshot);
+    scaffoldaiState.writeSnapshot(rootPath, updatedSnapshot);
   } else {
     console.warn("warning: could not update snapshot.md Current Package section — update manually");
   }
 
   if (updatedStreamDoc) {
-    writeFile(rootPath, streamDocPath, updatedStreamDoc);
+    scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updatedStreamDoc);
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }

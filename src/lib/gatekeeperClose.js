@@ -4,9 +4,10 @@ const readline = require("readline");
 
 const { parseHandoff } = require("./stateIntegrityCheck");
 const { readGatekeeperState, updateStreamSummary } = require("./gatekeeperMount");
+const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
 
-const STREAMS_ROOT = path.join(".consync", "streams");
-const STATE_ROOT = path.join(".consync", "state");
+const STREAMS_ROOT = path.join(".scaffoldai", "streams");
+const STATE_ROOT = path.join(".scaffoldai", "state");
 
 // ---------------------------------------------------------------------------
 // File helpers
@@ -16,12 +17,6 @@ function readFile(rootPath, relativePath) {
   const absolutePath = path.join(rootPath, relativePath);
   if (!fs.existsSync(absolutePath)) return null;
   return fs.readFileSync(absolutePath, "utf8");
-}
-
-function writeFile(rootPath, relativePath, content) {
-  const absolutePath = path.join(rootPath, relativePath);
-  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-  fs.writeFileSync(absolutePath, content, "utf8");
 }
 
 // ---------------------------------------------------------------------------
@@ -136,7 +131,7 @@ function clearSnapshotCurrentPackage(snapshotText) {
 function executeCloseWritesA(rootPath, packageName, type, status, summary, activeStreamName) {
   // 1. Write handoff.md first
   const handoffContent = buildHandoffContent(type, packageName, status, summary);
-  writeFile(rootPath, path.join(STATE_ROOT, "handoff.md"), handoffContent);
+  scaffoldaiState.writeHandoff(rootPath, handoffContent);
 
   // 2. Update snapshot.md Current Package section
   const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
@@ -145,7 +140,7 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
     const updated = clearSnapshotCurrentPackage(snapshotText);
 
     if (updated) {
-      writeFile(rootPath, path.join(STATE_ROOT, "snapshot.md"), updated);
+      scaffoldaiState.writeSnapshot(rootPath, updated);
     } else {
       console.warn("warning: could not update snapshot.md Current Package section — update manually");
     }
@@ -157,7 +152,7 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
 
   if (streamDocText) {
     const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${status})`);
-    writeFile(rootPath, streamDocPath, updated);
+    scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }
@@ -171,7 +166,7 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
     const updated = clearSnapshotCurrentPackage(snapshotText);
 
     if (updated) {
-      writeFile(rootPath, path.join(STATE_ROOT, "snapshot.md"), updated);
+      scaffoldaiState.writeSnapshot(rootPath, updated);
     } else {
       console.warn("warning: could not update snapshot.md Current Package section — update manually");
     }
@@ -183,7 +178,7 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
 
   if (streamDocText) {
     const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${handoffStatus})`);
-    writeFile(rootPath, streamDocPath, updated);
+    scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }

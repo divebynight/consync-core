@@ -207,7 +207,7 @@ function main() {
 
         assert.ok(
           result.stdout.includes("active-state-packet-v1"),
-          `Expected in-flight packet from state to appear in report. Got:\n${result.stdout}`
+          `Expected in-flight packet from state to appear in report. Got stdout:\n${result.stdout}\nGot stderr:\n${result.stderr}`
         );
         assert.ok(
           result.stdout.includes("CLOSEOUT_REQUIRED"),

@@ -504,6 +504,116 @@ function checkScaffoldaiAuthorityBoundary() {
 }
 
 // -----------------------------------------------------------------------
+// H. ScaffoldAI state write authority boundary
+//    Enforce that all writes to .scaffoldai/state/* go through the approved
+//    state authority module: src/lib/scaffoldaiState.scaffoldai.js
+//
+//    Write boundary rules:
+//      - Only scaffoldaiState.scaffoldai.js may contain writeFileSync/writeFile
+//        calls that write directly to .scaffoldai/state/*
+//      - src/mcp/* must not write to .scaffoldai/state/*
+//      - src/commands/* must not write to .scaffoldai/state/*
+//      - src/lib/gatekeeper*.js must use scaffoldaiState.* functions
+//      - Test files are exempt (they legitimately write temp state)
+//
+//    Architecture:
+//      CLI / MCP → gatekeeper / authority functions → scaffoldaiState → .scaffoldai/state/*
+// -----------------------------------------------------------------------
+
+function checkScaffoldaiStateWriteBoundary() {
+  const violations = [];
+
+  // Files exempt from state write boundary checks
+  const exemptPatterns = [
+    /src\/test\//,
+    /src\/lib\/scaffoldaiState\.scaffoldai\.js$/,
+  ];
+
+  function isExempt(filePath) {
+    return exemptPatterns.some((pattern) => pattern.test(filePath));
+  }
+
+  // Scan all relevant source files
+  const srcDirs = ["src/commands", "src/mcp", "src/lib"];
+
+  for (const srcDir of srcDirs) {
+    const dirPath = path.join(repoRoot, srcDir);
+    if (!fs.existsSync(dirPath)) continue;
+
+    const files = fs
+      .readdirSync(dirPath)
+      .filter((f) => f.endsWith(".js"))
+      .map((f) => path.join(dirPath, f));
+
+    for (const filePath of files) {
+      if (isExempt(filePath)) continue;
+
+      const content = fs.readFileSync(filePath, "utf8");
+      const relPath = path.relative(repoRoot, filePath);
+
+      // Check for direct writes to .scaffoldai/state/*
+      // Pattern: writeFileSync or writeFile with ".scaffoldai/state/" or ".scaffoldai", "state"
+      const stateWritePatterns = [
+        /writeFileSync\s*\([^)]*\.scaffoldai[\/\\]state/,
+        /writeFile\s*\([^)]*\.scaffoldai[\/\\]state/,
+        /appendFileSync\s*\([^)]*\.scaffoldai[\/\\]state/,
+        /appendFile\s*\([^)]*\.scaffoldai[\/\\]state/,
+      ];
+
+      for (const pattern of stateWritePatterns) {
+        if (pattern.test(content)) {
+          violations.push(
+            `  ${relPath}: contains direct write to .scaffoldai/state/* (should use scaffoldaiState module)`
+          );
+          break;
+        }
+      }
+    }
+  }
+
+  assert.ok(
+    violations.length === 0,
+    `All writes to .scaffoldai/state/* must go through src/lib/scaffoldaiState.scaffoldai.js:\n${violations.join("\n")}`
+  );
+  console.log("  PASS: All state writes go through scaffoldaiState authority module");
+
+  // Verify scaffoldaiState.scaffoldai.js exists and exports expected functions
+  const stateAuthPath = path.join(repoRoot, "src", "lib", "scaffoldaiState.scaffoldai.js");
+  assert.ok(fs.existsSync(stateAuthPath), "scaffoldaiState.scaffoldai.js must exist");
+
+  const stateAuthContent = fs.readFileSync(stateAuthPath, "utf8");
+  const expectedExports = [
+    "writeNextAction",
+    "writeHandoff",
+    "writeSnapshot",
+    "writeActiveStream",
+    "writeStreamDoc",
+  ];
+
+  for (const exportName of expectedExports) {
+    assert.ok(
+      stateAuthContent.includes(exportName),
+      `scaffoldaiState.scaffoldai.js must export ${exportName}`
+    );
+  }
+  console.log("  PASS: scaffoldaiState.scaffoldai.js exports all required functions");
+
+  // Verify gatekeeper files use scaffoldaiState module
+  const gatekeeperFiles = ["gatekeeperMount.js", "gatekeeperClose.js", "gatekeeperSwitch.js"];
+  for (const gkFile of gatekeeperFiles) {
+    const gkPath = path.join(repoRoot, "src", "lib", gkFile);
+    if (!fs.existsSync(gkPath)) continue;
+
+    const gkContent = fs.readFileSync(gkPath, "utf8");
+    assert.ok(
+      gkContent.includes("scaffoldaiState"),
+      `${gkFile} must import scaffoldaiState module`
+    );
+  }
+  console.log("  PASS: Gatekeeper files import scaffoldaiState module");
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -518,6 +628,7 @@ function main() {
     checkIntakeClassifyDocsRouting();
     checkReferenceAuditPathTargets();
     checkScaffoldaiAuthorityBoundary();
+    checkScaffoldaiStateWriteBoundary();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);

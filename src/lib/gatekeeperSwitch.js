@@ -3,9 +3,10 @@ const path = require("path");
 const readline = require("readline");
 
 const { readGatekeeperState, updateStreamSummary } = require("./gatekeeperMount");
+const scaffoldaiState = require("./scaffoldaiState.scaffoldai");
 
-const STREAMS_ROOT = path.join(".consync", "streams");
-const STATE_ROOT = path.join(".consync", "state");
+const STREAMS_ROOT = path.join(".scaffoldai", "streams");
+const STATE_ROOT = path.join(".scaffoldai", "state");
 
 const FIXED_STREAMS = ["process", "electron_ui"];
 
@@ -17,12 +18,6 @@ function readFile(rootPath, relativePath) {
   const absolutePath = path.join(rootPath, relativePath);
   if (!fs.existsSync(absolutePath)) return null;
   return fs.readFileSync(absolutePath, "utf8");
-}
-
-function writeFile(rootPath, relativePath, content) {
-  const absolutePath = path.join(rootPath, relativePath);
-  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-  fs.writeFileSync(absolutePath, content, "utf8");
 }
 
 // ---------------------------------------------------------------------------
@@ -253,7 +248,7 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
     let updated = fromStreamText.replace(/^(- status:\s*).*$/m, "$1paused");
     updated = updateStreamSummary(updated, `paused — switched to ${toStream}`);
     updated = addPauseCheckpoint(updated, packageName);
-    writeFile(rootPath, fromStreamPath, updated);
+    scaffoldaiState.writeStreamDoc(rootPath, fromStream, updated);
   } else {
     console.warn(`warning: could not update streams/${fromStream}/stream.md — update manually`);
   }
@@ -265,14 +260,14 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
   if (toStreamText) {
     let updated = toStreamText.replace(/^(- status:\s*).*$/m, "$1active");
     updated = updateStreamSummary(updated, "active — resumed via switch");
-    writeFile(rootPath, toStreamPath, updated);
+    scaffoldaiState.writeStreamDoc(rootPath, toStream, updated);
   } else {
     console.warn(`warning: could not update streams/${toStream}/stream.md — update manually`);
   }
 
   // 3. Update active-stream.md
   const activeStreamContent = buildActiveStreamContent(toStream, fromStream, pausedStreams, switchReason);
-  writeFile(rootPath, path.join(STATE_ROOT, "active-stream.md"), activeStreamContent);
+  scaffoldaiState.writeActiveStream(rootPath, activeStreamContent);
 
   // 4. Update snapshot.md — active stream value + clear Current Package
   const snapshotText = readFile(rootPath, path.join(STATE_ROOT, "snapshot.md"));
@@ -298,7 +293,7 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
         ].join("\n");
       }
 
-      writeFile(rootPath, path.join(STATE_ROOT, "snapshot.md"), updated);
+      scaffoldaiState.writeSnapshot(rootPath, updated);
     } else {
       console.warn("warning: could not update snapshot.md active stream — update manually");
     }
