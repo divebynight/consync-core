@@ -116,9 +116,20 @@ function gatherStatus(repoRoot, options = {}) {
     warnings.push("handoff.md not found — expected after each closeout");
   }
 
-  // .consync/ at repo root is an architecture violation
-  if (fs.existsSync(path.join(repoRoot, ".consync"))) {
-    warnings.push(".consync/ exists at repo root — architecture violation; must be removed");
+  // Migrated ScaffoldAI process directories must not return to .consync/
+  // (.consync/ itself may contain Consync product artifacts like history/)
+  const consyncStateDir = path.join(repoRoot, ".consync", "state");
+  const consyncStreamsDir = path.join(repoRoot, ".consync", "streams");
+  const consyncPacketsDir = path.join(repoRoot, ".consync", "packets");
+
+  if (fs.existsSync(consyncStateDir)) {
+    warnings.push(".consync/state/ exists — migrated ScaffoldAI state must not return here");
+  }
+  if (fs.existsSync(consyncStreamsDir)) {
+    warnings.push(".consync/streams/ exists — migrated ScaffoldAI streams must not return here");
+  }
+  if (fs.existsSync(consyncPacketsDir)) {
+    warnings.push(".consync/packets/ exists — migrated ScaffoldAI packets must not return here");
   }
 
   // Blocker: contract says in_flight but next-action says NONE

@@ -56,6 +56,8 @@ const SCAN_SKIP_DIRS = new Set([
 const SCAN_SKIP_FILES = new Set([
   // This file contains the forbidden strings as string literals for comparison purposes.
   path.join(repoRoot, "src", "test", "scaffoldai-invariants.test.js"),
+  // This file checks for migrated ScaffoldAI directories as part of status/preflight warnings
+  path.join(repoRoot, "src", "lib", "scaffoldaiStatus.query.scaffoldai.js"),
 ]);
 
 function collectActiveFiles(target, files = []) {
