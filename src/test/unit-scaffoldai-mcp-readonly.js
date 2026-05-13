@@ -335,7 +335,7 @@ for (const [name, fn] of toolFns) {
       const source = fs.readFileSync(filePath, "utf8");
       check(
         !source.includes("mcp/server") && !source.includes("mcp\\server"),
-        `${path.basename(filePath)} does not import src/mcp/server.js`
+        `${path.basename(filePath)} does not import src/scaffoldai/mcp/server.js`
       );
     } catch {
       fail(`Could not read ${path.basename(filePath)}`);

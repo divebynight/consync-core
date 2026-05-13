@@ -26,7 +26,7 @@ It exposes a minimal subset of ScaffoldAI capabilities with tighter boundaries t
 - An autonomous agent bus
 - A shell execution proxy
 - A command router
-- A duplicate of `src/mcp/`
+- A duplicate of `src/scaffoldai/mcp/`
 
 ---
 
@@ -109,7 +109,7 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls minimal fun
 
 ### 4. Stricter Than Operational Surface
 
-This surface is **deliberately more constrained** than `src/mcp/`:
+This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
 - **Fewer tools** (2 vs 8)
 - **No diagnostic tools** (no signal, no shared-memory)
 - **No filesystem access** (boundary enforced)
@@ -145,7 +145,7 @@ ChatGPT and other MCP clients can launch this server via stdio:
 ```json
 {
   "command": "node",
-  "args": ["src/mcp-readonly/stdio.js"]
+  "args": ["src/scaffoldai/mcp-readonly/stdio.js"]
 }
 ```
 
@@ -156,7 +156,7 @@ ChatGPT and other MCP clients can launch this server via stdio:
 For HTTPS-connected clients:
 
 ```bash
-node src/mcp-readonly/http.js
+node src/scaffoldai/mcp-readonly/http.js
 ```
 
 Default port: 3100
@@ -170,10 +170,10 @@ This surface must remain **deliberately minimal**.
 When considering new tools for external clients:
 
 1. **Evaluate necessity** - Is this tool essential for external observation?
-2. **Check operational surface first** - Can the client use `src/mcp/` instead?
+2. **Check operational surface first** - Can the client use `src/scaffoldai/mcp/` instead?
 3. **Maintain strict boundaries** - No filesystem, git, processes, or state writes
 4. **Create shared core function** in `src/lib/*.scaffoldai.js` if needed
-5. **Add thin adapter wrapper** in `src/mcp-readonly/tools/`
+5. **Add thin adapter wrapper** in `src/scaffoldai/mcp-readonly/tools/`
 6. **Update compatibility tests** to verify new tool
 7. **Document expansion rationale** in this README
 
@@ -185,14 +185,14 @@ When considering new tools for external clients:
 
 Readonly MCP tools are tested through:
 - Core function tests: `src/test/unit-scaffoldai-*.test.js`
-- Compatibility tests: `src/test/mcp-readonly-compatibility.test.js` (if exists)
+- Compatibility tests: `src/test/mcp-readonly-chatgpt-compatibility.js`
 - Manual ChatGPT integration testing
 
 ---
 
 ## Related Documentation
 
-- `src/mcp/README.md` - Local operational surface (fuller capabilities)
+- `src/scaffoldai/mcp/README.md` - Local operational surface (fuller capabilities)
 - `.scaffoldai/reference/mcp-boundary.reference.md` - MCP boundary and dual surface architecture
 - `COMPATIBILITY.md` - ChatGPT compatibility expectations
 - `.scaffoldai/contracts/` - Binding contracts for ScaffoldAI behavior
@@ -202,8 +202,8 @@ Readonly MCP tools are tested through:
 ## Critical Constraints
 
 1. **This server must remain a thin adapter** - no business logic, permission logic, or state-transition logic
-2. **This server must stay stricter than `src/mcp/`** - minimal tool surface, no filesystem/git/process access
+2. **This server must stay stricter than `src/scaffoldai/mcp/`** - minimal tool surface, no filesystem/git/process access
 3. **All state access must go through `scaffoldaiState` gateway** - no direct file reads/writes
 4. **No mutation allowed** - this is a readonly surface by design
 5. **Transport does not define authority** - stdio vs HTTPS is irrelevant to permission models
-6. **This is not a duplicate of `src/mcp/`** - these are complementary surfaces for different clients with different trust levels
+6. **This is not a duplicate of `src/scaffoldai/mcp/`** - these are complementary surfaces for different clients with different trust levels

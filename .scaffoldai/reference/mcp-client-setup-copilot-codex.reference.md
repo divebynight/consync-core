@@ -31,14 +31,14 @@ ScaffoldAI MCP v0 is:
 Supported server command for stdio MCP clients:
 
 ```text
-node src/mcp/server.js
+node src/scaffoldai/mcp/server.js
 ```
 
 Client configuration shape:
 
 ```text
 command: node
-args: ["src/mcp/server.js"]
+args: ["src/scaffoldai/mcp/server.js"]
 ```
 
 Do not launch stdio MCP clients through npm wrappers. stdio MCP clients require protocol-clean stdout: stdout must contain only MCP protocol messages, while human-readable logs, diagnostics, warnings, and startup notes belong on stderr. npm lifecycle output can contaminate stdout and break or degrade client parsing.
@@ -143,7 +143,7 @@ For VS Code/Copilot, add the `env` block to `.vscode/mcp.json`:
     "scaffoldai": {
       "type": "stdio",
       "command": "node",
-      "args": ["src/mcp/server.js"],
+      "args": ["src/scaffoldai/mcp/server.js"],
       "cwd": "/path/to/consync-core",
       "env": {
         "SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"
@@ -229,10 +229,10 @@ When configuring Copilot manually, use:
 - transport: local stdio
 - working directory: repo root
 - command: `node`
-- args: `["src/mcp/server.js"]`
+- args: `["src/scaffoldai/mcp/server.js"]`
 - env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
-Before relying on the setup, confirm that Copilot can see the six ScaffoldAI tools listed in this guide.
+Before relying on the setup, confirm that Copilot can see the eight ScaffoldAI tools listed in this guide.
 
 Copilot responses should cite tool observations and ask the human before any action beyond read-only observation or bounded signal append.
 
@@ -249,12 +249,12 @@ When configuring Codex manually, use:
 - transport: local stdio
 - working directory: repo root
 - command: `node`
-- args: `["src/mcp/server.js"]`
+- args: `["src/scaffoldai/mcp/server.js"]`
 - env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
 Codex may use MCP observations for orientation and recommendations. It should use Runtime Commands only through the normal human-authorized workspace execution path, not through MCP.
 
-Before relying on the setup, confirm that Codex can see the six ScaffoldAI tools listed in this guide.
+Before relying on the setup, confirm that Codex can see the eight ScaffoldAI tools listed in this guide.
 
 ---
 
@@ -421,7 +421,7 @@ When a client cannot connect:
 
 - confirm it is using local stdio
 - confirm its working directory is the repo root
-- confirm the server command is `node src/mcp/server.js`
+- confirm the server command is `node src/scaffoldai/mcp/server.js`
 - confirm stdout contains only MCP protocol messages and human-readable logs go to stderr
 - confirm it is not using HTTP, SSE, WebSocket, ngrok, browser transport, or remote access
 - run `npm run test:mcp`

@@ -16,18 +16,18 @@ It provides a controlled, constrained subset of ScaffoldAI capabilities with tig
 
 ---
 
-## Relationship to `src/mcp/`
+## Relationship to `src/scaffoldai/mcp/`
 
 The repository has **two complementary MCP surfaces**:
 
 | Surface | Path | Transport | Client | Role |
 |---------|------|-----------|--------|------|
-| **Operational** | `src/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities |
-| **Readonly** | `src/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
+| **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities |
+| **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
 
 **These are NOT duplicates.** They serve different client ecosystems:
-- `src/mcp/` is the **local trusted surface** with fuller capabilities (status, preflight, question, verify, closeout, diagnostic tools)
-- `src/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status only)
+- `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (status, preflight, question, verify, closeout, diagnostic tools)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status only)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 
@@ -72,7 +72,7 @@ The dedicated compatibility test suite verifies:
 
 ## Boundary
 
-`src/mcp-readonly/**` must not:
+`src/scaffoldai/mcp-readonly/**` must not:
 
 - import filesystem modules
 - call shell, git, or child processes

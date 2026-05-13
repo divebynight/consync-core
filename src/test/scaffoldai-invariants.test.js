@@ -417,16 +417,16 @@ function checkReferenceAuditPathTargets() {
 //      - CLI commands and MCP both import from src/lib/*.scaffoldai.js
 //
 //    Architectural layers:
-//      Surface Layer:  src/commands/*, src/mcp/*
+//      Surface Layer:  src/commands/*, src/scaffoldai/mcp/*
 //      Authority Layer: src/lib/*.scaffoldai.js
 //      State Layer:     .scaffoldai/state/*
 //
 //    Allowed:
 //      src/commands/* → src/lib/*.scaffoldai.js
-//      src/mcp/*      → src/lib/*.scaffoldai.js
+//      src/scaffoldai/mcp/*      → src/lib/*.scaffoldai.js
 //
 //    Forbidden:
-//      src/mcp/*              → src/commands/*
+//      src/scaffoldai/mcp/*              → src/commands/*
 //      src/lib/*.scaffoldai.js → src/commands/*
 // -----------------------------------------------------------------------
 
@@ -448,7 +448,7 @@ function checkScaffoldaiAuthorityBoundary() {
   const violations = [];
 
   // 1. Check MCP files do not import from src/commands/*
-  const mcpDir = path.join(repoRoot, "src", "mcp");
+  const mcpDir = path.join(repoRoot, "src", "scaffoldai", "mcp");
   const mcpFiles = fs.existsSync(mcpDir)
     ? fs.readdirSync(mcpDir).filter((f) => f.endsWith(".js")).map((f) => path.join(mcpDir, f))
     : [];
@@ -558,7 +558,7 @@ function checkScaffoldaiAuthorityBoundary() {
 //    Write boundary rules:
 //      - Only scaffoldaiState.state.scaffoldai.js may contain writeFileSync/writeFile
 //        calls that write directly to .scaffoldai/state/*
-//      - src/mcp/* must not write to .scaffoldai/state/*
+//      - src/scaffoldai/mcp/* must not write to .scaffoldai/state/*
 //      - src/commands/* must not write to .scaffoldai/state/*
 //      - src/lib/gatekeeper*.js must use scaffoldaiState.* functions
 //      - Test files are exempt (they legitimately write temp state)

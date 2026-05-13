@@ -123,7 +123,7 @@ Local MCP clients should launch this server directly:
 ```json
 {
   "command": "node",
-  "args": ["src/mcp/server.js"]
+  "args": ["src/scaffoldai/mcp/server.js"]
 }
 ```
 
@@ -149,7 +149,7 @@ Any non-protocol stdout output will corrupt the client/server message exchange.
 When adding new MCP tools:
 
 1. **Create shared core function first** in `src/lib/*.scaffoldai.js`
-2. **Add thin adapter wrapper** in `src/mcp/tools.js` or similar
+2. **Add thin adapter wrapper** in `src/scaffoldai/mcp/tools.js` or similar
 3. **Validate input shape** using zod schemas
 4. **Delegate to core function** with minimal transformation
 5. **Format response** for MCP output
@@ -179,7 +179,7 @@ The MCP server itself is integration-tested through manual client verification, 
 ## Related Documentation
 
 - `.scaffoldai/reference/mcp-boundary.reference.md` - MCP boundary and authority model
-- `src/mcp-readonly/COMPATIBILITY.md` - Readonly surface compatibility expectations
+- `src/scaffoldai/mcp-readonly/COMPATIBILITY.md` - Readonly surface compatibility expectations
 - `.scaffoldai/contracts/` - Binding contracts for ScaffoldAI behavior
 - `.scaffoldai/process/runbook.process.md` - Operational workflow procedures
 
@@ -192,4 +192,4 @@ The MCP server itself is integration-tested through manual client verification, 
 3. **Mutation must go through gatekeeper authority functions** - never bypass transition validation
 4. **Transport does not define authority** - stdio vs HTTPS is irrelevant to permission models
 5. **Diagnostic tools must remain isolated** - no workflow engine behavior, no task queues
-6. **This is not a duplicate of `src/mcp-readonly/`** - these are complementary surfaces for different clients
+6. **This is not a duplicate of `src/scaffoldai/mcp-readonly/`** - these are complementary surfaces for different clients

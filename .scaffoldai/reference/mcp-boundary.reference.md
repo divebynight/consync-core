@@ -20,21 +20,21 @@ The repository has **two complementary MCP surfaces**:
 
 | Surface | Path | Transport | Client | Role | Current Tools |
 |---------|------|-----------|--------|------|---------------|
-| **Operational** | `src/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, signal, memory_write, memory_read |
-| **Readonly** | `src/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal) |
+| **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, signal, memory_write, memory_read |
+| **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal) |
 
 ### Why Two Surfaces?
 
 **These are NOT duplicates.** They serve different client ecosystems with different trust and capability requirements:
 
-1. **`src/mcp/` - Local Operational Surface**
+1. **`src/scaffoldai/mcp/` - Local Operational Surface**
    - **Trusted local clients** (Copilot, Codex running on developer machine)
    - **stdio transport only** (no network exposure)
    - **Fuller capability set** (status, preflight, question, verify recommendations, closeout readiness)
    - **Diagnostic tools** (signal, shared-memory)
    - **Future expansion** (may add more operational tools as needed)
 
-2. **`src/mcp-readonly/` - External Compatibility Surface**
+2. **`src/scaffoldai/mcp-readonly/` - External Compatibility Surface**
    - **External or HTTPS clients** (ChatGPT, future cloud-connected tools)
    - **stdio + HTTPS transport** (network-exposed capability)
    - **Minimal tool surface** (identity, status only — no diagnostic tools)
@@ -61,7 +61,7 @@ Local stdio MCP clients should launch the server directly with Node:
 
 ```text
 command: node
-args: ["src/mcp/server.js"]
+args: ["src/scaffoldai/mcp/server.js"]
 ```
 
 Do not use `npm run scaffoldai:mcp` for stdio MCP clients. npm lifecycle output can contaminate stdout and break the MCP protocol stream.

@@ -52,7 +52,7 @@ After extracting ScaffoldAI business logic from CLI commands to shared lib modul
 
 ```text
 Surface Layer:   src/commands/scaffoldai-*.js (CLI)
-                 src/mcp/* (MCP tools)
+                 src/scaffoldai/mcp/* (MCP tools)
                       ↓
 Authority Layer: src/lib/*.scaffoldai.js
                       ↓
@@ -61,10 +61,10 @@ State Layer:     .scaffoldai/state/*
 
 **Allowed:**
 - `src/commands/scaffoldai-*.js` → `src/lib/*.scaffoldai.js`
-- `src/mcp/*` → `src/lib/*.scaffoldai.js`
+- `src/scaffoldai/mcp/*` → `src/lib/*.scaffoldai.js`
 
 **Forbidden (enforced by `scaffoldai-invariants.test.js`):**
-- `src/mcp/*` → `src/commands/*` (MCP must never import CLI command files)
+- `src/scaffoldai/mcp/*` → `src/commands/*` (MCP must never import CLI command files)
 - `src/lib/*.scaffoldai.js` → `src/commands/*` (authority layer must not depend on surface layer)
 
 ScaffoldAI CLI commands and MCP tools should be thin wrappers that call the same shared authority functions with a `repoRoot` parameter.
@@ -95,7 +95,7 @@ scaffoldaiState.scaffoldai.js (single write boundary)
 ```
 
 **Forbidden (enforced by `scaffoldai-invariants.test.js`):**
-- `src/mcp/*` must not write directly to `.scaffoldai/state/*`
+- `src/scaffoldai/mcp/*` must not write directly to `.scaffoldai/state/*`
 - `src/commands/*` must not write directly to `.scaffoldai/state/*`
 - `src/lib/gatekeeper*.js` must use `scaffoldaiState.*` functions, not direct `writeFileSync`
 
@@ -131,7 +131,7 @@ scaffoldaiState.scaffoldai.js (single read/write boundary)
 - `src/test/*` — test files may read state directly for fixture verification
 
 **Forbidden (enforced by `scaffoldai-invariants.test.js`):**
-- `src/mcp/*` must not read directly from `.scaffoldai/state/*`
+- `src/scaffoldai/mcp/*` must not read directly from `.scaffoldai/state/*`
 - `src/commands/*` must not read directly from `.scaffoldai/state/*`
 - `src/lib/` authority modules should use `scaffoldaiState.*` read functions for operational state access
 - Random helpers, scripts, or commands must not mutate state files directly

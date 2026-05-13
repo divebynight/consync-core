@@ -8,19 +8,19 @@ Status: ACTIVE CONTRACT
 
 ## 1. Purpose
 
-Define how MCP-aware AI clients may interact with the ScaffoldAI MCP operational surface (`src/mcp/`).
+Define how MCP-aware AI clients may interact with the ScaffoldAI MCP operational surface (`src/scaffoldai/mcp/`).
 
 v0 includes five read-only observation tools, one bounded append-only local signal tool, and diagnostic shared-memory POC tools. An MCP client may ask ScaffoldAI for structured runtime observations, summarize those observations for the human, recommend the next human-controlled action, append tiny non-authoritative presence/capability signals under `.scaffoldai/tmp/`, and manually use shared-memory diagnostics when requested. It must not modify authoritative repo state, run workflows, approve work, dispatch tools, run autonomous agents, or infer authority that the MCP tools do not provide.
 
 The human remains the final authority for all decisions, execution, verification, closeout, commits, pushes, and workflow transitions.
 
-**Note:** This contract applies to the **operational MCP surface** (`src/mcp/`), which is the local trusted surface for Copilot, Codex, and other stdio clients. A complementary **readonly MCP surface** (`src/mcp-readonly/`) exists for external clients (ChatGPT, HTTPS connections) with a stricter, minimal tool subset (identity, status only). See `src/mcp/README.md` and `src/mcp-readonly/README.md` for the relationship between these surfaces.
+**Note:** This contract applies to the **operational MCP surface** (`src/scaffoldai/mcp/`), which is the local trusted surface for Copilot, Codex, and other stdio clients. A complementary **readonly MCP surface** (`src/scaffoldai/mcp-readonly/`) exists for external clients (ChatGPT, HTTPS connections) with a stricter, minimal tool subset (identity, status only). See `src/scaffoldai/mcp/README.md` and `src/scaffoldai/mcp-readonly/README.md` for the relationship between these surfaces.
 
 ---
 
 ## 2. Scope
 
-This contract applies to AI clients using the ScaffoldAI operational MCP server (`src/mcp/`) and its v0 tools:
+This contract applies to AI clients using the ScaffoldAI operational MCP server (`src/scaffoldai/mcp/`) and its v0 tools:
 
 - `scaffoldai_status`
 - `scaffoldai_preflight`
@@ -42,7 +42,7 @@ The MCP surface is separate from Runtime Commands. MCP tools observe and report.
 - `npm run scaffoldai:closeout`
 - `npm run scaffoldai:mcp:snapshot`
 
-**Out of scope:** This contract does not apply to the readonly MCP surface (`src/mcp-readonly/`), which exposes only `scaffoldai_identity` and `scaffoldai_status` (minimal, no git) for external clients. That surface has tighter boundaries and no diagnostic tools.
+**Out of scope:** This contract does not apply to the readonly MCP surface (`src/scaffoldai/mcp-readonly/`), which exposes only `scaffoldai_identity` and `scaffoldai_status` (minimal, no git) for external clients. That surface has tighter boundaries and no diagnostic tools.
 
 ---
 
@@ -51,9 +51,9 @@ The MCP surface is separate from Runtime Commands. MCP tools observe and report.
 This contract assumes:
 
 - MCP clients may be ChatGPT, Codex, Copilot, or future MCP-aware clients.
-- Current verified MCP clients for the operational surface (`src/mcp/`) include Codex and Copilot.
+- Current verified MCP clients for the operational surface (`src/scaffoldai/mcp/`) include Codex and Copilot.
 - The v0 operational MCP surface is available through local stdio transport only.
-- The complementary readonly MCP surface (`src/mcp-readonly/`) is available through stdio + HTTPS for external clients.
+- The complementary readonly MCP surface (`src/scaffoldai/mcp-readonly/`) is available through stdio + HTTPS for external clients.
 - Local clients launch ephemeral MCP stdio instances directly with Node.
 - stdout must remain protocol-clean for MCP protocol messages; human-readable logs belong on stderr.
 - Shared ScaffoldAI state persists independently of MCP process lifetime.
