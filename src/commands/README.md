@@ -23,8 +23,8 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - `intake-run.agent.scaffoldai.js` / `preflight-run.agent.scaffoldai.js` / `verify-run.agent.scaffoldai.js` — agent execution entry points
 - `reference-audit.check.scaffoldai.js` — audits path references across the repo
 - `portable.process.scaffoldai.js` — generates a portable scaffold
-- `sandbox-verify.js` / `sandbox-catalog.js` / `sandbox-describe.js` / `sandbox-discover.js` — sandbox fixture inspection commands
-- `sandbox-scan.js` / `sandbox-search.js` / `sandbox-propose.js` / `sandbox-desktop-search.js` — sandbox query and proposal commands
+- `sandbox-verify.cmd.consync.js` / `sandbox-catalog.cmd.consync.js` / `sandbox-describe.cmd.consync.js` / `sandbox-discover.cmd.consync.js` — sandbox fixture inspection commands
+- `sandbox-scan.cmd.consync.js` / `sandbox-search.cmd.consync.js` / `sandbox-propose.cmd.consync.js` / `sandbox-desktop-search.cmd.consync.js` — sandbox query and proposal commands
 
 ---
 

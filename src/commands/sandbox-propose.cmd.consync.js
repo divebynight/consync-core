@@ -1,5 +1,5 @@
 const path = require("path");
-const { buildSandboxDescribeSummary, compareText } = require("./sandbox-describe");
+const { buildSandboxDescribeSummary, compareText } = require("./sandbox-describe.cmd.consync");
 
 function runSandboxProposeCommand(targetPath) {
   if (!targetPath) {

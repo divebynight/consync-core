@@ -45,15 +45,18 @@ function runSystemCheckCommand() {
   }
 
   const requiredCommands = [
-    "new-guid.js",
-    "list-guid.js",
+    "new-guid.cmd.consync.js",
+    "list-guid.cmd.consync.js",
     "portable.process.scaffoldai.js",
-    "show-guid.js",
-    "sandbox-scan.js",
-    "sandbox-verify.js",
-    "sandbox-discover.js",
-    "sandbox-search.js",
-    "sandbox-desktop-search.js",
+    "show-guid.cmd.consync.js",
+    "sandbox-scan.cmd.consync.js",
+    "sandbox-verify.cmd.consync.js",
+    "sandbox-describe.cmd.consync.js",
+    "sandbox-propose.cmd.consync.js",
+    "sandbox-catalog.cmd.consync.js",
+    "sandbox-discover.cmd.consync.js",
+    "sandbox-search.cmd.consync.js",
+    "sandbox-desktop-search.cmd.consync.js",
     "state-integrity-check.check.scaffoldai.js",
   ];
 
