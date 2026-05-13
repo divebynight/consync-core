@@ -1,6 +1,6 @@
-const { createGuid } = require("./guid");
+const { createGuid } = require("./guid.util.consync");
 const { createFileTimestamp, createIsoTimestamp } = require("./time.util.shared");
-const { writeJsonArtifact, appendEventLog } = require("./fs");
+const { writeJsonArtifact, appendEventLog } = require("./fs.util.consync");
 const { copyToClipboard } = require("./clipboard.util.shared");
 
 async function newGuidTool(input) {

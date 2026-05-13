@@ -54,7 +54,7 @@ These files and folders belong to the user-facing Electron app/runtime boundary.
 | Renderer UI | `src/electron/renderer/index.html`, `src/electron/renderer/renderer.jsx`, `src/electron/renderer/App.jsx`, `src/electron/renderer/styles.css` | User-facing desktop UI. |
 | Renderer UI helpers | `src/electron/renderer/session-panel.mjs`, `src/electron/renderer/bookmark-flow.mjs`, `src/electron/renderer/mock-search-panel.mjs`, `src/electron/renderer/mock-waveform-panel.mjs` | Currently imported by the renderer and needed unless the app surface is simplified. |
 | Runtime core | `src/core/desktop-shell.js`, `src/core/session.js` | Provides desktop summaries, sandbox-backed search, reveal behavior, session state, and bookmark writes. |
-| Runtime library dependency | `src/lib/sandbox-anchors.js` | Currently required by `src/core/desktop-shell.js` for desktop mock search. |
+| Runtime library dependency | `src/lib/sandbox-anchors.product.consync.js` | Currently required by `src/core/desktop-shell.js` for desktop mock search. |
 | Build manifest | `package.json`, `package-lock.json` | Required to install/build/package reproducibly. |
 | Electron/Vite config | `forge.config.js`, `vite.main.config.mjs`, `vite.preload.config.mjs`, `vite.renderer.config.mjs` | Required for local development and packaging. |
 | Runtime dependencies | production dependencies from `package.json` | Current production dependencies are `react` and `react-dom`; Electron itself is a build/dev dependency used by Forge packaging. |
@@ -84,7 +84,7 @@ the repo, but they are not part of the user-facing app bundle.
 | GitHub/Copilot adapter | `.github/` | Tool-specific guidance only; points back to `.consync/`. |
 | Process CLI entrypoint | `src/index.js`, `src/cli/index.js` | Mixed CLI dispatcher; useful for development and process commands, not the Electron runtime bundle. |
 | Gatekeeper/process commands | `src/commands/gatekeeper.js`, `src/commands/state-integrity-check.js`, `src/commands/handoff-bundle.process.scaffoldai.js`, `src/commands/reentry-check.agent.scaffoldai.js`, `src/commands/system-check.js`, `src/commands/system-summary.js` | Process and integrity workflow commands. |
-| Process libs | `src/lib/gatekeeper*.js`, `src/lib/stateIntegrityCheck.js`, `src/lib/portableScaffold.process.scaffoldai.js`, `src/lib/fs.js` where it targets `.consync/state` or `sandbox/current` | Development/process support. |
+| Process libs | `src/lib/gatekeeper*.js`, `src/lib/stateIntegrityCheck.js`, `src/lib/portableScaffold.process.scaffoldai.js`, `src/lib/fs.util.consync.js` where it targets `.consync/state` or `sandbox/current` | Development/process support. |
 | Utility scripts | `scripts/check-handoff-contract.js`, `scripts/playwright-electron-main.cjs` | Verification and test support. |
 | Existing process docs | `README.md`, `AGENTS.md`, `.consync/docs/**` | Repo/process guidance, not app runtime content. |
 
@@ -134,7 +134,7 @@ src/electron/shared/**
 src/electron/renderer/**
 src/core/desktop-shell.js
 src/core/session.js
-src/lib/sandbox-anchors.js
+src/lib/sandbox-anchors.product.consync.js
 ```
 
 For the packaged Electron app:
@@ -220,7 +220,7 @@ runtime content.
 
 Observed Electron runtime imports do not read `.consync/` directly. The desktop
 runtime reads sandbox session/search data through `src/core/session.js`,
-`src/core/desktop-shell.js`, and `src/lib/sandbox-anchors.js`. `.consync/` is
+`src/core/desktop-shell.js`, and `src/lib/sandbox-anchors.product.consync.js`. `.consync/` is
 needed for development/process workflows: state preflight/postflight,
 gatekeeper, handoff bundle, portable template scaffolding, agent guidance, docs,
 streams, prompts, and skills.

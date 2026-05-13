@@ -1,4 +1,4 @@
-const { buildSandboxDesktopSearchOutput } = require("../lib/sandbox-anchors");
+const { buildSandboxDesktopSearchOutput } = require("../lib/sandbox-anchors.product.consync");
 
 function runSandboxDesktopSearchCommand(targetPath, query) {
   if (!targetPath) {

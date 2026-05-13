@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { newGuidTool } = require("../lib/newGuidTool");
+const { newGuidTool } = require("../lib/newGuidTool.product.consync");
 
 function ask(question) {
   const interfaceHandle = readline.createInterface({

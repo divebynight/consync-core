@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { SANDBOX_CURRENT_DIR } = require("../lib/fs.util.consync");
 
 function runListGuidCommand() {
   const artifactDir = path.join(process.cwd(), SANDBOX_CURRENT_DIR);

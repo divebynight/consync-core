@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { SANDBOX_CURRENT_DIR } = require("../lib/fs.util.consync");
 
 function findMatchingFiles(directoryPath, targetFileName, matches) {
   for (const entry of fs.readdirSync(directoryPath, { withFileTypes: true })) {

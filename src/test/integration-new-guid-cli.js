@@ -3,7 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { CONSYNC_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { CONSYNC_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs.util.consync");
 
 const TEST_NAME = "integration-new-guid-cli";
 

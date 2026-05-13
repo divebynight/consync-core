@@ -1,4 +1,4 @@
-const { summarizeFolder } = require("../lib/folder-summary");
+const { summarizeFolder } = require("../lib/folder-summary.util.consync");
 
 function runFolderSummaryCommand(targetPath) {
   if (!targetPath) {

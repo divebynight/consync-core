@@ -1,6 +1,6 @@
 const assert = require("assert");
 const path = require("path");
-const { summarizeFolder } = require("../lib/folder-summary");
+const { summarizeFolder } = require("../lib/folder-summary.util.consync");
 
 const TEST_NAME = "unit-folder-summary";
 

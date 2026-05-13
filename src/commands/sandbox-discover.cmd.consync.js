@@ -1,4 +1,4 @@
-const { buildSandboxDiscoverOutput } = require("../lib/sandbox-anchors");
+const { buildSandboxDiscoverOutput } = require("../lib/sandbox-anchors.product.consync");
 
 function runSandboxDiscoverCommand(targetPath) {
   if (!targetPath) {

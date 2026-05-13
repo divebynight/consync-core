@@ -2,8 +2,8 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { newGuidTool } = require("../lib/newGuidTool");
-const { CONSYNC_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { newGuidTool } = require("../lib/newGuidTool.product.consync");
+const { CONSYNC_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs.util.consync");
 
 const TEST_NAME = "unit-new-guid";
 

@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { buildSandboxDesktopSearchResult } = require("../lib/sandbox-anchors");
+const { buildSandboxDesktopSearchResult } = require("../lib/sandbox-anchors.product.consync");
 
 function getDesktopShellInfo() {
   return {
