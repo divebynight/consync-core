@@ -11,6 +11,7 @@ const { runSandboxSearchCommand } = require("../commands/sandbox-search.cmd.cons
 const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search.cmd.consync");
 const { runSystemSummaryCommand } = require("../commands/system-summary.cmd.consync");
 const { runFolderSummaryCommand } = require("../commands/folder-summary.cmd.consync");
+const { runSystemCheckCommand } = require("../commands/system-check.check.system");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {
@@ -87,6 +88,11 @@ async function main() {
 
   if (command === "folder-summary") {
     runFolderSummaryCommand(process.argv[3]);
+    return;
+  }
+
+  if (command === "system-check") {
+    runSystemCheckCommand();
     return;
   }
 

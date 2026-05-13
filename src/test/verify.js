@@ -338,21 +338,21 @@ function main() {
   runNodeStep("[verify] Standalone notes grouping", [path.join(repoRoot, "src", "test", "unit-standalone-notes-grouping.js")], GROUPS.RENDERER);
   console.log("");
 
-  runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Fixture verification: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Fixture verification: nested-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-verify", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Descriptive layer: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Descriptive layer: basic-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-describe", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
   console.log("");
 
   runExpectationStep(
     "[verify] Nested anchor discovery trial",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-discover", "sandbox/fixtures/nested-anchor-trial"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-discover", "sandbox/fixtures/nested-anchor-trial"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-discover.md"),
     GROUPS.CLI
   );
@@ -360,7 +360,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Nested anchor search trial",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-search-moss.md"),
     GROUPS.CLI
   );
@@ -368,7 +368,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Desktop mock search flow",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-desktop-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-desktop-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-desktop-search-moss.md"),
     GROUPS.CLI
   );
@@ -376,7 +376,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: basic-mixed",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "basic-mixed-propose.md"),
     GROUPS.CLI
   );
@@ -384,7 +384,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: nested-mixed",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/nested-mixed"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/nested-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "nested-mixed-propose.md"),
     GROUPS.CLI
   );
@@ -392,7 +392,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: single-type-flat",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/single-type-flat"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/single-type-flat"],
     path.join(repoRoot, "sandbox", "expectations", "single-type-flat-propose.md"),
     GROUPS.CLI
   );
@@ -400,13 +400,13 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: mixed-flat-small",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/mixed-flat-small"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/mixed-flat-small"],
     path.join(repoRoot, "sandbox", "expectations", "mixed-flat-small-propose.md"),
     GROUPS.CLI
   );
   console.log("");
 
-  runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "index.js"), "sandbox-catalog"], GROUPS.CLI);
+  runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "consync.js"), "sandbox-catalog"], GROUPS.CLI);
   console.log("");
 
   runNodeStep("[verify] Gatekeeper decision rules", [path.join(repoRoot, "src", "test", "unit-dry-run-check.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
@@ -464,7 +464,7 @@ function main() {
   runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
+  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
   console.log("");
 
   printSummary();
