@@ -859,6 +859,102 @@ function checkSharedUtilityBoundary() {
 }
 
 // -----------------------------------------------------------------------
+// M. ScaffoldAI State Schema Invariant
+//    Verify that .scaffoldai/state/ contains only approved files and
+//    directories per the state schema contract.
+//
+//    Architecture:
+//      .scaffoldai/state/ is operational ScaffoldAI state. Adding,
+//      removing, or renaming state artifacts requires explicit approval
+//      and contract updates.
+//
+//    Contract: .scaffoldai/contracts/state-schema.contract.md
+// -----------------------------------------------------------------------
+
+function checkStateSchemaInvariant() {
+  const stateDir = path.join(repoRoot, ".scaffoldai", "state");
+
+  // Approved state files (per state-schema.contract.md)
+  const APPROVED_STATE_FILES = new Set([
+    "active-contract.json",
+    "active-contract.md",
+    "active-stream.md",
+    "next-action.md",
+    "handoff.md",
+    "snapshot.md",
+    "cleanup-complete-checkpoint.md",
+    "history.md",
+    "history.jsonl", // Created on first append — may not exist initially
+  ]);
+
+  // Approved subdirectories (per state-schema.contract.md)
+  const APPROVED_STATE_DIRS = new Set([
+    "history", // Observational history artifacts (not authoritative state)
+  ]);
+
+  // Required files that must always exist
+  const REQUIRED_STATE_FILES = new Set([
+    "active-contract.json",
+    "active-contract.md",
+    "active-stream.md",
+    "next-action.md",
+    "handoff.md",
+    "snapshot.md",
+    "cleanup-complete-checkpoint.md",
+    "history.md",
+    // history.jsonl is intentionally NOT required — created on first append
+  ]);
+
+  if (!fs.existsSync(stateDir)) {
+    throw new Error(`.scaffoldai/state/ does not exist`);
+  }
+
+  const entries = fs.readdirSync(stateDir, { withFileTypes: true });
+  const violations = [];
+
+  // Check for unexpected files or directories
+  for (const entry of entries) {
+    const name = entry.name;
+
+    // Skip .DS_Store and other OS metadata files
+    if (name === ".DS_Store" || name === ".gitkeep") {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      if (!APPROVED_STATE_DIRS.has(name)) {
+        violations.push(
+          `  Unexpected directory: ${name} (not in approved list — update .scaffoldai/contracts/state-schema.contract.md)`
+        );
+      }
+    } else if (entry.isFile()) {
+      if (!APPROVED_STATE_FILES.has(name)) {
+        violations.push(
+          `  Unexpected file: ${name} (not in approved list — update .scaffoldai/contracts/state-schema.contract.md)`
+        );
+      }
+    }
+  }
+
+  // Check for missing required files
+  for (const requiredFile of REQUIRED_STATE_FILES) {
+    const filePath = path.join(stateDir, requiredFile);
+    if (!fs.existsSync(filePath)) {
+      violations.push(
+        `  Missing required file: ${requiredFile} (per .scaffoldai/contracts/state-schema.contract.md)`
+      );
+    }
+  }
+
+  assert.ok(
+    violations.length === 0,
+    `.scaffoldai/state/ schema violations:\n${violations.join("\n")}\n\nSee: .scaffoldai/contracts/state-schema.contract.md`
+  );
+
+  console.log("  PASS: .scaffoldai/state/ contains only approved files and directories");
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -876,6 +972,7 @@ function main() {
     checkScaffoldaiStateWriteBoundary();
     checkScaffoldaiStateReadBoundary();
     checkSharedUtilityBoundary();
+    checkStateSchemaInvariant();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);
