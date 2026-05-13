@@ -1,22 +1,22 @@
-const { runNewGuidCommand } = require("../commands/new-guid");
+const { runNewGuidCommand } = require("../commands/new-guid.cmd.consync");
 const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status.cmd.scaffoldai");
 const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight.cmd.scaffoldai");
 const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify.cmd.scaffoldai");
 const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
 const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question.cmd.scaffoldai");
-const { runListGuidCommand } = require("../commands/list-guid");
-const { runShowGuidCommand } = require("../commands/show-guid");
+const { runListGuidCommand } = require("../commands/list-guid.cmd.consync");
+const { runShowGuidCommand } = require("../commands/show-guid.cmd.consync");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle.process.scaffoldai");
-const { runSandboxScanCommand } = require("../commands/sandbox-scan");
+const { runSandboxScanCommand } = require("../commands/sandbox-scan.cmd.consync");
 const { runSandboxVerifyCommand } = require("../commands/sandbox-verify");
 const { runSandboxDescribeCommand } = require("../commands/sandbox-describe");
 const { runSandboxProposeCommand } = require("../commands/sandbox-propose");
 const { runSandboxCatalogCommand } = require("../commands/sandbox-catalog");
-const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover");
-const { runSandboxSearchCommand } = require("../commands/sandbox-search");
-const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search");
+const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover.cmd.consync");
+const { runSandboxSearchCommand } = require("../commands/sandbox-search.cmd.consync");
+const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search.cmd.consync");
 const { runSystemCheckCommand } = require("../commands/system-check.check.system");
-const { runSystemSummaryCommand } = require("../commands/system-summary");
+const { runSystemSummaryCommand } = require("../commands/system-summary.cmd.consync");
 const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check.check.scaffoldai");
 const { runPortableCommand } = require("../commands/portable.process.scaffoldai");
 const { runGatekeeperCommand } = require("../commands/gatekeeper.cmd.scaffoldai");
@@ -25,7 +25,7 @@ const { runDryRunCheckCommand } = require("../commands/dry-run-check.check.scaff
 const { runConsyncRunCommand } = require("../commands/consync-run.cmd.scaffoldai");
 const { runIntakeRunCommand } = require("../commands/intake-run.agent.scaffoldai");
 const { runReferenceAuditCommand } = require("../commands/reference-audit.check.scaffoldai");
-const { runFolderSummaryCommand } = require("../commands/folder-summary");
+const { runFolderSummaryCommand } = require("../commands/folder-summary.cmd.consync");
 
 function parseNewGuidOptions(argv) {
   if (argv[0] === "--note") {

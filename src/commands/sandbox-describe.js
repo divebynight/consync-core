@@ -1,5 +1,5 @@
 const path = require("path");
-const { buildSandboxScanSummary, compareText } = require("./sandbox-scan");
+const { buildSandboxScanSummary, compareText } = require("./sandbox-scan.cmd.consync");
 
 function categoryForExtension(extension) {
   if (["png", "jpg", "jpeg"].includes(extension)) {

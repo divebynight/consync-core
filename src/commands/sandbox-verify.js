@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { buildSandboxScanOutput } = require("./sandbox-scan");
+const { buildSandboxScanOutput } = require("./sandbox-scan.cmd.consync");
 
 function runSandboxVerifyCommand(targetPath) {
   if (!targetPath) {

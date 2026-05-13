@@ -83,7 +83,7 @@ the repo, but they are not part of the user-facing app bundle.
 | Consync process truth | `.consync/` | Agents, state, streams, docs, prompts, skills, templates, packets, and artifacts. |
 | GitHub/Copilot adapter | `.github/` | Tool-specific guidance only; points back to `.consync/`. |
 | Process CLI entrypoint | `src/index.js`, `src/cli/index.js` | Mixed CLI dispatcher; useful for development and process commands, not the Electron runtime bundle. |
-| Gatekeeper/process commands | `src/commands/gatekeeper.js`, `src/commands/state-integrity-check.js`, `src/commands/handoff-bundle.process.scaffoldai.js`, `src/commands/reentry-check.agent.scaffoldai.js`, `src/commands/system-check.js`, `src/commands/system-summary.js` | Process and integrity workflow commands. |
+| Gatekeeper/process commands | `src/commands/gatekeeper.js`, `src/commands/state-integrity-check.js`, `src/commands/handoff-bundle.process.scaffoldai.js`, `src/commands/reentry-check.agent.scaffoldai.js`, `src/commands/system-check.js`, `src/commands/system-summary.cmd.consync.js` | Process and integrity workflow commands. |
 | Process libs | `src/lib/gatekeeper*.js`, `src/lib/stateIntegrityCheck.js`, `src/lib/portableScaffold.process.scaffoldai.js`, `src/lib/fs.util.consync.js` where it targets `.consync/state` or `sandbox/current` | Development/process support. |
 | Utility scripts | `scripts/check-handoff-contract.js`, `scripts/playwright-electron-main.cjs` | Verification and test support. |
 | Existing process docs | `README.md`, `AGENTS.md`, `.consync/docs/**` | Repo/process guidance, not app runtime content. |

@@ -26,7 +26,7 @@ These areas are part of the ScaffoldAi-facing product surface or app runtime:
 | App/core runtime logic | `src/core/` | Shared app/session concepts used by the product surface. |
 | Reusable runtime utilities | `src/lib/` | Mixed today; some files support product behavior, while others support process workflows. |
 | CLI entrypoint and command routing | `src/index.js`, `src/cli/` | Mixed today; some commands are product-like, others are process/harness-only. |
-| Product-oriented commands | `src/commands/new-guid.js`, `src/commands/list-guid.js`, `src/commands/show-guid.js`, `src/commands/portable.process.scaffoldai.js`, selected sandbox commands | Candidate product-facing commands, depending on future product framing. |
+| Product-oriented commands | `src/commands/new-guid.cmd.consync.js`, `src/commands/list-guid.cmd.consync.js`, `src/commands/show-guid.cmd.consync.js`, `src/commands/portable.process.scaffoldai.js`, selected sandbox commands | Candidate product-facing commands, depending on future product framing. |
 | Product tests | `src/test/*renderer*`, `src/test/*session*`, `src/test/e2e/` | UI and runtime behavior checks for the desktop/app surface. |
 | Desktop packaging/build config | `forge.config.js`, `vite.*.config.mjs`, `playwright.config.js` | Build and verification config for the app surface. |
 
