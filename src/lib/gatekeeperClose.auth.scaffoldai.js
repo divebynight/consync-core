@@ -145,6 +145,16 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }
+
+  // 4. Append history after successful state writes
+  scaffoldaiState.appendHistory(rootPath, {
+    operation: "close",
+    surface: "cli",
+    stream: activeStreamName,
+    package: packageName,
+    status: status,
+    summary: `closed: ${packageName} (${status})`,
+  });
 }
 
 function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamName) {
@@ -170,6 +180,16 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }
+
+  // 3. Append history after successful state writes (reconciliation)
+  scaffoldaiState.appendHistory(rootPath, {
+    operation: "close",
+    surface: "cli",
+    stream: activeStreamName,
+    package: packageName,
+    status: handoffStatus,
+    summary: `closed (reconciliation): ${packageName} (${handoffStatus})`,
+  });
 }
 
 // ---------------------------------------------------------------------------

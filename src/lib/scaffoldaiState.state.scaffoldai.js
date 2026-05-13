@@ -153,6 +153,51 @@ function writeStreamDoc(rootPath, streamName, content) {
 }
 
 // ---------------------------------------------------------------------------
+// History append operation
+// ---------------------------------------------------------------------------
+
+/**
+ * Append a state transition record to .scaffoldai/state/history.jsonl
+ *
+ * This is append-only observational history. It does NOT become source of truth.
+ * It does NOT validate transitions. It only records what happened.
+ *
+ * @param {string} rootPath - Repository root path
+ * @param {object} record - History record with minimal required fields
+ * @param {string} record.operation - "mount" | "close" | "switch"
+ * @param {string} record.surface - "cli" | "mcp-local" | "mcp-https" | "unknown"
+ * @param {string} record.summary - One-line human-readable summary
+ * @param {string} [record.stream] - Stream name (optional but recommended)
+ * @param {string} [record.package] - Package name (optional)
+ * @param {string} [record.status] - "PASS" | "FAIL" | null (for close only)
+ */
+function appendHistory(rootPath, record) {
+  const historyPath = path.join(rootPath, STATE_ROOT, "history.jsonl");
+
+  const entry = {
+    timestamp: new Date().toISOString(),
+    operation: record.operation,
+    surface: record.surface || "unknown",
+    summary: record.summary,
+  };
+
+  // Add optional fields only if present
+  if (record.stream) entry.stream = record.stream;
+  if (record.package) entry.package = record.package;
+  if (record.status !== undefined && record.status !== null) entry.status = record.status;
+
+  try {
+    // Create directory if needed, append record
+    fs.mkdirSync(path.dirname(historyPath), { recursive: true });
+    fs.appendFileSync(historyPath, JSON.stringify(entry) + "\n", "utf8");
+  } catch (err) {
+    // History append failure does not block the transition
+    // Warn but continue
+    console.warn(`warning: could not append to history.jsonl — ${err.message}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -170,4 +215,6 @@ module.exports = {
   writeSnapshot,
   writeActiveStream,
   writeStreamDoc,
+  // History operation
+  appendHistory,
 };

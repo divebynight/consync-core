@@ -482,6 +482,15 @@ function executeMountWrites(rootPath, packageName, type, integrityLevel, request
   } else {
     console.warn("warning: could not update stream.md summary — update manually");
   }
+
+  // Append history after successful state writes
+  scaffoldaiState.appendHistory(rootPath, {
+    operation: "mount",
+    surface: "cli",
+    stream: activeStreamName,
+    package: packageName,
+    summary: `mounted: ${packageName}`,
+  });
 }
 
 // ---------------------------------------------------------------------------

@@ -288,6 +288,15 @@ function executeSwitchWrites(rootPath, fromStream, toStream, switchReason, pause
   }
 
   // next-action.md is NOT written
+
+  // 5. Append history after successful state writes
+  scaffoldaiState.appendHistory(rootPath, {
+    operation: "switch",
+    surface: "cli",
+    stream: toStream,
+    package: packageName || null,
+    summary: `switched from ${fromStream} to ${toStream}`,
+  });
 }
 
 // ---------------------------------------------------------------------------
