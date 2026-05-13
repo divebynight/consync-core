@@ -6,7 +6,7 @@ const { spawn } = require("child_process");
 
 const TEST_NAME = "mcp-readonly-http-e2e";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const serverPath = path.join(repoRoot, "src", "mcp-readonly", "http.js");
+const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "http.js");
 const port = Number.parseInt(process.env.TEST_MCP_READONLY_PORT || "3131", 10);
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;

@@ -1,8 +1,8 @@
 "use strict";
 
 const assert = require("assert");
-const { createIdentityTool } = require("../mcp-readonly/tools/identity");
-const { createStatusTool } = require("../mcp-readonly/tools/status");
+const { createIdentityTool } = require("../scaffoldai/mcp-readonly/tools/identity");
+const { createStatusTool } = require("../scaffoldai/mcp-readonly/tools/status");
 
 const TEST_NAME = "mcp-readonly-unit";
 

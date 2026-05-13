@@ -30,18 +30,18 @@ It exposes a minimal subset of ScaffoldAI capabilities with tighter boundaries t
 
 ---
 
-## Relationship to `src/mcp/`
+## Relationship to `src/scaffoldai/mcp/`
 
 The repository has **two complementary MCP surfaces**:
 
 | Surface | Path | Transport | Client | Role |
-|---------|------|-----------|--------|------|
-| **Operational** | `src/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities |
-| **Readonly** | `src/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
+|---------|------|-----------|--------|------|  
+| **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities |
+| **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
 
 **These are NOT duplicates.** They serve different client ecosystems:
-- `src/mcp/` is the **local trusted surface** with fuller capabilities (8 tools including diagnostics)
-- `src/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (2 tools, no diagnostics)
+- `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (8 tools including diagnostics)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (2 tools, no diagnostics)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 

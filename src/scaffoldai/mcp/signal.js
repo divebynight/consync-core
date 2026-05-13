@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const signalDir = path.join(repoRoot, ".scaffoldai", "tmp");
 const signalPath = path.join(signalDir, "mcp-signals.jsonl");
 const rotatedSignalPath = `${signalPath}.1`;

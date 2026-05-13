@@ -108,8 +108,8 @@ function isScaffoldaiProcessSurface(filePath) {
   const relPath = path.relative(repoRoot, filePath).split(path.sep).join("/");
 
   return (
-    relPath.startsWith("src/mcp/") ||
-    relPath.startsWith("src/mcp-readonly/") ||
+    relPath.startsWith("src/scaffoldai/mcp/") ||
+    relPath.startsWith("src/scaffoldai/mcp-readonly/") ||
     relPath.startsWith("scripts/") ||
     relPath === "package.json" ||
     relPath === "Makefile" ||
@@ -505,7 +505,7 @@ function checkScaffoldaiAuthorityBoundary() {
   console.log("  PASS: src/lib/*.scaffoldai.js files do not import from src/commands/*");
 
   // 3. Verify expected imports exist (MCP and CLI both import from lib)
-  const mcpToolsPath = path.join(repoRoot, "src", "mcp", "tools.js");
+  const mcpToolsPath = path.join(repoRoot, "src", "scaffoldai", "mcp", "tools.js");
   if (fs.existsSync(mcpToolsPath)) {
     const mcpContent = fs.readFileSync(mcpToolsPath, "utf8");
     const mcpRequires = extractRequirePaths(mcpContent);
@@ -516,7 +516,7 @@ function checkScaffoldaiAuthorityBoundary() {
 
     assert.ok(
       hasLibImport,
-      "Expected src/mcp/tools.js to import from src/lib/*.scaffoldai.js"
+      "Expected src/scaffoldai/mcp/tools.js to import from src/lib/*.scaffoldai.js"
     );
     console.log("  PASS: MCP tools.js imports from src/lib/*.scaffoldai.js");
   }
@@ -581,7 +581,7 @@ function checkScaffoldaiStateWriteBoundary() {
   }
 
   // Scan all relevant source files
-  const srcDirs = ["src/commands", "src/mcp", "src/lib"];
+  const srcDirs = ["src/commands", "src/scaffoldai/mcp", "src/lib"];
 
   for (const srcDir of srcDirs) {
     const dirPath = path.join(repoRoot, srcDir);
@@ -685,7 +685,7 @@ function checkScaffoldaiStateReadBoundary() {
   }
 
   // Scan command and MCP surface files (these should not directly read state)
-  const surfaceDirs = ["src/commands", "src/mcp"];
+  const surfaceDirs = ["src/commands", "src/scaffoldai/mcp"];
 
   for (const srcDir of surfaceDirs) {
     const dirPath = path.join(repoRoot, srcDir);

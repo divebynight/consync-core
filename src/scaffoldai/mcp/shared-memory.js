@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const STORAGE_DIR = path.join(repoRoot, ".scaffoldai", "streams");
 const STORAGE_FILE = path.join(STORAGE_DIR, "shared-memory.jsonl");
 const STORAGE_LABEL = ".scaffoldai/streams/shared-memory.jsonl";

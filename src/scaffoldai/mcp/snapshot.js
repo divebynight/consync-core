@@ -9,10 +9,10 @@ const SNAPSHOT_VERSION = "1.0.0";
 const EXECUTION_CLASS = "READ_ONLY";
 const CALL_TIMEOUT_MS = 5000;
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const outputPath = path.join(repoRoot, ".scaffoldai", "tmp", "mcp-runtime-snapshot.json");
 const outputPathRelative = ".scaffoldai/tmp/mcp-runtime-snapshot.json";
-const serverPath = path.join(repoRoot, "src", "mcp", "server.js");
+const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp", "server.js");
 
 const TOOL_NAMES = [
   "scaffoldai_status",
@@ -49,7 +49,7 @@ function createBaseSnapshot(generatedAt) {
       name: "scaffoldai-mcp-snapshot",
       transport: "stdio",
       server_command: "node",
-      server_args: ["src/mcp/server.js"],
+      server_args: ["src/scaffoldai/mcp/server.js"],
       remote_access: false,
       http: false,
       ngrok: false,

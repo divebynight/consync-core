@@ -27,7 +27,7 @@ function check(condition, msg) {
 
 let tools;
 try {
-  tools = require("../mcp/tools");
+  tools = require("../scaffoldai/mcp/tools");
   pass("tools.js loads without error");
 } catch (err) {
   fail(`tools.js threw on require: ${err.message}`);
@@ -36,7 +36,7 @@ try {
 
 let signal;
 try {
-  signal = require("../mcp/signal");
+  signal = require("../scaffoldai/mcp/signal");
   pass("signal.js loads without error");
 } catch (err) {
   fail(`signal.js threw on require: ${err.message}`);
@@ -254,7 +254,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const mcpDir = path.join(__dirname, "..", "mcp");
+  const mcpDir = path.join(__dirname, "..", "scaffoldai", "mcp");
   const forbidden = ["writeFile", "appendFile", "mkdirSync", "writeFileSync"];
   const readOnlyFiles = ["server.js", "tools.js"].map((f) => path.join(mcpDir, f));
 
@@ -275,7 +275,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const signalSourcePath = path.join(__dirname, "..", "mcp", "signal.js");
+  const signalSourcePath = path.join(__dirname, "..", "scaffoldai", "mcp", "signal.js");
 
   try {
     const source = fs.readFileSync(signalSourcePath, "utf8");
@@ -299,7 +299,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const snapshotPath = path.join(__dirname, "..", "mcp", "snapshot.js");
+  const snapshotPath = path.join(__dirname, "..", "scaffoldai", "mcp", "snapshot.js");
 
   try {
     const source = fs.readFileSync(snapshotPath, "utf8");
@@ -348,7 +348,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const mcpDir = path.join(__dirname, "..", "mcp");
+  const mcpDir = path.join(__dirname, "..", "scaffoldai", "mcp");
 
   try {
     const mcpFiles = fs
@@ -357,7 +357,7 @@ for (const [name, fn] of toolFns) {
       .map((f) => path.join(mcpDir, f));
 
     if (mcpFiles.length === 0) {
-      fail("No .js files found in src/mcp/ — cannot check for /tmp usage");
+      fail("No .js files found in src/scaffoldai/mcp/ — cannot check for /tmp usage");
     } else {
       for (const filePath of mcpFiles) {
         const source = fs.readFileSync(filePath, "utf8");
@@ -365,7 +365,7 @@ for (const [name, fn] of toolFns) {
       }
     }
   } catch {
-    fail("Could not read src/mcp/ for /tmp check");
+    fail("Could not read src/scaffoldai/mcp/ for /tmp check");
   }
 }
 

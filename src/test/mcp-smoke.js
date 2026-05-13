@@ -13,7 +13,7 @@ const OVERALL_TIMEOUT_MS = 30000;
 const CALL_TIMEOUT_MS = 5000;
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const SERVER_PATH = path.join(repoRoot, "src", "mcp", "server.js");
+const SERVER_PATH = path.join(repoRoot, "src", "scaffoldai", "mcp", "server.js");
 
 const EXPECTED_TOOLS = [
   "scaffoldai_status",

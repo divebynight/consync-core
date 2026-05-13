@@ -1,17 +1,17 @@
 "use strict";
 
-const { readActiveContract, resolveVerifyCommand } = require("../lib/resolveVerifyCommand.query.scaffoldai");
-const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
-const { getGitStatus } = require("../lib/gitStatus.util.shared");
-const { gatherQuestions } = require("../lib/scaffoldaiQuestion.query.scaffoldai");
-const { gatherPreflightResults } = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
-const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
-const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
-const { resolveProfile } = require("../lib/profileResolver.process.scaffoldai");
+const { readActiveContract, resolveVerifyCommand } = require("../../lib/resolveVerifyCommand.query.scaffoldai");
+const { getInFlightPacket } = require("../../lib/getInFlightPacket.query.scaffoldai");
+const { getGitStatus } = require("../../lib/gitStatus.util.shared");
+const { gatherQuestions } = require("../../lib/scaffoldaiQuestion.query.scaffoldai");
+const { gatherPreflightResults } = require("../../lib/scaffoldaiPreflight.auth.scaffoldai");
+const { inferCommitPrefix } = require("../../lib/scaffoldaiCloseout.auth.scaffoldai");
+const { gatherStatus } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
+const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai");
 
 const path = require("path");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
 const EXECUTION_CLASS = "READ_ONLY";
 
 // Resolve profile once at module load
