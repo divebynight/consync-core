@@ -12,7 +12,7 @@ It contains the CLI entry point, command handlers, shared logic, the Electron de
 
 **Status:** Observational taxonomy — documents current patterns, not enforced as final architecture.
 
-Source files in `src/lib/` and `src/commands/` use suffixes to indicate ownership and role. This taxonomy is **provisional** and subject to refinement during future reorganization.
+Source files in `src/lib/`, `src/commands/`, and `src/scaffoldai/commands/` use suffixes to indicate ownership and role. This taxonomy is **provisional** and subject to refinement during future reorganization.
 
 ### Ownership Suffixes
 
@@ -51,13 +51,13 @@ Source files in `src/lib/` and `src/commands/` use suffixes to indicate ownershi
 |--------|---------|----------|
 | `.util.shared.js` | Domain-neutral utilities | `gitStatus.util.shared.js`, `time.util.shared.js` |
 
-### Command Files (`src/commands/`)
+### Command Files (`src/commands/`, `src/scaffoldai/commands/`)
 
 Command files follow the pattern: `<name>.<role>.<ownership>.js`
 
 **Examples:**
 - `sandbox-scan.cmd.consync.js` — Consync product command
-- `scaffoldai-status.cmd.scaffoldai.js` — ScaffoldAI runtime command
+- `src/scaffoldai/commands/scaffoldai-status.cmd.scaffoldai.js` — ScaffoldAI runtime command
 - `intake-run.agent.scaffoldai.js` — ScaffoldAI agent entry point
 - `dry-run-check.check.scaffoldai.js` — ScaffoldAI validation command
 - `system-check.check.system.js` — System-level check

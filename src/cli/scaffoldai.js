@@ -1,8 +1,8 @@
-const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status.cmd.scaffoldai");
-const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight.cmd.scaffoldai");
-const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify.cmd.scaffoldai");
-const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
-const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question.cmd.scaffoldai");
+const { runScaffoldaiStatusCommand } = require("../scaffoldai/commands/scaffoldai-status.cmd.scaffoldai");
+const { runScaffoldaiPreflightCommand } = require("../scaffoldai/commands/scaffoldai-preflight.cmd.scaffoldai");
+const { runScaffoldaiVerifyCommand } = require("../scaffoldai/commands/scaffoldai-verify.cmd.scaffoldai");
+const { runScaffoldaiCloseoutCommand } = require("../scaffoldai/commands/scaffoldai-closeout.cmd.scaffoldai");
+const { runScaffoldaiQuestionCommand } = require("../scaffoldai/commands/scaffoldai-question.cmd.scaffoldai");
 const { runHandoffBundleCommand } = require("../commands/handoff-bundle.process.scaffoldai");
 const { runSystemCheckCommand } = require("../commands/system-check.check.system");
 const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check.check.scaffoldai");

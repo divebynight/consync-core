@@ -19,7 +19,13 @@ function inferCommitPrefix(files, contract) {
   const paths = files.map((line) => line.replace(/^..\s+/, "").trim());
 
   const hasScaffoldai = paths.some((p) => p.startsWith(".scaffoldai/"));
-  const hasSrcCommands = paths.some((p) => p.startsWith("src/commands/") || p.startsWith("src/lib/") || p.startsWith("src/cli/"));
+  const hasSrcCommands = paths.some(
+    (p) =>
+      p.startsWith("src/commands/") ||
+      p.startsWith("src/scaffoldai/commands/") ||
+      p.startsWith("src/lib/") ||
+      p.startsWith("src/cli/")
+  );
   const hasSrcTest = paths.some((p) => p.startsWith("src/test/"));
   const hasDocs = paths.some((p) => p.endsWith(".md") || p.startsWith("docs/"));
   const hasPackageJson = paths.some((p) => p === "package.json");

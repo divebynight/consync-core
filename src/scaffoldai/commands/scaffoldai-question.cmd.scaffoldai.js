@@ -3,8 +3,8 @@ const {
   CATEGORIES,
   SEVERITY,
   NOISE_THRESHOLD,
-} = require("../lib/scaffoldaiQuestion.query.scaffoldai");
-const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+} = require("../../lib/scaffoldaiQuestion.query.scaffoldai");
+const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 

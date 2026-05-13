@@ -2,8 +2,8 @@ const {
   gatherPreflightResults,
   formatStateFileRow,
   formatScriptRow,
-} = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
-const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+} = require("../../lib/scaffoldaiPreflight.auth.scaffoldai");
+const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 

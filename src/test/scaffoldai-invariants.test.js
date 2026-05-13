@@ -412,22 +412,23 @@ function checkReferenceAuditPathTargets() {
 // G. ScaffoldAI authority boundary enforcement
 //    After extracting ScaffoldAI business logic from CLI commands to
 //    src/lib/*.scaffoldai.js, enforce that:
-//      - MCP never imports from src/commands/*
-//      - src/lib/*.scaffoldai.js never imports from src/commands/*
+//      - MCP never imports from command surfaces
+//      - src/lib/*.scaffoldai.js never imports from command surfaces
 //      - CLI commands and MCP both import from src/lib/*.scaffoldai.js
 //
 //    Architectural layers:
-//      Surface Layer:  src/commands/*, src/scaffoldai/mcp/*
+//      Surface Layer:  src/commands/*, src/scaffoldai/commands/*, src/scaffoldai/mcp/*
 //      Authority Layer: src/lib/*.scaffoldai.js
 //      State Layer:     .scaffoldai/state/*
 //
 //    Allowed:
-//      src/commands/* → src/lib/*.scaffoldai.js
-//      src/scaffoldai/mcp/*      → src/lib/*.scaffoldai.js
+//      src/commands/*             → src/lib/*.scaffoldai.js
+//      src/scaffoldai/commands/*  → src/lib/*.scaffoldai.js
+//      src/scaffoldai/mcp/*       → src/lib/*.scaffoldai.js
 //
 //    Forbidden:
-//      src/scaffoldai/mcp/*              → src/commands/*
-//      src/lib/*.scaffoldai.js → src/commands/*
+//      src/scaffoldai/mcp/*      → command surfaces
+//      src/lib/*.scaffoldai.js   → command surfaces
 // -----------------------------------------------------------------------
 
 const REQUIRE_PATTERN = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
@@ -447,7 +448,7 @@ function extractRequirePaths(content) {
 function checkScaffoldaiAuthorityBoundary() {
   const violations = [];
 
-  // 1. Check MCP files do not import from src/commands/*
+  // 1. Check MCP files do not import from command surfaces
   const mcpDir = path.join(repoRoot, "src", "scaffoldai", "mcp");
   const mcpFiles = fs.existsSync(mcpDir)
     ? fs.readdirSync(mcpDir).filter((f) => f.endsWith(".js")).map((f) => path.join(mcpDir, f))
@@ -459,7 +460,7 @@ function checkScaffoldaiAuthorityBoundary() {
     const relMcpFile = path.relative(repoRoot, mcpFile);
 
     for (const req of requires) {
-      // Check if this is a relative import pointing to src/commands
+      // Check if this is a relative import pointing to a command surface
       if (req.includes("../commands/") || req.includes("commands/")) {
         violations.push(
           `  ${relMcpFile}: imports from commands layer → require("${req}")`
@@ -470,11 +471,11 @@ function checkScaffoldaiAuthorityBoundary() {
 
   assert.ok(
     violations.length === 0,
-    `MCP files must not import from src/commands/*:\n${violations.join("\n")}`
+    `MCP files must not import from command surfaces:\n${violations.join("\n")}`
   );
-  console.log("  PASS: MCP files do not import from src/commands/*");
+  console.log("  PASS: MCP files do not import from command surfaces");
 
-  // 2. Check src/lib/*.scaffoldai.js files do not import from src/commands/*
+  // 2. Check src/lib/*.scaffoldai.js files do not import from command surfaces
   const libDir = path.join(repoRoot, "src", "lib");
   const scaffoldaiLibFiles = fs.existsSync(libDir)
     ? fs
@@ -489,7 +490,7 @@ function checkScaffoldaiAuthorityBoundary() {
     const relLibFile = path.relative(repoRoot, libFile);
 
     for (const req of requires) {
-      // Check if this is a relative import pointing to src/commands
+      // Check if this is a relative import pointing to a command surface
       if (req.includes("../commands/") || req.includes("commands/")) {
         violations.push(
           `  ${relLibFile}: imports from commands layer → require("${req}")`
@@ -500,9 +501,9 @@ function checkScaffoldaiAuthorityBoundary() {
 
   assert.ok(
     violations.length === 0,
-    `src/lib/*.scaffoldai.js files must not import from src/commands/*:\n${violations.join("\n")}`
+    `src/lib/*.scaffoldai.js files must not import from command surfaces:\n${violations.join("\n")}`
   );
-  console.log("  PASS: src/lib/*.scaffoldai.js files do not import from src/commands/*");
+  console.log("  PASS: src/lib/*.scaffoldai.js files do not import from command surfaces");
 
   // 3. Verify expected imports exist (MCP and CLI both import from lib)
   const mcpToolsPath = path.join(repoRoot, "src", "scaffoldai", "mcp", "tools.js");
@@ -521,7 +522,7 @@ function checkScaffoldaiAuthorityBoundary() {
     console.log("  PASS: MCP tools.js imports from src/lib/*.scaffoldai.js");
   }
 
-  // Check a representative CLI command imports from lib
+  // Check a representative ScaffoldAI CLI command imports from lib
   const representativeCommands = [
     "scaffoldai-status.cmd.scaffoldai.js",
     "scaffoldai-preflight.cmd.scaffoldai.js",
@@ -531,12 +532,12 @@ function checkScaffoldaiAuthorityBoundary() {
 
   let cliLibImportFound = false;
   for (const cmd of representativeCommands) {
-    const cmdPath = path.join(repoRoot, "src", "commands", cmd);
+    const cmdPath = path.join(repoRoot, "src", "scaffoldai", "commands", cmd);
     if (fs.existsSync(cmdPath)) {
       const cmdContent = fs.readFileSync(cmdPath, "utf8");
       const cmdRequires = extractRequirePaths(cmdContent);
 
-      if (cmdRequires.some((req) => req.includes("../lib/") && req.includes(".scaffoldai"))) {
+      if (cmdRequires.some((req) => req.includes("../../lib/") && req.includes(".scaffoldai"))) {
         cliLibImportFound = true;
         break;
       }

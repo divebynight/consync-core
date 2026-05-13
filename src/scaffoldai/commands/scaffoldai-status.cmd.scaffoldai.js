@@ -1,5 +1,5 @@
-const { gatherStatus, readActiveStream } = require("../lib/scaffoldaiStatus.query.scaffoldai");
-const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+const { gatherStatus, readActiveStream } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
+const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 

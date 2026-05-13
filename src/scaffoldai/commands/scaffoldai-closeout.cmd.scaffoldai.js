@@ -1,5 +1,5 @@
-const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
-const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+const { gatherCloseoutReadiness } = require("../../lib/scaffoldaiCloseout.auth.scaffoldai");
+const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 

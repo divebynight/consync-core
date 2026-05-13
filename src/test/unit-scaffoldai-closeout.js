@@ -2,7 +2,7 @@ const assert = require("assert");
 const path = require("path");
 const { spawnSync } = require("child_process");
 const { inferCommitPrefix } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
-const { parseArgs } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
+const { parseArgs } = require("../scaffoldai/commands/scaffoldai-closeout.cmd.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-closeout";
 const repoRoot = path.resolve(__dirname, "..", "..");
@@ -59,10 +59,10 @@ function main() {
       console.log("  PASS: src/commands/ only → feat:");
     }
 
-    // 5. process contract + src/commands/ → process:
+    // 5. process contract + ScaffoldAI command surface → process:
     {
       const contract = { allowed_packet_types: ["process", "contract", "planning"] };
-      const result = inferCommitPrefix([" M src/commands/scaffoldai-closeout.cmd.scaffoldai.js"], contract);
+      const result = inferCommitPrefix([" M src/scaffoldai/commands/scaffoldai-closeout.cmd.scaffoldai.js"], contract);
       assert.strictEqual(result, "process:", `Expected process: with process contract context. Got: ${result}`);
       console.log("  PASS: process contract context → process:");
     }

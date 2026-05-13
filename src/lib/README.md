@@ -51,7 +51,7 @@ Logic here is UI-agnostic and CLI-agnostic. It should be callable and testable w
 After extracting ScaffoldAI business logic from CLI commands to shared lib modules, the following architectural layers are enforced:
 
 ```text
-Surface Layer:   src/commands/scaffoldai-*.js (CLI)
+Surface Layer:   src/scaffoldai/commands/scaffoldai-*.js (CLI)
                  src/scaffoldai/mcp/* (MCP tools)
                       ↓
 Authority Layer: src/lib/*.scaffoldai.js
@@ -60,7 +60,7 @@ State Layer:     .scaffoldai/state/*
 ```
 
 **Allowed:**
-- `src/commands/scaffoldai-*.js` → `src/lib/*.scaffoldai.js`
+- `src/scaffoldai/commands/scaffoldai-*.js` → `src/lib/*.scaffoldai.js`
 - `src/scaffoldai/mcp/*` → `src/lib/*.scaffoldai.js`
 
 **Forbidden (enforced by `scaffoldai-invariants.test.js`):**
