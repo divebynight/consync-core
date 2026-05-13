@@ -3,10 +3,11 @@
 const assert = require("assert");
 const path = require("path");
 const { spawn } = require("child_process");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 
 const TEST_NAME = "mcp-readonly-chatgpt-compatibility";
-const repoRoot = path.resolve(__dirname, "..", "..");
-const serverPath = path.join(repoRoot, "src", "mcp-readonly", "http.js");
+const repoRoot = getRepoRoot(__dirname);
+const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "http.js");
 const port = Number.parseInt(process.env.TEST_MCP_READONLY_CHATGPT_PORT || "3132", 10);
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;

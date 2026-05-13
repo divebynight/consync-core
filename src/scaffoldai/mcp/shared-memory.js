@@ -1,12 +1,11 @@
 "use strict";
 
 const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
+const { resolveScaffoldAIPath } = require("../../lib/repoRoot.util.shared");
 
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
-const STORAGE_DIR = path.join(repoRoot, ".scaffoldai", "streams");
-const STORAGE_FILE = path.join(STORAGE_DIR, "shared-memory.jsonl");
+const STORAGE_DIR = resolveScaffoldAIPath("streams");
+const STORAGE_FILE = resolveScaffoldAIPath("streams", "shared-memory.jsonl");
 const STORAGE_LABEL = ".scaffoldai/streams/shared-memory.jsonl";
 
 const MAX_FROM_TO_TOPIC_LENGTH = 80;

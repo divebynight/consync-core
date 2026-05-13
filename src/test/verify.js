@@ -446,6 +446,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI profile resolver", [path.join(repoRoot, "src", "test", "unit-profile-resolver.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Repo root resolver", [path.join(repoRoot, "src", "test", "unit-repo-root.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

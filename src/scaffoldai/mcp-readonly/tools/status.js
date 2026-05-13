@@ -1,11 +1,11 @@
 "use strict";
 
-const path = require("path");
 const { gatherStatus } = require("../../../lib/scaffoldaiStatus.query.scaffoldai");
+const { getRepoRoot } = require("../../../lib/repoRoot.util.shared");
 const { errorText } = require("../lib/errors");
 const { jsonText } = require("../lib/response");
 
-const repoRoot = path.resolve(__dirname, "..", "..", "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 
 function createStatusTool(deps = {}) {
   const gather = deps.gatherStatus || gatherStatus;

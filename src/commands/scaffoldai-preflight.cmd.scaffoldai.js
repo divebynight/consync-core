@@ -1,11 +1,11 @@
-const path = require("path");
 const {
   gatherPreflightResults,
   formatStateFileRow,
   formatScriptRow,
 } = require("../lib/scaffoldaiPreflight.auth.scaffoldai");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 
 // -----------------------------------------------------------------------
 // CLI Command — Thin wrapper for terminal output

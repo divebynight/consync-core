@@ -2,9 +2,13 @@
 
 const fs = require("fs");
 const path = require("path");
+const {
+  getRepoRoot,
+  resolveScaffoldAIPath,
+} = require("../../lib/repoRoot.util.shared");
 
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
-const signalDir = path.join(repoRoot, ".scaffoldai", "tmp");
+const repoRoot = getRepoRoot(__dirname);
+const signalDir = resolveScaffoldAIPath("tmp");
 const signalPath = path.join(signalDir, "mcp-signals.jsonl");
 const rotatedSignalPath = `${signalPath}.1`;
 const signalPathRelative = ".scaffoldai/tmp/mcp-signals.jsonl";

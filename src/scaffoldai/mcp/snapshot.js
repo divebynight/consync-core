@@ -1,18 +1,22 @@
 "use strict";
 
 const fs = require("fs");
-const path = require("path");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const {
+  getRepoRoot,
+  resolveFromRepoRoot,
+  resolveScaffoldAIPath,
+} = require("../../lib/repoRoot.util.shared");
 
 const SNAPSHOT_VERSION = "1.0.0";
 const EXECUTION_CLASS = "READ_ONLY";
 const CALL_TIMEOUT_MS = 5000;
 
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
-const outputPath = path.join(repoRoot, ".scaffoldai", "tmp", "mcp-runtime-snapshot.json");
+const repoRoot = getRepoRoot(__dirname);
+const outputPath = resolveScaffoldAIPath("tmp", "mcp-runtime-snapshot.json");
 const outputPathRelative = ".scaffoldai/tmp/mcp-runtime-snapshot.json";
-const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp", "server.js");
+const serverPath = resolveFromRepoRoot("src", "scaffoldai", "mcp", "server.js");
 
 const TOOL_NAMES = [
   "scaffoldai_status",

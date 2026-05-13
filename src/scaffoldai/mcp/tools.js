@@ -8,10 +8,9 @@ const { gatherPreflightResults } = require("../../lib/scaffoldaiPreflight.auth.s
 const { inferCommitPrefix } = require("../../lib/scaffoldaiCloseout.auth.scaffoldai");
 const { gatherStatus } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
 const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai");
+const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
-const path = require("path");
-
-const repoRoot = path.resolve(__dirname, "..", "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 const EXECUTION_CLASS = "READ_ONLY";
 
 // Resolve profile once at module load

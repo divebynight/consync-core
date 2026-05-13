@@ -1,12 +1,12 @@
-const path = require("path");
 const {
   gatherQuestions,
   CATEGORIES,
   SEVERITY,
   NOISE_THRESHOLD,
 } = require("../lib/scaffoldaiQuestion.query.scaffoldai");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 
 // -----------------------------------------------------------------------
 // CLI Command — Thin wrapper for terminal output

@@ -1,7 +1,8 @@
 const { spawnSync } = require("child_process");
 const { resolveVerifyCommand, readActiveContract } = require("../lib/resolveVerifyCommand.query.scaffoldai");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 
-const repoRoot = require("path").resolve(__dirname, "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 
 const VALID_TARGETS = ["scaffoldai", "consync", "full"];
 

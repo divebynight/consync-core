@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
+const { resolveScaffoldAIPath } = require("./repoRoot.util.shared");
 
-const PORTABLE_TEMPLATE_DIR = path.resolve(__dirname, "..", "..", ".scaffoldai", "templates", "portable");
+const PORTABLE_TEMPLATE_DIR = resolveScaffoldAIPath("templates", "portable");
 
 function collectTemplateFiles(rootPath, relativePath = "") {
   const currentPath = path.join(rootPath, relativePath);

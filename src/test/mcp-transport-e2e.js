@@ -8,18 +8,19 @@ const fs = require("fs");
 const path = require("path");
 const { Client } = require("@modelcontextprotocol/sdk/client/index.js");
 const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio.js");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 const {
   MAX_LOG_BYTES,
   rotatedSignalPath,
   signalPath,
   signalPathRelative,
-} = require("../mcp/signal");
+} = require("../scaffoldai/mcp/signal");
 
 const TEST_NAME = "mcp-transport-e2e";
 const OVERALL_TIMEOUT_MS = 30000;
 const CALL_TIMEOUT_MS = 5000;
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 const SERVER_PATH = path.join(repoRoot, "src", "scaffoldai", "mcp", "server.js");
 
 function pass(msg) {

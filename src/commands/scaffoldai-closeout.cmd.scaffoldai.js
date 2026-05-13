@@ -1,7 +1,7 @@
-const path = require("path");
 const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
+const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 
-const repoRoot = path.resolve(__dirname, "..", "..");
+const repoRoot = getRepoRoot(__dirname);
 
 // -----------------------------------------------------------------------
 // Argument parsing
