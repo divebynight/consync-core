@@ -22,12 +22,14 @@ sandbox/probes/audio-session-capture/workdir/*
 
 # Optional: if you later add logs/history
 .scaffoldai/state/history/
-.scaffoldai/packets/
+.scaffoldai/packets/*
+!.scaffoldai/packets/README.md
 
 # ScaffoldAI runtime temp output (logs, debug artifacts, scratch)
 # Keep the directory tracked via .gitkeep; ignore its contents
 .scaffoldai/tmp/*
 !.scaffoldai/tmp/.gitkeep
+!.scaffoldai/tmp/README.md
 
 # MCP shared memory surface — runtime append-only artifact
 .scaffoldai/streams/shared-memory.jsonl

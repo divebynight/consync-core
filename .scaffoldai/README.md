@@ -19,7 +19,11 @@ CONTROLLED MCP ACCESS + deterministic local Runtime Commands + human-authoritati
 ScaffoldAI currently is:
 
 - a repo-local process harness for planning, executing, verifying, and closing focused work packets
-- the owner of shared process state under `.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/`
+- the owner of three distinct operational zones:
+  - `.scaffoldai/state/` — current authoritative operational state
+  - `.scaffoldai/streams/` — stream identity and work continuity logs
+  - `.scaffoldai/packets/` — archived completed work units
+  - `.scaffoldai/tmp/` — ephemeral runtime and diagnostic artifacts
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
 - a manual agent/process model where agents are invoked intentionally and never auto-dispatched
 - a controlled MCP capability/access layer for local AI clients such as Codex and Copilot
@@ -132,20 +136,24 @@ Future write-capable MCP or dispatch behavior would require a separate contract,
 | `agents/` | PROCESS | Agent role definitions, invocation contracts, binding status | Active |
 | `audits/` | DOCS | Point-in-time boundary and structure audits | Historical |
 | `contracts/` | PROCESS | Formal behavioral contracts (ownership, migration, integrity) | Active + Historical |
-| `packets/` | HISTORY | Completed work packet artifacts | Historical |
+| `examples/` | DOCS | Example usage and workflow scenarios | Active |
+| `packets/` | ARCHIVE | Archived completed work units (gitignored) | Historical |
 | `planning/` | PROCESS | Planning docs and current direction | Active + Historical |
 | `process/` | PROCESS | Process docs: runbook, flow maps, execution guides, work log | Active |
 | `prompts/` | EXECUTION | AI prompt files for specific workflow steps | Active |
+| `reference/` | DOCS | Conceptual documentation and reference material | Active |
 | `skills/` | EXECUTION | Reusable procedure files referenced by agents | Active |
-| `state/` | STATE | Live loop state: next-action, handoff, snapshot, active-stream | Active |
-| `streams/` | STATE | Per-stream state and history | Active |
+| `state/` | STATE | Authoritative operational state (current work) | Active |
+| `streams/` | STATE | Stream identity and work continuity (per-stream context) | Active |
 | `templates/` | TEMPLATES | Work packet template and portable scaffold templates | Active |
+| `tmp/` | RUNTIME | Ephemeral runtime/verification/diagnostic artifacts (gitignored) | Ephemeral |
+| `verification/` | PROCESS | Verification patterns and coverage maps | Active |
 
 ---
 
 ## Folder Details
 
-### `state/` — Live session state
+### `state/` — Authoritative operational state
 The authoritative source of truth for the current development loop.
 
 - `next-action.md` — the one thing to do next (or PACKAGE: NONE when idle)
@@ -153,43 +161,143 @@ The authoritative source of truth for the current development loop.
 - `snapshot.md` — fast re-entry summary of current system state
 - `active-stream.md` — which work stream is currently mounted
 - `active-contract.json` — current gatekeeper mode and constraints
-- `history/` — append-only event log
+- `history.jsonl` — append-only state transition audit trail (optional, created on first append)
+- `history/` — observational artifacts subdirectory (non-authoritative)
 
-### `streams/` — Per-stream state
-Contains subdirectories per stream (e.g. `electron_ui/`, `process/`).
-Each stream tracks its own state and resume checkpoint.
+### `streams/` — Stream identity and work continuity
+Contains subdirectories per stream (e.g. `electron_ui/`, `process/`).  
+Each stream has:
+- `stream.md` — stream metadata (id, title, status, branch)
+- `history/` — work continuity logs (gitignored, non-authoritative)
+
+Also contains `shared-memory.jsonl` — diagnostic POC for inter-client message passing (gitignored).
+
+### `packets/` — Archived work units
+Completed, closed work packets with timestamped identifiers (e.g. `packet-20260421T062146Z.md`).  
+**Not temporary files** — these are durable archived records of completed work.  
+Gitignored to prevent repo bloat; local retention is a manual decision.
+
+### `tmp/` — Ephemeral runtime artifacts
+Temporary verification logs, runtime snapshots, diagnostic signals, and debug output.  
+**All contents are ephemeral, non-authoritative, and safe to delete.**  
+Gitignored (contents excluded, directory tracked via `.gitkeep`).
 
 ### `agents/` — Agent role contracts
-Defines the Consync agent roles: Preflight, Intake, Verify, Closeout, Reentry, Gatekeeper, Entry Adapter.
+Defines the Consync agent roles: Preflight, Intake, Verify, Closeout, Reentry, Gatekeeper, Entry Adapter.  
 Agents are invoked manually. No automatic dispatcher exists.
 
 ### `process/` — Process documentation
-Runbook, flow maps, AI context guide, execution guides, and the append-only work log.
+Runbook, flow maps, AI context guide, execution guides, and the append-only work log.  
 Read these to understand how the development loop operates.
 
 ### `skills/` — Reusable workflow procedures
-Referenced by agents during execution (e.g. closeout-agent.md).
+Referenced by agents during execution (e.g. closeout-agent.md).  
 Not role definitions — those live in `agents/`.
 
 ### `prompts/` — AI prompt files
 Prompt templates for specific workflow steps (e.g. generate-packet, run closeout).
 
 ### `contracts/` — Behavioral contracts
-Formal agreements about system boundaries, ownership, and integrity rules.
+Formal agreements about system boundaries, ownership, and integrity rules.  
 Includes historical migration contracts and active boundary contracts.
 
 ### `planning/` — Direction and planning
 Current direction docs and feature planning records.
 
 ### `templates/` — Copy-paste templates
-`work-packet-v3.md` — the standard work packet template.
+`work-packet-v3.md` — the standard work packet template.  
 `portable/` — standalone scaffold templates for separate deployment contexts.
-
-### `packets/` — Completed packet archive
-Historical record of completed work packets. Append-only. Do not modify.
 
 ### `audits/` — Boundary audits
 Point-in-time structural audit records. Historical. Do not modify.
+
+### `reference/` — Conceptual documentation
+Broader conceptual docs and reference material about ScaffoldAI architecture and patterns.
+
+### `verification/` — Verification patterns
+Verification coverage maps and verification strategy documentation.
+
+---
+
+## Artifact Taxonomy
+
+Four distinct categories of ScaffoldAI artifacts with different lifecycles and purposes:
+
+### 1. Authoritative Operational State (`.scaffoldai/state/`)
+
+**Purpose:** Current active work state that drives ScaffoldAI decision-making  
+**Lifetime:** Current work only  
+**Authority:** Source of truth for workflow decisions  
+**Gitignored:** Partially (dynamic files like `next-action.md`, `snapshot.md` excluded)
+
+**Key files:**
+- `active-contract.json` — current work packet metadata
+- `next-action.md` — current in-flight packet or NONE
+- `handoff.md` — current handoff document
+- `snapshot.md` — current operational snapshot
+
+**Write authority:** All mutations go through `src/lib/scaffoldaiState.state.scaffoldai.js` gateway
+
+### 2. Stream Identity and Work Continuity (`.scaffoldai/streams/`)
+
+**Purpose:** Parallel work streams with identity and human-readable continuity logs  
+**Lifetime:** Persistent across work (stream metadata), accumulated over stream lifetime (work logs)  
+**Authority:** Stream metadata is authoritative; work logs are observational  
+**Gitignored:** Partially (stream.md committed, history/ excluded)
+
+**Key artifacts:**
+- `stream.md` — stream identity (id, title, status, branch)
+- `history/` — work continuity logs (non-authoritative, for human reentry)
+- `shared-memory.jsonl` — diagnostic POC only (manual, non-production)
+
+**Distinction from state:** Stream history tracks **work continuity** within a stream; state history tracks **state transitions** (mount/close/switch).
+
+### 3. Archived Work Units (`.scaffoldai/packets/`)
+
+**Purpose:** Completed, closed work packets with structured closeout records  
+**Lifetime:** Post-closeout archive  
+**Authority:** Non-authoritative (historical record, not source of truth)  
+**Gitignored:** Yes (entire directory)
+
+**Key properties:**
+- **Not temporary files** — these are durable structured records
+- Timestamped format: `packet-YYYYMMDDTHHMMSSZ.md`
+- Local retention is a manual human decision
+- No automatic cleanup policy
+
+**Distinction from handoff:** Handoff is **current** active work; packets are **archived** closed work.
+
+### 4. Ephemeral Runtime Artifacts (`.scaffoldai/tmp/`)
+
+**Purpose:** Temporary verification logs, runtime snapshots, diagnostic signals  
+**Lifetime:** Ephemeral (safe to delete at any time)  
+**Authority:** Non-authoritative (never participates in decisions)  
+**Gitignored:** Yes (contents excluded, directory tracked via `.gitkeep`)
+
+**Key artifacts:**
+- `verify_sai.log` — verification command output
+- `mcp-runtime-snapshot.json` — generated read-only observation bundle
+- `mcp-signals.jsonl` — bounded append-only diagnostic signals
+
+**Hard rule:** Never write to `/tmp` or system-wide temp directories; all temporary artifacts must target `.scaffoldai/tmp/`.
+
+---
+
+## History Artifact Clarification
+
+Three distinct history mechanisms serve different purposes:
+
+| Artifact | Purpose | Format | Authority | Gitignored |
+|----------|---------|--------|-----------|------------|
+| **`.scaffoldai/state/history.jsonl`** | State transition audit trail | JSON Lines | Non-authoritative | Yes |
+| **`.scaffoldai/streams/*/history/`** | Work continuity within a stream | Human-readable | Non-authoritative | Yes |
+| **`.scaffoldai/packets/*.md`** | Archived structured closeout records | Markdown | Non-authoritative | Yes |
+
+**State history** tracks **when state changed** (mount/close/switch operations).  
+**Stream history** tracks **what work happened** within a stream context.  
+**Packets** are **complete closeout summaries** of finished work units.
+
+None of these histories participate in decision-making or become source of truth. They are observational only.
 
 ---
 
