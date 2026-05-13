@@ -33,7 +33,7 @@ Source files in `src/lib/`, `src/commands/`, and `src/scaffoldai/commands/` use 
 | `.auth.scaffoldai.js` | Authority/gatekeeper modules | `gatekeeperMount.auth.scaffoldai.js`, `scaffoldaiPreflight.auth.scaffoldai.js` |
 | `.query.scaffoldai.js` | Query/read-only operations | `scaffoldaiStatus.query.scaffoldai.js`, `getInFlightPacket.query.scaffoldai.js` |
 | `.check.scaffoldai.js` | Validation/integrity checks | `stateIntegrityCheck.check.scaffoldai.js`, `dry-run-check.check.scaffoldai.js` |
-| `.agent.scaffoldai.js` | Agent logic or entry points | `intakeClassify.agent.scaffoldai.js`, `intake-run.agent.scaffoldai.js` |
+| `.agent.scaffoldai.js` | Agent logic or entry points | `intakeClassify.agent.scaffoldai.js`, `src/scaffoldai/commands/intake-run.agent.scaffoldai.js` |
 | `.process.scaffoldai.js` | Process automation | `portableScaffold.process.scaffoldai.js`, `handoff-bundle.process.scaffoldai.js` |
 | `.cmd.scaffoldai.js` | ScaffoldAI runtime commands | `scaffoldai-status.cmd.scaffoldai.js`, `consync-run.cmd.scaffoldai.js` |
 
@@ -58,7 +58,7 @@ Command files follow the pattern: `<name>.<role>.<ownership>.js`
 **Examples:**
 - `sandbox-scan.cmd.consync.js` — Consync product command
 - `src/scaffoldai/commands/scaffoldai-status.cmd.scaffoldai.js` — ScaffoldAI runtime command
-- `intake-run.agent.scaffoldai.js` — ScaffoldAI agent entry point
+- `src/scaffoldai/commands/intake-run.agent.scaffoldai.js` — ScaffoldAI agent entry point
 - `dry-run-check.check.scaffoldai.js` — ScaffoldAI validation command
 - `system-check.check.system.js` — System-level check
 

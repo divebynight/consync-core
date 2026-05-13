@@ -1,4 +1,4 @@
-const { classifyInput } = require("../lib/intakeClassify.agent.scaffoldai");
+const { classifyInput } = require("../../lib/intakeClassify.agent.scaffoldai");
 
 function parseFlags(argv) {
   const flags = {};

@@ -11,7 +11,7 @@ const { runGatekeeperCommand } = require("../commands/gatekeeper.cmd.scaffoldai"
 const { runReentryCheckCommand } = require("../commands/reentry-check.agent.scaffoldai");
 const { runDryRunCheckCommand } = require("../commands/dry-run-check.check.scaffoldai");
 const { runConsyncRunCommand } = require("../commands/consync-run.cmd.scaffoldai");
-const { runIntakeRunCommand } = require("../commands/intake-run.agent.scaffoldai");
+const { runIntakeRunCommand } = require("../scaffoldai/commands/intake-run.agent.scaffoldai");
 const { runReferenceAuditCommand } = require("../commands/reference-audit.check.scaffoldai");
 
 function parsePortableOptions(argv) {
@@ -138,13 +138,13 @@ async function main() {
   }
 
   if (command === "preflight-run") {
-    const { runPreflightRunCommand } = require("../commands/preflight-run.agent.scaffoldai");
+    const { runPreflightRunCommand } = require("../scaffoldai/commands/preflight-run.agent.scaffoldai");
     runPreflightRunCommand(process.argv.slice(3));
     return;
   }
 
   if (command === "verify-run") {
-    const { runVerifyRunCommand } = require("../commands/verify-run.agent.scaffoldai");
+    const { runVerifyRunCommand } = require("../scaffoldai/commands/verify-run.agent.scaffoldai");
     runVerifyRunCommand(process.argv.slice(3));
     return;
   }
