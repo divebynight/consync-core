@@ -1,10 +1,45 @@
 # ScaffoldAI Readonly MCP Compatibility
 
-Role: ChatGPT MCP compatibility regression reference
+**Role:** ChatGPT MCP compatibility regression reference
+
+**Transport:** stdio + HTTPS (ChatGPT, external MCP clients)
+
+**Authority:** Thin adapter over canonical ScaffoldAI operational helpers
+
+---
+
+## Purpose
+
+This readonly MCP server is a **stricter compatibility surface** for external clients such as ChatGPT that may connect over HTTPS.
+
+It provides a controlled, constrained subset of ScaffoldAI capabilities with tighter boundaries than the local operational surface.
+
+---
+
+## Relationship to `src/mcp/`
+
+The repository has **two complementary MCP surfaces**:
+
+| Surface | Path | Transport | Client | Role |
+|---------|------|-----------|--------|------|
+| **Operational** | `src/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities |
+| **Readonly** | `src/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
+
+**These are NOT duplicates.** They serve different client ecosystems:
+- `src/mcp/` is the **local trusted surface** with fuller capabilities (status, preflight, question, verify, closeout, diagnostic tools)
+- `src/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status only)
+
+Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
+
+---
+
+## Architecture Principles
 
 This readonly MCP server is a transport and tool exposure layer over canonical ScaffoldAI operational helpers. It must not become a parallel ScaffoldAI state reader, workflow engine, or write-capable MCP surface.
 
 The compatibility expectations below come from the `mock-scaffoldai-mcp-poc` interoperability work. That repo is a compatibility reference only; its mock feature-loop architecture, mock state model, and write-capable feature tools must not be copied into `consync-core`.
+
+---
 
 ## Phase 1 Tool Surface
 

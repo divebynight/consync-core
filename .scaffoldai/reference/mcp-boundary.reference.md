@@ -1,6 +1,6 @@
 # ScaffoldAI MCP Boundary Reference
 
-Updated: 2026-05-08
+Updated: 2026-05-13
 Status: CURRENT / DIAGNOSTIC BOUNDARY
 
 ---
@@ -10,7 +10,48 @@ Status: CURRENT / DIAGNOSTIC BOUNDARY
 ScaffoldAI MCP is a controlled access layer over ScaffoldAI capabilities and state.
 It lets local MCP-aware clients observe or exercise explicitly exposed ScaffoldAI surfaces without turning MCP into workflow authority, command execution, routing, or automation.
 
-The MCP server is local stdio only. It is not a remote service, product runtime, shell proxy, workflow engine, or autonomous agent bus.
+The MCP servers are local only (stdio for trusted clients, stdio+HTTPS for external clients). They are not remote services, product runtime, shell proxies, workflow engines, or autonomous agent buses.
+
+---
+
+## Dual Surface Architecture
+
+The repository has **two complementary MCP surfaces**:
+
+| Surface | Path | Transport | Client | Role | Current Tools |
+|---------|------|-----------|--------|------|---------------|
+| **Operational** | `src/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, signal, memory_write, memory_read |
+| **Readonly** | `src/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal) |
+
+### Why Two Surfaces?
+
+**These are NOT duplicates.** They serve different client ecosystems with different trust and capability requirements:
+
+1. **`src/mcp/` - Local Operational Surface**
+   - **Trusted local clients** (Copilot, Codex running on developer machine)
+   - **stdio transport only** (no network exposure)
+   - **Fuller capability set** (status, preflight, question, verify recommendations, closeout readiness)
+   - **Diagnostic tools** (signal, shared-memory)
+   - **Future expansion** (may add more operational tools as needed)
+
+2. **`src/mcp-readonly/` - External Compatibility Surface**
+   - **External or HTTPS clients** (ChatGPT, future cloud-connected tools)
+   - **stdio + HTTPS transport** (network-exposed capability)
+   - **Minimal tool surface** (identity, status only — no diagnostic tools)
+   - **Stricter boundaries** (no filesystem, no git, no processes, no state writes)
+   - **Future expansion must stay constrained** (deliberate minimal surface)
+
+### Complementary, Not Competing
+
+Both surfaces:
+- Are **thin adapters** over shared ScaffoldAI core functions
+- Call the same authority functions (`gatherStatus()`, etc.)
+- Go through the same state gateway (`scaffoldaiState`)
+- Follow the same validation rules
+- Must not contain business logic or permission logic
+- Must not read/write `.scaffoldai/state/` directly
+
+The **transport** (stdio vs HTTPS) and **client trust level** determine which surface is appropriate, not the underlying authority model.
 
 ---
 
