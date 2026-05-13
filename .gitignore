@@ -10,8 +10,8 @@ test-results/
 # Generated sandbox artifacts
 sandbox/current/*.json
 
-# Generated runtime log
-.scaffoldai/state/history/events.log
+# Consync product observational history (GUID creation events)
+.consync/history/
 
 sandbox/probes/audio-session-capture/workdir/*
 

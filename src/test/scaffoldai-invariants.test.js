@@ -297,11 +297,25 @@ function checkArchitectureInvariants() {
   );
   console.log("  PASS: .scaffoldai/ exists at repo root");
 
+  // .consync/ may exist for Consync product observational artifacts (e.g., history/)
+  // but .consync/state/, .consync/streams/, .consync/packets/ must NOT be reintroduced
+  const consyncStateDir = path.join(repoRoot, ".consync", "state");
+  const consyncStreamsDir = path.join(repoRoot, ".consync", "streams");
+  const consyncPacketsDir = path.join(repoRoot, ".consync", "packets");
+  
   assert.ok(
-    !fs.existsSync(path.join(repoRoot, ".consync")),
-    "Expected .consync/ NOT to exist at repo root — reserved for future workspace-local use only"
+    !fs.existsSync(consyncStateDir),
+    "Expected .consync/state/ NOT to exist — migrated to .scaffoldai/state/"
   );
-  console.log("  PASS: .consync/ does not exist at repo root");
+  assert.ok(
+    !fs.existsSync(consyncStreamsDir),
+    "Expected .consync/streams/ NOT to exist — migrated to .scaffoldai/streams/"
+  );
+  assert.ok(
+    !fs.existsSync(consyncPacketsDir),
+    "Expected .consync/packets/ NOT to exist — migrated to .scaffoldai/packets/"
+  );
+  console.log("  PASS: .consync/ does not contain migrated ScaffoldAI state directories");
 
   const githubOverviewPath = path.join(repoRoot, ".github", "OVERVIEW.md");
   assert.ok(fs.existsSync(githubOverviewPath), "Expected .github/OVERVIEW.md to exist");
