@@ -199,7 +199,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }
@@ -254,7 +254,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }
@@ -301,7 +301,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean",
             "--in-flight-packet=cli-override-packet"],
@@ -353,7 +353,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }

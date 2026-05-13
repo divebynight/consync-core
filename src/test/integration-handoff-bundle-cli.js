@@ -21,7 +21,7 @@ function writeFile(rootPath, relativePath, content) {
 function runSuccessScenario() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
   const files = [
     {
@@ -74,7 +74,7 @@ function runSuccessScenario() {
 function runFullScenario() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-full-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
   const files = [
     {
@@ -120,7 +120,7 @@ function runFullScenario() {
 function runMissingLeanFileScenario() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-missing-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
   try {
     writeFile(tempDir, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
@@ -140,7 +140,7 @@ function runMissingLeanFileScenario() {
 function runMissingFullRunbookScenario() {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-missing-full-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
   try {
     writeFile(tempDir, path.join(".scaffoldai", "state", "handoff.md"), "TYPE: FEATURE\n");
@@ -160,7 +160,7 @@ function runMissingFullRunbookScenario() {
 
 function runRunbookPathBoundaryScenario() {
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
   // Part 1: seeding runbook at .scaffoldai/process/runbook.process.md → --full succeeds
   const tempDirNew = fs.mkdtempSync(path.join(os.tmpdir(), "consync-handoff-bundle-boundary-new-"));

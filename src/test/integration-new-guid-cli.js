@@ -16,7 +16,7 @@ function fail(error) {
 function runScenario(args, note, expectsPrompt) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-integration-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "consync.js");
 
   try {
     const result = spawnSync(process.execPath, [cliPath, "new-guid", ...args], {

@@ -6,7 +6,7 @@ const { parseArgs } = require("../commands/scaffoldai-closeout.cmd.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-closeout";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);

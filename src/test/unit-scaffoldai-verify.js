@@ -5,7 +5,7 @@ const { resolveVerifyCommand } = require("../lib/resolveVerifyCommand.query.scaf
 
 const TEST_NAME = "unit-scaffoldai-verify";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);
