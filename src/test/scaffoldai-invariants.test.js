@@ -117,7 +117,6 @@ function isScaffoldaiProcessSurface(filePath) {
     relPath === "README.md" ||
     relPath === "src/cli/index.js" ||
     relPath === "src/test/scaffoldai-invariants.test.js" ||
-    /^src\/commands\/.*\.scaffoldai\.js$/.test(relPath) ||
     /^src\/scaffoldai\/commands\/.*\.scaffoldai\.js$/.test(relPath) ||
     /^src\/lib\/.*\.scaffoldai\.js$/.test(relPath)
   );
@@ -989,15 +988,15 @@ function checkScaffoldaiCommandTopology() {
   const commandsDir = path.join(repoRoot, "src", "commands");
   assert.ok(fs.existsSync(commandsDir), "Expected src/commands/ to exist");
 
-  const stragglers = fs
-    .readdirSync(commandsDir)
-    .filter((name) => name.endsWith(".scaffoldai.js"));
+  const stragglers = collectActiveFiles("src/commands")
+    .map((filePath) => path.relative(repoRoot, filePath).split(path.sep).join("/"))
+    .filter((relPath) => relPath.endsWith(".scaffoldai.js"));
 
   assert.ok(
     stragglers.length === 0,
-    `src/commands/ must not contain any *.scaffoldai.js files — ScaffoldAI command surfaces belong under src/scaffoldai/commands/. Found:\n${stragglers.map((s) => `  src/commands/${s}`).join("\n")}`
+    `src/commands/ must not contain any descendant *.scaffoldai.js files — ScaffoldAI command surfaces belong under src/scaffoldai/commands/. Found:\n${stragglers.map((s) => `  ${s}`).join("\n")}`
   );
-  console.log("  PASS: src/commands/ contains no *.scaffoldai.js files");
+  console.log("  PASS: src/commands/ contains no descendant *.scaffoldai.js files");
 
   const scaffoldaiCommandsDir = path.join(repoRoot, "src", "scaffoldai", "commands");
   assert.ok(

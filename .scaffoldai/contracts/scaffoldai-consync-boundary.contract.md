@@ -11,8 +11,10 @@ packages, or changing runtime behavior.
 - **Consync dev harness/process:** the repo-local operating system for packets,
   state, docs, verification, streams, prompts, and agent workflows.
 
-The current repository name and `.consync/` directory remain unchanged. This
-document is a planning reference for future separation work only.
+The current repository name remains unchanged. ScaffoldAI process authority now
+lives under `.scaffoldai/`; remaining `.consync/` content is product/reference
+surface unless explicitly classified otherwise. This document is a planning
+reference for future separation work only.
 
 ## Current Product / App Areas
 
@@ -37,16 +39,16 @@ repo-local operating model:
 
 | Area | Current location | Boundary note |
 | --- | --- | --- |
-| Consync state | `.consync/state/` | Authoritative live process state; do not hand-edit outside workflow. |
-| Consync docs | `.consync/docs/` | Process and operating reference material. |
+| ScaffoldAI state | `.scaffoldai/state/` | Authoritative live process state; do not hand-edit outside workflow. |
+| Consync docs | `.consync/docs/` | Product/operator reference material retained outside ScaffoldAI authority. |
 | Skills and procedures | `.scaffoldai/skills/` | Reusable workflow procedures used by Consync operators and agents. |
 | Prompts and templates | `.scaffoldai/prompts/`, `.scaffoldai/templates/` | Process scaffolding and packet generation material. |
-| Streams and packets | `.consync/streams/`, `.consync/packets/` | Durable process coordination surfaces. |
+| Streams and packets | `.scaffoldai/streams/`, `.scaffoldai/packets/` | Durable process coordination surfaces. |
 | Artifacts and notes | `.consync/artifacts/`, `.consync/notes/` | Historical or working process context. |
 | GitHub adapter | `.github/` | Thin tool adapter only; not canonical process truth. |
 | Gatekeeper commands | `src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js`, `src/lib/gatekeeper*.js` | Process lifecycle commands. |
 | State integrity commands | `src/scaffoldai/commands/state-integrity-check.check.scaffoldai.js`, `src/lib/stateIntegrityCheck.js` | Process verification and guardrail logic. |
-| Handoff/process checks | `src/commands/handoff-bundle.process.scaffoldai.js`, `scripts/check-handoff-contract.js`, related tests | Process contract verification. |
+| Handoff/process checks | `src/scaffoldai/commands/handoff-bundle.process.scaffoldai.js`, `scripts/check-handoff-contract.js`, related tests | Process contract verification. |
 | Dev harness server/artifacts | `dev-harness/` | Local development harness material, not product runtime. |
 | Sandbox fixtures/probes | `sandbox/` | Mixed test/probe surface; currently supports both product discovery and harness verification. |
 
@@ -56,7 +58,8 @@ The following surfaces cross the product/process boundary and should not be move
 until ownership is decided file-by-file:
 
 - `src/lib/` mixes app utilities with process/gatekeeper/state utilities.
-- `src/commands/` mixes product-facing CLI commands with process-only commands.
+- `src/commands/` is product/system command space; ScaffoldAI command surfaces
+  live under `src/scaffoldai/commands/`.
 - `src/test/` mixes product behavior tests, process integrity tests, and e2e app
   tests.
 - `sandbox/` includes fixtures useful for product discovery flows and probes used

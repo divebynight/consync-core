@@ -13,7 +13,7 @@ add packaging automation.
 
 The shareable app boundary should be the Electron desktop runtime plus the
 smallest user data/session surface needed by that runtime. The current repo also
-contains Consync process state, agents, prompts, docs, sandbox fixtures, probes,
+contains ScaffoldAI process state, agents, prompts, docs, sandbox fixtures, probes,
 CLI process commands, and verification support. Those are development and
 governance surfaces, not user-facing app bundle content.
 
@@ -80,13 +80,13 @@ the repo, but they are not part of the user-facing app bundle.
 
 | Area | Current location | Boundary note |
 | --- | --- | --- |
-| Consync process truth | `.consync/` | Agents, state, streams, docs, prompts, skills, templates, packets, and artifacts. |
-| GitHub/Copilot adapter | `.github/` | Tool-specific guidance only; points back to `.consync/`. |
+| ScaffoldAI process truth | `.scaffoldai/` | Agents, state, streams, docs, prompts, skills, templates, packets, and artifacts. |
+| GitHub/Copilot adapter | `.github/` | Tool-specific guidance only; points back to `.scaffoldai/`. |
 | Process CLI entrypoint | `src/index.js`, `src/cli/index.js` | Mixed CLI dispatcher; useful for development and process commands, not the Electron runtime bundle. |
-| Gatekeeper/process commands | `src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js`, `src/scaffoldai/commands/state-integrity-check.check.scaffoldai.js`, `src/commands/handoff-bundle.process.scaffoldai.js`, `src/commands/reentry-check.agent.scaffoldai.js`, `src/commands/system-check.check.system.js`, `src/commands/system-summary.cmd.consync.js` | Process and integrity workflow commands. |
-| Process libs | `src/lib/gatekeeper*.js`, `src/lib/stateIntegrityCheck.js`, `src/lib/portableScaffold.process.scaffoldai.js`, `src/lib/fs.util.consync.js` where it targets `.consync/state` or `sandbox/current` | Development/process support. |
+| Gatekeeper/process commands | `src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js`, `src/scaffoldai/commands/state-integrity-check.check.scaffoldai.js`, `src/scaffoldai/commands/handoff-bundle.process.scaffoldai.js`, `src/scaffoldai/commands/reentry-check.agent.scaffoldai.js`, `src/commands/system-check.check.system.js`, `src/commands/system-summary.cmd.consync.js` | Process and integrity workflow commands. |
+| Process libs | `src/lib/gatekeeper*.js`, `src/lib/stateIntegrityCheck.js`, `src/lib/portableScaffold.process.scaffoldai.js`, `src/lib/fs.util.consync.js` where it targets `.scaffoldai/state` or `sandbox/current` | Development/process support. |
 | Utility scripts | `scripts/check-handoff-contract.js`, `scripts/playwright-electron-main.cjs` | Verification and test support. |
-| Existing process docs | `README.md`, `AGENTS.md`, `.consync/docs/**` | Repo/process guidance, not app runtime content. |
+| Existing process docs | `README.md`, `AGENTS.md`, `.scaffoldai/**` | Repo/process guidance, not app runtime content. |
 
 ## 3. Tests / Sandbox / Dev-Only Support
 
