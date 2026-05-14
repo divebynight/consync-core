@@ -182,7 +182,7 @@ for (const [name, fn] of toolFns) {
     accepted.execution_class === "LOCAL_SIGNAL_APPEND_ONLY",
     'runSignalTool returns execution_class "LOCAL_SIGNAL_APPEND_ONLY"'
   );
-  check(accepted.path === ".scaffoldai/tmp/mcp-signals.jsonl", "runSignalTool reports the bounded signal path");
+  check(accepted.path === ".scaffoldai/runtime/mcp/signals.jsonl", "runSignalTool reports the bounded signal path");
   check(accepted.non_authoritative === true, "runSignalTool marks accepted signals non_authoritative");
   check(fs.existsSync(signal.signalPath), "runSignalTool writes only the signal JSONL artifact");
 
@@ -280,7 +280,7 @@ for (const [name, fn] of toolFns) {
   try {
     const source = fs.readFileSync(signalSourcePath, "utf8");
 
-    check(source.includes('".scaffoldai/tmp/mcp-signals.jsonl"'), "signal.js writes the planned signal path");
+    check(source.includes('".scaffoldai/runtime/mcp/signals.jsonl"'), "signal.js writes the planned signal path");
     check(source.includes("fs.appendFileSync(signalPath"), "signal.js appends only to the signal output variable");
     check(source.includes("fs.mkdirSync(signalDir"), "signal.js creates only the signal tmp directory variable");
     check(!source.includes("child_process"), "signal.js does not import child_process");

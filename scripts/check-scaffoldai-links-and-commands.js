@@ -131,6 +131,7 @@ function shouldSkipPathToken(token) {
 function isReviewOnlyPathToken(token) {
   return (
     token.startsWith('.scaffoldai/tmp/') ||
+    token.startsWith('.scaffoldai/runtime/') ||
     token.startsWith('.scaffoldai/state/') ||
     token.startsWith('.scaffoldai/streams/')
   );

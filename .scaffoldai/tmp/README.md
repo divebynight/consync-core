@@ -21,7 +21,6 @@ All contents are:
 |----------|-------------|----------|
 | **Verification Logs** | Test and verify command output | `verify_sai.log`, `verify_all.log` |
 | **Runtime Snapshots** | Generated read-only observation bundles | `mcp-runtime-snapshot.json` |
-| **Diagnostic Signals** | Bounded append-only presence/capability signals | `mcp-signals.jsonl` |
 | **Debug Output** | Command execution traces and diagnostics | Various `.log` files |
 
 ---
@@ -59,23 +58,14 @@ mcp-runtime-snapshot.json   # Generated MCP observation bundle
 
 **Lifecycle:** Generated on-demand via `npm run scaffoldai:mcp:snapshot`
 
-### Diagnostic Signals
+### MCP Append Artifacts
 
-```
-mcp-signals.jsonl           # MCP client presence/capability signals
-```
+MCP append-only runtime coordination artifacts now live under `.scaffoldai/runtime/mcp/`:
 
-**Purpose:** Bounded append-only log for MCP client presence and diagnostic signals
+- `signals.jsonl` — bounded append-only signal log
+- `shared-memory.jsonl` — bounded append-only diagnostic shared-memory log
 
-**Properties:**
-- Append-only JSON Lines format
-- Size and rate limited (bounded)
-- Non-authoritative (does not participate in decisions)
-- Safe to delete
-
-**Execution class:** `LOCAL_SIGNAL_APPEND_ONLY`
-
-See: MCP read-only surface documentation
+See: `.scaffoldai/runtime/mcp/README.md`
 
 ---
 

@@ -18,7 +18,6 @@ Streams represent **parallel lines of work** that can be mounted, switched, and 
 |----------|-------------|----------|
 | **Stream Metadata** | Current stream identity and status | `.scaffoldai/streams/*/stream.md` |
 | **Stream History** | Work continuity within a stream | `.scaffoldai/streams/*/history/` |
-| **Diagnostic Artifacts** | POC/diagnostic inter-client messages | `.scaffoldai/streams/shared-memory.jsonl` |
 | **Active Stream Pointer** | Which stream is currently active | `.scaffoldai/state/active-stream.md` |
 
 ---
@@ -35,7 +34,6 @@ Each stream is a subdirectory containing:
 ├── process/
 │   ├── stream.md          # Stream metadata
 │   └── history/           # Work continuity logs (gitignored)
-└── shared-memory.jsonl    # Diagnostic POC only (gitignored)
 ```
 
 ---
@@ -84,7 +82,7 @@ Stream history subdirectories (`.scaffoldai/streams/*/history/`) contain:
 
 ## Shared Memory (Diagnostic)
 
-`.scaffoldai/streams/shared-memory.jsonl` is a **diagnostic proof-of-concept only**.
+`.scaffoldai/runtime/mcp/shared-memory.jsonl` is a **diagnostic proof-of-concept only**.
 
 **Purpose:** Test inter-client visibility between MCP clients (Copilot ↔ Codex)
 
@@ -110,7 +108,7 @@ See: `.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md`
 |----------|------------|--------|
 | `stream.md` | ❌ No | Stream identity is durable metadata |
 | `history/` | ✅ Yes | Observational logs, not authoritative |
-| `shared-memory.jsonl` | ✅ Yes | Diagnostic POC only |
+| `runtime/mcp/shared-memory.jsonl` | ✅ Yes | Diagnostic POC only |
 
 ---
 

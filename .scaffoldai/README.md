@@ -23,6 +23,7 @@ ScaffoldAI currently is:
   - `.scaffoldai/state/` — current authoritative operational state
   - `.scaffoldai/streams/` — stream identity and work continuity logs
   - `.scaffoldai/packets/` — archived completed work units
+  - `.scaffoldai/runtime/` — non-authoritative runtime append artifacts
   - `.scaffoldai/tmp/` — ephemeral runtime and diagnostic artifacts
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
 - a manual agent/process model where agents are invoked intentionally and never auto-dispatched
@@ -69,7 +70,7 @@ AI client
 
 Current MCP clients include Codex and Copilot. Each client launches an ephemeral local stdio MCP server instance directly with Node; shared ScaffoldAI state persists independently of any MCP process lifetime.
 
-The MCP surface has read-only observation tools, one bounded append-only signal tool, and a diagnostic shared-memory POC in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only ephemeral, non-authoritative signal records under `.scaffoldai/tmp/mcp-signals.jsonl`.
+The MCP surface has read-only observation tools, one bounded append-only signal tool, and a diagnostic shared-memory POC in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only non-authoritative signal records under `.scaffoldai/runtime/mcp/signals.jsonl`.
 
 MCP is not currently an orchestration engine. It does not approve, verify, close, commit, push, stage, edit, execute shell commands, orchestrate workflow, dispatch tools automatically, run autonomous agents, or mutate authoritative state. MCP messages are data only, not executable intent.
 
@@ -142,6 +143,7 @@ Future write-capable MCP or dispatch behavior would require a separate contract,
 | `process/` | PROCESS | Process docs: runbook, flow maps, execution guides, work log | Active |
 | `prompts/` | EXECUTION | AI prompt files for specific workflow steps | Active |
 | `reference/` | DOCS | Conceptual documentation and reference material | Active |
+| `runtime/` | RUNTIME | Non-authoritative runtime append artifacts | Ephemeral |
 | `skills/` | EXECUTION | Reusable procedure files referenced by agents | Active |
 | `state/` | STATE | Authoritative operational state (current work) | Active |
 | `streams/` | STATE | Stream identity and work continuity (per-stream context) | Active |
@@ -170,7 +172,12 @@ Each stream has:
 - `stream.md` — stream metadata (id, title, status, branch)
 - `history/` — work continuity logs (gitignored, non-authoritative)
 
-Also contains `shared-memory.jsonl` — diagnostic POC for inter-client message passing (gitignored).
+### `runtime/` — Non-authoritative runtime append artifacts
+Contains runtime append-only artifacts outside authoritative state and stream doc namespaces.
+
+Current MCP runtime artifacts:
+- `mcp/signals.jsonl` — bounded append-only diagnostic signals
+- `mcp/shared-memory.jsonl` — bounded append-only diagnostic shared-memory messages
 
 ### `packets/` — Archived work units
 Completed, closed work packets with timestamped identifiers (e.g. `packet-20260421T062146Z.md`).  
@@ -248,7 +255,7 @@ Four distinct categories of ScaffoldAI artifacts with different lifecycles and p
 **Key artifacts:**
 - `stream.md` — stream identity (id, title, status, branch)
 - `history/` — work continuity logs (non-authoritative, for human reentry)
-- `shared-memory.jsonl` — diagnostic POC only (manual, non-production)
+- runtime append artifacts moved under `.scaffoldai/runtime/mcp/`
 
 **Distinction from state:** Stream history tracks **work continuity** within a stream; state history tracks **state transitions** (mount/close/switch).
 
@@ -277,7 +284,7 @@ Four distinct categories of ScaffoldAI artifacts with different lifecycles and p
 **Key artifacts:**
 - `verify_sai.log` — verification command output
 - `mcp-runtime-snapshot.json` — generated read-only observation bundle
-- `mcp-signals.jsonl` — bounded append-only diagnostic signals
+- `runtime/mcp/signals.jsonl` — bounded append-only diagnostic signals
 
 **Hard rule:** Never write to `/tmp` or system-wide temp directories; all temporary artifacts must target `.scaffoldai/tmp/`.
 

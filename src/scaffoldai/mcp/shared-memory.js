@@ -4,9 +4,9 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { resolveScaffoldAIPath } = require("../../lib/repoRoot.util.shared");
 
-const STORAGE_DIR = resolveScaffoldAIPath("streams");
-const STORAGE_FILE = resolveScaffoldAIPath("streams", "shared-memory.jsonl");
-const STORAGE_LABEL = ".scaffoldai/streams/shared-memory.jsonl";
+const STORAGE_DIR = resolveScaffoldAIPath("runtime", "mcp");
+const STORAGE_FILE = resolveScaffoldAIPath("runtime", "mcp", "shared-memory.jsonl");
+const STORAGE_LABEL = ".scaffoldai/runtime/mcp/shared-memory.jsonl";
 
 const MAX_FROM_TO_TOPIC_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 1000;

@@ -31,8 +31,10 @@ sandbox/probes/audio-session-capture/workdir/*
 !.scaffoldai/tmp/.gitkeep
 !.scaffoldai/tmp/README.md
 
-# MCP shared memory surface — runtime append-only artifact
-.scaffoldai/streams/shared-memory.jsonl
+# ScaffoldAI MCP runtime append artifacts
+.scaffoldai/runtime/mcp/*
+!.scaffoldai/runtime/mcp/README.md
+!.scaffoldai/runtime/mcp/.gitkeep
 
 # Prevent ScaffoldAI verify/debug logs from landing at repo root
 .scaffoldai_verify.log

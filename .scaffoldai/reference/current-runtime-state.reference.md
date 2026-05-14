@@ -118,7 +118,7 @@ MCP does not use HTTP, SSE, WebSocket, ngrok, or remote exposure. stdout must re
 | `scaffoldai_question` | Open structural questions | `READ_ONLY` | Observe | CLEAR means no currently detected structural questions, not universal certainty |
 | `scaffoldai_verify_recommend` | Recommended VERIFY COMMAND and TARGET | `READ_ONLY` | Recommend | Does not run verification |
 | `scaffoldai_closeout_readiness` | Closeout readiness observation | `READ_ONLY` | Recommend | Never returns `READY_FOR_REVIEW` in MCP v0; verify evidence is not provided |
-| `scaffoldai_signal` | Append a tiny local presence/capability signal | `LOCAL_SIGNAL_APPEND_ONLY` | Diagnostic signal only | Writes only `.scaffoldai/tmp/mcp-signals.jsonl`; non-authoritative and ephemeral |
+| `scaffoldai_signal` | Append a tiny local presence/capability signal | `LOCAL_SIGNAL_APPEND_ONLY` | Diagnostic signal only | Writes only `.scaffoldai/runtime/mcp/signals.jsonl`; non-authoritative and ephemeral |
 | `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message | Diagnostic POC | Diagnostic only | Manually invoked; non-authoritative; not workflow state |
 | `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages | Diagnostic POC | Diagnostic only | Manually invoked; messages are data only, not executable intent |
 
@@ -170,7 +170,7 @@ There are multiple reentry/runtime artifacts. They have different authority.
 | `.scaffoldai/streams/` | Per-stream process state | Current and historical by stream | Authoritative stream state | Scope active work and reentry assumptions |
 | `.scaffoldai/packets/` | Completed packet archive | Historical append-only archive | Historical process record | Preserve completed work packet artifacts |
 | `.scaffoldai/tmp/mcp-runtime-snapshot.json` | MCP runtime observation bundle | Ephemeral/generated | Read-only runtime artifact | Paste/upload into AI clients |
-| `.scaffoldai/tmp/mcp-signals.jsonl` | MCP client signal log | Ephemeral/generated | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
+| `.scaffoldai/runtime/mcp/signals.jsonl` | MCP client signal log | Runtime append-only | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
 | Handoff bundles | Portable session bootstrap | Generated on demand | Context bundle | Rehydrate another AI session |
 | Runtime Command output | Current local observation | Moment-in-time | Operational evidence | Check current status before acting |
 

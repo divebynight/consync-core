@@ -8,10 +8,10 @@ const {
 } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
-const signalDir = resolveScaffoldAIPath("tmp");
-const signalPath = path.join(signalDir, "mcp-signals.jsonl");
+const signalDir = resolveScaffoldAIPath("runtime", "mcp");
+const signalPath = path.join(signalDir, "signals.jsonl");
 const rotatedSignalPath = `${signalPath}.1`;
-const signalPathRelative = ".scaffoldai/tmp/mcp-signals.jsonl";
+const signalPathRelative = ".scaffoldai/runtime/mcp/signals.jsonl";
 
 const EXECUTION_CLASS = "LOCAL_SIGNAL_APPEND_ONLY";
 const MAX_CLIENT_ID_LENGTH = 64;
@@ -179,7 +179,7 @@ function rememberRateLimit(signal, nowMs) {
 function ensureSignalPathBoundary() {
   const resolvedDir = path.resolve(signalDir);
   const resolvedPath = path.resolve(signalPath);
-  if (resolvedPath !== path.join(resolvedDir, "mcp-signals.jsonl")) {
+  if (resolvedPath !== path.join(resolvedDir, "signals.jsonl")) {
     throw new Error("signal path boundary check failed");
   }
 }

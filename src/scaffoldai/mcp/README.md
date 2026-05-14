@@ -110,7 +110,7 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls functions l
 
 `scaffoldai_signal` and `scaffoldai_memory_*` are **diagnostic POC tools only**:
 - They prove inter-client coordination is possible
-- They write to `.scaffoldai/streams/shared-memory.jsonl` (NOT state/)
+- They write to `.scaffoldai/runtime/mcp/shared-memory.jsonl` (NOT state/)
 - They are isolated from authoritative workflow state
 - They must not become workflow engines or task queues
 

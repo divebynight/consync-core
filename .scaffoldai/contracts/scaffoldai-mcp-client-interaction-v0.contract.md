@@ -100,7 +100,7 @@ LOCAL_SIGNAL_APPEND_ONLY
 `LOCAL_SIGNAL_APPEND_ONLY` means:
 
 - The MCP tool may append one bounded JSONL signal record.
-- The only storage path is `.scaffoldai/tmp/mcp-signals.jsonl`.
+- The only storage path is `.scaffoldai/runtime/mcp/signals.jsonl`.
 - The signal log is ephemeral, local, non-authoritative, safe to delete, and not committed.
 - The MCP tool may reject malformed, oversized, unknown, or rate-limited signals.
 - The MCP tool may not write arbitrary paths.
@@ -262,7 +262,7 @@ Limits:
 - Nested objects are rejected.
 - Max serialized record size is 1 KB.
 - Max signal log size is 64 KB.
-- The active signal log rotates to `.scaffoldai/tmp/mcp-signals.jsonl.1`.
+- The active signal log rotates to `.scaffoldai/runtime/mcp/signals.jsonl.1`.
 - Heartbeats are limited to one per 60 seconds per `client_id`.
 - Non-heartbeat signals are limited to one per 10 seconds per `client_id`.
 
@@ -405,7 +405,7 @@ Human approval is required for:
 - Staging, committing, pushing, branching, or creating PRs.
 - Updating `.scaffoldai/state/` or `.scaffoldai/streams/`.
 - Adding new MCP tools or changing execution class.
-- Treating `.scaffoldai/tmp/mcp-signals.jsonl` as anything other than ephemeral diagnostic data.
+- Treating `.scaffoldai/runtime/mcp/signals.jsonl` as anything other than ephemeral diagnostic data.
 
 The MCP client may recommend. The human decides.
 

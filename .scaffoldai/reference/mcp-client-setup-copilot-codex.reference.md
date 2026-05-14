@@ -119,7 +119,7 @@ The current MCP server exposes five read-only tools, one append-only signal tool
 | `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message. | Diagnostic POC only |
 | `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages. | Diagnostic POC only |
 
-No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/tmp/mcp-signals.jsonl`, which is ephemeral, local, safe to delete, and not ScaffoldAI runtime truth.
+No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/runtime/mcp/signals.jsonl`, which is append-only, local, safe to delete, and not ScaffoldAI runtime truth.
 
 `scaffoldai_memory_write` and `scaffoldai_memory_read` are diagnostic-only, append-only where writing, non-authoritative, manually invoked, and isolated from production workflow state. Shared-memory messages are data only, not executable intent.
 
@@ -310,7 +310,7 @@ Recommended default observation sequence:
 
 Copilot and Codex must not use ScaffoldAI MCP to:
 
-- write files other than the bounded `scaffoldai_signal` append to `.scaffoldai/tmp/mcp-signals.jsonl`
+- write files other than the bounded `scaffoldai_signal` append to `.scaffoldai/runtime/mcp/signals.jsonl`
 - edit code
 - mutate `.scaffoldai/state/` or `.scaffoldai/streams/`
 - run shell commands
@@ -367,7 +367,7 @@ Useful Runtime Commands:
 | `npm run scaffoldai:closeout` | Human-visible closeout readiness summary. |
 | `npm run scaffoldai:mcp:snapshot` | Generate `.scaffoldai/tmp/mcp-runtime-snapshot.json` from all five MCP tools. |
 
-`scaffoldai_signal` is an MCP tool, not a Runtime Command. It appends only to `.scaffoldai/tmp/mcp-signals.jsonl`.
+`scaffoldai_signal` is an MCP tool, not a Runtime Command. It appends only to `.scaffoldai/runtime/mcp/signals.jsonl`.
 
 ---
 
