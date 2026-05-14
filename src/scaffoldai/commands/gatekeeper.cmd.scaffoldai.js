@@ -1,7 +1,7 @@
 const path = require("path");
-const { runGatekeeperMount } = require("../lib/gatekeeperMount.auth.scaffoldai");
-const { runGatekeeperClose } = require("../lib/gatekeeperClose.auth.scaffoldai");
-const { runGatekeeperSwitch } = require("../lib/gatekeeperSwitch.auth.scaffoldai");
+const { runGatekeeperMount } = require("../../lib/gatekeeperMount.auth.scaffoldai");
+const { runGatekeeperClose } = require("../../lib/gatekeeperClose.auth.scaffoldai");
+const { runGatekeeperSwitch } = require("../../lib/gatekeeperSwitch.auth.scaffoldai");
 
 async function runGatekeeperCommand(subcommand, args) {
   const rootPath = path.resolve(process.cwd());

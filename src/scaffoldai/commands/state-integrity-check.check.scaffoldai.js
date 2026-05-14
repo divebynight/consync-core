@@ -1,5 +1,5 @@
 const path = require("path");
-const { evaluateStateIntegrity } = require("../lib/stateIntegrityCheck.check.scaffoldai");
+const { evaluateStateIntegrity } = require("../../lib/stateIntegrityCheck.check.scaffoldai");
 
 function runStateIntegrityCheckCommand(options) {
   const mode = options && options.mode ? options.mode : "preflight";

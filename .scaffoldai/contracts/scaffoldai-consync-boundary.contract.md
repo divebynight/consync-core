@@ -44,8 +44,8 @@ repo-local operating model:
 | Streams and packets | `.consync/streams/`, `.consync/packets/` | Durable process coordination surfaces. |
 | Artifacts and notes | `.consync/artifacts/`, `.consync/notes/` | Historical or working process context. |
 | GitHub adapter | `.github/` | Thin tool adapter only; not canonical process truth. |
-| Gatekeeper commands | `src/commands/gatekeeper.js`, `src/lib/gatekeeper*.js` | Process lifecycle commands. |
-| State integrity commands | `src/commands/state-integrity-check.js`, `src/lib/stateIntegrityCheck.js` | Process verification and guardrail logic. |
+| Gatekeeper commands | `src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js`, `src/lib/gatekeeper*.js` | Process lifecycle commands. |
+| State integrity commands | `src/scaffoldai/commands/state-integrity-check.check.scaffoldai.js`, `src/lib/stateIntegrityCheck.js` | Process verification and guardrail logic. |
 | Handoff/process checks | `src/commands/handoff-bundle.process.scaffoldai.js`, `scripts/check-handoff-contract.js`, related tests | Process contract verification. |
 | Dev harness server/artifacts | `dev-harness/` | Local development harness material, not product runtime. |
 | Sandbox fixtures/probes | `sandbox/` | Mixed test/probe surface; currently supports both product discovery and harness verification. |

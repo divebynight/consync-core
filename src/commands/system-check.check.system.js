@@ -45,28 +45,26 @@ function runSystemCheckCommand() {
   }
 
   const requiredCommands = [
-    "new-guid.cmd.consync.js",
-    "list-guid.cmd.consync.js",
-    "portable.process.scaffoldai.js",
-    "show-guid.cmd.consync.js",
-    "sandbox-scan.cmd.consync.js",
-    "sandbox-verify.cmd.consync.js",
-    "sandbox-describe.cmd.consync.js",
-    "sandbox-propose.cmd.consync.js",
-    "sandbox-catalog.cmd.consync.js",
-    "sandbox-discover.cmd.consync.js",
-    "sandbox-search.cmd.consync.js",
-    "sandbox-desktop-search.cmd.consync.js",
-    "state-integrity-check.check.scaffoldai.js",
+    ["new-guid.cmd.consync.js", "src/commands/new-guid.cmd.consync.js"],
+    ["list-guid.cmd.consync.js", "src/commands/list-guid.cmd.consync.js"],
+    ["portable.process.scaffoldai.js", "src/commands/portable.process.scaffoldai.js"],
+    ["show-guid.cmd.consync.js", "src/commands/show-guid.cmd.consync.js"],
+    ["sandbox-scan.cmd.consync.js", "src/commands/sandbox-scan.cmd.consync.js"],
+    ["sandbox-verify.cmd.consync.js", "src/commands/sandbox-verify.cmd.consync.js"],
+    ["sandbox-describe.cmd.consync.js", "src/commands/sandbox-describe.cmd.consync.js"],
+    ["sandbox-propose.cmd.consync.js", "src/commands/sandbox-propose.cmd.consync.js"],
+    ["sandbox-catalog.cmd.consync.js", "src/commands/sandbox-catalog.cmd.consync.js"],
+    ["sandbox-discover.cmd.consync.js", "src/commands/sandbox-discover.cmd.consync.js"],
+    ["sandbox-search.cmd.consync.js", "src/commands/sandbox-search.cmd.consync.js"],
+    ["sandbox-desktop-search.cmd.consync.js", "src/commands/sandbox-desktop-search.cmd.consync.js"],
+    ["state-integrity-check.check.scaffoldai.js", "src/scaffoldai/commands/state-integrity-check.check.scaffoldai.js"],
   ];
 
-  const commandsDir = path.join(rootPath, "src", "commands");
-
-  for (const fileName of requiredCommands) {
-    if (fs.existsSync(path.join(commandsDir, fileName))) {
+  for (const [fileName, relativePath] of requiredCommands) {
+    if (fs.existsSync(path.join(rootPath, relativePath))) {
       signals.push(`${fileName.replace(/\.js$/, "")} command present`);
     } else {
-      warnings.push(`missing src/commands/${fileName}`);
+      warnings.push(`missing ${relativePath}`);
     }
   }
 
