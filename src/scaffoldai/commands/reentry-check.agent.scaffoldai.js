@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
 const { execSync } = require("child_process");
-const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
+const scaffoldaiState = require("../../lib/scaffoldaiState.state.scaffoldai");
 
 const STATE_ROOT = path.join(".scaffoldai", "state");
 

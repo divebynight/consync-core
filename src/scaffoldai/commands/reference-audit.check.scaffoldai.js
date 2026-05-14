@@ -5,7 +5,7 @@ const REFERENCE_CATEGORIES = [
   {
     name: "process",
     needle: ".scaffoldai/process/",
-    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md"],
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "src/scaffoldai/commands/"],
   },
   {
     name: "agents",
@@ -30,7 +30,7 @@ const REFERENCE_CATEGORIES = [
   {
     name: "state",
     needle: ".scaffoldai/state/",
-    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/test/"],
+    expectedZones: [".scaffoldai/", ".github/", "AGENTS.md", "scripts/", "src/commands/", "src/lib/", "src/scaffoldai/commands/", "src/scaffoldai/mcp/", "src/test/"],
   },
   {
     name: "streams",
@@ -70,7 +70,7 @@ function runReferenceAuditCommand() {
   for (const filePath of listTextFiles(rootPath)) {
     const relativePath = normalizePath(path.relative(rootPath, filePath));
 
-    if (relativePath === "src/commands/reference-audit.check.scaffoldai.js") {
+    if (relativePath === "src/scaffoldai/commands/reference-audit.check.scaffoldai.js") {
       continue;
     }
 

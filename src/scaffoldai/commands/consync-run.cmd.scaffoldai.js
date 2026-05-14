@@ -1,8 +1,9 @@
 const fs = require("fs");
 const path = require("path");
-const { applyGatekeeperRules } = require("../lib/gatekeeperDecision.auth.scaffoldai");
-const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
-const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
+const readline = require("readline");
+const { applyGatekeeperRules } = require("../../lib/gatekeeperDecision.auth.scaffoldai");
+const { getInFlightPacket } = require("../../lib/getInFlightPacket.query.scaffoldai");
+const scaffoldaiState = require("../../lib/scaffoldaiState.state.scaffoldai");
 
 const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
 
@@ -83,7 +84,7 @@ function formatReport(input, contract, decision) {
   const inFlightSource = input.inFlightPacketSource ? ` (${input.inFlightPacketSource})` : "";
 
   const lines = [
-    "DRY-RUN REPORT",
+    "CONSYNC-RUN REPORT",
     separator,
     "",
     `Requested packet ID:     ${input.packetId}`,
@@ -107,21 +108,48 @@ function formatReport(input, contract, decision) {
   return lines.join("\n");
 }
 
-function runDryRunCheckCommand(argv, options = {}) {
+function promptUser(question, inputStream, outputStream) {
+  return new Promise((resolve) => {
+    outputStream.write(question);
+
+    let answered = false;
+
+    const rl = readline.createInterface({
+      input: inputStream,
+      terminal: false,
+    });
+
+    rl.once("line", (answer) => {
+      answered = true;
+      rl.close();
+      resolve(answer.trim());
+    });
+
+    rl.once("close", () => {
+      if (!answered) {
+        resolve("");
+      }
+    });
+  });
+}
+
+async function runConsyncRunCommand(argv, options = {}) {
   const rootDir = options.rootDir || process.cwd();
+  const inputStream = options.inputStream || process.stdin;
+  const outputStream = options.outputStream || process.stdout;
   const flags = parseFlags(argv);
 
   const validationErrors = validateFlags(flags);
 
   if (validationErrors.length > 0) {
-    console.error("dry-run-check: invalid arguments");
+    console.error("consync-run: invalid arguments");
 
     for (const error of validationErrors) {
       console.error(`  ${error}`);
     }
 
     console.error("");
-    console.error("Usage: node src/index.js dry-run-check --request-type=SDC --packet-type=process --packet-id=my-packet --git-status=clean [--in-flight-packet=other-packet]");
+    console.error("Usage: node src/index.js consync-run --request-type=SDC --packet-type=process --packet-id=my-packet --git-status=clean [--in-flight-packet=other-packet]");
     process.exitCode = 1;
     return;
   }
@@ -131,7 +159,7 @@ function runDryRunCheckCommand(argv, options = {}) {
   try {
     contract = loadActiveContract(rootDir);
   } catch (err) {
-    console.error(`dry-run-check: ${err.message}`);
+    console.error(`consync-run: ${err.message}`);
     process.exitCode = 1;
     return;
   }
@@ -161,6 +189,19 @@ function runDryRunCheckCommand(argv, options = {}) {
   const report = formatReport(input, contract, decision);
 
   console.log(report);
+
+  if (decision.decision !== "ALLOW") {
+    process.exitCode = 1;
+    return;
+  }
+
+  const answer = await promptUser("Proceed with this action? (y/N) ", inputStream, outputStream);
+
+  if (answer.toLowerCase() === "y") {
+    console.log("Approved. (execution not implemented yet)");
+  } else {
+    console.log("Cancelled.");
+  }
 }
 
-module.exports = { runDryRunCheckCommand };
+module.exports = { runConsyncRunCommand };

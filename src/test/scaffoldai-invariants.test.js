@@ -118,6 +118,7 @@ function isScaffoldaiProcessSurface(filePath) {
     relPath === "src/cli/index.js" ||
     relPath === "src/test/scaffoldai-invariants.test.js" ||
     /^src\/commands\/.*\.scaffoldai\.js$/.test(relPath) ||
+    /^src\/scaffoldai\/commands\/.*\.scaffoldai\.js$/.test(relPath) ||
     /^src\/lib\/.*\.scaffoldai\.js$/.test(relPath)
   );
 }
@@ -381,8 +382,8 @@ function checkIntakeClassifyDocsRouting() {
 // -----------------------------------------------------------------------
 
 function checkReferenceAuditPathTargets() {
-  const auditPath = path.join(repoRoot, "src", "commands", "reference-audit.check.scaffoldai.js");
-  assert.ok(fs.existsSync(auditPath), "Expected src/commands/reference-audit.check.scaffoldai.js to exist");
+  const auditPath = path.join(repoRoot, "src", "scaffoldai", "commands", "reference-audit.check.scaffoldai.js");
+  assert.ok(fs.existsSync(auditPath), "Expected src/scaffoldai/commands/reference-audit.check.scaffoldai.js to exist");
 
   const content = fs.readFileSync(auditPath, "utf8");
 
@@ -582,7 +583,7 @@ function checkScaffoldaiStateWriteBoundary() {
   }
 
   // Scan all relevant source files
-  const srcDirs = ["src/commands", "src/scaffoldai/mcp", "src/lib"];
+  const srcDirs = ["src/commands", "src/scaffoldai/commands", "src/scaffoldai/mcp", "src/lib"];
 
   for (const srcDir of srcDirs) {
     const dirPath = path.join(repoRoot, srcDir);
@@ -686,7 +687,7 @@ function checkScaffoldaiStateReadBoundary() {
   }
 
   // Scan command and MCP surface files (these should not directly read state)
-  const surfaceDirs = ["src/commands", "src/scaffoldai/mcp"];
+  const surfaceDirs = ["src/commands", "src/scaffoldai/commands", "src/scaffoldai/mcp"];
 
   for (const srcDir of surfaceDirs) {
     const dirPath = path.join(repoRoot, srcDir);
@@ -972,6 +973,55 @@ function checkStateSchemaInvariant() {
 }
 
 // -----------------------------------------------------------------------
+// N. ScaffoldAI command surface topology
+//    All *.scaffoldai.js command surfaces must live under
+//    src/scaffoldai/commands/. src/commands/ is reserved for Consync product
+//    and shared system commands; it must not contain any *.scaffoldai.js
+//    files after the ScaffoldAI command migration.
+//
+//    Architecture:
+//      ScaffoldAI command surfaces → src/scaffoldai/commands/*.scaffoldai.js
+//      Consync product commands    → src/commands/*.consync.js
+//      System commands             → src/commands/*.system.js
+// -----------------------------------------------------------------------
+
+function checkScaffoldaiCommandTopology() {
+  const commandsDir = path.join(repoRoot, "src", "commands");
+  assert.ok(fs.existsSync(commandsDir), "Expected src/commands/ to exist");
+
+  const stragglers = fs
+    .readdirSync(commandsDir)
+    .filter((name) => name.endsWith(".scaffoldai.js"));
+
+  assert.ok(
+    stragglers.length === 0,
+    `src/commands/ must not contain any *.scaffoldai.js files — ScaffoldAI command surfaces belong under src/scaffoldai/commands/. Found:\n${stragglers.map((s) => `  src/commands/${s}`).join("\n")}`
+  );
+  console.log("  PASS: src/commands/ contains no *.scaffoldai.js files");
+
+  const scaffoldaiCommandsDir = path.join(repoRoot, "src", "scaffoldai", "commands");
+  assert.ok(
+    fs.existsSync(scaffoldaiCommandsDir),
+    "Expected src/scaffoldai/commands/ to exist as the ScaffoldAI command surface root"
+  );
+
+  const migratedExpected = [
+    "handoff-bundle.process.scaffoldai.js",
+    "reentry-check.agent.scaffoldai.js",
+    "reference-audit.check.scaffoldai.js",
+  ];
+
+  for (const fileName of migratedExpected) {
+    const filePath = path.join(scaffoldaiCommandsDir, fileName);
+    assert.ok(
+      fs.existsSync(filePath),
+      `Expected migrated file src/scaffoldai/commands/${fileName} to exist`
+    );
+  }
+  console.log("  PASS: migrated ScaffoldAI command files present under src/scaffoldai/commands/");
+}
+
+// -----------------------------------------------------------------------
 // Main
 // -----------------------------------------------------------------------
 
@@ -990,6 +1040,7 @@ function main() {
     checkScaffoldaiStateReadBoundary();
     checkSharedUtilityBoundary();
     checkStateSchemaInvariant();
+    checkScaffoldaiCommandTopology();
     console.log(`[${TEST_NAME}] PASS`);
   } catch (error) {
     fail(error);

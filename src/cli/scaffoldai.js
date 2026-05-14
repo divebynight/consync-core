@@ -3,16 +3,16 @@ const { runScaffoldaiPreflightCommand } = require("../scaffoldai/commands/scaffo
 const { runScaffoldaiVerifyCommand } = require("../scaffoldai/commands/scaffoldai-verify.cmd.scaffoldai");
 const { runScaffoldaiCloseoutCommand } = require("../scaffoldai/commands/scaffoldai-closeout.cmd.scaffoldai");
 const { runScaffoldaiQuestionCommand } = require("../scaffoldai/commands/scaffoldai-question.cmd.scaffoldai");
-const { runHandoffBundleCommand } = require("../commands/handoff-bundle.process.scaffoldai");
+const { runHandoffBundleCommand } = require("../scaffoldai/commands/handoff-bundle.process.scaffoldai");
 const { runSystemCheckCommand } = require("../commands/system-check.check.system");
 const { runStateIntegrityCheckCommand } = require("../scaffoldai/commands/state-integrity-check.check.scaffoldai");
 const { runPortableCommand } = require("../scaffoldai/commands/portable.process.scaffoldai");
 const { runGatekeeperCommand } = require("../scaffoldai/commands/gatekeeper.cmd.scaffoldai");
-const { runReentryCheckCommand } = require("../commands/reentry-check.agent.scaffoldai");
-const { runDryRunCheckCommand } = require("../commands/dry-run-check.check.scaffoldai");
-const { runConsyncRunCommand } = require("../commands/consync-run.cmd.scaffoldai");
+const { runReentryCheckCommand } = require("../scaffoldai/commands/reentry-check.agent.scaffoldai");
+const { runDryRunCheckCommand } = require("../scaffoldai/commands/dry-run-check.check.scaffoldai");
+const { runConsyncRunCommand } = require("../scaffoldai/commands/consync-run.cmd.scaffoldai");
 const { runIntakeRunCommand } = require("../scaffoldai/commands/intake-run.agent.scaffoldai");
-const { runReferenceAuditCommand } = require("../commands/reference-audit.check.scaffoldai");
+const { runReferenceAuditCommand } = require("../scaffoldai/commands/reference-audit.check.scaffoldai");
 
 function parsePortableOptions(argv) {
   let targetPath;
