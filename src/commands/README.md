@@ -12,7 +12,7 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 
 - `new-guid.js` — creates a new GUID metadata artifact
 - `list-guid.js` / `show-guid.js` — list and display GUID artifacts
-- Thin `scaffoldai <subcommand>` wrappers, ScaffoldAI agent entrypoints, and thin ScaffoldAI process wrappers live under `src/scaffoldai/commands/`
+- Thin `scaffoldai <subcommand>` wrappers, ScaffoldAI agent entrypoints, portable scaffolding, and thin ScaffoldAI process wrappers live under `src/scaffoldai/commands/`
 - `dry-run-check.check.scaffoldai.js` — runs the Gatekeeper decision logic in simulation mode; prints a report without prompting
 - `consync-run.cmd.scaffoldai.js` — runs the Gatekeeper decision logic with a user approval prompt; does not execute work
 - `reentry-check.agent.scaffoldai.js` — checks re-entry readiness
@@ -20,7 +20,6 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - `system-summary.js` — prints a summary of the current system surface
 - `handoff-bundle.process.scaffoldai.js` — bundles the current handoff state for delivery
 - `reference-audit.check.scaffoldai.js` — audits path references across the repo
-- `portable.process.scaffoldai.js` — generates a portable scaffold
 - `sandbox-verify.cmd.consync.js` / `sandbox-catalog.cmd.consync.js` / `sandbox-describe.cmd.consync.js` / `sandbox-discover.cmd.consync.js` — sandbox fixture inspection commands
 - `sandbox-scan.cmd.consync.js` / `sandbox-search.cmd.consync.js` / `sandbox-propose.cmd.consync.js` / `sandbox-desktop-search.cmd.consync.js` — sandbox query and proposal commands
 

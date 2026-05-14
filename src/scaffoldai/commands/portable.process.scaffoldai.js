@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { scaffoldPortableTemplate } = require("../lib/portableScaffold.process.scaffoldai");
+const { scaffoldPortableTemplate } = require("../../lib/portableScaffold.process.scaffoldai");
 
 function printList(label, filePaths) {
   console.log(label);

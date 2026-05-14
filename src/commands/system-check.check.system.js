@@ -47,7 +47,7 @@ function runSystemCheckCommand() {
   const requiredCommands = [
     ["new-guid.cmd.consync.js", "src/commands/new-guid.cmd.consync.js"],
     ["list-guid.cmd.consync.js", "src/commands/list-guid.cmd.consync.js"],
-    ["portable.process.scaffoldai.js", "src/commands/portable.process.scaffoldai.js"],
+    ["portable.process.scaffoldai.js", "src/scaffoldai/commands/portable.process.scaffoldai.js"],
     ["show-guid.cmd.consync.js", "src/commands/show-guid.cmd.consync.js"],
     ["sandbox-scan.cmd.consync.js", "src/commands/sandbox-scan.cmd.consync.js"],
     ["sandbox-verify.cmd.consync.js", "src/commands/sandbox-verify.cmd.consync.js"],
