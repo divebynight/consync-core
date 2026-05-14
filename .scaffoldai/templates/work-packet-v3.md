@@ -19,6 +19,10 @@ TOOL: COPILOT_AGENT
 EXECUTION TARGET: Copilot Chat in VS Code Agent Mode
 STATUS: [COMPLETE | ALREADY_COMPLETE | STOPPED]
 
+APPROVAL:
+  execute: PENDING | APPROVED
+  commit: PENDING | APPROVED
+
 ---
 
 CONTEXT:
@@ -37,6 +41,7 @@ EXECUTION PHASES:
 
 Follow this order strictly. Do not skip phases. Do not proceed past a phase that fails.
 
+  PHASE 0 — APPROVAL CHECK
   PHASE 1 — ALREADY_COMPLETE CHECK
   PHASE 2 — IMPLEMENT  (skip if ALREADY_COMPLETE)
   PHASE 3 — VERIFY
@@ -73,7 +78,29 @@ Do not modify files outside scope to unblock yourself.
 
 ---
 
-ALREADY_COMPLETE CHECK:
+PHASE 0 — APPROVAL CHECK:
+
+Before any implementation work, verify execution approval:
+
+  1. Check APPROVAL.execute field above
+  2. If missing or PENDING:
+     - Stop and ask human: "Should I proceed with implementation?"
+     - Do not infer approval from packet detail, mounting, or gatekeeper ALLOW
+     - Wait for explicit "yes, proceed" or APPROVAL.execute = APPROVED
+  3. If APPROVED:
+     - Proceed to PHASE 1
+     - Honor ALLOWED FILES scope and STOP CONDITIONS
+
+If approval check fails, return:
+
+  STATUS: STOPPED
+  REASON: Execution approval required
+  PHASE: 0 — APPROVAL CHECK
+  RECOMMENDED NEXT STEP: Update APPROVAL.execute = APPROVED or provide explicit approval
+
+---
+
+PHASE 1 — ALREADY_COMPLETE CHECK:
 
 Before doing any work, check the following. If ALL pass, return STATUS: ALREADY_COMPLETE.
 
@@ -126,11 +153,17 @@ Only enter this path if ALREADY_COMPLETE CHECK fails on one or more items.
   - Do not create new doc files unless explicitly listed in ALLOWED FILES.
 
   COMMIT:
-  - Stage only files listed in ALLOWED FILES that were actually changed.
-  - Use a commit message of the form:
-      [short verb phrase]: [what changed] ([PACKET_ID])
-  - Do not push.
-  - Do not amend existing commits.
+  - Before committing, verify commit approval:
+    • Check APPROVAL.commit field
+    • If missing or PENDING, ask human: "Should I commit these changes?"
+    • Closeout PASS is evidence, not approval
+    • Wait for explicit "yes, commit" or APPROVAL.commit = APPROVED
+  - If approved:
+    • Stage only files listed in ALLOWED FILES that were actually changed
+    • Use a commit message of the form:
+        [short verb phrase]: [what changed] ([PACKET_ID])
+    • Do not push
+    • Do not amend existing commits
 
 ---
 
