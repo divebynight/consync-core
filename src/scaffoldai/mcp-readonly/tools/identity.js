@@ -1,6 +1,6 @@
 "use strict";
 
-const { gatherScaffoldAIIdentity } = require("../../../commands/scaffoldai-identity.cmd.scaffoldai");
+const { gatherScaffoldAIIdentity } = require("../../commands/scaffoldai-identity.cmd.scaffoldai");
 const { errorText } = require("../lib/errors");
 const { jsonText } = require("../lib/response");
 
