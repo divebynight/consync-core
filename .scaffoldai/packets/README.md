@@ -1,19 +1,16 @@
 # .scaffoldai/packets/
 
-Role: archived work unit history
+Role: durable accepted packets and retained packet history
 
 ---
 
 ## Purpose
 
-`.scaffoldai/packets/` contains **archived completed work packets**.
+`.scaffoldai/packets/` contains **durable accepted packet files** produced by strict intake and may also retain **historical packet records**.
 
-Packets are **structured work units**, not temporary scratch files. Each packet represents a completed, bounded piece of work with:
-- A unique timestamped identifier (e.g., `packet-20260421T062146Z.md`)
-- A work summary and context
-- A closeout status (PASS/FAIL)
-- Files created/modified during the work
-- Verification notes
+Packets are structured work units, not temporary scratch files. In current ScaffoldAI behavior this directory may contain:
+- normalized accepted `.sdc.md` packet files that can later be activated
+- retained timestamped historical packet records (for local archive/reference)
 
 ---
 
@@ -21,43 +18,41 @@ Packets are **structured work units**, not temporary scratch files. Each packet 
 
 | Category | Description | Location |
 |----------|-------------|----------|
-| **Archived Work Packets** | Completed, closed work units | `.scaffoldai/packets/*.md` |
+| **Accepted Packet Records** | Durable normalized SDC packets accepted by intake | `.scaffoldai/packets/*.sdc.md` |
+| **Retained Packet History** | Historical local packet/archive records | `.scaffoldai/packets/packet-*.md` |
 | **Active Work State** | Current in-flight operational state | `.scaffoldai/state/` |
 | **Stream Continuity** | Human-readable work continuity logs | `.scaffoldai/streams/` |
 | **Temporary Artifacts** | Ephemeral runtime/debug output | `.scaffoldai/tmp/` |
 
-**Packets are NOT temporary files.** They are archived structured records of completed work.
+**Packets are NOT temporary files.** Accepted packets stay durable after intake; active/inactive status is driven by `.scaffoldai/state/`, not by moving files around.
 
 ---
 
 ## Lifecycle
 
-1. **Created:** When a work packet is completed and closed
-2. **Named:** Timestamped format `packet-YYYYMMDDTHHMMSSZ.md`
-3. **Gitignored:** Entire `.scaffoldai/packets/` directory is excluded from git (see `.gitignore`)
-4. **Retention:** No automatic cleanup policy; manual retention decisions only
+1. **Candidate authored:** packet draft lives in `.scaffoldai/inbox/*.sdc.md`
+2. **Accepted:** strict intake writes a normalized durable packet into `.scaffoldai/packets/*.sdc.md`
+3. **Activated:** active packet pointer is tracked in `.scaffoldai/state/next-action.md` and `.scaffoldai/state/active-runtime.json`
+4. **Retained:** accepted packets remain durable unless a human intentionally removes them
+5. **Historical archive:** timestamped packet records may also remain here for local history/reference
 
 ---
 
 ## Relationship to Other Artifacts
 
-- **vs. `.scaffoldai/state/handoff.md`:** Handoff is the **current** active work document; packets are **archived** closed work
+- **vs. `.scaffoldai/state/handoff.md`:** Handoff is the current active-work closeout surface; packets are durable accepted packet records and retained historical packet artifacts
 - **vs. `.scaffoldai/state/history.jsonl`:** History is a **minimal append-only state transition log**; packets are **detailed structured closeout records**
 - **vs. `.scaffoldai/streams/*/history/`:** Stream history is **work continuity within a stream**; packets are **cross-stream archived work units**
 - **vs. `.scaffoldai/tmp/`:** Tmp contains **ephemeral runtime artifacts**; packets are **durable archived records**
+- **vs. `.scaffoldai/examples/`:** Examples are stable reusable references; packets are live accepted artifacts or retained local packet history
+- **vs. `.scaffoldai/templates/`:** Templates are copyable starting points; packets are concrete accepted records
 
 ---
 
-## Gitignore Status
+## Git Status Guidance
 
-**Gitignored:** ✅ Yes
-
-Pattern: `.scaffoldai/packets/`
-
-Packets are gitignored to:
-- Prevent repo bloat from accumulated archived work
-- Keep git history focused on active code/docs changes
-- Allow local packet retention without forcing commits
+Accepted packet `.sdc.md` files may be intentionally tracked when they represent durable process inputs.
+Timestamped historical packet records are local retention material unless a human decides otherwise.
 
 ---
 
@@ -73,17 +68,17 @@ packet-20260421T062806Z.md
 
 ---
 
-## When to Archive vs Delete
+## When to Retain vs Delete
 
-**Archive (keep locally):**
-- Recent completed work for reference
-- Work packets with important context for future work
-- Closeout records needed for auditing or review
+**Retain:**
+- accepted `.sdc.md` packets still useful for activation or reference
+- packet records with important context for future work
+- local historical packet records needed for auditing or review
 
 **Delete (manual only):**
-- Very old packets no longer relevant
-- Redundant packets superseded by newer work
-- Space reclamation on local disk
+- obsolete accepted packets no longer needed as reusable work units
+- redundant historical packet records superseded by newer material
+- space reclamation on local disk
 
 **No automatic cleanup.** Packet retention is a manual human decision.
 

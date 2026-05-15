@@ -12,6 +12,8 @@ Lifecycle:
 
 Accepted Packet Flow:
 - Accepted packet files in `.scaffoldai/packets/` are durable process artifacts.
+- `.scaffoldai/examples/` contains reusable passing examples; it is not an intake or activation surface.
+- `.scaffoldai/templates/` contains reusable authoring templates; templates should not be treated as active packets until explicitly copied and intaken.
 - Intake cleanup must never delete accepted packet copies.
 - Intake does not imply activation or execution approval.
 

@@ -30,6 +30,7 @@ const ALLOWED_MODES = new Set([
 ]);
 
 const TITLE_PATTERN = /^# SDC — (.+)$/;
+const CANONICAL_SECTION_ORDER = [...REQUIRED_SECTION_KEYS];
 
 function cleanString(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -125,6 +126,37 @@ function collectMissingSections(content) {
     }
   }
   return missing;
+}
+
+function collectSectionOrderIssues(content) {
+  const positions = [];
+
+  for (const sectionKey of CANONICAL_SECTION_ORDER) {
+    const escaped = sectionKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`^${escaped}:\\s*(?:$|\\S)`, "m");
+    const match = pattern.exec(content);
+    if (!match) continue;
+
+    positions.push({
+      section: sectionKey,
+      index: match.index,
+      expectedOrder: CANONICAL_SECTION_ORDER.indexOf(sectionKey),
+    });
+  }
+
+  const issues = [];
+  const sourceOrdered = positions.sort((left, right) => left.index - right.index);
+  for (let index = 1; index < sourceOrdered.length; index += 1) {
+    const previous = sourceOrdered[index - 1];
+    const current = sourceOrdered[index];
+    if (previous.expectedOrder > current.expectedOrder) {
+      issues.push(
+        `section out of canonical order: ${current.section} appears before ${previous.section}`
+      );
+    }
+  }
+
+  return issues;
 }
 
 function parseMode(content) {
@@ -249,9 +281,40 @@ function buildPacketIdentity(title) {
   };
 }
 
+function buildRecoveryHints(validation) {
+  const hints = [];
+
+  if (!validation.title_valid) {
+    hints.push('Use the exact title form: "# SDC — <Title>" as the first non-empty line.');
+  }
+
+  if (validation.missing_sections.length > 0 || validation.section_order_issues.length > 0) {
+    hints.push(
+      `Include sections in canonical order: ${CANONICAL_SECTION_ORDER.join(" -> ")}.`
+    );
+  }
+
+  if (validation.approval_errors.length > 0) {
+    hints.push('Format APPROVAL exactly as:\nAPPROVAL:\n  execute: PENDING\n  commit: PENDING');
+  }
+
+  if (validation.mode_error) {
+    hints.push(`Use one of the allowed MODE values: ${Array.from(ALLOWED_MODES).join(", ")}.`);
+  }
+
+  if (validation.blocked_policy_reasons.length > 0) {
+    hints.push("Remove authority-escalation requests such as MCP write authority, autonomous execution, or automatic commits.");
+  }
+
+  hints.push("Use .scaffoldai/templates/canonical-sdc-packet-template.sdc.md and .scaffoldai/examples/canonical-sdc-packet-example.sdc.md as the canonical baseline, then rerun scaffoldai packet intake <path>.");
+
+  return Array.from(new Set(hints));
+}
+
 function validateStrictSdcPacket(content) {
   const title = parseTitle(content);
   const missingSections = collectMissingSections(content);
+  const sectionOrderIssues = collectSectionOrderIssues(content);
   const mode = parseMode(content);
   const approval = parseApprovalBlock(content);
   const blockedPolicyReasons = collectBlockedPolicyReasons(content);
@@ -261,6 +324,7 @@ function validateStrictSdcPacket(content) {
   if (missingSections.length > 0) {
     errors.push(`missing required sections: ${missingSections.join(", ")}`);
   }
+  errors.push(...sectionOrderIssues);
   if (mode.error) errors.push(mode.error);
   errors.push(...approval.errors);
   errors.push(...blockedPolicyReasons);
@@ -271,7 +335,11 @@ function validateStrictSdcPacket(content) {
   return {
     valid: errors.length === 0,
     errors,
+    title_valid: title.valid,
     missing_sections: missingSections,
+    section_order_issues: sectionOrderIssues,
+    approval_errors: approval.errors,
+    mode_error: mode.error,
     blocked_policy_reasons: blockedPolicyReasons,
     packet_title: title.title,
     mode: mode.value,
@@ -279,6 +347,7 @@ function validateStrictSdcPacket(content) {
     packet_id: identity.packet_id,
     file_name: identity.file_name,
     normalized_content: ensureTrailingNewline(content),
+    recovery_hints: [],
   };
 }
 
@@ -310,6 +379,7 @@ function intakePacket(repoRoot, inputPath) {
       "intake source is outside .scaffoldai/inbox; preferred path is .scaffoldai/inbox/*.sdc.md",
     ];
   const validation = validateStrictSdcPacket(source.content);
+  validation.recovery_hints = buildRecoveryHints(validation);
 
   if (!validation.valid) {
     const rejected = {
@@ -322,10 +392,12 @@ function intakePacket(repoRoot, inputPath) {
       mode: validation.mode,
       validation_errors: validation.errors,
       missing_sections: validation.missing_sections,
+      section_order_issues: validation.section_order_issues,
       blocked_policy_reasons: validation.blocked_policy_reasons,
+      recovery_hints: validation.recovery_hints,
       source_in_inbox: sourceInInbox,
       warnings,
-      next_safe_action: "Fix the packet structure or policy violations, then rerun scaffoldai packet intake <path>.",
+      next_safe_action: "Repair the packet using the canonical SDC template/example, then rerun scaffoldai packet intake <path>.",
       recorded_at: new Date().toISOString(),
     };
 
@@ -397,5 +469,6 @@ module.exports = {
   parseMode,
   readLatestIntakeResult,
   validateStrictSdcPacket,
+  CANONICAL_SECTION_ORDER,
   writeLatestIntakeResult,
 };

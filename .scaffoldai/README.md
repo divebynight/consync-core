@@ -22,7 +22,7 @@ ScaffoldAI currently is:
 - the owner of three distinct operational zones:
   - `.scaffoldai/state/` — current authoritative operational state
   - `.scaffoldai/streams/` — stream identity and work continuity logs
-  - `.scaffoldai/packets/` — archived completed work units
+  - `.scaffoldai/packets/` — durable accepted packet records and retained packet history
   - `.scaffoldai/runtime/` — non-authoritative runtime append artifacts
   - `.scaffoldai/tmp/` — ephemeral runtime and diagnostic artifacts
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
@@ -148,8 +148,8 @@ Future write-capable MCP or dispatch behavior would require a separate contract,
 | `agents/` | PROCESS | Agent role definitions, invocation contracts, binding status | Active |
 | `audits/` | DOCS | Point-in-time boundary and structure audits | Historical |
 | `contracts/` | PROCESS | Formal behavioral contracts (ownership, migration, integrity) | Active + Historical |
-| `examples/` | DOCS | Example usage and workflow scenarios | Active |
-| `packets/` | ARCHIVE | Archived completed work units (gitignored) | Historical |
+| `examples/` | DOCS | Reusable passing examples and workflow scenarios | Active |
+| `packets/` | PROCESS | Durable accepted packet records and retained packet history | Active + Historical |
 | `planning/` | PROCESS | Planning docs and current direction | Active + Historical |
 | `process/` | PROCESS | Process docs: runbook, flow maps, execution guides, work log | Active |
 | `prompts/` | EXECUTION | AI prompt files for specific workflow steps | Active |
@@ -201,10 +201,10 @@ Current MCP runtime artifacts:
 - `mcp/signals.jsonl` — bounded append-only diagnostic signals
 - `mcp/shared-memory.jsonl` — bounded append-only diagnostic shared-memory messages
 
-### `packets/` — Archived work units
-Completed, closed work packets with timestamped identifiers (e.g. `packet-20260421T062146Z.md`).  
-**Not temporary files** — these are durable archived records of completed work.  
-Gitignored to prevent repo bloat; local retention is a manual decision.
+### `packets/` — Durable accepted packets and retained history
+Normalized accepted SDC packets are written here by intake and may later be activated through `.scaffoldai/state/`.
+Timestamped historical packet records may also be retained here as local archive material.
+Reusable examples should live in `examples/`, not `packets/`.
 
 ### `tmp/` — Ephemeral runtime artifacts
 Temporary verification logs, runtime snapshots, diagnostic signals, and debug output.  
@@ -235,7 +235,13 @@ Current direction docs and feature planning records.
 
 ### `templates/` — Copy-paste templates
 `work-packet-v3.md` — the standard work packet template.  
+`canonical-sdc-packet-template.sdc.md` — reusable strict-intake SDC authoring template.  
 `portable/` — standalone scaffold templates for separate deployment contexts.
+
+### Canonical SDC authoring surfaces
+- `.scaffoldai/contracts/canonical-sdc-packet.contract.md` — current validator-backed packet contract
+- `.scaffoldai/examples/canonical-sdc-packet-example.sdc.md` — passing example packet
+- `.scaffoldai/templates/canonical-sdc-packet-template.sdc.md` — reusable template that passes strict intake unchanged
 
 ### `audits/` — Boundary audits
 Point-in-time structural audit records. Historical. Do not modify.

@@ -4,7 +4,10 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 
-const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
+const {
+  intakePacket,
+  CANONICAL_SECTION_ORDER,
+} = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { runScaffoldaiPacketCommand } = require("../scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
@@ -163,7 +166,22 @@ function main() {
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.missing_sections.includes("OUTPUT"));
+      assert.ok(result.recovery_hints.some((entry) => entry.includes(CANONICAL_SECTION_ORDER.join(" -> "))));
       console.log("  PASS: missing sections rejected");
+    }
+
+    // 3b. canonical example/template content accepted unchanged
+    {
+      const canonicalTemplate = fs.readFileSync(
+        path.join(repoRoot, ".scaffoldai", "templates", "canonical-sdc-packet-template.sdc.md"),
+        "utf8"
+      );
+      const sourcePath = writeInboxPacket(fixture, "canonical-template.sdc.md", canonicalTemplate);
+      const result = intakePacket(fixture, sourcePath);
+
+      assert.strictEqual(result.accepted, true);
+      assert.strictEqual(result.source_in_inbox, true);
+      console.log("  PASS: canonical template accepted unchanged");
     }
 
     // 4. invalid mode rejected
@@ -211,7 +229,48 @@ function main() {
       assert.ok(result.blocked_policy_reasons.includes("requests autonomous execution"));
       assert.ok(result.blocked_policy_reasons.includes("requests automatic commits"));
       assert.ok(result.blocked_policy_reasons.includes("requests HTTP MCP write authority"));
+      assert.ok(result.recovery_hints.some((entry) => entry.includes("authority-escalation")));
       console.log("  PASS: blocked authority requests rejected");
+    }
+
+    // 6b. malformed canonical section ordering rejected
+    {
+      const sourcePath = writeIncomingPacket(
+        fixture,
+        "out-of-order.md",
+        [
+          "# SDC — Out Of Order Packet",
+          "",
+          "MODE: PROCESS_REFACTOR",
+          "OUTPUT:",
+          "1. output",
+          "",
+          "EXECUTION SURFACE: ScaffoldAI CLI intake/runtime boundary",
+          "",
+          "APPROVAL:",
+          "  execute: PENDING",
+          "  commit: PENDING",
+          "",
+          "GOAL:",
+          "Keep ordering deterministic.",
+          "",
+          "TASKS:",
+          "1. Enforce canonical ordering.",
+          "",
+          "VERIFY:",
+          "- npm run verify:scaffoldai",
+          "",
+          "CONSTRAINTS:",
+          "- no MCP write authority",
+          "",
+        ].join("\n")
+      );
+      const result = intakePacket(fixture, sourcePath);
+
+      assert.strictEqual(result.accepted, false);
+      assert.ok(result.section_order_issues.some((entry) => entry.includes("section out of canonical order")));
+      assert.ok(result.recovery_hints.some((entry) => entry.includes(CANONICAL_SECTION_ORDER.join(" -> "))));
+      console.log("  PASS: malformed canonical section ordering rejected");
     }
 
     // 7. accepted packet normalized correctly and content preserved
