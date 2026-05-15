@@ -40,7 +40,7 @@ The repository has **two complementary MCP surfaces**:
 | **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external clients | Stricter, read-only compatibility layer |
 
 **These are NOT duplicates.** They serve different client ecosystems:
-- `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (8 tools including diagnostics)
+- `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (9 tools including diagnostics)
 - `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (5 tools, no diagnostics)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
@@ -113,13 +113,15 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls minimal fun
 ### 4. Stricter Than Operational Surface
 
 This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
-- **Fewer tools** (4 vs 8)
+- **Fewer tools** (5 vs 9)
 - **No diagnostic tools** (no signal, no shared-memory)
 - **No direct filesystem access in MCP layer** (reads happen through canonical query helpers)
 - **No git integration** (status is git-free)
 - **No process spawning** (boundary enforced)
 
 `scaffoldai_pending_questions` is advisory runtime coordination only. It does not resolve loop state authoritatively and does not grant write authority.
+
+`scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_completion_status` also surface claim owner/status and busy or wait guidance as readonly visibility only. They do not grant claim ownership or release authority.
 
 Pending-question resolution lifecycle behavior:
 - `unresolvedOnly=true` (default) returns unresolved question/blocker observations only.

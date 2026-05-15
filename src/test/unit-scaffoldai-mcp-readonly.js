@@ -3,6 +3,10 @@
 const fs = require("fs");
 const path = require("path");
 
+const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
+const { gatherPacketVisibility } = require("../lib/scaffoldaiPacketVisibility.query.scaffoldai");
+const { gatherCompletionStatus } = require("../lib/scaffoldaiCompletionStatus.query.scaffoldai");
+
 const TEST_NAME = "unit-scaffoldai-mcp-readonly";
 
 console.log(`[${TEST_NAME}] Running`);
@@ -96,6 +100,73 @@ for (const [name, fn] of toolFns) {
       (typeof result.data.active_stream === "string" || result.data.active_stream === null),
     "runStatusTool returns active_stream as string or null"
   );
+}
+
+// -----------------------------------------------------------------------
+// Test 8b: readonly status helpers expose claim/busy visibility
+// -----------------------------------------------------------------------
+
+{
+  const fixtureRoot = path.join(__dirname, "..", "..", ".scaffoldai", "tmp", "unit-scaffoldai-mcp-readonly-claim-fixture");
+  fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "state"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "contracts"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "packets"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "runtime", "mcp"), { recursive: true });
+
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "state", "next-action.md"),
+    "TYPE: REFACTOR\nPACKET_ID: sample-packet.sdc\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "state", "active-runtime.json"),
+    JSON.stringify(
+      {
+        in_flight_packet: "sample-packet.sdc",
+        claimed_by: "copilot",
+        claim_status: "in_progress",
+        claimed_at: "2026-05-15T00:00:00.000Z",
+        claim_message: "working packet",
+      },
+      null,
+      2
+    ) + "\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "contracts", "active-policy.json"),
+    JSON.stringify({
+      mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+      allowed_packet_types: ["process"],
+      blocked_packet_types: ["product"],
+      require_clean_git: false,
+      require_dry_run: false,
+    }, null, 2) + "\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "packets", "sample-packet.sdc.md"),
+    "# Sample Packet\n\nGOAL: fixture\n",
+    "utf8"
+  );
+
+  const status = gatherStatus(fixtureRoot, { includeGit: false });
+  check(status.data.claim_owner === "copilot", "gatherStatus exposes claim_owner");
+  check(status.data.claim_busy === true, "gatherStatus exposes claim_busy");
+  check(typeof status.data.claim_next_safe_action === "string", "gatherStatus exposes claim_next_safe_action");
+
+  const packetVisibility = gatherPacketVisibility(fixtureRoot, { scope: "in_flight" });
+  check(packetVisibility.data.claim_owner === "copilot", "gatherPacketVisibility exposes claim_owner");
+  check(packetVisibility.data.claim_busy === true, "gatherPacketVisibility exposes claim_busy");
+  check(typeof packetVisibility.data.claim_next_safe_action === "string", "gatherPacketVisibility exposes claim_next_safe_action");
+
+  const completionStatus = gatherCompletionStatus(fixtureRoot, { activePacketOnly: true, latestOnly: true });
+  check(completionStatus.data.claim_owner === "copilot", "gatherCompletionStatus exposes claim_owner");
+  check(completionStatus.data.claim_busy === true, "gatherCompletionStatus exposes claim_busy");
+  check(typeof completionStatus.data.claim_next_safe_action === "string", "gatherCompletionStatus exposes claim_next_safe_action");
+
+  fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
 // -----------------------------------------------------------------------

@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { gatherPendingQuestions } = require("./scaffoldaiPendingQuestions.query.scaffoldai");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
 const SIGNAL_PATH_RELATIVE = ".scaffoldai/runtime/mcp/signals.jsonl";
 const MAX_LIMIT = 25;
@@ -100,6 +101,7 @@ function gatherCompletionStatus(repoRoot, options = {}) {
   const specificPacket = cleanString(options.packet);
   const activePacketOnly = options.activePacketOnly === true;
   const activePacket = getInFlightPacket(repoRoot);
+  const runtime = scaffoldaiState.readActiveRuntime(repoRoot);
   const packetFilter = specificPacket || (activePacketOnly ? (activePacket || "") : "");
 
   const signalPath = path.join(repoRoot, SIGNAL_PATH_RELATIVE);
@@ -148,6 +150,14 @@ function gatherCompletionStatus(repoRoot, options = {}) {
     data: {
       source: SIGNAL_PATH_RELATIVE,
       active_packet: activePacket || null,
+      claim_owner: (runtime && runtime.claimed_by) || null,
+      claim_status: (runtime && runtime.claim_status) || null,
+      claim_busy: Boolean(runtime && runtime.claimed_by),
+      claim_next_safe_action: runtime && runtime.claimed_by
+        ? `Packet is claimed by "${runtime.claimed_by}". Observe and wait, or use force-release if authorized.`
+        : activePacket
+        ? "Packet is active and unclaimed. You may claim it."
+        : "No active packet. Activate a packet before claiming.",
       filter: {
         packet: specificPacket || null,
         active_packet_only: activePacketOnly,

@@ -104,6 +104,22 @@ function gatherStatus(repoRoot, options = {}) {
   // Active packet
   const inFlightPacket = getInFlightPacket(repoRoot);
 
+  // Claim state
+  const runtime = scaffoldaiState.readActiveRuntime(repoRoot);
+  const claimState = {
+    claimed_by: (runtime && runtime.claimed_by) || null,
+    claim_status: (runtime && runtime.claim_status) || null,
+    claimed_at: (runtime && runtime.claimed_at) || null,
+    claim_message: (runtime && runtime.claim_message) || null,
+    claim_expires_at: (runtime && runtime.claim_expires_at) || null,
+    busy: Boolean(runtime && runtime.claimed_by),
+    next_safe_action: runtime && runtime.claimed_by
+      ? `Packet is claimed by "${runtime.claimed_by}". Observe and wait, or use force-release if authorized.`
+      : inFlightPacket
+      ? "Packet is active and unclaimed. You may claim it."
+      : "No active packet. Activate a packet before claiming.",
+  };
+
   // Next action
   const nextActionSummary = readNextActionSummary(repoRoot);
   if (!nextActionSummary) {
@@ -165,6 +181,11 @@ function gatherStatus(repoRoot, options = {}) {
     data: {
       active_stream: activeStream || null,
       active_packet: inFlightPacket || null,
+      claim: claimState,
+      claim_owner: claimState.claimed_by,
+      claim_status: claimState.claim_status,
+      claim_busy: claimState.busy,
+      claim_next_safe_action: claimState.next_safe_action,
       next_safe_action: nextActionSummary || "(none — see next-action.md)",
       contract: contract || null,
       verify_command: verifySurface,

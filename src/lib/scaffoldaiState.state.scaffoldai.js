@@ -121,6 +121,11 @@ function readActiveRuntime(rootPath) {
   if (runtime && typeof runtime === "object") {
     return {
       in_flight_packet: runtime.in_flight_packet || null,
+      claimed_by: runtime.claimed_by || null,
+      claim_status: runtime.claim_status || null,
+      claimed_at: runtime.claimed_at || null,
+      claim_message: runtime.claim_message || null,
+      claim_expires_at: runtime.claim_expires_at || null,
     };
   }
 
@@ -131,11 +136,21 @@ function readActiveRuntime(rootPath) {
   if (legacy && typeof legacy === "object") {
     return {
       in_flight_packet: legacy.in_flight_packet || null,
+      claimed_by: null,
+      claim_status: null,
+      claimed_at: null,
+      claim_message: null,
+      claim_expires_at: null,
     };
   }
 
   return {
     in_flight_packet: null,
+    claimed_by: null,
+    claim_status: null,
+    claimed_at: null,
+    claim_message: null,
+    claim_expires_at: null,
   };
 }
 
@@ -171,6 +186,10 @@ function writeActivePolicy(rootPath, policy) {
 
 /**
  * Write .scaffoldai/state/active-runtime.json
+ *
+ * Writes only the in_flight_packet field.
+ * This intentionally clears any existing claim state because activating or
+ * deactivating a packet invalidates any prior claim.
  */
 function writeActiveRuntime(rootPath, runtime) {
   const normalized = runtime && typeof runtime === "object"
@@ -178,6 +197,53 @@ function writeActiveRuntime(rootPath, runtime) {
     : { in_flight_packet: null };
 
   writeFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"), JSON.stringify(normalized, null, 2) + "\n");
+}
+
+/**
+ * Write claim fields to .scaffoldai/state/active-runtime.json.
+ *
+ * Reads the current runtime file, merges claim fields, and writes back.
+ * Does NOT touch in_flight_packet.
+ *
+ * @param {string} rootPath - Repository root path
+ * @param {object} claimFields - Claim fields to write
+ */
+function writeActiveRuntimeClaim(rootPath, claimFields) {
+  const runtimeContent = readFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"));
+  const existing = parseJsonOrNull(runtimeContent) || {};
+
+  const updated = {
+    in_flight_packet: existing.in_flight_packet || null,
+    claimed_by: claimFields.claimed_by || null,
+    claim_status: claimFields.claim_status || null,
+    claimed_at: claimFields.claimed_at || null,
+    claim_message: claimFields.claim_message || null,
+  };
+
+  if (claimFields.claim_expires_at) {
+    updated.claim_expires_at = claimFields.claim_expires_at;
+  }
+
+  writeFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"), JSON.stringify(updated, null, 2) + "\n");
+}
+
+/**
+ * Clear claim fields from .scaffoldai/state/active-runtime.json.
+ *
+ * Reads the current runtime file, removes all claim fields, and writes back.
+ * Does NOT touch in_flight_packet.
+ *
+ * @param {string} rootPath - Repository root path
+ */
+function clearActiveRuntimeClaim(rootPath) {
+  const runtimeContent = readFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"));
+  const existing = parseJsonOrNull(runtimeContent) || {};
+
+  const updated = {
+    in_flight_packet: existing.in_flight_packet || null,
+  };
+
+  writeFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"), JSON.stringify(updated, null, 2) + "\n");
 }
 
 /**
@@ -321,6 +387,8 @@ module.exports = {
   writeActiveStream,
   writeActivePolicy,
   writeActiveRuntime,
+  writeActiveRuntimeClaim,
+  clearActiveRuntimeClaim,
   writeActiveContract,
   writeStreamDoc,
   // History operation

@@ -3,6 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 const MAX_PACKET_LIMIT = 25;
@@ -135,6 +136,20 @@ function gatherPacketVisibility(repoRoot, options = {}) {
   const inFlightPacket = getInFlightPacket(repoRoot);
   const packetFiles = listPacketFiles(packetDir);
 
+  // Claim visibility
+  const runtime = scaffoldaiState.readActiveRuntime(repoRoot);
+  const claimState = {
+    claimed_by: (runtime && runtime.claimed_by) || null,
+    claim_status: (runtime && runtime.claim_status) || null,
+    claimed_at: (runtime && runtime.claimed_at) || null,
+    busy: Boolean(runtime && runtime.claimed_by),
+    next_safe_action: (runtime && runtime.claimed_by)
+      ? `Packet is claimed by "${runtime.claimed_by}". Observe and wait.`
+      : inFlightPacket
+      ? "Packet is active and unclaimed."
+      : "No active packet.",
+  };
+
   const packets = [];
 
   if (scope === "all") {
@@ -167,11 +182,18 @@ function gatherPacketVisibility(repoRoot, options = {}) {
       scope,
       limit,
       in_flight_packet: inFlightPacket || null,
+      claim: claimState,
+      claim_owner: claimState.claimed_by,
+      claim_status: claimState.claim_status,
+      claim_busy: claimState.busy,
+      claim_next_safe_action: claimState.next_safe_action,
       packet_count: packets.length,
       packets,
     },
     next_safe_action:
-      packets.length === 0
+      claimState.busy
+        ? claimState.next_safe_action
+        : packets.length === 0
         ? "No visible packets in scope. Use scaffoldai_status to confirm active packet state."
         : "Use packet metadata for read-only operational visibility.",
   };

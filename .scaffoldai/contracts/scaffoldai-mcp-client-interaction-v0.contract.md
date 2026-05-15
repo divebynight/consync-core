@@ -319,7 +319,7 @@ An MCP client must call `scaffoldai_status`:
 - Before interpreting closeout state from an older observation.
 - After the human says they changed files, ran verification, switched branches, or resumed work.
 
-The client may rely on `scaffoldai_status` for current state, active packet, current mode, git cleanliness summary, and the currently recommended VERIFY COMMAND as reported by ScaffoldAI.
+The client may rely on `scaffoldai_status` for current state, active packet, claim owner, claim status, busy/wait guidance, current mode, git cleanliness summary, and the currently recommended VERIFY COMMAND as reported by ScaffoldAI.
 
 ### 7.2 When to Call `scaffoldai_preflight`
 
@@ -411,11 +411,13 @@ The client may infer:
 
 - Advisory completion metadata (packet, client_id, verify fields, changed files, summary hints).
 - Advisory recommendation to proceed with human closeout when verify is passed and no unresolved packet questions are observed.
+- Claim/busy context for the active packet when surfaced by related status or packet visibility tools.
 
 The client must not infer:
 
 - Authoritative closeout approval.
 - Packet closure, packet mutation, or commit authority.
+- Any claim state mutation or ownership transfer.
 
 NEXT SAFE ACTION treatment:
 

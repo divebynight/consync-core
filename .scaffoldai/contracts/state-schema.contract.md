@@ -21,7 +21,7 @@ This is a **lightweight guardrail only**. It does not introduce JSON Schema, mig
 
 These files represent the current operational runtime state of ScaffoldAI:
 
-- `active-runtime.json` — Current transient execution runtime fields (`in_flight_packet`)
+- `active-runtime.json` — Current transient execution runtime fields (`in_flight_packet`, claim fields)
 - `active-stream.md` — Current active stream name
 - `next-action.md` — Current in-flight packet or NONE
 - `handoff.md` — Current handoff document for active work
@@ -80,7 +80,7 @@ Housekeeping separates transient runtime state from implementation changes using
 
 | Housekeeping Category | Files | Default Reset Behavior |
 |---|---|---|
-| **active execution state** | `active-runtime.json` (`in_flight_packet` field) | reset to `null` |
+| **active execution state** | `active-runtime.json` (`in_flight_packet`, claim fields) | reset to `null` / clear claims |
 | **durable process policy** | `.scaffoldai/contracts/active-policy.json` | never reset by runtime housekeeping |
 | **next-action surfaces** | `next-action.md` | reset to `PACKAGE: NONE` |
 | **snapshots** | `snapshot.md` current package section | neutralize to `package: NONE` |

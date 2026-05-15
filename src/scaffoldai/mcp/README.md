@@ -118,6 +118,7 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls functions l
 Completion handshake note:
 - `scaffoldai_signal` now supports advisory `packet_completed` records containing packet id, verify summary fields, changed files, and closeout hints.
 - Completion records are append-only diagnostic metadata in `.scaffoldai/runtime/mcp/signals.jsonl`.
+- `scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_completion_status` now surface claim owner/status and busy or wait guidance as readonly visibility only.
 - Completion records must not mutate packet/state files, close packets, create commits, or grant workflow authority.
 - `scaffoldai_completion_status` is readonly advisory visibility only and may recommend that a human run closeout; it cannot perform closeout.
 
