@@ -7,7 +7,7 @@ Status: ACTIVE CONTRACT
 
 ## Purpose
 
-Define the approved contents of `.scaffoldai/state/` to prevent unexpected schema drift.
+Define the approved contents of `.scaffoldai/state/` and the active policy contract surface to prevent unexpected schema drift.
 
 `.scaffoldai/state/` is operational ScaffoldAI process state. Adding, removing, renaming, or changing state artifacts requires explicit approval and contract updates.
 
@@ -19,14 +19,18 @@ This is a **lightweight guardrail only**. It does not introduce JSON Schema, mig
 
 ### Operational State Files
 
-These files represent the current operational state of ScaffoldAI:
+These files represent the current operational runtime state of ScaffoldAI:
 
-- `active-contract.json` — Current work packet metadata (PACKET_ID, PACKAGE, etc.)
+- `active-runtime.json` — Current transient execution runtime fields (`in_flight_packet`)
 - `active-stream.md` — Current active stream name
 - `next-action.md` — Current in-flight packet or NONE
 - `handoff.md` — Current handoff document for active work
 - `snapshot.md` — Current operational snapshot
 - `cleanup-complete-checkpoint.md` — Cleanup completion marker
+
+Durable process policy is tracked separately at:
+
+- `.scaffoldai/contracts/active-policy.json` — mode + allowed/blocked packet types + policy requirements
 
 **Mutation:** All writes to operational state must go through `src/lib/scaffoldaiState.state.scaffoldai.js` — the single approved state gateway.
 
@@ -34,11 +38,11 @@ These files represent the current operational state of ScaffoldAI:
 
 These files document a specific operational state artifact:
 
-- `active-contract.md` — Companion documentation for `active-contract.json`
+- `active-contract.md` — Companion documentation for legacy composed contract compatibility
 
 **Pattern:** Companion markdown is allowed only when it documents a specific state artifact in the same directory. It must not contain runtime-consumed state.
 
-**Precedent:** `active-contract.json` + `active-contract.md` established this pattern.
+**Precedent:** companion docs are allowed when they explain runtime or compatibility surfaces without becoming runtime-consumed state.
 
 ### Append-Only Observational History
 
@@ -76,7 +80,8 @@ Housekeeping separates transient runtime state from implementation changes using
 
 | Housekeeping Category | Files | Default Reset Behavior |
 |---|---|---|
-| **active execution state** | `active-contract.json` (`in_flight_packet` field) | reset to `null` |
+| **active execution state** | `active-runtime.json` (`in_flight_packet` field) | reset to `null` |
+| **durable process policy** | `.scaffoldai/contracts/active-policy.json` | never reset by runtime housekeeping |
 | **next-action surfaces** | `next-action.md` | reset to `PACKAGE: NONE` |
 | **snapshots** | `snapshot.md` current package section | neutralize to `package: NONE` |
 | **transient coordination/runtime context** | `.scaffoldai/runtime/mcp/signals.jsonl`, `.scaffoldai/runtime/mcp/shared-memory.jsonl` | preserve by default |
@@ -89,6 +94,10 @@ Runtime-state housekeeping commands:
 - `scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
 
 These commands are bounded to known `.scaffoldai/` surfaces and must not mutate product/runtime code or packet archives.
+
+Legacy compatibility note:
+
+- `.scaffoldai/state/active-contract.json` may exist as a compatibility mirror during migration, but it is no longer the primary write target for runtime in-flight state.
 
 ## Commit Hygiene Workflow
 

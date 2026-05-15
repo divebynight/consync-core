@@ -161,22 +161,23 @@ function replaceSnapshotPointer(snapshotText, packetIdOrNull, packetCategoryOrNu
   return updated;
 }
 
-function setActiveContractInFlight(rootPath, packetIdOrNull) {
-  const contract = scaffoldaiState.readActiveContract(rootPath);
+function setActiveRuntimeInFlight(rootPath, packetIdOrNull) {
+  const policy = scaffoldaiState.readActivePolicy(rootPath);
 
-  if (!contract || typeof contract !== "object") {
-    throw new Error("active-contract.json missing or malformed");
+  if (!policy || typeof policy !== "object") {
+    throw new Error("active-policy.json missing or malformed");
   }
 
-  contract.in_flight_packet = packetIdOrNull || null;
-  scaffoldaiState.writeActiveContract(rootPath, contract);
+  scaffoldaiState.writeActiveRuntime(rootPath, {
+    in_flight_packet: packetIdOrNull || null,
+  });
 }
 
 function writePacketPointerState(rootPath, packetIdOrNull, packetCategoryOrNull) {
   const nextAction = scaffoldaiState.readNextAction(rootPath);
   scaffoldaiState.writeNextAction(rootPath, replacePacketPointer(nextAction, packetIdOrNull));
 
-  setActiveContractInFlight(rootPath, packetIdOrNull);
+  setActiveRuntimeInFlight(rootPath, packetIdOrNull);
 
   const snapshot = scaffoldaiState.readSnapshot(rootPath);
   const updatedSnapshot = replaceSnapshotPointer(snapshot, packetIdOrNull, packetCategoryOrNull);

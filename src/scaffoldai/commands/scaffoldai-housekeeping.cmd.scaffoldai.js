@@ -39,6 +39,7 @@ function printStatus(result) {
   const {
     runtime_state_catalog: catalog,
     runtime_changes: runtimeChanges,
+    durable_policy_changes: durablePolicyChanges,
     implementation_changes: implementationChanges,
     safe_to_reset: safeToReset,
     runtime_logs_detected: runtimeLogsDetected,
@@ -56,6 +57,11 @@ function printStatus(result) {
   console.log("");
   console.log(`RUNTIME CHANGES:       ${runtimeChanges.length}`);
   for (const entry of runtimeChanges) {
+    console.log(`  - ${entry.line} [${entry.category}]`);
+  }
+
+  console.log(`DURABLE POLICY CHANGES: ${durablePolicyChanges.length}`);
+  for (const entry of durablePolicyChanges) {
     console.log(`  - ${entry.line} [${entry.category}]`);
   }
 

@@ -2,10 +2,11 @@ const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { getGitStatus } = require("./gitStatus.util.shared");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
 const REQUIRED_STATE_FILES = [
   "active-stream.md",
-  "active-contract.json",
+  "active-runtime.json",
   "next-action.md",
 ];
 
@@ -34,29 +35,27 @@ function checkStateFiles(repoRoot) {
 }
 
 function checkContract(repoRoot) {
-  const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const contractPath = path.join(STATE_DIR, "active-contract.json");
+  const policy = scaffoldaiState.readActivePolicy(repoRoot);
+  const runtime = scaffoldaiState.readActiveRuntime(repoRoot);
+  const contract = scaffoldaiState.readActiveContract(repoRoot);
 
-  try {
-    const raw = fs.readFileSync(contractPath, "utf8");
-    const contract = JSON.parse(raw);
-
-    // Detect conflict: in_flight_packet is in blocked_packet_types
-    const inFlight = contract.in_flight_packet;
-    const blocked = contract.blocked_packet_types || [];
-
-    if (inFlight && blocked.includes(inFlight)) {
-      return {
-        ok: false,
-        contract,
-        reason: `in_flight_packet "${inFlight}" is in blocked_packet_types`,
-      };
-    }
-
-    return { ok: true, contract };
-  } catch {
-    return { ok: false, contract: null, reason: "active-contract.json missing or malformed" };
+  if (!policy || !runtime || !contract) {
+    return { ok: false, contract: null, reason: "active-policy.json or active-runtime.json missing or malformed" };
   }
+
+  // Detect conflict: in_flight_packet is in blocked_packet_types
+  const inFlight = contract.in_flight_packet;
+  const blocked = contract.blocked_packet_types || [];
+
+  if (inFlight && blocked.includes(inFlight)) {
+    return {
+      ok: false,
+      contract,
+      reason: `in_flight_packet "${inFlight}" is in blocked_packet_types`,
+    };
+  }
+
+  return { ok: true, contract };
 }
 
 function checkVerifyScripts(repoRoot) {

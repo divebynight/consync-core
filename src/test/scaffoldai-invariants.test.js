@@ -893,8 +893,9 @@ function checkStateSchemaInvariant() {
 
   // Approved state files (per state-schema.contract.md)
   const APPROVED_STATE_FILES = new Set([
-    "active-contract.json",
+    "active-contract.json", // legacy compatibility artifact (optional)
     "active-contract.md",
+    "active-runtime.json",
     "active-stream.md",
     "next-action.md",
     "handoff.md",
@@ -911,8 +912,8 @@ function checkStateSchemaInvariant() {
 
   // Required files that must always exist
   const REQUIRED_STATE_FILES = new Set([
-    "active-contract.json",
     "active-contract.md",
+    "active-runtime.json",
     "active-stream.md",
     "next-action.md",
     "handoff.md",
@@ -925,6 +926,12 @@ function checkStateSchemaInvariant() {
   if (!fs.existsSync(stateDir)) {
     throw new Error(`.scaffoldai/state/ does not exist`);
   }
+
+  const policyPath = path.join(repoRoot, ".scaffoldai", "contracts", "active-policy.json");
+  assert.ok(
+    fs.existsSync(policyPath),
+    "Missing required contract file: .scaffoldai/contracts/active-policy.json"
+  );
 
   const entries = fs.readdirSync(stateDir, { withFileTypes: true });
   const violations = [];

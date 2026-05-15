@@ -10,10 +10,16 @@ const STATE_ROOT = path.join(".scaffoldai", "state");
 
 const RUNTIME_STATE_FILES = [
   {
-    relativePath: path.join(".scaffoldai", "state", "active-contract.json"),
+    relativePath: path.join(".scaffoldai", "state", "active-runtime.json"),
     category: "active execution state",
     safeToReset: true,
     reason: "Tracks in-flight packet context and should be neutralized to in_flight_packet: null between packets.",
+  },
+  {
+    relativePath: path.join(".scaffoldai", "contracts", "active-policy.json"),
+    category: "durable process policy",
+    safeToReset: false,
+    reason: "Tracked policy source for mode and packet constraints; should not be reset by runtime housekeeping.",
   },
   {
     relativePath: path.join(".scaffoldai", "state", "next-action.md"),
@@ -47,8 +53,16 @@ const RUNTIME_STATE_FILES = [
   },
 ];
 
+const DURABLE_POLICY_FILES = new Set(
+  RUNTIME_STATE_FILES
+    .filter((entry) => entry.category === "durable process policy")
+    .map((entry) => normalizePath(entry.relativePath))
+);
+
 const RUNTIME_LOG_FILES = new Set(
-  RUNTIME_STATE_FILES.filter((entry) => !entry.safeToReset).map((entry) => normalizePath(entry.relativePath))
+  RUNTIME_STATE_FILES
+    .filter((entry) => !entry.safeToReset && entry.category !== "durable process policy")
+    .map((entry) => normalizePath(entry.relativePath))
 );
 
 function normalizePath(value) {
@@ -79,6 +93,7 @@ function classifyRuntimeStateChanges(gitStatus) {
   );
 
   const runtimeChanges = [];
+  const durablePolicyChanges = [];
   const implementationChanges = [];
   const unknownLines = [];
 
@@ -97,6 +112,22 @@ function classifyRuntimeStateChanges(gitStatus) {
       continue;
     }
 
+    if (DURABLE_POLICY_FILES.has(parsedPath)) {
+      const entry = {
+        line,
+        path: parsedPath,
+        category: classification.category,
+        reason: classification.reason,
+      };
+      durablePolicyChanges.push(entry);
+      implementationChanges.push({
+        line,
+        path: parsedPath,
+        category: classification.category,
+      });
+      continue;
+    }
+
     runtimeChanges.push({
       line,
       path: parsedPath,
@@ -109,6 +140,7 @@ function classifyRuntimeStateChanges(gitStatus) {
 
   return {
     runtimeChanges,
+    durablePolicyChanges,
     implementationChanges,
     unknownLines,
   };
@@ -144,6 +176,7 @@ function gatherHousekeepingStatus(repoRoot, options = {}) {
       })),
       git,
       runtime_changes: classification.runtimeChanges,
+      durable_policy_changes: classification.durablePolicyChanges,
       implementation_changes: classification.implementationChanges,
       unknown_git_lines: classification.unknownLines,
       safe_to_reset: safeToReset,
@@ -200,25 +233,24 @@ function resetRuntimeState(repoRoot, options = {}) {
   const skipped = [];
   const warnings = [];
 
-  const contract = scaffoldaiState.readActiveContract(repoRoot);
-  if (!contract || typeof contract !== "object") {
+  const policy = scaffoldaiState.readActivePolicy(repoRoot);
+  if (!policy || typeof policy !== "object") {
     return {
       tool: "scaffoldai_housekeeping_reset_runtime_state",
       execution_class: "LOCAL_WRITE_BOUNDED",
       status: "BLOCKED",
-      blockers: ["active-contract.json missing or malformed"],
+      blockers: ["active-policy.json missing or malformed"],
       data: {
         include_runtime_logs: includeRuntimeLogs,
         touched,
         skipped,
       },
-      next_safe_action: "Repair .scaffoldai/state/active-contract.json before running housekeeping reset.",
+      next_safe_action: "Repair .scaffoldai/contracts/active-policy.json before running housekeeping reset.",
     };
   }
 
-  contract.in_flight_packet = null;
-  scaffoldaiState.writeActiveContract(repoRoot, contract);
-  touched.push(".scaffoldai/state/active-contract.json");
+  scaffoldaiState.writeActiveRuntime(repoRoot, { in_flight_packet: null });
+  touched.push(".scaffoldai/state/active-runtime.json");
 
   scaffoldaiState.writeNextAction(repoRoot, neutralNextActionContent());
   touched.push(".scaffoldai/state/next-action.md");

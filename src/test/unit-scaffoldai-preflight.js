@@ -80,8 +80,8 @@ function main() {
         `Expected active-stream.md in STATE FILES. Got:\n${out}`
       );
       assert.ok(
-        out.includes("active-contract.json"),
-        `Expected active-contract.json in STATE FILES. Got:\n${out}`
+        out.includes("active-runtime.json"),
+        `Expected active-runtime.json in STATE FILES. Got:\n${out}`
       );
       assert.ok(
         out.includes("next-action.md"),

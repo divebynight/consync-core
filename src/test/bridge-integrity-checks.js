@@ -7,10 +7,14 @@ const repoRoot = path.resolve(__dirname, "..", "..");
 
 const requiredStateFiles = [
   ".scaffoldai/state/next-action.md",
-  ".scaffoldai/state/active-contract.json",
+  ".scaffoldai/state/active-runtime.json",
   ".scaffoldai/state/active-stream.md",
   ".scaffoldai/state/handoff.md",
   ".scaffoldai/state/snapshot.md",
+];
+
+const requiredContractFiles = [
+  ".scaffoldai/contracts/active-policy.json",
 ];
 
 const requiredStreamFiles = [
@@ -60,22 +64,32 @@ function main() {
     }
     console.log("  PASS: required Bridge state files exist");
 
+    for (const relativePath of requiredContractFiles) {
+      assertFileExists(relativePath);
+    }
+    console.log("  PASS: required Bridge policy files exist");
+
     for (const relativePath of requiredStreamFiles) {
       assertFileExists(relativePath);
     }
     console.log("  PASS: required stream files exist");
 
-    const activeContract = JSON.parse(readRepoFile(".scaffoldai/state/active-contract.json"));
-    console.log("  PASS: active-contract.json is valid JSON");
+    const activePolicy = JSON.parse(readRepoFile(".scaffoldai/contracts/active-policy.json"));
+    console.log("  PASS: active-policy.json is valid JSON");
+
+    const activeRuntime = JSON.parse(readRepoFile(".scaffoldai/state/active-runtime.json"));
+    console.log("  PASS: active-runtime.json is valid JSON");
 
     const nextAction = readRepoFile(".scaffoldai/state/next-action.md");
-    if (activeContract.in_flight_packet === null) {
+    if (activeRuntime.in_flight_packet === null) {
       assert.ok(
         /\b(?:PACKAGE|PACKET_ID):\s*NONE\b/.test(nextAction),
-        "Expected next-action.md to contain PACKAGE: NONE or PACKET_ID: NONE when active-contract.json has in_flight_packet: null"
+        "Expected next-action.md to contain PACKAGE: NONE or PACKET_ID: NONE when active-runtime.json has in_flight_packet: null"
       );
     }
-    console.log("  PASS: active-contract.json and next-action.md agree on no active packet state");
+    assert.ok(Array.isArray(activePolicy.allowed_packet_types), "Expected active-policy allowed_packet_types to be an array");
+    assert.ok(Array.isArray(activePolicy.blocked_packet_types), "Expected active-policy blocked_packet_types to be an array");
+    console.log("  PASS: active-runtime.json and next-action.md agree on no active packet state");
 
     const activeStream = extractActiveStream(readRepoFile(".scaffoldai/state/active-stream.md"));
     const activeStreamDir = path.join(repoRoot, ".scaffoldai", "streams", activeStream);

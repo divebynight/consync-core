@@ -20,6 +20,7 @@ Tests here validate that the product works correctly, that state contracts are u
 - `unit-consync-run.js` — consync-run.cmd.scaffoldai command behavior
 - `unit-intake-run.js` / `unit-preflight-run.js` / `unit-verify-run.js` — agent execution entry points
 - `unit-scaffoldai-housekeeping.js` — runtime-state classification and bounded reset behavior
+- `unit-scaffoldai-policy-runtime.js` — active policy/runtime composition and mutation boundary
 - `unit-standalone-notes-grouping.js` — notes grouping logic
 
 ### Integration tests — command/lib workflows

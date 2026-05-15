@@ -122,7 +122,7 @@ function gatherCloseoutReadiness(repoRoot, options) {
       blockers.push(`in_flight_packet "${inFlightPacket}" is in blocked_packet_types`);
     }
   } else {
-    blockers.push("active-contract.json missing or malformed");
+    blockers.push("active-policy.json or active-runtime.json missing or malformed");
   }
 
   // --- Git status ---

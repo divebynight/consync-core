@@ -9,7 +9,6 @@
     "product",
     "agent"
   ],
-  "in_flight_packet": null,
   "require_clean_git": true,
   "require_dry_run": true
 }

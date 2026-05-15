@@ -415,6 +415,9 @@ function main() {
   runNodeStep("[verify] In-flight packet state reader", [path.join(repoRoot, "src", "test", "unit-get-in-flight-packet.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI policy/runtime composition", [path.join(repoRoot, "src", "test", "unit-scaffoldai-policy-runtime.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 

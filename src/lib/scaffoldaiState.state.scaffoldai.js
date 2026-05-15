@@ -16,6 +16,7 @@ const path = require("path");
 
 const STATE_ROOT = path.join(".scaffoldai", "state");
 const STREAMS_ROOT = path.join(".scaffoldai", "streams");
+const CONTRACTS_ROOT = path.join(".scaffoldai", "contracts");
 
 // ---------------------------------------------------------------------------
 // Core file read primitive
@@ -92,11 +93,7 @@ function readActiveStream(rootPath) {
   return readFile(rootPath, path.join(STATE_ROOT, "active-stream.md"));
 }
 
-/**
- * Read .scaffoldai/state/active-contract.json
- */
-function readActiveContract(rootPath) {
-  const content = readFile(rootPath, path.join(STATE_ROOT, "active-contract.json"));
+function parseJsonOrNull(content) {
   if (!content) return null;
 
   try {
@@ -107,14 +104,109 @@ function readActiveContract(rootPath) {
 }
 
 /**
- * Write .scaffoldai/state/active-contract.json
+ * Read .scaffoldai/contracts/active-policy.json
+ */
+function readActivePolicy(rootPath) {
+  const content = readFile(rootPath, path.join(CONTRACTS_ROOT, "active-policy.json"));
+  return parseJsonOrNull(content);
+}
+
+/**
+ * Read .scaffoldai/state/active-runtime.json
+ */
+function readActiveRuntime(rootPath) {
+  const runtimeContent = readFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"));
+  const runtime = parseJsonOrNull(runtimeContent);
+
+  if (runtime && typeof runtime === "object") {
+    return {
+      in_flight_packet: runtime.in_flight_packet || null,
+    };
+  }
+
+  // Legacy fallback: derive runtime packet pointer from active-contract.json if present.
+  const legacyContent = readFile(rootPath, path.join(STATE_ROOT, "active-contract.json"));
+  const legacy = parseJsonOrNull(legacyContent);
+
+  if (legacy && typeof legacy === "object") {
+    return {
+      in_flight_packet: legacy.in_flight_packet || null,
+    };
+  }
+
+  return {
+    in_flight_packet: null,
+  };
+}
+
+/**
+ * Read composed active contract from durable policy + runtime state.
+ */
+function readActiveContract(rootPath) {
+  const policy = readActivePolicy(rootPath);
+  const runtime = readActiveRuntime(rootPath);
+
+  if (policy && typeof policy === "object") {
+    return {
+      ...policy,
+      in_flight_packet: runtime ? runtime.in_flight_packet || null : null,
+    };
+  }
+
+  // Legacy fallback while migrating older repositories.
+  const legacyContent = readFile(rootPath, path.join(STATE_ROOT, "active-contract.json"));
+  return parseJsonOrNull(legacyContent);
+}
+
+/**
+ * Write .scaffoldai/contracts/active-policy.json
+ */
+function writeActivePolicy(rootPath, policy) {
+  const content = typeof policy === "string"
+    ? policy
+    : JSON.stringify(policy, null, 2) + "\n";
+
+  writeFile(rootPath, path.join(CONTRACTS_ROOT, "active-policy.json"), content);
+}
+
+/**
+ * Write .scaffoldai/state/active-runtime.json
+ */
+function writeActiveRuntime(rootPath, runtime) {
+  const normalized = runtime && typeof runtime === "object"
+    ? { in_flight_packet: runtime.in_flight_packet || null }
+    : { in_flight_packet: null };
+
+  writeFile(rootPath, path.join(STATE_ROOT, "active-runtime.json"), JSON.stringify(normalized, null, 2) + "\n");
+}
+
+/**
+ * Write composed active contract to policy + runtime files.
+ * Keeps legacy active-contract.json in sync for compatibility during migration.
  */
 function writeActiveContract(rootPath, contract) {
-  const content = typeof contract === "string"
-    ? contract
-    : JSON.stringify(contract, null, 2) + "\n";
+  const parsed = typeof contract === "string" ? parseJsonOrNull(contract) : contract;
 
-  writeFile(rootPath, path.join(STATE_ROOT, "active-contract.json"), content);
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("writeActiveContract requires a valid object or JSON string");
+  }
+
+  const policy = {
+    mode: parsed.mode,
+    allowed_packet_types: parsed.allowed_packet_types || [],
+    blocked_packet_types: parsed.blocked_packet_types || [],
+    require_clean_git: Boolean(parsed.require_clean_git),
+    require_dry_run: Boolean(parsed.require_dry_run),
+  };
+
+  writeActivePolicy(rootPath, policy);
+  writeActiveRuntime(rootPath, { in_flight_packet: parsed.in_flight_packet || null });
+
+  const legacy = {
+    ...policy,
+    in_flight_packet: parsed.in_flight_packet || null,
+  };
+  writeFile(rootPath, path.join(STATE_ROOT, "active-contract.json"), JSON.stringify(legacy, null, 2) + "\n");
 }
 
 /**
@@ -218,6 +310,8 @@ module.exports = {
   readHandoff,
   readSnapshot,
   readActiveStream,
+  readActivePolicy,
+  readActiveRuntime,
   readActiveContract,
   readStreamDoc,
   // Write operations
@@ -225,6 +319,8 @@ module.exports = {
   writeHandoff,
   writeSnapshot,
   writeActiveStream,
+  writeActivePolicy,
+  writeActiveRuntime,
   writeActiveContract,
   writeStreamDoc,
   // History operation

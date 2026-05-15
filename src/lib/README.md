@@ -110,7 +110,9 @@ This module provides explicit read functions for each ScaffoldAI state file:
 - `readHandoff(rootPath)` → `.scaffoldai/state/handoff.md`
 - `readSnapshot(rootPath)` → `.scaffoldai/state/snapshot.md`
 - `readActiveStream(rootPath)` → `.scaffoldai/state/active-stream.md`
-- `readActiveContract(rootPath)` → `.scaffoldai/state/active-contract.json` (parsed)
+- `readActivePolicy(rootPath)` → `.scaffoldai/contracts/active-policy.json` (parsed)
+- `readActiveRuntime(rootPath)` → `.scaffoldai/state/active-runtime.json` (parsed)
+- `readActiveContract(rootPath)` → composed policy + runtime contract view (parsed)
 - `readStreamDoc(rootPath, streamName)` → `.scaffoldai/streams/{streamName}/stream.md`
 
 **Architecture:**

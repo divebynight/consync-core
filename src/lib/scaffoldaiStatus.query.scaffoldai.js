@@ -95,10 +95,10 @@ function gatherStatus(repoRoot, options = {}) {
     warnings.push("active-stream.md missing or unreadable");
   }
 
-  // Active contract
+  // Active policy/runtime composition
   const contract = readActiveContract(repoRoot);
   if (!contract) {
-    warnings.push("active-contract.json missing or malformed");
+    warnings.push("active-policy.json or active-runtime.json missing or malformed");
   }
 
   // Active packet
@@ -132,7 +132,7 @@ function gatherStatus(repoRoot, options = {}) {
     warnings.push(".consync/packets/ exists — migrated ScaffoldAI packets must not return here");
   }
 
-  // Blocker: contract says in_flight but next-action says NONE
+  // Blocker: runtime in-flight says mounted but next-action says NONE
   if (
     contract &&
     contract.in_flight_packet !== null &&
@@ -140,7 +140,7 @@ function gatherStatus(repoRoot, options = {}) {
     !inFlightPacket
   ) {
     warnings.push(
-      `BLOCKER: active-contract.json declares in_flight_packet "${contract.in_flight_packet}" but next-action.md has no active packet`
+      `BLOCKER: active-runtime.json declares in_flight_packet "${contract.in_flight_packet}" but next-action.md has no active packet`
     );
   }
 

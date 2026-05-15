@@ -67,7 +67,7 @@ Housekeeping commands:
 - `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state`
 - `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
 
-Default housekeeping reset behavior neutralizes active runtime state (`active-contract.json`, `next-action.md`, `snapshot.md`) while preserving append-only runtime logs and packet archives. Runtime logs are only cleared with explicit `--include-runtime-logs`.
+Default housekeeping reset behavior neutralizes active runtime state (`active-runtime.json`, `next-action.md`, `snapshot.md`) while preserving append-only runtime logs and packet archives. Runtime logs are only cleared with explicit `--include-runtime-logs`.
 
 ## MCP Model
 
@@ -173,14 +173,19 @@ The authoritative source of truth for the current development loop.
 - `handoff.md` — closeout record for the most recently completed package
 - `snapshot.md` — fast re-entry summary of current system state
 - `active-stream.md` — which work stream is currently mounted
-- `active-contract.json` — current gatekeeper mode and constraints
+- `active-runtime.json` — current transient runtime execution state
 - `history.jsonl` — append-only state transition audit trail (optional, created on first append)
 - `history/` — observational artifacts subdirectory (non-authoritative)
+
+Durable policy contract:
+
+- `.scaffoldai/contracts/active-policy.json` — mode, allowed/blocked packet types, and process requirements
 
 Git lifecycle guidance:
 
 - `next-action.md` and `snapshot.md` are runtime-facing and often noisy during loop operation.
-- `active-contract.json` may contain intentional process-mode edits, but `in_flight_packet` is transient and can be normalized by housekeeping reset.
+- `active-policy.json` contains intentional process-mode edits and should remain tracked.
+- `active-runtime.json` is transient execution state and should be normalized by housekeeping reset when needed.
 - `history.jsonl` is append-only runtime telemetry and should usually be preserved locally rather than committed.
 
 ### `streams/` — Stream identity and work continuity
@@ -255,10 +260,13 @@ Four distinct categories of ScaffoldAI artifacts with different lifecycles and p
 **Gitignored:** Partially (dynamic files like `next-action.md`, `snapshot.md` excluded)
 
 **Key files:**
-- `active-contract.json` — current work packet metadata
+- `active-runtime.json` — current transient in-flight packet metadata
 - `next-action.md` — current in-flight packet or NONE
 - `handoff.md` — current handoff document
 - `snapshot.md` — current operational snapshot
+
+Durable policy source:
+- `.scaffoldai/contracts/active-policy.json` — stable process-policy metadata
 
 **Write authority:** All mutations go through `src/lib/scaffoldaiState.state.scaffoldai.js` gateway
 

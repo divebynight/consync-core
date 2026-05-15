@@ -28,29 +28,36 @@ function createFixtureRepo() {
   const fixture = fs.mkdtempSync(path.join(tempRoot, "housekeeping-"));
 
   const stateDir = path.join(fixture, ".scaffoldai", "state");
+  const contractsDir = path.join(fixture, ".scaffoldai", "contracts");
   const packetsDir = path.join(fixture, ".scaffoldai", "packets");
   const runtimeDir = path.join(fixture, ".scaffoldai", "runtime", "mcp");
   const srcDir = path.join(fixture, "src");
 
   fs.mkdirSync(stateDir, { recursive: true });
+  fs.mkdirSync(contractsDir, { recursive: true });
   fs.mkdirSync(packetsDir, { recursive: true });
   fs.mkdirSync(runtimeDir, { recursive: true });
   fs.mkdirSync(srcDir, { recursive: true });
 
   fs.writeFileSync(
-    path.join(stateDir, "active-contract.json"),
+    path.join(contractsDir, "active-policy.json"),
     JSON.stringify(
       {
         mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
         allowed_packet_types: ["process", "contract", "planning"],
         blocked_packet_types: ["product", "agent"],
-        in_flight_packet: "runtime-packet.sdc",
         require_clean_git: true,
         require_dry_run: true,
       },
       null,
       2
     ) + "\n",
+    "utf8"
+  );
+
+  fs.writeFileSync(
+    path.join(stateDir, "active-runtime.json"),
+    JSON.stringify({ in_flight_packet: "runtime-packet.sdc" }, null, 2) + "\n",
     "utf8"
   );
 
@@ -137,10 +144,10 @@ function main() {
 
       assert.strictEqual(resetResult.status, "PASS", "reset should pass for valid fixture");
 
-      const contract = JSON.parse(
-        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-contract.json"), "utf8")
+      const runtime = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
       );
-      assert.strictEqual(contract.in_flight_packet, null, "active-contract in_flight_packet should be null after reset");
+      assert.strictEqual(runtime.in_flight_packet, null, "active-runtime in_flight_packet should be null after reset");
       assert.strictEqual(getInFlightPacket(fixture), null, "next-action pointer should be NONE after reset");
 
       const snapshot = fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "snapshot.md"), "utf8");

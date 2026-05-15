@@ -48,7 +48,7 @@ function runStatusTool() {
     },
     next_safe_action:
       mcpStatus === "BLOCKED"
-        ? "Resolve missing or malformed active-contract.json before continuing."
+        ? "Resolve missing or malformed active-policy.json or active-runtime.json before continuing."
         : mcpStatus === "WARNING"
         ? "Review uncommitted changes before proceeding."
         : "Repo is on track. Run scaffoldai preflight to confirm readiness.",

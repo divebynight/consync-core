@@ -19,6 +19,8 @@ sandbox/probes/audio-session-capture/workdir/*
 .scaffoldai/state/next-action.md
 .scaffoldai/state/snapshot.md
 .scaffoldai/state/active-stream.md
+.scaffoldai/state/active-runtime.json
+.scaffoldai/state/history.jsonl
 
 # Optional: if you later add logs/history
 .scaffoldai/state/history/

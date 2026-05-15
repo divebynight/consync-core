@@ -2,15 +2,22 @@
 
 ## Purpose
 
-`active-contract.json` is the machine-readable state surface for the Consync process loop.
+`active-contract.json` is a legacy compatibility mirror for the Consync process loop.
 
-It represents the current system mode and execution constraints. Future gatekeeper and agent logic will read this file to determine what is allowed before executing any packet.
+Durable policy and transient runtime execution state are now split:
 
-This file is the authoritative source of truth for:
+- Durable policy: `.scaffoldai/contracts/active-policy.json`
+- Runtime active state: `.scaffoldai/state/active-runtime.json`
+
+Runtime and CLI readers compose these two sources through `src/lib/scaffoldaiState.state.scaffoldai.js`.
+
+This compatibility file may still contain:
 - current system mode
 - allowed and blocked packet types
 - in-flight packet tracking
 - basic execution constraints
+
+But it is no longer the primary write target for in-flight runtime packet changes.
 
 **This file is not yet enforced automatically.** Enforcement logic will be introduced in a future packet (`gatekeeper-agent-contract-v1`).
 
@@ -72,11 +79,12 @@ Corresponds to the dry-run contract defined in `.scaffoldai/process/process-flow
 
 ## Authoritative Surface
 
-This file (`active-contract.json`) is the single source of truth for system execution constraints.
+Authoritative split model:
 
-When implementing gatekeeper or agent logic, read from this file — do not hardcode mode logic or constraint values in scripts or commands.
+- `active-policy.json` is the tracked source of truth for durable process policy.
+- `active-runtime.json` is the runtime source of truth for transient in-flight execution state.
 
-When shifting system mode or constraints, update this file explicitly as a tracked state change.
+`active-contract.json` is maintained only for compatibility during migration and should not be relied on as the primary runtime write surface.
 
 ---
 

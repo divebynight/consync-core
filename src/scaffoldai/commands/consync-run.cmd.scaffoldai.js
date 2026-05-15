@@ -5,8 +5,6 @@ const { applyGatekeeperRules } = require("../../lib/gatekeeperDecision.auth.scaf
 const { getInFlightPacket } = require("../../lib/getInFlightPacket.query.scaffoldai");
 const scaffoldaiState = require("../../lib/scaffoldaiState.state.scaffoldai");
 
-const ACTIVE_CONTRACT_PATH = ".scaffoldai/state/active-contract.json";
-
 const VALID_REQUEST_TYPES = ["SDC", "CLOSEOUT", "RECOVERY", "DRY_RUN", "CANCEL", "SUPERSEDE"];
 const VALID_PACKET_TYPES = ["product", "process", "contract", "agent", "planning", "docs", "recovery", "closeout"];
 const VALID_GIT_STATUSES = ["clean", "dirty"];
@@ -67,7 +65,7 @@ function loadActiveContract(rootDir) {
   const contract = scaffoldaiState.readActiveContract(rootDir);
 
   if (!contract) {
-    throw new Error(`active-contract.json not found or invalid at: ${rootDir}/.scaffoldai/state/`);
+    throw new Error(`active-policy.json or active-runtime.json not found or invalid under: ${rootDir}/.scaffoldai/`);
   }
 
   return contract;

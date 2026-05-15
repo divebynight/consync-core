@@ -36,8 +36,13 @@ const SEVERITY = {
 
 function checkStateFilesPresent(repoRoot) {
   const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const required = ["active-stream.md", "active-contract.json", "next-action.md"];
-  const missing = required.filter((f) => !fs.existsSync(path.join(STATE_DIR, f)));
+  const requiredState = ["active-stream.md", "active-runtime.json", "next-action.md"];
+  const missing = requiredState.filter((f) => !fs.existsSync(path.join(STATE_DIR, f)));
+  const policyPath = path.join(repoRoot, ".scaffoldai", "contracts", "active-policy.json");
+
+  if (!fs.existsSync(policyPath)) {
+    missing.push("../contracts/active-policy.json");
+  }
 
   if (missing.length === 0) return null;
 
@@ -55,9 +60,9 @@ function checkContractCoherence(contract) {
     return {
       category: CATEGORIES.TOOL_BOUNDARY_CONCERN,
       severity: SEVERITY.BLOCKED,
-      condition: "active-contract.json is missing or malformed.",
+      condition: "active-policy.json or active-runtime.json is missing or malformed.",
       why: "The contract is the authority for allowed packet types and mode enforcement.",
-      action: "Restore or correct active-contract.json.",
+      action: "Restore or correct active-policy.json and active-runtime.json.",
     };
   }
 
@@ -86,9 +91,9 @@ function checkAllowedPacketTypes(contract) {
     return {
       category: CATEGORIES.POLICY_GAP,
       severity: SEVERITY.QUESTION,
-      condition: "allowed_packet_types is empty in active-contract.json.",
+      condition: "allowed_packet_types is empty in active-policy.json.",
       why: "No packet type can be safely started. The next work type is undefined.",
-      action: "Add at least one allowed packet type to active-contract.json.",
+      action: "Add at least one allowed packet type to active-policy.json.",
     };
   }
 

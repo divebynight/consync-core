@@ -21,9 +21,11 @@ function createFixtureRepo() {
   const fixture = fs.mkdtempSync(path.join(tempRoot, "packet-activation-"));
 
   const stateDir = path.join(fixture, ".scaffoldai", "state");
+  const contractsDir = path.join(fixture, ".scaffoldai", "contracts");
   const packetsDir = path.join(fixture, ".scaffoldai", "packets");
 
   fs.mkdirSync(stateDir, { recursive: true });
+  fs.mkdirSync(contractsDir, { recursive: true });
   fs.mkdirSync(packetsDir, { recursive: true });
 
   fs.writeFileSync(
@@ -39,19 +41,24 @@ function createFixtureRepo() {
   );
 
   fs.writeFileSync(
-    path.join(stateDir, "active-contract.json"),
+    path.join(contractsDir, "active-policy.json"),
     JSON.stringify(
       {
         mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
         allowed_packet_types: ["process", "contract", "planning"],
         blocked_packet_types: ["product", "agent"],
-        in_flight_packet: null,
         require_clean_git: true,
         require_dry_run: true,
       },
       null,
       2
     ) + "\n",
+    "utf8"
+  );
+
+  fs.writeFileSync(
+    path.join(stateDir, "active-runtime.json"),
+    JSON.stringify({ in_flight_packet: null }, null, 2) + "\n",
     "utf8"
   );
 
@@ -116,10 +123,15 @@ function main() {
       assert.strictEqual(result.title, "Alpha Process Packet", "title should be extracted from markdown heading");
       assert.strictEqual(result.category, "process", "category should derive from MODE prefix");
 
-      const contract = JSON.parse(
-        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-contract.json"), "utf8")
+      const runtime = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
       );
-      assert.strictEqual(contract.in_flight_packet, "alpha-process.sdc", "active-contract should store in-flight packet");
+      assert.strictEqual(runtime.in_flight_packet, "alpha-process.sdc", "active-runtime should store in-flight packet");
+
+      const policy = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "contracts", "active-policy.json"), "utf8")
+      );
+      assert.strictEqual(policy.mode, "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN", "active-policy should remain stable during activation");
       assert.strictEqual(getInFlightPacket(fixture), "alpha-process.sdc", "next-action pointer should match in-flight packet");
 
       const historyPath = path.join(fixture, ".scaffoldai", "state", "history.jsonl");
@@ -162,10 +174,10 @@ function main() {
       assert.strictEqual(clearResult.previous_packet, "alpha-process.sdc", "clear should report previous packet");
       assert.strictEqual(getInFlightPacket(fixture), null, "clear should remove next-action pointer");
 
-      const contract = JSON.parse(
-        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-contract.json"), "utf8")
+      const runtime = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
       );
-      assert.strictEqual(contract.in_flight_packet, null, "clear should null active-contract pointer");
+      assert.strictEqual(runtime.in_flight_packet, null, "clear should null active-runtime pointer");
 
       const packetPath = path.join(fixture, ".scaffoldai", "packets", "alpha-process.sdc.md");
       assert.ok(fs.existsSync(packetPath), "clear must not delete packet files");

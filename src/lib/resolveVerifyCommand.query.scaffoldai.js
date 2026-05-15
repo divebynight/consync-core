@@ -1,5 +1,4 @@
-const fs = require("fs");
-const path = require("path");
+const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
 const TARGET_MAP = {
   scaffoldai: "npm run verify:scaffoldai",
@@ -105,14 +104,7 @@ function resolveVerifyCommand(contract, flags) {
  * @returns {object|null}
  */
 function readActiveContract(repoRoot) {
-  const contractPath = path.join(repoRoot, ".scaffoldai", "state", "active-contract.json");
-
-  try {
-    const raw = fs.readFileSync(contractPath, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return scaffoldaiState.readActiveContract(repoRoot);
 }
 
 module.exports = { resolveVerifyCommand, readActiveContract };
