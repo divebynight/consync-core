@@ -137,6 +137,7 @@ These are documented as current blurry boundaries, not defects:
 - Preferred intake source path is `.scaffoldai/inbox/*.sdc.md`; valid sources outside inbox are accepted with an explicit warning for migration compatibility
 - Intake artifact cleanup is explicit via `scaffoldai housekeeping clean-intake-artifacts`; this cleanup removes transient intake metadata/candidates only and preserves accepted packets and append-only logs
 - Unified workspace cleanup is available via `scaffoldai housekeeping clean-workspace`; this orchestrates intake artifact cleanup + runtime-state reset while preserving packets, contracts, implementation files, and append-only logs by default
+- End-to-end lifecycle simulation coverage runs in `src/test/unit-scaffoldai-lifecycle-simulation.js`; it uses isolated fixture roots under `.scaffoldai/tmp/` and validates lifecycle ordering, collision handling, invalid transition blocking, cleanup behavior, and append-only preservation without mutating live `.scaffoldai/state` or `.scaffoldai/runtime`
 
 ---
 

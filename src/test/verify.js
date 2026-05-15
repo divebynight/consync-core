@@ -491,6 +491,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI packet activation flow", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-activation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI end-to-end lifecycle simulation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-simulation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI MCP read-only surface", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-readonly.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
