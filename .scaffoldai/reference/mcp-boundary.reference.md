@@ -24,6 +24,17 @@ The MCP servers are local only (stdio for trusted clients, stdio+HTTPS for exter
 
 ---
 
+## Current MCP Operating Loop (Tested)
+
+- ChatGPT uses HTTPS readonly MCP for identity, status, and bounded packet visibility.
+- Copilot uses local stdio MCP for status, packet visibility when available, and append-only runtime signals.
+- Packet creation and packet import remain manual and human-authoritative.
+- Copilot may run verification through normal local workspace/terminal authority only when an SDC explicitly allows it.
+- MCP does not run verification commands.
+- MCP does not import, activate, mutate, or commit packets.
+
+---
+
 
 ## Dual Surface Architecture
 
