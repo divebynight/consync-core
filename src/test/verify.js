@@ -464,6 +464,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI verify command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-verify.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI local MCP verify runner", [path.join(repoRoot, "src", "test", "unit-scaffoldai-verify-runner.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI closeout command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-closeout.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

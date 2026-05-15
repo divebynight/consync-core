@@ -205,6 +205,29 @@ async function main() {
     }
 
     // -----------------------------------------------------------------------
+    // scaffoldai_verify_run
+    // -----------------------------------------------------------------------
+
+    {
+      let parsed;
+      try {
+        ({ parsed } = await callTool(client, "scaffoldai_verify_run", {
+          command: "not-allowlisted",
+        }));
+        pass("scaffoldai_verify_run call succeeds for rejected command path");
+      } catch (err) {
+        fail(`scaffoldai_verify_run call failed: ${err.message}`);
+        parsed = null;
+      }
+
+      if (parsed) {
+        check(parsed.execution_class === "LOCAL_VERIFY_RUNNER", 'scaffoldai_verify_run returns execution_class "LOCAL_VERIFY_RUNNER"');
+        check(parsed.status === "error", `scaffoldai_verify_run returns error for unknown command (got: ${parsed.status})`);
+        check(parsed.error_code === "COMMAND_NOT_ALLOWED", "scaffoldai_verify_run rejects unknown commands with COMMAND_NOT_ALLOWED");
+      }
+    }
+
+    // -----------------------------------------------------------------------
     // scaffoldai_closeout_readiness
     // -----------------------------------------------------------------------
 

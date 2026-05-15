@@ -56,6 +56,7 @@ Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core f
 
 **Verification & Closeout:**
 - `scaffoldai_verify_recommend` - Recommended verification command
+- `scaffoldai_verify_run` - Local bounded verify execution runner (allowlisted commands only)
 - `scaffoldai_closeout_readiness` - Closeout readiness assessment
 - `scaffoldai_completion_status` - Readonly completion-handshake visibility from append-only signals
 
@@ -106,6 +107,18 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls functions l
 - stdio vs HTTPS is a transport concern
 - Tool contracts + core validation define authority
 - The same validation rules apply regardless of transport
+
+### 3b. Bounded Local Verify Execution
+
+`scaffoldai_verify_run` is intentionally bounded:
+- local stdio MCP only
+- allowlisted verify commands only
+- no arbitrary shell strings
+- timeout enforced
+- output bounded to tails
+- returns structured pass/fail/error/timeout result
+
+It is not a general shell and does not grant closeout authority.
 
 ### 4. Diagnostic Tools Are Isolated
 

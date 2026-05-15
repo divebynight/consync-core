@@ -10,6 +10,7 @@ const { gatherStatus } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
 const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const { gatherCompletionStatus } = require("../../lib/scaffoldaiCompletionStatus.query.scaffoldai");
+const { runVerifyTool } = require("../../lib/scaffoldaiVerifyRun.auth.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 const EXECUTION_CLASS = "READ_ONLY";
@@ -202,6 +203,14 @@ function runCompletionStatusTool(args = {}) {
 }
 
 // -----------------------------------------------------------------------
+// scaffoldai_verify_run
+// -----------------------------------------------------------------------
+
+function runVerifyRunTool(args = {}, deps = {}) {
+  return runVerifyTool(repoRoot, args, deps);
+}
+
+// -----------------------------------------------------------------------
 // Exports
 // -----------------------------------------------------------------------
 
@@ -212,4 +221,5 @@ module.exports = {
   runVerifyRecommendTool,
   runCloseoutReadinessTool,
   runCompletionStatusTool,
+  runVerifyRunTool,
 };

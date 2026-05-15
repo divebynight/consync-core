@@ -63,6 +63,7 @@ scaffoldai_completion_status (bounded advisory packet completion visibility from
 - `scaffoldai_preflight` (not needed for external observation)
 - `scaffoldai_question` (not needed for external observation)
 - `scaffoldai_verify_recommend` (not needed for external observation)
+- `scaffoldai_verify_run` (local execution tool, never exposed on readonly/HTTPS surface)
 - `scaffoldai_closeout_readiness` (not needed for external observation)
 - `scaffoldai_signal` (diagnostic tool, local only)
 - `scaffoldai_memory_write` (diagnostic tool, local only)

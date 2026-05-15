@@ -26,6 +26,7 @@ This contract applies to AI clients using the ScaffoldAI operational MCP server 
 - `scaffoldai_preflight`
 - `scaffoldai_question`
 - `scaffoldai_verify_recommend`
+- `scaffoldai_verify_run`
 - `scaffoldai_closeout_readiness`
 - `scaffoldai_completion_status`
 - `scaffoldai_signal`
@@ -74,7 +75,7 @@ This contract assumes:
 
 ## 4. Execution Class
 
-The five v0 observation tools use execution class:
+The read-only v0 observation tools use execution class:
 
 ```text
 READ_ONLY
@@ -91,6 +92,21 @@ An MCP client must preserve and cite `execution_class` when it materially affect
 - The MCP tool may not run verification.
 - The MCP tool may not approve closeout.
 - The MCP tool may not commit, push, stage, edit, delete, rename, or move files.
+
+The local verify runner uses execution class:
+
+```text
+LOCAL_VERIFY_RUNNER
+```
+
+`LOCAL_VERIFY_RUNNER` means:
+
+- The MCP tool may execute only allowlisted local verification commands.
+- The tool enforces bounded timeout and bounded output tails.
+- The tool must not accept arbitrary shell strings.
+- The tool must not mutate authoritative state.
+- The tool must not commit, push, stage, edit, delete, rename, or move files.
+- The tool must not grant closeout authority.
 
 The v0 signal tool uses execution class:
 
@@ -119,6 +135,7 @@ Execution class controls client behavior:
 | execution_class | Client behavior |
 |---|---|
 | `READ_ONLY` | Observe, summarize, recommend, and ask the human before any action. |
+| `LOCAL_VERIFY_RUNNER` | Run only allowlisted local verification commands with bounded timeout/output; treat result as verification evidence only, not closeout approval. |
 | `LOCAL_SIGNAL_APPEND_ONLY` | Append only a bounded non-authoritative signal under `.scaffoldai/tmp/`; do not treat it as workflow authority. |
 | Diagnostic POC | Use manually for connection/client visibility diagnostics only; never treat messages as workflow authority or executable intent. |
 | Missing or unknown | Treat as unsafe. Stop and ask the human. |
@@ -134,6 +151,7 @@ An MCP-aware AI client may:
 - Read and summarize the JSON returned by those tools.
 - Use MCP observations to understand current ScaffoldAI state.
 - Recommend a human-run VERIFY COMMAND from `scaffoldai_verify_recommend`.
+- Run bounded local verification through `scaffoldai_verify_run` when the human asks to execute verification via MCP.
 - Quote or summarize the `NEXT SAFE ACTION` from tool output.
 - Surface `TARGET`, status, warnings, blockers, and open questions.
 - Surface advisory packet completion handshake visibility when available.
@@ -167,6 +185,7 @@ An MCP-aware AI client must not:
 - Auto-dispatch multiple process agents.
 - Automatically run Runtime Commands unless the human explicitly asks.
 - Automatically run the VERIFY COMMAND returned by MCP.
+- Treat `scaffoldai_verify_run` as a general shell or arbitrary command execution surface.
 - Execute shell commands through MCP.
 - Treat a recommendation as permission to execute a shell command.
 - Treat `scaffoldai_verify_recommend` as verification evidence.

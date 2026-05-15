@@ -56,6 +56,7 @@ const EXPECTED_TOOL_FNS = [
   "runPreflightTool",
   "runQuestionTool",
   "runVerifyRecommendTool",
+  "runVerifyRunTool",
   "runCloseoutReadinessTool",
   "runCompletionStatusTool",
 ];
@@ -87,6 +88,22 @@ for (const [name, fn] of toolFns) {
   } catch (err) {
     fail(`${name} threw during execution: ${err.message}`);
   }
+}
+
+// -----------------------------------------------------------------------
+// Test 7b: verify runner returns LOCAL_VERIFY_RUNNER and uses bounded model
+// -----------------------------------------------------------------------
+
+{
+  const result = tools.runVerifyRunTool({}, {
+    execute: () => ({ status: 0, stdout: "verify ok", stderr: "" }),
+    now: new Date("2026-05-15T00:00:00.000Z"),
+  });
+  check(
+    result.execution_class === "LOCAL_VERIFY_RUNNER",
+    'runVerifyRunTool returns execution_class "LOCAL_VERIFY_RUNNER"'
+  );
+  check(result.status === "passed", 'runVerifyRunTool returns status "passed" for successful execution');
 }
 
 // -----------------------------------------------------------------------

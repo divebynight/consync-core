@@ -21,6 +21,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_preflight",
   "scaffoldai_question",
   "scaffoldai_verify_recommend",
+  "scaffoldai_verify_run",
   "scaffoldai_closeout_readiness",
   "scaffoldai_completion_status",
   "scaffoldai_signal",
@@ -31,6 +32,7 @@ const EXPECTED_TOOLS = [
 // Write-capable patterns that must never appear in any tool name
 const WRITE_PATTERNS = ["write", "create", "delete", "remove", "update", "append", "execute", "run"];
 const APPEND_ONLY_DIAGNOSTIC_TOOLS = new Set(["scaffoldai_memory_write"]);
+const APPROVED_BOUNDED_EXECUTION_TOOLS = new Set(["scaffoldai_verify_run"]);
 
 function pass(msg) {
   console.log(`  PASS: ${msg}`);
@@ -101,6 +103,11 @@ async function main() {
       for (const pattern of WRITE_PATTERNS) {
         if (pattern === "write" && APPEND_ONLY_DIAGNOSTIC_TOOLS.has(tool.name)) {
           pass(`tool "${tool.name}" is an approved append-only diagnostic write surface`);
+          continue;
+        }
+
+        if ((pattern === "run" || pattern === "execute") && APPROVED_BOUNDED_EXECUTION_TOOLS.has(tool.name)) {
+          pass(`tool "${tool.name}" is an approved bounded execution surface`);
           continue;
         }
 

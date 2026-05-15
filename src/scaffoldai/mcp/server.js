@@ -11,6 +11,7 @@ const {
   runVerifyRecommendTool,
   runCloseoutReadinessTool,
   runCompletionStatusTool,
+  runVerifyRunTool,
 } = require("./tools");
 const { runSignalTool } = require("./signal");
 const { runMemoryWriteTool, runMemoryReadTool } = require("./shared-memory");
@@ -111,6 +112,22 @@ server.registerTool(
   },
   withToolLogging("scaffoldai_completion_status", async (args) => {
     const result = runCompletionStatusTool(args || {});
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_verify_run",
+  {
+    description:
+      "Run an allowlisted local verification command through a bounded stdio runner. No arbitrary shell execution.",
+    inputSchema: z.object({
+      command: z.string().optional().describe("Optional allowlisted verify command. Default resolves to current ScaffoldAI recommendation."),
+      timeout_ms: z.number().int().min(1000).max(600000).optional().describe("Optional timeout in milliseconds (1000-600000)."),
+    }),
+  },
+  withToolLogging("scaffoldai_verify_run", async (args) => {
+    const result = runVerifyRunTool(args || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );
