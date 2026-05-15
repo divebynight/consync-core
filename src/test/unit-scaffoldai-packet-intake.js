@@ -21,11 +21,13 @@ function createFixtureRepo() {
   const stateDir = path.join(fixture, ".scaffoldai", "state");
   const contractsDir = path.join(fixture, ".scaffoldai", "contracts");
   const packetsDir = path.join(fixture, ".scaffoldai", "packets");
+  const inboxDir = path.join(fixture, ".scaffoldai", "inbox");
   const incomingDir = path.join(fixture, "incoming");
 
   fs.mkdirSync(stateDir, { recursive: true });
   fs.mkdirSync(contractsDir, { recursive: true });
   fs.mkdirSync(packetsDir, { recursive: true });
+  fs.mkdirSync(inboxDir, { recursive: true });
   fs.mkdirSync(incomingDir, { recursive: true });
 
   fs.writeFileSync(
@@ -67,6 +69,12 @@ function createFixtureRepo() {
   fs.writeFileSync(path.join(packetsDir, "README.md"), "# Packets\n", "utf8");
 
   return fixture;
+}
+
+function writeInboxPacket(fixturePath, fileName, content) {
+  const inboxPath = path.join(fixturePath, ".scaffoldai", "inbox", fileName);
+  fs.writeFileSync(inboxPath, content, "utf8");
+  return inboxPath;
 }
 
 function cleanupFixtureRepo(fixturePath) {
@@ -263,6 +271,36 @@ function main() {
       assert.strictEqual(visibility.data.latest_intake.status, "ACCEPTED");
       assert.strictEqual(visibility.data.latest_intake.packet_id, result.packet_id);
       console.log("  PASS: readonly queries expose latest intake result");
+    }
+
+    // 11. inbox path intake accepted without outside-inbox warning
+    {
+      const sourcePath = writeInboxPacket(
+        fixture,
+        "inbox-intake.sdc.md",
+        validPacketContent().replace("Add Strict Intake Validation", "Inbox Intake Packet")
+      );
+      const result = intakePacket(fixture, sourcePath);
+
+      assert.strictEqual(result.accepted, true);
+      assert.strictEqual(result.source_in_inbox, true);
+      assert.deepStrictEqual(result.warnings, []);
+      console.log("  PASS: inbox path intake accepted without warning");
+    }
+
+    // 12. external path intake returns warning but still accepts valid packet
+    {
+      const sourcePath = writeIncomingPacket(
+        fixture,
+        "external-warning.md",
+        validPacketContent().replace("Add Strict Intake Validation", "External Warning Packet")
+      );
+      const result = intakePacket(fixture, sourcePath);
+
+      assert.strictEqual(result.accepted, true);
+      assert.strictEqual(result.source_in_inbox, false);
+      assert.ok(result.warnings.some((item) => item.includes("outside .scaffoldai/inbox")));
+      console.log("  PASS: external path intake warns but accepts valid packet");
     }
 
     console.log(`[${TEST_NAME}] PASS`);

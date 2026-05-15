@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
+const INBOX_DIR_RELATIVE = path.join(".scaffoldai", "inbox");
 const INTAKE_RUNTIME_DIR_RELATIVE = path.join(".scaffoldai", "runtime", "packet-intake");
 const LATEST_INTAKE_RESULT_RELATIVE = path.join(INTAKE_RUNTIME_DIR_RELATIVE, "latest-intake.json");
 
@@ -72,6 +73,12 @@ function readSourceMarkdown(repoRoot, inputPath) {
     source_path: sourcePath,
     content: fs.readFileSync(sourcePath, "utf8"),
   };
+}
+
+function isSourceInsideInbox(repoRoot, sourcePath) {
+  const inboxRoot = path.resolve(repoRoot, INBOX_DIR_RELATIVE);
+  const absoluteSource = path.resolve(sourcePath);
+  return absoluteSource === inboxRoot || absoluteSource.startsWith(`${inboxRoot}${path.sep}`);
 }
 
 function getFirstNonEmptyLine(content) {
@@ -296,6 +303,12 @@ function readLatestIntakeResult(repoRoot) {
 
 function intakePacket(repoRoot, inputPath) {
   const source = readSourceMarkdown(repoRoot, inputPath);
+  const sourceInInbox = isSourceInsideInbox(repoRoot, source.source_path);
+  const warnings = sourceInInbox
+    ? []
+    : [
+      "intake source is outside .scaffoldai/inbox; preferred path is .scaffoldai/inbox/*.sdc.md",
+    ];
   const validation = validateStrictSdcPacket(source.content);
 
   if (!validation.valid) {
@@ -310,6 +323,8 @@ function intakePacket(repoRoot, inputPath) {
       validation_errors: validation.errors,
       missing_sections: validation.missing_sections,
       blocked_policy_reasons: validation.blocked_policy_reasons,
+      source_in_inbox: sourceInInbox,
+      warnings,
       next_safe_action: "Fix the packet structure or policy violations, then rerun scaffoldai packet intake <path>.",
       recorded_at: new Date().toISOString(),
     };
@@ -336,6 +351,8 @@ function intakePacket(repoRoot, inputPath) {
         validation_errors: [`normalized packet filename already exists: ${validation.file_name}`],
         missing_sections: [],
         blocked_policy_reasons: [],
+        source_in_inbox: sourceInInbox,
+        warnings,
         next_safe_action: "Rename the packet title or remove the conflicting packet, then rerun intake.",
         recorded_at: new Date().toISOString(),
       };
@@ -358,6 +375,8 @@ function intakePacket(repoRoot, inputPath) {
     packet_path: path.join(PACKETS_DIR_RELATIVE, validation.file_name).split(path.sep).join("/"),
     approval: validation.approval,
     normalized: true,
+    source_in_inbox: sourceInInbox,
+    warnings,
     next_safe_action: "Packet accepted. Activate it explicitly with --activate or scaffoldai packet activate <packet> when ready.",
     recorded_at: new Date().toISOString(),
   };

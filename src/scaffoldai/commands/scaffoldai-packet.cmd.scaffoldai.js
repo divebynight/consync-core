@@ -135,6 +135,13 @@ function printIntakeResult(result) {
     }
   }
 
+  if (result.warnings && result.warnings.length > 0) {
+    console.log("WARNINGS:");
+    for (const warning of result.warnings) {
+      console.log(`  - ${warning}`);
+    }
+  }
+
   console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
   console.log("");
   console.log(`STATUS: ${result.accepted ? "PASS" : "FAIL"}`);

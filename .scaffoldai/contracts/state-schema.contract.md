@@ -86,12 +86,22 @@ Housekeeping separates transient runtime state from implementation changes using
 | **snapshots** | `snapshot.md` current package section | neutralize to `package: NONE` |
 | **transient coordination/runtime context** | `.scaffoldai/runtime/mcp/signals.jsonl`, `.scaffoldai/runtime/mcp/shared-memory.jsonl` | preserve by default |
 | **append-only runtime logs** | `history.jsonl` | preserve by default |
+| **intake transient artifacts** | `.scaffoldai/runtime/packet-intake/latest-intake.json`, `.scaffoldai/inbox/*.sdc.md` candidates | reset/remove only via explicit intake-artifact cleanup |
 
 Runtime-state housekeeping commands:
 
 - `scaffoldai housekeeping status`
 - `scaffoldai housekeeping reset-runtime-state`
 - `scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
+- `scaffoldai housekeeping clean-intake-artifacts`
+
+Intake-artifact cleanup semantics:
+
+- Clears transient intake metadata at `.scaffoldai/runtime/packet-intake/latest-intake.json` when present.
+- May remove consumed inbox candidates in `.scaffoldai/inbox/*.sdc.md` when the latest intake source points to inbox.
+- Must never remove accepted packet copies in `.scaffoldai/packets/`.
+- Must never remove append-only logs/history unless runtime log cleanup is explicitly requested through `--include-runtime-logs` on runtime-state reset.
+- Must remain bounded to known `.scaffoldai/` surfaces (no arbitrary external filesystem cleanup).
 
 These commands are bounded to known `.scaffoldai/` surfaces and must not mutate product/runtime code or packet archives.
 

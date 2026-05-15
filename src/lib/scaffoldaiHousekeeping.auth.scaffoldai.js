@@ -4,6 +4,10 @@ const fs = require("fs");
 const path = require("path");
 
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
+const {
+  readLatestIntakeResult,
+  LATEST_INTAKE_RESULT_RELATIVE,
+} = require("./scaffoldaiPacketIntake.auth.scaffoldai");
 const { getGitStatus } = require("./gitStatus.util.shared");
 
 const STATE_ROOT = path.join(".scaffoldai", "state");
@@ -64,6 +68,8 @@ const RUNTIME_LOG_FILES = new Set(
     .filter((entry) => !entry.safeToReset && entry.category !== "durable process policy")
     .map((entry) => normalizePath(entry.relativePath))
 );
+
+const INBOX_RELATIVE = path.join(".scaffoldai", "inbox");
 
 function normalizePath(value) {
   return value.split(path.sep).join("/");
@@ -315,11 +321,102 @@ function resetRuntimeState(repoRoot, options = {}) {
   };
 }
 
+function normalizeRelativePath(value) {
+  return value.split(path.sep).join("/");
+}
+
+function resolveWithinScaffoldAi(repoRoot, relativePath) {
+  const resolved = path.resolve(repoRoot, relativePath);
+  const scaffoldaiRoot = path.resolve(repoRoot, ".scaffoldai");
+  if (!(resolved === scaffoldaiRoot || resolved.startsWith(`${scaffoldaiRoot}${path.sep}`))) {
+    throw new Error(`path is outside .scaffoldai boundary: ${relativePath}`);
+  }
+  return resolved;
+}
+
+function isWithinDirectory(parent, candidate) {
+  return candidate === parent || candidate.startsWith(`${parent}${path.sep}`);
+}
+
+function cleanIntakeArtifacts(repoRoot) {
+  const touched = [];
+  const skipped = [];
+  const warnings = [];
+
+  const latestIntakePath = resolveWithinScaffoldAi(repoRoot, LATEST_INTAKE_RESULT_RELATIVE);
+  const latestIntake = readLatestIntakeResult(repoRoot);
+
+  if (fs.existsSync(latestIntakePath)) {
+    fs.unlinkSync(latestIntakePath);
+    touched.push(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE));
+  } else {
+    skipped.push({
+      path: normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE),
+      reason: "not present",
+    });
+  }
+
+  const inboxRoot = resolveWithinScaffoldAi(repoRoot, INBOX_RELATIVE);
+  const packetsRoot = resolveWithinScaffoldAi(repoRoot, path.join(".scaffoldai", "packets"));
+
+  if (latestIntake && typeof latestIntake.source_path === "string" && latestIntake.source_path.trim()) {
+    const sourcePath = path.resolve(latestIntake.source_path.trim());
+
+    if (!isWithinDirectory(inboxRoot, sourcePath)) {
+      skipped.push({
+        path: latestIntake.source_path,
+        reason: "outside inbox; cleanup is bounded to .scaffoldai/inbox",
+      });
+    } else if (!sourcePath.toLowerCase().endsWith(".sdc.md")) {
+      skipped.push({
+        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
+        reason: "not an inbox .sdc.md candidate",
+      });
+    } else if (isWithinDirectory(packetsRoot, sourcePath)) {
+      skipped.push({
+        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
+        reason: "accepted packet surface is durable and never cleaned here",
+      });
+    } else if (!fs.existsSync(sourcePath)) {
+      skipped.push({
+        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
+        reason: "not present",
+      });
+    } else {
+      fs.unlinkSync(sourcePath);
+      touched.push(normalizeRelativePath(path.relative(repoRoot, sourcePath)));
+    }
+  } else {
+    warnings.push("latest intake metadata missing or malformed; no consumed inbox candidate determined");
+  }
+
+  const packetFileCount = fs.existsSync(packetsRoot)
+    ? fs.readdirSync(packetsRoot, { withFileTypes: true }).filter((entry) => entry.isFile()).length
+    : 0;
+
+  return {
+    tool: "scaffoldai_housekeeping_clean_intake_artifacts",
+    execution_class: "LOCAL_WRITE_BOUNDED",
+    status: "PASS",
+    blockers: [],
+    warnings,
+    data: {
+      touched,
+      skipped,
+      latest_intake_cleared: touched.includes(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE)),
+      packet_files_preserved: true,
+      packet_file_count: packetFileCount,
+    },
+    next_safe_action: "Review git status and proceed with explicit packet intake when ready.",
+  };
+}
+
 module.exports = {
   RUNTIME_STATE_FILES,
   gatherHousekeepingStatus,
   classifyRuntimeStateChanges,
   parseGitStatusPath,
   resetRuntimeState,
+  cleanIntakeArtifacts,
   neutralizeSnapshotContent,
 };

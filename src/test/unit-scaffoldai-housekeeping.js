@@ -9,6 +9,7 @@ const {
   gatherHousekeepingStatus,
   resetRuntimeState,
   parseGitStatusPath,
+  cleanIntakeArtifacts,
 } = require("../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 
@@ -31,12 +32,16 @@ function createFixtureRepo() {
   const contractsDir = path.join(fixture, ".scaffoldai", "contracts");
   const packetsDir = path.join(fixture, ".scaffoldai", "packets");
   const runtimeDir = path.join(fixture, ".scaffoldai", "runtime", "mcp");
+  const intakeRuntimeDir = path.join(fixture, ".scaffoldai", "runtime", "packet-intake");
+  const inboxDir = path.join(fixture, ".scaffoldai", "inbox");
   const srcDir = path.join(fixture, "src");
 
   fs.mkdirSync(stateDir, { recursive: true });
   fs.mkdirSync(contractsDir, { recursive: true });
   fs.mkdirSync(packetsDir, { recursive: true });
   fs.mkdirSync(runtimeDir, { recursive: true });
+  fs.mkdirSync(intakeRuntimeDir, { recursive: true });
+  fs.mkdirSync(inboxDir, { recursive: true });
   fs.mkdirSync(srcDir, { recursive: true });
 
   fs.writeFileSync(
@@ -91,6 +96,22 @@ function createFixtureRepo() {
   fs.writeFileSync(path.join(runtimeDir, "signals.jsonl"), "{\"signal\":\"question\"}\n", "utf8");
   fs.writeFileSync(path.join(runtimeDir, "shared-memory.jsonl"), "{\"message\":\"hello\"}\n", "utf8");
   fs.writeFileSync(path.join(packetsDir, "runtime-packet.sdc.md"), "# Runtime Packet\n", "utf8");
+  fs.writeFileSync(path.join(inboxDir, "runtime-packet.sdc.md"), "# Runtime Packet (Candidate)\n", "utf8");
+  fs.writeFileSync(
+    path.join(intakeRuntimeDir, "latest-intake.json"),
+    JSON.stringify(
+      {
+        status: "ACCEPTED",
+        accepted: true,
+        source_path: path.join(inboxDir, "runtime-packet.sdc.md"),
+        packet_id: "runtime-packet.sdc",
+        file_name: "runtime-packet.sdc.md",
+      },
+      null,
+      2
+    ) + "\n",
+    "utf8"
+  );
   fs.writeFileSync(path.join(srcDir, "index.js"), "console.log('product code');\n", "utf8");
 
   return fixture;
@@ -188,6 +209,29 @@ function main() {
         "shared memory log should be deleted when includeRuntimeLogs is true"
       );
       console.log("  PASS: optional runtime log cleanup is explicit and bounded");
+    }
+
+    {
+      fs.writeFileSync(path.join(fixture, ".scaffoldai", "state", "history.jsonl"), "{\"summary\":\"record\"}\n", "utf8");
+      const cleanupResult = cleanIntakeArtifacts(fixture);
+      assert.strictEqual(cleanupResult.status, "PASS", "clean-intake-artifacts should pass");
+      assert.ok(
+        !fs.existsSync(path.join(fixture, ".scaffoldai", "runtime", "packet-intake", "latest-intake.json")),
+        "latest intake metadata should be removed"
+      );
+      assert.ok(
+        !fs.existsSync(path.join(fixture, ".scaffoldai", "inbox", "runtime-packet.sdc.md")),
+        "consumed inbox packet candidate should be removed"
+      );
+      assert.ok(
+        fs.existsSync(path.join(fixture, ".scaffoldai", "packets", "runtime-packet.sdc.md")),
+        "accepted packet copy should be preserved"
+      );
+      assert.ok(
+        fs.existsSync(path.join(fixture, ".scaffoldai", "state", "history.jsonl")),
+        "append-only logs should be preserved by intake cleanup"
+      );
+      console.log("  PASS: intake artifact cleanup removes transient artifacts and preserves durable surfaces");
     }
 
     {

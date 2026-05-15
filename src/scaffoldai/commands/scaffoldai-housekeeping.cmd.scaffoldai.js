@@ -3,13 +3,14 @@
 const {
   gatherHousekeepingStatus,
   resetRuntimeState,
+  cleanIntakeArtifacts,
 } = require("../../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai housekeeping <status|reset-runtime-state> [--include-runtime-logs]");
+  console.log("Usage: scaffoldai housekeeping <status|reset-runtime-state|clean-intake-artifacts> [--include-runtime-logs]");
 }
 
 function parseArgs(argv = []) {
@@ -128,6 +129,43 @@ function printReset(result) {
   console.log(`STATUS: ${result.status}`);
 }
 
+function printCleanIntakeArtifacts(result) {
+  console.log("[scaffoldai housekeeping clean-intake-artifacts]");
+  console.log("");
+
+  console.log(`LATEST INTAKE CLEARED: ${result.data.latest_intake_cleared ? "yes" : "no"}`);
+  console.log(`PACKETS PRESERVED:     ${result.data.packet_files_preserved ? "yes" : "no"}`);
+  console.log(`PACKET FILE COUNT:     ${result.data.packet_file_count}`);
+
+  console.log("TOUCHED FILES:");
+  if (result.data.touched.length === 0) {
+    console.log("  - none");
+  } else {
+    for (const item of result.data.touched) {
+      console.log(`  - ${item}`);
+    }
+  }
+
+  console.log("SKIPPED FILES:");
+  if (result.data.skipped.length === 0) {
+    console.log("  - none");
+  } else {
+    for (const item of result.data.skipped) {
+      console.log(`  - ${item.path} (${item.reason})`);
+    }
+  }
+
+  if (result.warnings && result.warnings.length > 0) {
+    for (const warning of result.warnings) {
+      console.log(`WARNING: ${warning}`);
+    }
+  }
+
+  console.log("");
+  console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
+  console.log(`STATUS: ${result.status}`);
+}
+
 function runScaffoldaiHousekeepingCommand(argv = []) {
   const args = parseArgs(argv);
 
@@ -152,6 +190,12 @@ function runScaffoldaiHousekeepingCommand(argv = []) {
     if (result.status === "BLOCKED") {
       process.exitCode = 1;
     }
+    return;
+  }
+
+  if (args.action === "clean-intake-artifacts") {
+    const result = cleanIntakeArtifacts(repoRoot);
+    printCleanIntakeArtifacts(result);
     return;
   }
 
