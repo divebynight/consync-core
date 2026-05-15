@@ -123,6 +123,8 @@ This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
 
 `scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_completion_status` also surface claim owner/status and busy or wait guidance as readonly visibility only. They do not grant claim ownership or release authority.
 
+`scaffoldai_status` and `scaffoldai_packet_visibility` may also expose the latest bounded packet-intake result from local CLI intake. That visibility is advisory only: intake is not activation, and intake is not execution approval.
+
 Pending-question resolution lifecycle behavior:
 - `unresolvedOnly=true` (default) returns unresolved question/blocker observations only.
 - `unresolvedOnly=false` preserves historical visibility, including resolved entries.
@@ -134,6 +136,13 @@ Completion-handshake behavior:
 - It may recommend human closeout when verify status is passed and no unresolved packet questions are detected.
 - It may recommend resolving blockers first when verify failed/not_run or unresolved questions remain.
 - It never mutates state, clears packets, executes closeout, or grants authority to close out work.
+
+Packet-intake behavior:
+- Strict packet intake is local CLI only and file-based only.
+- Accepted packets are written into `.scaffoldai/packets/` with deterministic normalized filenames.
+- Intake validation requires formal SDC structure and explicit approval fields; malformed packets are rejected with explicit reasons.
+- Intake does not activate a packet unless the human passes `--activate`.
+- Intake does not imply execution approval, MCP write authority, or autonomous behavior.
 
 ---
 

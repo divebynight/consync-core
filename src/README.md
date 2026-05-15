@@ -133,6 +133,7 @@ These are documented as current blurry boundaries, not defects:
 - `electron/` code communicates with `lib/` through the preload bridge — not directly
 - Tests in `test/` verify behavior; they do not modify `.scaffoldai/` state files except in isolated temp dirs
 - `src/` must remain useful outside Electron — the CLI should work without the desktop app running
+- Strict ScaffoldAI packet intake is local CLI only and file-based only; intake validates formal SDC structure, but intake does not imply activation or execution approval
 
 ---
 

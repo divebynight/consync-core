@@ -479,6 +479,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI packet claim and collision detection", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-claim.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI packet intake validation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-intake.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI packet visibility query", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-visibility.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
+const { readLatestIntakeResult } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 const MAX_PACKET_LIMIT = 25;
@@ -135,6 +136,7 @@ function gatherPacketVisibility(repoRoot, options = {}) {
   const packetDir = path.join(repoRoot, PACKETS_DIR_RELATIVE);
   const inFlightPacket = getInFlightPacket(repoRoot);
   const packetFiles = listPacketFiles(packetDir);
+  const latestIntake = readLatestIntakeResult(repoRoot);
 
   // Claim visibility
   const runtime = scaffoldaiState.readActiveRuntime(repoRoot);
@@ -187,6 +189,7 @@ function gatherPacketVisibility(repoRoot, options = {}) {
       claim_status: claimState.claim_status,
       claim_busy: claimState.busy,
       claim_next_safe_action: claimState.next_safe_action,
+      latest_intake: latestIntake,
       packet_count: packets.length,
       packets,
     },

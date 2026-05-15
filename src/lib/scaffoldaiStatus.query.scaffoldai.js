@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
+const { readLatestIntakeResult } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
 
 // -----------------------------------------------------------------------
 // State file readers
@@ -169,6 +170,7 @@ function gatherStatus(repoRoot, options = {}) {
 
   // Verify command
   const verifySurface = recommendedVerifySurface(contract);
+  const latestIntake = readLatestIntakeResult(repoRoot);
 
   // ---- Overall status ----
   const hasBlocker = warnings.some((w) => w.startsWith("BLOCKER"));
@@ -186,6 +188,7 @@ function gatherStatus(repoRoot, options = {}) {
       claim_status: claimState.claim_status,
       claim_busy: claimState.busy,
       claim_next_safe_action: claimState.next_safe_action,
+      latest_intake: latestIntake,
       next_safe_action: nextActionSummary || "(none — see next-action.md)",
       contract: contract || null,
       verify_command: verifySurface,

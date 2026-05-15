@@ -119,8 +119,15 @@ Completion handshake note:
 - `scaffoldai_signal` now supports advisory `packet_completed` records containing packet id, verify summary fields, changed files, and closeout hints.
 - Completion records are append-only diagnostic metadata in `.scaffoldai/runtime/mcp/signals.jsonl`.
 - `scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_completion_status` now surface claim owner/status and busy or wait guidance as readonly visibility only.
+- `scaffoldai_status` and `scaffoldai_packet_visibility` may also surface the latest bounded local packet-intake result for advisory visibility.
 - Completion records must not mutate packet/state files, close packets, create commits, or grant workflow authority.
 - `scaffoldai_completion_status` is readonly advisory visibility only and may recommend that a human run closeout; it cannot perform closeout.
+
+Packet-intake note:
+- Strict SDC packet intake is local CLI only and file-based only.
+- Intake validates formal SDC structure and rejects malformed or unauthorized packets with explicit reasons.
+- Intake writes only accepted packets into `.scaffoldai/packets/` using deterministic normalized filenames.
+- Intake is separate from activation and separate from execution approval.
 
 ---
 
