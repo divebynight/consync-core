@@ -37,7 +37,10 @@ function seedSignalsForPendingQuestions() {
       signal_type: "question_resolved",
       packet: "packet-alpha.sdc.md",
       severity: "info",
-      message: "Pick canonical packet identifier",
+      question_text: "Pick canonical packet identifier",
+      resolved_by: "human.owner",
+      resolution_note: "Decision logged in packet notes",
+      message: "Resolved by human",
     },
     {
       timestamp: "2026-05-14T00:02:00.000Z",
@@ -159,7 +162,7 @@ async function main() {
 
     for (const name of EXPECTED_TOOLS) {
       const args = name === "scaffoldai_pending_questions"
-        ? { unresolvedOnly: false, limit: 1 }
+        ? { unresolvedOnly: false, limit: 5 }
         : {};
       const result = await postMcp(
         {
@@ -176,8 +179,20 @@ async function main() {
       assert.strictEqual(payload.tool, name, `${name} payload should identify tool`);
       assert.strictEqual(payload.execution_class, "READ_ONLY", `${name} should be READ_ONLY`);
       if (name === "scaffoldai_pending_questions") {
-        assert.strictEqual(payload.data.limit, 1, "scaffoldai_pending_questions should honor limit");
-        assert.ok(payload.data.returned_count <= 1, "scaffoldai_pending_questions should return bounded results");
+        assert.strictEqual(payload.data.limit, 5, "scaffoldai_pending_questions should honor limit");
+        assert.ok(payload.data.returned_count <= 5, "scaffoldai_pending_questions should return bounded results");
+        assert.ok(Array.isArray(payload.data.pending_questions), "scaffoldai_pending_questions should include pending_questions array");
+        const resolved = payload.data.pending_questions.find((entry) => entry.resolution_status === "resolved");
+        assert.ok(resolved, "scaffoldai_pending_questions should include resolved history when unresolvedOnly=false");
+        assert.strictEqual(
+          resolved.resolved_by,
+          "human.owner",
+          "scaffoldai_pending_questions should surface resolved_by when detectable"
+        );
+        assert.ok(
+          typeof resolved.resolved_at === "string" && resolved.resolved_at.length > 0,
+          "scaffoldai_pending_questions should surface resolved_at when detectable"
+        );
       }
       console.log(`  PASS: ${name} call returns parseable READ_ONLY JSON`);
     }

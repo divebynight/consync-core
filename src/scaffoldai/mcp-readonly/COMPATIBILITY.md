@@ -73,6 +73,8 @@ The dedicated compatibility test suite verifies:
 13. Anonymous SSE/bootstrap behavior remains streaming-compatible and does not immediately return JSON `No valid session ID provided`.
 14. `scaffoldai_packet_visibility` provides bounded metadata only (filename/category/existence/title-summary/in-flight relation) with no packet mutation.
 15. `scaffoldai_pending_questions` returns bounded advisory runtime metadata from `.scaffoldai/runtime/mcp/signals.jsonl` only, with no write authority and no authoritative resolution.
+16. `scaffoldai_pending_questions` with `unresolvedOnly=true` hides resolved entries when detectable.
+17. `scaffoldai_pending_questions` with `unresolvedOnly=false` preserves historical visibility and may include `resolution_status`, `resolved_at`, and `resolved_by` when detectable.
 
 ## Boundary
 

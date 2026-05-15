@@ -120,6 +120,12 @@ This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
 
 `scaffoldai_pending_questions` is advisory runtime coordination only. It does not resolve loop state authoritatively and does not grant write authority.
 
+Pending-question resolution lifecycle behavior:
+- `unresolvedOnly=true` (default) returns unresolved question/blocker observations only.
+- `unresolvedOnly=false` preserves historical visibility, including resolved entries.
+- Resolved records expose detected `resolution_status`, plus `resolved_at` and `resolved_by` when correlation is possible.
+- Correlation is advisory and append-only; it does not mutate authoritative state.
+
 ---
 
 ## ChatGPT Compatibility

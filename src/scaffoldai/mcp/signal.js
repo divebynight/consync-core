@@ -21,6 +21,9 @@ const MAX_OPTIONS = 8;
 const MAX_OPTION_LENGTH = 48;
 const MAX_CAPABILITIES = 10;
 const MAX_CAPABILITY_LENGTH = 64;
+const MAX_QUESTION_ID_LENGTH = 64;
+const MAX_QUESTION_HASH_LENGTH = 64;
+const MAX_RESOLVED_BY_LENGTH = 64;
 const MAX_RECORD_BYTES = 1024;
 const MAX_LOG_BYTES = 64 * 1024;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
@@ -34,6 +37,11 @@ const ALLOWED_FIELDS = new Set([
   "packet",
   "severity",
   "options",
+  "question_id",
+  "question_hash",
+  "question_text",
+  "resolved_by",
+  "resolution_note",
 ]);
 const ALLOWED_SIGNAL_TYPES = new Set([
   "connected",
@@ -213,6 +221,96 @@ function validateSignal(input) {
     }
   }
 
+  let questionId;
+  if (Object.prototype.hasOwnProperty.call(input, "question_id")) {
+    if (typeof input.question_id !== "string") {
+      return { ok: false, reason: "question_id must be a string" };
+    }
+    const trimmedQuestionId = input.question_id.trim();
+    if (trimmedQuestionId.length === 0) {
+      return { ok: false, reason: "question_id must not be empty when provided" };
+    }
+    if (trimmedQuestionId.length > MAX_QUESTION_ID_LENGTH) {
+      return { ok: false, reason: "question_id exceeds 64 characters" };
+    }
+    if (!/^[A-Za-z0-9_.:-]+$/.test(trimmedQuestionId)) {
+      return { ok: false, reason: "question_id contains invalid characters" };
+    }
+    questionId = trimmedQuestionId;
+  }
+
+  let questionHash;
+  if (Object.prototype.hasOwnProperty.call(input, "question_hash")) {
+    if (typeof input.question_hash !== "string") {
+      return { ok: false, reason: "question_hash must be a string" };
+    }
+    const trimmedQuestionHash = input.question_hash.trim().toLowerCase();
+    if (trimmedQuestionHash.length === 0) {
+      return { ok: false, reason: "question_hash must not be empty when provided" };
+    }
+    if (trimmedQuestionHash.length > MAX_QUESTION_HASH_LENGTH) {
+      return { ok: false, reason: "question_hash exceeds 64 characters" };
+    }
+    if (!/^[a-f0-9]+$/.test(trimmedQuestionHash)) {
+      return { ok: false, reason: "question_hash must contain lowercase hex characters only" };
+    }
+    questionHash = trimmedQuestionHash;
+  }
+
+  let questionText;
+  if (Object.prototype.hasOwnProperty.call(input, "question_text")) {
+    if (typeof input.question_text !== "string") {
+      return { ok: false, reason: "question_text must be a string" };
+    }
+    const trimmedQuestionText = input.question_text.trim();
+    if (trimmedQuestionText.length === 0) {
+      return { ok: false, reason: "question_text must not be empty when provided" };
+    }
+    if (trimmedQuestionText.length > MAX_MESSAGE_LENGTH) {
+      return { ok: false, reason: "question_text exceeds 250 characters" };
+    }
+    if (hasControlCharacters(trimmedQuestionText)) {
+      return { ok: false, reason: "question_text contains control characters" };
+    }
+    questionText = trimmedQuestionText;
+  }
+
+  let resolvedBy;
+  if (Object.prototype.hasOwnProperty.call(input, "resolved_by")) {
+    if (typeof input.resolved_by !== "string") {
+      return { ok: false, reason: "resolved_by must be a string" };
+    }
+    const trimmedResolvedBy = input.resolved_by.trim();
+    if (trimmedResolvedBy.length === 0) {
+      return { ok: false, reason: "resolved_by must not be empty when provided" };
+    }
+    if (trimmedResolvedBy.length > MAX_RESOLVED_BY_LENGTH) {
+      return { ok: false, reason: "resolved_by exceeds 64 characters" };
+    }
+    if (!/^[A-Za-z0-9_.:-]+$/.test(trimmedResolvedBy)) {
+      return { ok: false, reason: "resolved_by contains invalid characters" };
+    }
+    resolvedBy = trimmedResolvedBy;
+  }
+
+  let resolutionNote;
+  if (Object.prototype.hasOwnProperty.call(input, "resolution_note")) {
+    if (typeof input.resolution_note !== "string") {
+      return { ok: false, reason: "resolution_note must be a string" };
+    }
+    const trimmedResolutionNote = input.resolution_note.trim();
+    if (trimmedResolutionNote.length === 0) {
+      return { ok: false, reason: "resolution_note must not be empty when provided" };
+    }
+    if (trimmedResolutionNote.length > MAX_MESSAGE_LENGTH) {
+      return { ok: false, reason: "resolution_note exceeds 250 characters" };
+    }
+    if (hasControlCharacters(trimmedResolutionNote)) {
+      return { ok: false, reason: "resolution_note contains control characters" };
+    }
+    resolutionNote = trimmedResolutionNote;
+  }
+
   return {
     ok: true,
     signal: {
@@ -223,6 +321,11 @@ function validateSignal(input) {
       ...(packet !== undefined ? { packet } : {}),
       ...(severity !== undefined ? { severity } : {}),
       ...(options !== undefined ? { options } : {}),
+      ...(questionId !== undefined ? { question_id: questionId } : {}),
+      ...(questionHash !== undefined ? { question_hash: questionHash } : {}),
+      ...(questionText !== undefined ? { question_text: questionText } : {}),
+      ...(resolvedBy !== undefined ? { resolved_by: resolvedBy } : {}),
+      ...(resolutionNote !== undefined ? { resolution_note: resolutionNote } : {}),
     },
   };
 }
@@ -315,6 +418,13 @@ function runSignalTool(input, options = {}) {
     ...(validation.signal.packet !== undefined ? { packet: validation.signal.packet } : {}),
     ...(validation.signal.severity !== undefined ? { severity: validation.signal.severity } : {}),
     ...(validation.signal.options !== undefined ? { options: validation.signal.options } : {}),
+    ...(validation.signal.question_id !== undefined ? { question_id: validation.signal.question_id } : {}),
+    ...(validation.signal.question_hash !== undefined ? { question_hash: validation.signal.question_hash } : {}),
+    ...(validation.signal.question_text !== undefined ? { question_text: validation.signal.question_text } : {}),
+    ...(validation.signal.resolved_by !== undefined ? { resolved_by: validation.signal.resolved_by } : {}),
+    ...(validation.signal.resolution_note !== undefined
+      ? { resolution_note: validation.signal.resolution_note }
+      : {}),
   };
 
   const appendResult = appendSignalRecord(record);

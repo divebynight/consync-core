@@ -212,13 +212,33 @@ for (const [name, fn] of toolFns) {
   }, { now: new Date("2026-05-07T03:00:11.000Z") });
   check(normalizedSeverity.status === "accepted", "runSignalTool accepts invalid severity by normalization");
 
+  const resolvedSignal = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question_resolved",
+    packet: "packet-20260514T000000Z.sdc",
+    question_id: "q_abc123",
+    question_hash: "abcdef1234567890",
+    question_text: "Pick metadata source",
+    resolved_by: "human.operator",
+    resolution_note: "Decision captured in packet notes.",
+  }, { now: new Date("2026-05-07T03:00:22.000Z") });
+  check(resolvedSignal.status === "accepted", "runSignalTool accepts question resolution payload fields");
+
   const allRecords = fs.readFileSync(signal.signalPath, "utf8").trim().split("\n").map((lineValue) => JSON.parse(lineValue));
   const questionRecord = allRecords.find((entry) => entry.message === "Pick metadata source");
   const normalizedRecord = allRecords.find((entry) => entry.message === "Use fallback severity");
+  const resolvedRecord = allRecords.find((entry) => entry.signal_type === "question_resolved");
   check(questionRecord.packet === "packet-20260514T000000Z.sdc", "signal JSONL stores packet for question signals");
   check(questionRecord.severity === "needs_decision", "signal JSONL stores valid severity");
   check(Array.isArray(questionRecord.options) && questionRecord.options.length === 2, "signal JSONL stores decision options");
   check(normalizedRecord.severity === "info", 'signal JSONL normalizes invalid severity to "info"');
+  check(resolvedRecord.question_id === "q_abc123", "signal JSONL stores question_id for resolution signals");
+  check(resolvedRecord.question_hash === "abcdef1234567890", "signal JSONL stores question_hash for resolution signals");
+  check(resolvedRecord.resolved_by === "human.operator", "signal JSONL stores resolved_by for resolution signals");
+  check(
+    resolvedRecord.resolution_note === "Decision captured in packet notes.",
+    "signal JSONL stores resolution_note for resolution signals"
+  );
 
   const unknownField = signal.runSignalTool({
     client_id: "unit-unknown-field",

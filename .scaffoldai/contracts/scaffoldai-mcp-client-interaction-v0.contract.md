@@ -222,6 +222,8 @@ This is the preferred sequence for general status, planning, closeout assessment
 
 `scaffoldai_signal` and the shared-memory diagnostic tools are not part of the default observation sequence. They are optional and only for local connection validation, heartbeat/check-in, capability checks, tool visibility claims, graceful disconnect, short diagnostic notes, or manually requested shared-memory round-trip tests.
 
+Question/blocker coordination may also use append-only advisory signals (`question`, `decision_required`, `blocker`) and append-only resolution signals (`question_resolved`, `unblocked`) to preserve runtime history without mutating authoritative loop state.
+
 Minimum required MCP call sequence before making recommendations:
 
 1. Call `scaffoldai_status`.
@@ -242,6 +244,11 @@ Allowed signal types:
 - `tool_visibility`
 - `disconnected`
 - `note`
+- `question`
+- `decision_required`
+- `blocker`
+- `question_resolved`
+- `unblocked`
 
 Required fields:
 
@@ -252,6 +259,21 @@ Optional fields:
 
 - `message`
 - `capabilities`
+- `packet`
+- `severity`
+- `options`
+- `question_id`
+- `question_hash`
+- `question_text`
+- `resolved_by`
+- `resolution_note`
+
+Resolution semantics:
+
+- Signal history remains append-only; prior records are never edited or deleted.
+- Resolution records are advisory coordination metadata only.
+- Resolution records must not be treated as authoritative workflow-state mutation or execution approval.
+- Readonly pending-question consumers may correlate resolution records by explicit `question_id`/`question_hash`, or lightweight packet/text/timestamp heuristics when explicit identifiers are absent.
 
 Limits:
 
