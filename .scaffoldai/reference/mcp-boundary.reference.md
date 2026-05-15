@@ -12,7 +12,18 @@ It lets local MCP-aware clients observe or exercise explicitly exposed ScaffoldA
 
 The MCP servers are local only (stdio for trusted clients, stdio+HTTPS for external clients). They are not remote services, product runtime, shell proxies, workflow engines, or autonomous agent buses.
 
+
+## Operational Authority Summary
+
+| Rule | Detail |
+|------|--------|
+| **ChatGPT uses HTTPS readonly MCP** | ChatGPT connects via the `mcp-readonly` surface over HTTPS. It has a minimal tool set (identity, status only) and cannot write state. |
+| **Copilot uses local stdio MCP** | Copilot connects via the `mcp/` surface over stdio. It has the fuller operational tool set (status, preflight, signal, memory, etc.). |
+| **CLI remains authoritative for state changes** | Authoritative ScaffoldAI state (`.scaffoldai/state/`) is written only through the CLI. MCP tools are observers and diagnostic surfaces, not state writers. |
+| **MCP runtime signals are append-only and non-authoritative** | `scaffoldai_signal` and `scaffoldai_memory_write` are append-only. They are diagnostic records only, not workflow state, approval, or instruction. |
+
 ---
+
 
 ## Dual Surface Architecture
 
@@ -21,7 +32,7 @@ The repository has **two complementary MCP surfaces**:
 | Surface | Path | Transport | Client | Role | Current Tools |
 |---------|------|-----------|--------|------|---------------|
 | **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, signal, memory_write, memory_read |
-| **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal) |
+| **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal), packet_visibility (bounded metadata) |
 
 ### Why Two Surfaces?
 
@@ -37,9 +48,12 @@ The repository has **two complementary MCP surfaces**:
 2. **`src/scaffoldai/mcp-readonly/` - External Compatibility Surface**
    - **External or HTTPS clients** (ChatGPT, future cloud-connected tools)
    - **stdio + HTTPS transport** (network-exposed capability)
-   - **Minimal tool surface** (identity, status only — no diagnostic tools)
+   - **Minimal tool surface** (identity, status, bounded packet visibility — no diagnostic tools)
    - **Stricter boundaries** (no filesystem, no git, no processes, no state writes)
    - **Future expansion must stay constrained** (deliberate minimal surface)
+
+Readonly packet visibility is bounded to `.scaffoldai/packets/*.md` metadata and optional in-flight packet scope.
+It must not expose arbitrary filesystem reads, shell execution, write authority, or packet mutation.
 
 ### Complementary, Not Competing
 

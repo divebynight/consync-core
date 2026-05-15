@@ -3,6 +3,7 @@
 const TOOL_NAMES = [
   "scaffoldai_identity",
   "scaffoldai_status",
+  "scaffoldai_packet_visibility",
 ];
 
 const FORBIDDEN_TOOL_NAMES = [

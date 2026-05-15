@@ -12,7 +12,7 @@ const port = Number.parseInt(process.env.TEST_MCP_READONLY_CHATGPT_PORT || "3132
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;
 
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status"];
+const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status", "scaffoldai_packet_visibility"];
 const FORBIDDEN_TOOLS = [
   "scaffoldai_preflight",
   "scaffoldai_question",
@@ -186,11 +186,11 @@ async function main() {
     const list = await postMcp("tools/list", {}, 2, sessionId);
     assert.ok(list.response.ok, "tools/list with valid session should succeed");
     const toolNames = (list.data.result.tools || []).map((tool) => tool.name).sort();
-    assert.deepStrictEqual(toolNames, EXPECTED_TOOLS.slice().sort(), "tools/list should expose exactly Phase 1 tools");
+    assert.deepStrictEqual(toolNames, EXPECTED_TOOLS.slice().sort(), "tools/list should expose exactly readonly tools");
     for (const forbidden of FORBIDDEN_TOOLS) {
       assert.ok(!toolNames.includes(forbidden), `tools/list must not expose ${forbidden}`);
     }
-    console.log("  PASS: tools/list exposes exactly readonly Phase 1 tools");
+    console.log("  PASS: tools/list exposes exactly readonly tools");
 
     for (const toolName of EXPECTED_TOOLS) {
       const call = await postMcp("tools/call", { name: toolName, arguments: {} }, toolName, sessionId);

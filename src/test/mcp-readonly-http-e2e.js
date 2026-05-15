@@ -10,7 +10,7 @@ const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "htt
 const port = Number.parseInt(process.env.TEST_MCP_READONLY_PORT || "3131", 10);
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status"];
+const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status", "scaffoldai_packet_visibility"];
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -112,8 +112,8 @@ async function main() {
     );
     assert.ok(list.response.ok, "tools/list should succeed");
     const names = (list.data.result.tools || []).map((tool) => tool.name).sort();
-    assert.deepStrictEqual(names, EXPECTED_TOOLS.slice().sort(), "HTTP tools/list should expose only Phase 1 tools");
-    console.log("  PASS: tools/list exposes only Phase 1 tools");
+    assert.deepStrictEqual(names, EXPECTED_TOOLS.slice().sort(), "HTTP tools/list should expose only readonly tools");
+    console.log("  PASS: tools/list exposes only readonly tools");
 
     for (const name of EXPECTED_TOOLS) {
       const result = await postMcp(

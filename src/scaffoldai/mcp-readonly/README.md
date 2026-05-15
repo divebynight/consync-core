@@ -47,13 +47,14 @@ Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core f
 
 ---
 
-## Phase 1 Tool Surface
+## Readonly Tool Surface
 
 Only these tools are exposed:
 
 ```text
 scaffoldai_identity
 scaffoldai_status (minimal, no git)
+scaffoldai_packet_visibility (bounded metadata from .scaffoldai/packets)
 ```
 
 **Deliberately NOT exposed:**
@@ -85,7 +86,7 @@ It does NOT:
 - Read `.scaffoldai/*` directly
 - Write files
 - Expose workflow authority
-- Expose more than Phase 1 readonly tools
+- Expose write-capable or unrestricted-read tools
 
 ### 2. Authority Through Core Functions
 
@@ -110,9 +111,9 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls minimal fun
 ### 4. Stricter Than Operational Surface
 
 This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
-- **Fewer tools** (2 vs 8)
+- **Fewer tools** (3 vs 8)
 - **No diagnostic tools** (no signal, no shared-memory)
-- **No filesystem access** (boundary enforced)
+- **No direct filesystem access in MCP layer** (reads happen through canonical query helpers)
 - **No git integration** (status is git-free)
 - **No process spawning** (boundary enforced)
 

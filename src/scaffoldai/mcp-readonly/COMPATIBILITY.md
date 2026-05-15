@@ -41,13 +41,14 @@ The compatibility expectations below come from the `mock-scaffoldai-mcp-poc` int
 
 ---
 
-## Phase 1 Tool Surface
+## Readonly Tool Surface
 
 Only these tools are exposed:
 
 ```text
 scaffoldai_identity
 scaffoldai_status
+scaffoldai_packet_visibility
 ```
 
 Deferred or write-capable tools must not be exposed by the readonly server.
@@ -69,6 +70,7 @@ The dedicated compatibility test suite verifies:
 11. Unknown tools return deterministic MCP-compatible error behavior.
 12. Malformed JSON-RPC returns deterministic MCP-compatible error behavior.
 13. Anonymous SSE/bootstrap behavior remains streaming-compatible and does not immediately return JSON `No valid session ID provided`.
+14. `scaffoldai_packet_visibility` provides bounded metadata only (filename/category/existence/title-summary/in-flight relation) with no packet mutation.
 
 ## Boundary
 
