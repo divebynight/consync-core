@@ -34,12 +34,16 @@ Only direct ScaffoldAI loop-state surfaces are listed below.
   - runGatekeeperMount -> src/lib/gatekeeperMount.auth.scaffoldai.js
   - runGatekeeperClose -> src/lib/gatekeeperClose.auth.scaffoldai.js
   - runGatekeeperSwitch -> src/lib/gatekeeperSwitch.auth.scaffoldai.js
+- Command entry: src/scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai.js
+- Delegate:
+  - activate/status/clear -> src/lib/scaffoldaiPacketActivation.auth.scaffoldai.js
 - Canonical state writer helper:
   - src/lib/scaffoldaiState.state.scaffoldai.js
 
 ### Canonical Loop-State Files Affected By CLI Gatekeeper Flows
 
 - .scaffoldai/state/next-action.md
+- .scaffoldai/state/active-contract.json
 - .scaffoldai/state/handoff.md
 - .scaffoldai/state/snapshot.md
 - .scaffoldai/state/active-stream.md
@@ -185,7 +189,9 @@ flowchart TB
 | Gatekeeper mount writes | src/lib/gatekeeperMount.auth.scaffoldai.js (executeMountWrites) | helper/library (called by CLI) | next-action.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Gatekeeper close writes | src/lib/gatekeeperClose.auth.scaffoldai.js (executeCloseWritesA/B) | helper/library (called by CLI) | handoff.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Gatekeeper switch writes | src/lib/gatekeeperSwitch.auth.scaffoldai.js (executeSwitchWrites) | helper/library (called by CLI) | active-stream.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
-| Gatekeeper command entry | src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js | CLI | Indirect: delegates to gatekeeper auth modules above | AUTHORITATIVE_WRITE + APPEND_ONLY | Only mutating CLI entrypoint for operational state. |
+| Packet activation writes | src/lib/scaffoldaiPacketActivation.auth.scaffoldai.js (activatePacket, clearActivePacket) | helper/library (called by CLI) | active-contract.json, next-action.md, snapshot.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Packet files are read-only inputs; pointer state is the authority. |
+| Gatekeeper command entry | src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js | CLI | Indirect: delegates to gatekeeper auth modules above | AUTHORITATIVE_WRITE + APPEND_ONLY | Primary stream and closeout mutation entrypoint. |
+| ScaffoldAI packet command entry | src/scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai.js | CLI | Indirect: delegates to packet activation auth module | AUTHORITATIVE_WRITE + APPEND_ONLY | Human-approved activation surface for in-flight packet pointer. |
 | Consync run soft gate | src/scaffoldai/commands/consync-run.cmd.scaffoldai.js | CLI | Reads .scaffoldai/state/active-contract.json + next-action.md | READ_ONLY | Prompts approval but does not execute writes. |
 | Dry-run check | src/scaffoldai/commands/dry-run-check.check.scaffoldai.js | CLI | Reads .scaffoldai/state/active-contract.json + next-action.md | READ_ONLY | Simulation only. |
 | ScaffoldAI status | src/scaffoldai/commands/scaffoldai-status.cmd.scaffoldai.js + src/lib/scaffoldaiStatus.query.scaffoldai.js | CLI | Reads state and stream docs | READ_ONLY | Observation only. |
@@ -236,8 +242,9 @@ No hard policy violations were found in current runtime code. The following boun
 
 ## .scaffoldai/packets Status
 
-- No runtime writer discovered for .scaffoldai/packets in src/scaffoldai, src/lib, or scripts surfaces.
-- Packet archive remains a process/documentation artifact, not currently mutated by command or MCP runtime code.
+- No runtime writer mutates packet files under .scaffoldai/packets in command or MCP runtime surfaces.
+- Packet files now serve as archive/inbox inputs for manual CLI activation.
+- Active packet authority lives in .scaffoldai/state/active-contract.json and .scaffoldai/state/next-action.md.
 
 ## Mermaid Authority Map
 

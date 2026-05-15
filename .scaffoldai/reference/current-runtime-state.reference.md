@@ -168,7 +168,8 @@ There are multiple reentry/runtime artifacts. They have different authority.
 | `.scaffoldai/state/next-action.md` | Live next-action state | Current loop | Authoritative state | Determine mounted or idle work |
 | `.scaffoldai/state/handoff.md` | Latest closeout handoff | Updated after closeout | Authoritative state/history | Understand last completed work |
 | `.scaffoldai/streams/` | Per-stream process state | Current and historical by stream | Authoritative stream state | Scope active work and reentry assumptions |
-| `.scaffoldai/packets/` | Completed packet archive | Historical append-only archive | Historical process record | Preserve completed work packet artifacts |
+| `.scaffoldai/packets/` | Packet archive/inbox | Durable packet document store | Packet content source (not active authority by itself) | Hold packet files available for manual activation |
+| `.scaffoldai/state/active-contract.json` + `.scaffoldai/state/next-action.md` | Active packet pointer | Current loop | Authoritative in-flight packet pointer | Determine current packet across CLI and MCP surfaces |
 | `.scaffoldai/tmp/mcp-runtime-snapshot.json` | MCP runtime observation bundle | Ephemeral/generated | Read-only runtime artifact | Paste/upload into AI clients |
 | `.scaffoldai/runtime/mcp/signals.jsonl` | MCP client signal log | Runtime append-only | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
 | Handoff bundles | Portable session bootstrap | Generated on demand | Context bundle | Rehydrate another AI session |
@@ -234,6 +235,12 @@ For closeout:
 2. Run `npm run scaffoldai:closeout`.
 3. If verification passed and the human accepts the evidence, rerun closeout with `--verify-passed` when appropriate.
 4. Commit, stage, push, or create PRs only by explicit human decision.
+
+For packet activation:
+
+1. Run `node src/scaffoldai.js scaffoldai packet status`.
+2. Run `node src/scaffoldai.js scaffoldai packet activate <packet-filename-or-path>`.
+3. Run `node src/scaffoldai.js scaffoldai packet clear` when in-flight pointer should be reset.
 
 ---
 

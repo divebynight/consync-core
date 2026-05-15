@@ -107,6 +107,17 @@ function readActiveContract(rootPath) {
 }
 
 /**
+ * Write .scaffoldai/state/active-contract.json
+ */
+function writeActiveContract(rootPath, contract) {
+  const content = typeof contract === "string"
+    ? contract
+    : JSON.stringify(contract, null, 2) + "\n";
+
+  writeFile(rootPath, path.join(STATE_ROOT, "active-contract.json"), content);
+}
+
+/**
  * Read .scaffoldai/streams/{streamName}/stream.md
  */
 function readStreamDoc(rootPath, streamName) {
@@ -214,6 +225,7 @@ module.exports = {
   writeHandoff,
   writeSnapshot,
   writeActiveStream,
+  writeActiveContract,
   writeStreamDoc,
   // History operation
   appendHistory,
