@@ -10,6 +10,7 @@ const {
   runQuestionTool,
   runVerifyRecommendTool,
   runCloseoutReadinessTool,
+  runCompletionStatusTool,
 } = require("./tools");
 const { runSignalTool } = require("./signal");
 const { runMemoryWriteTool, runMemoryReadTool } = require("./shared-memory");
@@ -92,6 +93,24 @@ server.tool(
   {},
   withToolLogging("scaffoldai_closeout_readiness", async () => {
     const result = runCloseoutReadinessTool();
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_completion_status",
+  {
+    description:
+      "Read-only completion handshake visibility from append-only packet_completed signals with advisory closeout recommendations.",
+    inputSchema: z.object({
+      packet: z.string().optional().describe("Optional packet id to filter completion signals."),
+      activePacketOnly: z.boolean().optional().describe("Filter to active packet only when true."),
+      latestOnly: z.boolean().optional().describe("Return only the latest completion when true."),
+      limit: z.number().int().min(1).max(25).optional().describe("Max completion records (1-25)."),
+    }),
+  },
+  withToolLogging("scaffoldai_completion_status", async (args) => {
+    const result = runCompletionStatusTool(args || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );

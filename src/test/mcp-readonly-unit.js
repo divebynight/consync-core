@@ -5,6 +5,7 @@ const { createIdentityTool } = require("../scaffoldai/mcp-readonly/tools/identit
 const { createStatusTool } = require("../scaffoldai/mcp-readonly/tools/status");
 const { createPacketVisibilityTool } = require("../scaffoldai/mcp-readonly/tools/packet-visibility");
 const { createPendingQuestionsTool } = require("../scaffoldai/mcp-readonly/tools/pending-questions");
+const { createCompletionStatusTool } = require("../scaffoldai/mcp-readonly/tools/completion-status");
 
 const TEST_NAME = "mcp-readonly-unit";
 
@@ -117,6 +118,32 @@ async function main() {
     assert.deepStrictEqual(receivedArgs, args, "pending questions MCP tool should pass arguments through");
     assert.deepStrictEqual(result, payload, "pending questions MCP tool should return helper payload unchanged");
     console.log("  PASS: scaffoldai_pending_questions calls pending question helper");
+  }
+
+  {
+    let receivedRepoRoot = null;
+    let receivedArgs = null;
+    const payload = {
+      tool: "scaffoldai_completion_status",
+      execution_class: "READ_ONLY",
+      status: "OBSERVE",
+      data: { returned_count: 0, completions: [] },
+    };
+    const tool = createCompletionStatusTool({
+      gatherCompletionStatus: (repoRoot, args) => {
+        receivedRepoRoot = repoRoot;
+        receivedArgs = args;
+        return payload;
+      },
+      repoRoot: "/test/repo/root",
+    });
+
+    const args = { latestOnly: true, limit: 1 };
+    const result = parseToolResult(await tool(args));
+    assert.strictEqual(receivedRepoRoot, "/test/repo/root", "completion status MCP tool should pass repoRoot");
+    assert.deepStrictEqual(receivedArgs, args, "completion status MCP tool should pass arguments through");
+    assert.deepStrictEqual(result, payload, "completion status MCP tool should return helper payload unchanged");
+    console.log("  PASS: scaffoldai_completion_status calls completion helper");
   }
 
   console.log(`[${TEST_NAME}] PASS`);

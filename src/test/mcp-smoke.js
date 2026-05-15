@@ -22,6 +22,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_question",
   "scaffoldai_verify_recommend",
   "scaffoldai_closeout_readiness",
+  "scaffoldai_completion_status",
   "scaffoldai_signal",
   "scaffoldai_memory_write",
   "scaffoldai_memory_read",

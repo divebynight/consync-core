@@ -6,6 +6,7 @@ const { createIdentityTool } = require("./tools/identity");
 const { createStatusTool } = require("./tools/status");
 const { createPacketVisibilityTool } = require("./tools/packet-visibility");
 const { createPendingQuestionsTool } = require("./tools/pending-questions");
+const { createCompletionStatusTool } = require("./tools/completion-status");
 
 function createReadonlyMcpServer(deps = {}) {
   const server = new McpServer({
@@ -56,6 +57,21 @@ function createReadonlyMcpServer(deps = {}) {
       }).strict(),
     },
     createPendingQuestionsTool(deps)
+  );
+
+  server.registerTool(
+    "scaffoldai_completion_status",
+    {
+      description:
+        "Expose bounded completion handshake observations from append-only packet_completed signals with advisory readiness recommendations.",
+      inputSchema: z.object({
+        packet: z.string().optional().describe("Optional packet id to filter completion signals."),
+        activePacketOnly: z.boolean().optional().describe("Filter to active packet only when true."),
+        latestOnly: z.boolean().optional().describe("Return only the latest completion when true."),
+        limit: z.number().int().min(1).max(25).optional().describe("Max completion records to return (1-25)."),
+      }).strict(),
+    },
+    createCompletionStatusTool(deps)
   );
 
   return server;

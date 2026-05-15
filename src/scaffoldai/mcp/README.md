@@ -57,6 +57,7 @@ Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core f
 **Verification & Closeout:**
 - `scaffoldai_verify_recommend` - Recommended verification command
 - `scaffoldai_closeout_readiness` - Closeout readiness assessment
+- `scaffoldai_completion_status` - Readonly completion-handshake visibility from append-only signals
 
 **Diagnostic:**
 - `scaffoldai_signal` - Client capability and presence signaling (diagnostic POC)
@@ -113,6 +114,12 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls functions l
 - They write to `.scaffoldai/runtime/mcp/shared-memory.jsonl` (NOT state/)
 - They are isolated from authoritative workflow state
 - They must not become workflow engines or task queues
+
+Completion handshake note:
+- `scaffoldai_signal` now supports advisory `packet_completed` records containing packet id, verify summary fields, changed files, and closeout hints.
+- Completion records are append-only diagnostic metadata in `.scaffoldai/runtime/mcp/signals.jsonl`.
+- Completion records must not mutate packet/state files, close packets, create commits, or grant workflow authority.
+- `scaffoldai_completion_status` is readonly advisory visibility only and may recommend that a human run closeout; it cannot perform closeout.
 
 ---
 

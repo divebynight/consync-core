@@ -473,6 +473,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI pending question lifecycle", [path.join(repoRoot, "src", "test", "unit-scaffoldai-pending-questions.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI completion handshake visibility", [path.join(repoRoot, "src", "test", "unit-scaffoldai-completion-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI packet visibility query", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-visibility.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

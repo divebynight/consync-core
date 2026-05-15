@@ -44,7 +44,7 @@ try {
 }
 
 // -----------------------------------------------------------------------
-// Test 2: All 5 tool functions are exported
+// Test 2: All tool functions are exported
 // -----------------------------------------------------------------------
 
 const EXPECTED_TOOL_FNS = [
@@ -53,6 +53,7 @@ const EXPECTED_TOOL_FNS = [
   "runQuestionTool",
   "runVerifyRecommendTool",
   "runCloseoutReadinessTool",
+  "runCompletionStatusTool",
 ];
 
 for (const name of EXPECTED_TOOL_FNS) {
@@ -69,6 +70,7 @@ const toolFns = [
   ["runQuestionTool", tools.runQuestionTool],
   ["runVerifyRecommendTool", tools.runVerifyRecommendTool],
   ["runCloseoutReadinessTool", tools.runCloseoutReadinessTool],
+  ["runCompletionStatusTool", tools.runCompletionStatusTool],
 ];
 
 for (const [name, fn] of toolFns) {
@@ -238,6 +240,75 @@ for (const [name, fn] of toolFns) {
   check(
     resolvedRecord.resolution_note === "Decision captured in packet notes.",
     "signal JSONL stores resolution_note for resolution signals"
+  );
+
+  signal.resetSignalRateLimitsForTest();
+  const completedSignal = signal.runSignalTool({
+    client_id: "unit-completion-client",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Completed packet implementation",
+    verify_command: "npm run verify:scaffoldai",
+    verify_status: "passed",
+    changed_files: [
+      "src/scaffoldai/mcp/signal.js",
+      "../outside/path.js",
+      "/abs/path.js",
+      "src/scaffoldai/mcp/signal.js",
+      "src/scaffoldai/mcp/tools.js",
+    ],
+    summary: "Added completion handshake signal and readonly completion visibility.",
+    commit_suggestion: "scaffoldai: add packet completion handshake",
+    needs_human_closeout: true,
+  }, { now: new Date("2026-05-07T03:00:33.000Z") });
+  check(completedSignal.status === "accepted", "runSignalTool accepts valid packet_completed payload");
+
+  const normalizedVerifyStatus = signal.runSignalTool({
+    client_id: "unit-completion-client",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Completed packet implementation with unknown verify status",
+    verify_command: "npm run verify:scaffoldai",
+    verify_status: "green",
+  }, { now: new Date("2026-05-07T03:00:44.000Z") });
+  check(
+    normalizedVerifyStatus.status === "accepted",
+    "runSignalTool accepts packet_completed with unknown verify_status by normalization"
+  );
+
+  const packetCompletedRecords = fs.readFileSync(signal.signalPath, "utf8").trim().split("\n")
+    .map((lineValue) => JSON.parse(lineValue))
+    .filter((entry) => entry.signal_type === "packet_completed");
+  check(packetCompletedRecords.length >= 2, "signal JSONL stores packet_completed records");
+  const completionRecord = packetCompletedRecords.find(
+    (entry) => entry.message === "Completed packet implementation"
+  );
+  const normalizedCompletionRecord = packetCompletedRecords.find(
+    (entry) => entry.message === "Completed packet implementation with unknown verify status"
+  );
+  check(completionRecord.verify_command === "npm run verify:scaffoldai", "packet_completed stores verify_command");
+  check(completionRecord.verify_status === "passed", "packet_completed stores valid verify_status");
+  check(
+    Array.isArray(completionRecord.changed_files) &&
+      completionRecord.changed_files.length === 2 &&
+      completionRecord.changed_files.includes("src/scaffoldai/mcp/signal.js") &&
+      completionRecord.changed_files.includes("src/scaffoldai/mcp/tools.js"),
+    "packet_completed stores bounded/sanitized changed_files"
+  );
+  check(
+    normalizedCompletionRecord.verify_status === "not_run",
+    'packet_completed normalizes unknown verify_status to "not_run"'
+  );
+
+  const missingCompletionFields = signal.runSignalTool({
+    client_id: "unit-completion-missing",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Missing verify fields",
+  }, { now: new Date("2026-05-07T03:00:55.000Z") });
+  check(
+    missingCompletionFields.status === "rejected",
+    "runSignalTool rejects packet_completed when required verify fields are missing"
   );
 
   const unknownField = signal.runSignalTool({

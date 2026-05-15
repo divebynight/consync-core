@@ -17,6 +17,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_status",
   "scaffoldai_packet_visibility",
   "scaffoldai_pending_questions",
+  "scaffoldai_completion_status",
 ];
 const FORBIDDEN_TOOLS = [
   "scaffoldai_preflight",

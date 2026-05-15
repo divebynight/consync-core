@@ -24,6 +24,11 @@ const MAX_CAPABILITY_LENGTH = 64;
 const MAX_QUESTION_ID_LENGTH = 64;
 const MAX_QUESTION_HASH_LENGTH = 64;
 const MAX_RESOLVED_BY_LENGTH = 64;
+const MAX_VERIFY_COMMAND_LENGTH = 160;
+const MAX_SUMMARY_LENGTH = 500;
+const MAX_COMMIT_SUGGESTION_LENGTH = 120;
+const MAX_CHANGED_FILES = 25;
+const MAX_CHANGED_FILE_LENGTH = 160;
 const MAX_RECORD_BYTES = 1024;
 const MAX_LOG_BYTES = 64 * 1024;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
@@ -42,6 +47,12 @@ const ALLOWED_FIELDS = new Set([
   "question_text",
   "resolved_by",
   "resolution_note",
+  "verify_command",
+  "verify_status",
+  "changed_files",
+  "summary",
+  "commit_suggestion",
+  "needs_human_closeout",
 ]);
 const ALLOWED_SIGNAL_TYPES = new Set([
   "connected",
@@ -55,8 +66,10 @@ const ALLOWED_SIGNAL_TYPES = new Set([
   "blocker",
   "question_resolved",
   "unblocked",
+  "packet_completed",
 ]);
 const ALLOWED_SEVERITIES = new Set(["info", "needs_decision", "blocked"]);
+const ALLOWED_VERIFY_STATUSES = new Set(["passed", "failed", "not_run"]);
 
 const lastHeartbeatByClient = new Map();
 const lastNonHeartbeatByClient = new Map();
@@ -92,6 +105,19 @@ function isPlainObject(value) {
 
 function hasControlCharacters(value) {
   return /[\u0000-\u001f\u007f]/.test(value);
+}
+
+function sanitizeChangedFilePath(value) {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim().replaceAll("\\", "/");
+  if (normalized.length === 0) return "";
+  if (normalized.length > MAX_CHANGED_FILE_LENGTH) return "";
+  if (normalized.startsWith("/") || normalized.startsWith("../") || normalized.includes("/../")) {
+    return "";
+  }
+  if (hasControlCharacters(normalized)) return "";
+  if (!/^[A-Za-z0-9._/\- ]+$/.test(normalized)) return "";
+  return normalized;
 }
 
 function validateSignal(input) {
@@ -311,6 +337,112 @@ function validateSignal(input) {
     resolutionNote = trimmedResolutionNote;
   }
 
+  let verifyCommand;
+  if (Object.prototype.hasOwnProperty.call(input, "verify_command")) {
+    if (typeof input.verify_command !== "string") {
+      return { ok: false, reason: "verify_command must be a string" };
+    }
+    const trimmedVerifyCommand = input.verify_command.trim();
+    if (trimmedVerifyCommand.length === 0) {
+      return { ok: false, reason: "verify_command must not be empty when provided" };
+    }
+    if (trimmedVerifyCommand.length > MAX_VERIFY_COMMAND_LENGTH) {
+      return { ok: false, reason: "verify_command exceeds 160 characters" };
+    }
+    if (hasControlCharacters(trimmedVerifyCommand)) {
+      return { ok: false, reason: "verify_command contains control characters" };
+    }
+    verifyCommand = trimmedVerifyCommand;
+  }
+
+  let verifyStatus;
+  if (Object.prototype.hasOwnProperty.call(input, "verify_status")) {
+    if (typeof input.verify_status !== "string") {
+      return { ok: false, reason: "verify_status must be a string" };
+    }
+    const trimmedVerifyStatus = input.verify_status.trim().toLowerCase();
+    verifyStatus = ALLOWED_VERIFY_STATUSES.has(trimmedVerifyStatus) ? trimmedVerifyStatus : "not_run";
+  }
+
+  let changedFiles;
+  if (Object.prototype.hasOwnProperty.call(input, "changed_files")) {
+    if (!Array.isArray(input.changed_files)) {
+      return { ok: false, reason: "changed_files must be an array of strings" };
+    }
+    if (input.changed_files.length > MAX_CHANGED_FILES) {
+      return { ok: false, reason: "changed_files exceeds 25 entries" };
+    }
+    const deduped = [];
+    const seen = new Set();
+    for (const value of input.changed_files) {
+      const cleanPath = sanitizeChangedFilePath(value);
+      if (!cleanPath) continue;
+      if (seen.has(cleanPath)) continue;
+      seen.add(cleanPath);
+      deduped.push(cleanPath);
+    }
+    changedFiles = deduped;
+  }
+
+  let summary;
+  if (Object.prototype.hasOwnProperty.call(input, "summary")) {
+    if (typeof input.summary !== "string") {
+      return { ok: false, reason: "summary must be a string" };
+    }
+    const trimmedSummary = input.summary.trim();
+    if (trimmedSummary.length === 0) {
+      return { ok: false, reason: "summary must not be empty when provided" };
+    }
+    if (trimmedSummary.length > MAX_SUMMARY_LENGTH) {
+      return { ok: false, reason: "summary exceeds 500 characters" };
+    }
+    if (hasControlCharacters(trimmedSummary)) {
+      return { ok: false, reason: "summary contains control characters" };
+    }
+    summary = trimmedSummary;
+  }
+
+  let commitSuggestion;
+  if (Object.prototype.hasOwnProperty.call(input, "commit_suggestion")) {
+    if (typeof input.commit_suggestion !== "string") {
+      return { ok: false, reason: "commit_suggestion must be a string" };
+    }
+    const trimmedCommitSuggestion = input.commit_suggestion.trim();
+    if (trimmedCommitSuggestion.length === 0) {
+      return { ok: false, reason: "commit_suggestion must not be empty when provided" };
+    }
+    if (trimmedCommitSuggestion.length > MAX_COMMIT_SUGGESTION_LENGTH) {
+      return { ok: false, reason: "commit_suggestion exceeds 120 characters" };
+    }
+    if (hasControlCharacters(trimmedCommitSuggestion)) {
+      return { ok: false, reason: "commit_suggestion contains control characters" };
+    }
+    commitSuggestion = trimmedCommitSuggestion;
+  }
+
+  let needsHumanCloseout;
+  if (Object.prototype.hasOwnProperty.call(input, "needs_human_closeout")) {
+    if (typeof input.needs_human_closeout !== "boolean") {
+      return { ok: false, reason: "needs_human_closeout must be a boolean" };
+    }
+    needsHumanCloseout = input.needs_human_closeout;
+  }
+
+  if (signalType === "packet_completed") {
+    if (!message) {
+      return { ok: false, reason: "message is required for packet_completed" };
+    }
+    if (!packet) {
+      return { ok: false, reason: "packet is required for packet_completed" };
+    }
+    if (!verifyCommand) {
+      return { ok: false, reason: "verify_command is required for packet_completed" };
+    }
+    if (!verifyStatus) {
+      return { ok: false, reason: "verify_status is required for packet_completed" };
+    }
+  }
+
   return {
     ok: true,
     signal: {
@@ -326,6 +458,12 @@ function validateSignal(input) {
       ...(questionText !== undefined ? { question_text: questionText } : {}),
       ...(resolvedBy !== undefined ? { resolved_by: resolvedBy } : {}),
       ...(resolutionNote !== undefined ? { resolution_note: resolutionNote } : {}),
+      ...(verifyCommand !== undefined ? { verify_command: verifyCommand } : {}),
+      ...(verifyStatus !== undefined ? { verify_status: verifyStatus } : {}),
+      ...(changedFiles !== undefined ? { changed_files: changedFiles } : {}),
+      ...(summary !== undefined ? { summary } : {}),
+      ...(commitSuggestion !== undefined ? { commit_suggestion: commitSuggestion } : {}),
+      ...(needsHumanCloseout !== undefined ? { needs_human_closeout: needsHumanCloseout } : {}),
     },
   };
 }
@@ -424,6 +562,22 @@ function runSignalTool(input, options = {}) {
     ...(validation.signal.resolved_by !== undefined ? { resolved_by: validation.signal.resolved_by } : {}),
     ...(validation.signal.resolution_note !== undefined
       ? { resolution_note: validation.signal.resolution_note }
+      : {}),
+    ...(validation.signal.verify_command !== undefined
+      ? { verify_command: validation.signal.verify_command }
+      : {}),
+    ...(validation.signal.verify_status !== undefined
+      ? { verify_status: validation.signal.verify_status }
+      : {}),
+    ...(validation.signal.changed_files !== undefined
+      ? { changed_files: validation.signal.changed_files }
+      : {}),
+    ...(validation.signal.summary !== undefined ? { summary: validation.signal.summary } : {}),
+    ...(validation.signal.commit_suggestion !== undefined
+      ? { commit_suggestion: validation.signal.commit_suggestion }
+      : {}),
+    ...(validation.signal.needs_human_closeout !== undefined
+      ? { needs_human_closeout: validation.signal.needs_human_closeout }
       : {}),
   };
 

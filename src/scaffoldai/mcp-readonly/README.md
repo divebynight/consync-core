@@ -41,7 +41,7 @@ The repository has **two complementary MCP surfaces**:
 
 **These are NOT duplicates.** They serve different client ecosystems:
 - `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (8 tools including diagnostics)
-- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (4 tools, no diagnostics)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (5 tools, no diagnostics)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 
@@ -56,6 +56,7 @@ scaffoldai_identity
 scaffoldai_status (minimal, no git)
 scaffoldai_packet_visibility (bounded metadata from .scaffoldai/packets)
 scaffoldai_pending_questions (bounded advisory coordination visibility from .scaffoldai/runtime/mcp/signals.jsonl)
+scaffoldai_completion_status (bounded advisory packet completion visibility from .scaffoldai/runtime/mcp/signals.jsonl)
 ```
 
 **Deliberately NOT exposed:**
@@ -126,6 +127,12 @@ Pending-question resolution lifecycle behavior:
 - Resolved records expose detected `resolution_status`, plus `resolved_at` and `resolved_by` when correlation is possible.
 - Correlation is advisory and append-only; it does not mutate authoritative state.
 
+Completion-handshake behavior:
+- `scaffoldai_completion_status` reads append-only `packet_completed` advisory signals only.
+- It may recommend human closeout when verify status is passed and no unresolved packet questions are detected.
+- It may recommend resolving blockers first when verify failed/not_run or unresolved questions remain.
+- It never mutates state, clears packets, executes closeout, or grants authority to close out work.
+
 ---
 
 ## ChatGPT Compatibility
@@ -188,6 +195,10 @@ When considering new tools for external clients:
 7. **Document expansion rationale** in this README
 
 **Default answer should be NO.** This surface is meant to stay small.
+
+Note on future scope:
+- Limited HTTPS write tools may be evaluated in a future contract phase with explicit authority boundaries.
+- No HTTPS write authority is introduced by the current completion-handshake visibility surface.
 
 ---
 

@@ -1,7 +1,7 @@
 # ScaffoldAI MCP Client Interaction Contract — v0
 
 Created: 2026-05-06
-Updated: 2026-05-13 (clarified dual surface architecture)
+Updated: 2026-05-15 (added packet completion handshake visibility)
 Status: ACTIVE CONTRACT
 
 ---
@@ -10,7 +10,7 @@ Status: ACTIVE CONTRACT
 
 Define how MCP-aware AI clients may interact with the ScaffoldAI MCP operational surface (`src/scaffoldai/mcp/`).
 
-v0 includes five read-only observation tools, one bounded append-only local signal tool, and diagnostic shared-memory POC tools. An MCP client may ask ScaffoldAI for structured runtime observations, summarize those observations for the human, recommend the next human-controlled action, append tiny non-authoritative presence/capability signals under `.scaffoldai/tmp/`, and manually use shared-memory diagnostics when requested. It must not modify authoritative repo state, run workflows, approve work, dispatch tools, run autonomous agents, or infer authority that the MCP tools do not provide.
+v0 includes read-only observation tools, one bounded append-only local signal tool, and diagnostic shared-memory POC tools. An MCP client may ask ScaffoldAI for structured runtime observations, summarize those observations for the human, recommend the next human-controlled action, append tiny non-authoritative presence/capability signals under `.scaffoldai/runtime/mcp/`, and manually use shared-memory diagnostics when requested. It must not modify authoritative repo state, run workflows, approve work, dispatch tools, run autonomous agents, or infer authority that the MCP tools do not provide.
 
 The human remains the final authority for all decisions, execution, verification, closeout, commits, pushes, and workflow transitions.
 
@@ -27,6 +27,7 @@ This contract applies to AI clients using the ScaffoldAI operational MCP server 
 - `scaffoldai_question`
 - `scaffoldai_verify_recommend`
 - `scaffoldai_closeout_readiness`
+- `scaffoldai_completion_status`
 - `scaffoldai_signal`
 - `scaffoldai_memory_write`
 - `scaffoldai_memory_read`
@@ -58,7 +59,7 @@ This contract assumes:
 - stdout must remain protocol-clean for MCP protocol messages; human-readable logs belong on stderr.
 - Shared ScaffoldAI state persists independently of MCP process lifetime.
 - The v0 operational MCP surface exposes only the read-only tools, append-only signal tool, and diagnostic shared-memory POC tools listed in this contract.
-- The readonly MCP surface exposes only `scaffoldai_identity`, `scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_pending_questions` (bounded readonly subset).
+- The readonly MCP surface exposes only `scaffoldai_identity`, `scaffoldai_status`, `scaffoldai_packet_visibility`, `scaffoldai_pending_questions`, and `scaffoldai_completion_status` (bounded readonly subset).
 - Runtime semantics are deterministic and should be preserved in client responses.
 - MCP observations can become stale when files change, verification runs, branches switch, or a human resumes work after interruption.
 - User claims are important context, but MCP observations are the current structured ScaffoldAI runtime evidence available to the client.
@@ -135,6 +136,7 @@ An MCP-aware AI client may:
 - Recommend a human-run VERIFY COMMAND from `scaffoldai_verify_recommend`.
 - Quote or summarize the `NEXT SAFE ACTION` from tool output.
 - Surface `TARGET`, status, warnings, blockers, and open questions.
+- Surface advisory packet completion handshake visibility when available.
 - Compare multiple MCP observations in the same session when the human asks for status or closeout reasoning.
 - Ask the human for approval before any non-read-only action.
 - Tell the human when MCP observations are stale, partial, missing, or inconsistent.
@@ -169,6 +171,7 @@ An MCP-aware AI client must not:
 - Treat a recommendation as permission to execute a shell command.
 - Treat `scaffoldai_verify_recommend` as verification evidence.
 - Treat `scaffoldai_closeout_readiness` as human approval.
+- Treat `scaffoldai_completion_status` as closeout authority or commit authority.
 - Treat MCP Inspector success or MCP transport test success as closeout approval or product verification evidence.
 - Treat `scaffoldai_signal` records as authoritative state, verification evidence, closeout approval, or permission to act.
 - Treat shared-memory records as authoritative state, verification evidence, closeout approval, long-term memory, routing, automation, executable intent, or permission to act.
@@ -217,6 +220,7 @@ The default v0 observation sequence is:
 3. `scaffoldai_question`
 4. `scaffoldai_verify_recommend`
 5. `scaffoldai_closeout_readiness`
+6. `scaffoldai_completion_status`
 
 This is the preferred sequence for general status, planning, closeout assessment, or handoff reasoning.
 
@@ -249,6 +253,7 @@ Allowed signal types:
 - `blocker`
 - `question_resolved`
 - `unblocked`
+- `packet_completed`
 
 Required fields:
 
@@ -267,6 +272,12 @@ Optional fields:
 - `question_text`
 - `resolved_by`
 - `resolution_note`
+- `verify_command`
+- `verify_status`
+- `changed_files`
+- `summary`
+- `commit_suggestion`
+- `needs_human_closeout`
 
 Resolution semantics:
 
@@ -289,6 +300,14 @@ Limits:
 - Non-heartbeat signals are limited to one per 10 seconds per `client_id`.
 
 The client may infer only that a bounded signal was accepted or rejected. It must not infer authority, liveness guarantees, verification status, closeout status, or workflow state from signal records.
+
+`packet_completed` advisory semantics:
+
+- Required fields: `client_id`, `signal_type`, `packet`, `message`, `verify_command`, `verify_status`.
+- `verify_status` accepts `passed`, `failed`, or `not_run` (unknown values may normalize to `not_run`).
+- Optional fields: `changed_files` (bounded path list), `summary`, `commit_suggestion`, `needs_human_closeout`.
+- Records are append-only and non-authoritative.
+- Records must not mutate packet files, clear active packet, close out work, create commits, or write authoritative state.
 
 ### 7.1 When to Call `scaffoldai_status`
 
@@ -379,6 +398,24 @@ The client must not infer:
 - Verification success from a changed file list.
 - That advisory commit prefix is mandatory.
 - That it should stage or commit files.
+
+### 7.6 When to Call `scaffoldai_completion_status`
+
+An MCP client must call `scaffoldai_completion_status`:
+
+- Before recommending human closeout based on completion handshake signals.
+- When the human asks whether packet completion was signaled.
+- When reconciling verify status with unresolved pending questions.
+
+The client may infer:
+
+- Advisory completion metadata (packet, client_id, verify fields, changed files, summary hints).
+- Advisory recommendation to proceed with human closeout when verify is passed and no unresolved packet questions are observed.
+
+The client must not infer:
+
+- Authoritative closeout approval.
+- Packet closure, packet mutation, or commit authority.
 
 NEXT SAFE ACTION treatment:
 

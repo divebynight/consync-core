@@ -5,6 +5,7 @@ const TOOL_NAMES = [
   "scaffoldai_status",
   "scaffoldai_packet_visibility",
   "scaffoldai_pending_questions",
+  "scaffoldai_completion_status",
 ];
 
 const FORBIDDEN_TOOL_NAMES = [

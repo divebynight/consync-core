@@ -16,6 +16,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_status",
   "scaffoldai_packet_visibility",
   "scaffoldai_pending_questions",
+  "scaffoldai_completion_status",
 ];
 const signalPath = path.join(repoRoot, ".scaffoldai", "runtime", "mcp", "signals.jsonl");
 
@@ -163,6 +164,8 @@ async function main() {
     for (const name of EXPECTED_TOOLS) {
       const args = name === "scaffoldai_pending_questions"
         ? { unresolvedOnly: false, limit: 5 }
+        : name === "scaffoldai_completion_status"
+        ? { latestOnly: true, limit: 5 }
         : {};
       const result = await postMcp(
         {
@@ -193,6 +196,10 @@ async function main() {
           typeof resolved.resolved_at === "string" && resolved.resolved_at.length > 0,
           "scaffoldai_pending_questions should surface resolved_at when detectable"
         );
+      }
+      if (name === "scaffoldai_completion_status") {
+        assert.strictEqual(payload.data.filter.latest_only, true, "completion status should reflect latestOnly filter");
+        assert.ok(Array.isArray(payload.data.completions), "completion status should include completions array");
       }
       console.log(`  PASS: ${name} call returns parseable READ_ONLY JSON`);
     }

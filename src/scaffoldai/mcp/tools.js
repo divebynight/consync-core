@@ -9,6 +9,7 @@ const { inferCommitPrefix } = require("../../lib/scaffoldaiCloseout.auth.scaffol
 const { gatherStatus } = require("../../lib/scaffoldaiStatus.query.scaffoldai");
 const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
+const { gatherCompletionStatus } = require("../../lib/scaffoldaiCompletionStatus.query.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 const EXECUTION_CLASS = "READ_ONLY";
@@ -186,6 +187,21 @@ function runCloseoutReadinessTool() {
 }
 
 // -----------------------------------------------------------------------
+// scaffoldai_completion_status
+// -----------------------------------------------------------------------
+
+function runCompletionStatusTool(args = {}) {
+  const result = gatherCompletionStatus(repoRoot, args);
+
+  return {
+    ...result,
+    profile: PROFILE.profile,
+    interaction_mode: PROFILE.interaction_mode,
+    execution_mode: PROFILE.execution_mode,
+  };
+}
+
+// -----------------------------------------------------------------------
 // Exports
 // -----------------------------------------------------------------------
 
@@ -195,4 +211,5 @@ module.exports = {
   runQuestionTool,
   runVerifyRecommendTool,
   runCloseoutReadinessTool,
+  runCompletionStatusTool,
 };

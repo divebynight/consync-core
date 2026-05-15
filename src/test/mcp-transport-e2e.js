@@ -237,6 +237,31 @@ async function main() {
     }
 
     // -----------------------------------------------------------------------
+    // scaffoldai_completion_status
+    // -----------------------------------------------------------------------
+
+    {
+      let parsed;
+      try {
+        ({ parsed } = await callTool(client, "scaffoldai_completion_status", {
+          latestOnly: true,
+          limit: 5,
+        }));
+        pass("scaffoldai_completion_status call succeeds");
+      } catch (err) {
+        fail(`scaffoldai_completion_status call failed: ${err.message}`);
+        parsed = null;
+      }
+
+      if (parsed) {
+        check(parsed.execution_class === "READ_ONLY", 'scaffoldai_completion_status returns execution_class "READ_ONLY"');
+        check(parsed.status === "OBSERVE", `scaffoldai_completion_status returns OBSERVE (got: ${parsed.status})`);
+        check(parsed.data && Array.isArray(parsed.data.completions), "scaffoldai_completion_status returns completions array");
+        check(parsed.data && parsed.data.filter && parsed.data.filter.latest_only === true, "scaffoldai_completion_status reflects latest_only filter");
+      }
+    }
+
+    // -----------------------------------------------------------------------
     // scaffoldai_signal
     // -----------------------------------------------------------------------
 

@@ -27,7 +27,7 @@ The repository has **two complementary MCP surfaces**:
 
 **These are NOT duplicates.** They serve different client ecosystems:
 - `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (status, preflight, question, verify, closeout, diagnostic tools)
-- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status, packet visibility, pending questions)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status, packet visibility, pending questions, completion status)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 
@@ -50,6 +50,7 @@ scaffoldai_identity
 scaffoldai_status
 scaffoldai_packet_visibility
 scaffoldai_pending_questions
+scaffoldai_completion_status
 ```
 
 Deferred or write-capable tools must not be exposed by the readonly server.
@@ -75,6 +76,8 @@ The dedicated compatibility test suite verifies:
 15. `scaffoldai_pending_questions` returns bounded advisory runtime metadata from `.scaffoldai/runtime/mcp/signals.jsonl` only, with no write authority and no authoritative resolution.
 16. `scaffoldai_pending_questions` with `unresolvedOnly=true` hides resolved entries when detectable.
 17. `scaffoldai_pending_questions` with `unresolvedOnly=false` preserves historical visibility and may include `resolution_status`, `resolved_at`, and `resolved_by` when detectable.
+18. `scaffoldai_completion_status` returns bounded advisory completion records (`packet_completed`) and supports packet/latest filtering.
+19. `scaffoldai_completion_status` includes advisory readiness recommendation only; it does not provide closeout authority.
 
 ## Boundary
 
