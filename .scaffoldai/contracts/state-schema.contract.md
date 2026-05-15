@@ -70,6 +70,37 @@ These subdirectories are approved for specific purposes:
 | **Append-Only History** | Non-authoritative audit trail | `history.jsonl` | Via `scaffoldaiState.appendHistory()` only |
 | **Observational Subdirs** | Non-authoritative diagnostic data | `history/` | Not source of truth, may be diagnostic only |
 
+## Runtime-State Housekeeping Categories
+
+Housekeeping separates transient runtime state from implementation changes using these categories:
+
+| Housekeeping Category | Files | Default Reset Behavior |
+|---|---|---|
+| **active execution state** | `active-contract.json` (`in_flight_packet` field) | reset to `null` |
+| **next-action surfaces** | `next-action.md` | reset to `PACKAGE: NONE` |
+| **snapshots** | `snapshot.md` current package section | neutralize to `package: NONE` |
+| **transient coordination/runtime context** | `.scaffoldai/runtime/mcp/signals.jsonl`, `.scaffoldai/runtime/mcp/shared-memory.jsonl` | preserve by default |
+| **append-only runtime logs** | `history.jsonl` | preserve by default |
+
+Runtime-state housekeeping commands:
+
+- `scaffoldai housekeeping status`
+- `scaffoldai housekeeping reset-runtime-state`
+- `scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
+
+These commands are bounded to known `.scaffoldai/` surfaces and must not mutate product/runtime code or packet archives.
+
+## Commit Hygiene Workflow
+
+Recommended workflow before commit:
+
+1. Run `scaffoldai housekeeping status`.
+2. Review runtime vs implementation change classification.
+3. If needed, run `scaffoldai housekeeping reset-runtime-state`.
+4. Re-check `git status --short` and commit implementation changes intentionally.
+
+`--include-runtime-logs` should be used only when intentionally clearing local runtime telemetry.
+
 ---
 
 ## Adding New State Artifacts

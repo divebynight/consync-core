@@ -277,6 +277,7 @@ npm run verify
 | `npm run start:desktop` | Launches the Electron desktop app |
 | `npm run scaffoldai:status` | Current runtime posture summary |
 | `npm run scaffoldai:preflight` | Pre-work safety check |
+| `npm run scaffoldai:housekeeping` | Classify runtime-state vs implementation changes |
 | `npm run scaffoldai:mcp` | Starts the local MCP server (stdio) |
 
 ---

@@ -33,6 +33,7 @@
     "scaffoldai:verify": "node src/scaffoldai.js scaffoldai verify",
     "scaffoldai:closeout": "node src/scaffoldai.js scaffoldai closeout",
     "scaffoldai:question": "node src/scaffoldai.js scaffoldai question",
+    "scaffoldai:housekeeping": "node src/scaffoldai.js scaffoldai housekeeping status",
     "scaffoldai:mcp": "node src/scaffoldai/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/scaffoldai/mcp/snapshot.js",
     "scaffoldai:mcp:readonly:stdio": "node src/scaffoldai/mcp-readonly/stdio.js",

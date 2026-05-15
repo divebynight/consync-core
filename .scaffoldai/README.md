@@ -54,9 +54,20 @@ Current ScaffoldAI Runtime Commands include:
 - `npm run scaffoldai:question`
 - `npm run scaffoldai:verify`
 - `npm run scaffoldai:closeout`
+- `npm run scaffoldai:housekeeping`
 - `npm run scaffoldai:mcp:snapshot`
 
 Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
+
+Use `npm run scaffoldai:housekeeping` to inspect runtime-state changes and separate resettable runtime artifacts from implementation changes.
+
+Housekeeping commands:
+
+- `node src/scaffoldai.js scaffoldai housekeeping status`
+- `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state`
+- `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
+
+Default housekeeping reset behavior neutralizes active runtime state (`active-contract.json`, `next-action.md`, `snapshot.md`) while preserving append-only runtime logs and packet archives. Runtime logs are only cleared with explicit `--include-runtime-logs`.
 
 ## MCP Model
 
@@ -165,6 +176,12 @@ The authoritative source of truth for the current development loop.
 - `active-contract.json` — current gatekeeper mode and constraints
 - `history.jsonl` — append-only state transition audit trail (optional, created on first append)
 - `history/` — observational artifacts subdirectory (non-authoritative)
+
+Git lifecycle guidance:
+
+- `next-action.md` and `snapshot.md` are runtime-facing and often noisy during loop operation.
+- `active-contract.json` may contain intentional process-mode edits, but `in_flight_packet` is transient and can be normalized by housekeeping reset.
+- `history.jsonl` is append-only runtime telemetry and should usually be preserved locally rather than committed.
 
 ### `streams/` — Stream identity and work continuity
 Contains subdirectories per stream (e.g. `electron_ui/`, `process/`).  
