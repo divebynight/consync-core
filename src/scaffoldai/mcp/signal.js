@@ -16,6 +16,9 @@ const signalPathRelative = ".scaffoldai/runtime/mcp/signals.jsonl";
 const EXECUTION_CLASS = "LOCAL_SIGNAL_APPEND_ONLY";
 const MAX_CLIENT_ID_LENGTH = 64;
 const MAX_MESSAGE_LENGTH = 250;
+const MAX_PACKET_LENGTH = 120;
+const MAX_OPTIONS = 8;
+const MAX_OPTION_LENGTH = 48;
 const MAX_CAPABILITIES = 10;
 const MAX_CAPABILITY_LENGTH = 64;
 const MAX_RECORD_BYTES = 1024;
@@ -23,7 +26,15 @@ const MAX_LOG_BYTES = 64 * 1024;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
 const NON_HEARTBEAT_INTERVAL_MS = 10 * 1000;
 
-const ALLOWED_FIELDS = new Set(["client_id", "signal_type", "message", "capabilities"]);
+const ALLOWED_FIELDS = new Set([
+  "client_id",
+  "signal_type",
+  "message",
+  "capabilities",
+  "packet",
+  "severity",
+  "options",
+]);
 const ALLOWED_SIGNAL_TYPES = new Set([
   "connected",
   "heartbeat",
@@ -31,7 +42,13 @@ const ALLOWED_SIGNAL_TYPES = new Set([
   "tool_visibility",
   "disconnected",
   "note",
+  "question",
+  "decision_required",
+  "blocker",
+  "question_resolved",
+  "unblocked",
 ]);
+const ALLOWED_SEVERITIES = new Set(["info", "needs_decision", "blocked"]);
 
 const lastHeartbeatByClient = new Map();
 const lastNonHeartbeatByClient = new Map();
@@ -43,6 +60,7 @@ function baseResponse(input) {
     path: signalPathRelative,
     client_id: typeof input.client_id === "string" ? input.client_id : null,
     signal_type: typeof input.signal_type === "string" ? input.signal_type : null,
+    severity: typeof input.severity === "string" ? input.severity : null,
     non_authoritative: true,
   };
 }
@@ -118,6 +136,60 @@ function validateSignal(input) {
     message = input.message;
   }
 
+  let packet;
+  if (Object.prototype.hasOwnProperty.call(input, "packet")) {
+    if (typeof input.packet !== "string") {
+      return { ok: false, reason: "packet must be a string" };
+    }
+    const trimmedPacket = input.packet.trim();
+    if (trimmedPacket.length === 0) {
+      return { ok: false, reason: "packet must not be empty when provided" };
+    }
+    if (trimmedPacket.length > MAX_PACKET_LENGTH) {
+      return { ok: false, reason: "packet exceeds 120 characters" };
+    }
+    if (!/^[A-Za-z0-9_.\/-]+$/.test(trimmedPacket)) {
+      return { ok: false, reason: "packet contains invalid characters" };
+    }
+    packet = trimmedPacket;
+  }
+
+  let severity;
+  if (Object.prototype.hasOwnProperty.call(input, "severity")) {
+    if (typeof input.severity !== "string") {
+      return { ok: false, reason: "severity must be a string" };
+    }
+    const trimmedSeverity = input.severity.trim().toLowerCase();
+    severity = ALLOWED_SEVERITIES.has(trimmedSeverity) ? trimmedSeverity : "info";
+  }
+
+  let options;
+  if (Object.prototype.hasOwnProperty.call(input, "options")) {
+    if (!Array.isArray(input.options)) {
+      return { ok: false, reason: "options must be an array of strings" };
+    }
+    if (input.options.length > MAX_OPTIONS) {
+      return { ok: false, reason: "options exceeds 8 entries" };
+    }
+    options = [];
+    for (const option of input.options) {
+      if (typeof option !== "string") {
+        return { ok: false, reason: "options entries must be strings" };
+      }
+      const trimmedOption = option.trim();
+      if (trimmedOption.length === 0) {
+        return { ok: false, reason: "options entries must be non-empty strings" };
+      }
+      if (trimmedOption.length > MAX_OPTION_LENGTH) {
+        return { ok: false, reason: "option exceeds 48 characters" };
+      }
+      if (hasControlCharacters(trimmedOption)) {
+        return { ok: false, reason: "option contains control characters" };
+      }
+      options.push(trimmedOption);
+    }
+  }
+
   let capabilities;
   if (Object.prototype.hasOwnProperty.call(input, "capabilities")) {
     if (!Array.isArray(input.capabilities)) {
@@ -148,6 +220,9 @@ function validateSignal(input) {
       signal_type: signalType,
       ...(message !== undefined ? { message } : {}),
       ...(capabilities !== undefined ? { capabilities } : {}),
+      ...(packet !== undefined ? { packet } : {}),
+      ...(severity !== undefined ? { severity } : {}),
+      ...(options !== undefined ? { options } : {}),
     },
   };
 }
@@ -237,6 +312,9 @@ function runSignalTool(input, options = {}) {
     signal_type: validation.signal.signal_type,
     ...(validation.signal.message !== undefined ? { message: validation.signal.message } : {}),
     ...(validation.signal.capabilities !== undefined ? { capabilities: validation.signal.capabilities } : {}),
+    ...(validation.signal.packet !== undefined ? { packet: validation.signal.packet } : {}),
+    ...(validation.signal.severity !== undefined ? { severity: validation.signal.severity } : {}),
+    ...(validation.signal.options !== undefined ? { options: validation.signal.options } : {}),
   };
 
   const appendResult = appendSignalRecord(record);

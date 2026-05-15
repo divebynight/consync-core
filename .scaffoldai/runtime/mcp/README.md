@@ -13,6 +13,10 @@ Current artifacts:
 - signals.jsonl — bounded append-only signal records from scaffoldai_signal
 - shared-memory.jsonl — bounded append-only diagnostic shared-memory records
 
+Current readonly observations derived from runtime signals:
+
+- scaffoldai_pending_questions — bounded advisory question/blocker visibility from signals.jsonl
+
 ## Authority
 
 Artifacts in this directory are:
@@ -28,6 +32,8 @@ They must not be treated as:
 - closeout approval
 - permission to execute
 - commit authority
+
+Pending-question observations are advisory runtime coordination data only. They are not authoritative state, not resolution truth, and do not imply execution permission.
 
 ## Boundary
 

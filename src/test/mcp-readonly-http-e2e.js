@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("assert");
+const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -10,7 +11,46 @@ const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "htt
 const port = Number.parseInt(process.env.TEST_MCP_READONLY_PORT || "3131", 10);
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status", "scaffoldai_packet_visibility"];
+const EXPECTED_TOOLS = [
+  "scaffoldai_identity",
+  "scaffoldai_status",
+  "scaffoldai_packet_visibility",
+  "scaffoldai_pending_questions",
+];
+const signalPath = path.join(repoRoot, ".scaffoldai", "runtime", "mcp", "signals.jsonl");
+
+function seedSignalsForPendingQuestions() {
+  fs.mkdirSync(path.dirname(signalPath), { recursive: true });
+  const rows = [
+    {
+      timestamp: "2026-05-14T00:00:00.000Z",
+      client_id: "copilot",
+      signal_type: "question",
+      packet: "packet-alpha.sdc.md",
+      severity: "needs_decision",
+      message: "Pick canonical packet identifier",
+      options: ["filename", "frontmatter"],
+    },
+    {
+      timestamp: "2026-05-14T00:01:00.000Z",
+      client_id: "copilot",
+      signal_type: "question_resolved",
+      packet: "packet-alpha.sdc.md",
+      severity: "info",
+      message: "Pick canonical packet identifier",
+    },
+    {
+      timestamp: "2026-05-14T00:02:00.000Z",
+      client_id: "copilot",
+      signal_type: "blocker",
+      packet: "packet-alpha.sdc.md",
+      severity: "blocked",
+      message: "Need human decision on resolution model",
+      options: ["append-only", "authoritative"],
+    },
+  ];
+  fs.writeFileSync(signalPath, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8");
+}
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -56,6 +96,8 @@ async function postMcp(body, sessionId) {
 
 async function main() {
   console.log(`[${TEST_NAME}] Running`);
+
+  seedSignalsForPendingQuestions();
 
   const child = spawn("node", [serverPath], {
     cwd: repoRoot,
@@ -116,12 +158,15 @@ async function main() {
     console.log("  PASS: tools/list exposes only readonly tools");
 
     for (const name of EXPECTED_TOOLS) {
+      const args = name === "scaffoldai_pending_questions"
+        ? { unresolvedOnly: false, limit: 1 }
+        : {};
       const result = await postMcp(
         {
           jsonrpc: "2.0",
           id: name,
           method: "tools/call",
-          params: { name, arguments: {} },
+          params: { name, arguments: args },
         },
         sessionId
       );
@@ -130,12 +175,21 @@ async function main() {
       const payload = JSON.parse(text);
       assert.strictEqual(payload.tool, name, `${name} payload should identify tool`);
       assert.strictEqual(payload.execution_class, "READ_ONLY", `${name} should be READ_ONLY`);
+      if (name === "scaffoldai_pending_questions") {
+        assert.strictEqual(payload.data.limit, 1, "scaffoldai_pending_questions should honor limit");
+        assert.ok(payload.data.returned_count <= 1, "scaffoldai_pending_questions should return bounded results");
+      }
       console.log(`  PASS: ${name} call returns parseable READ_ONLY JSON`);
     }
   } finally {
     child.kill("SIGTERM");
     await wait(250);
     if (!child.killed) child.kill("SIGKILL");
+    try {
+      fs.unlinkSync(signalPath);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
   }
 
   assert.strictEqual(stderr.includes("console.log"), false, "server diagnostics should not mention console.log");

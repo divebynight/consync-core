@@ -5,6 +5,7 @@ const { z } = require("zod");
 const { createIdentityTool } = require("./tools/identity");
 const { createStatusTool } = require("./tools/status");
 const { createPacketVisibilityTool } = require("./tools/packet-visibility");
+const { createPendingQuestionsTool } = require("./tools/pending-questions");
 
 function createReadonlyMcpServer(deps = {}) {
   const server = new McpServer({
@@ -42,6 +43,19 @@ function createReadonlyMcpServer(deps = {}) {
       }).strict(),
     },
     createPacketVisibilityTool(deps)
+  );
+
+  server.registerTool(
+    "scaffoldai_pending_questions",
+    {
+      description:
+        "Expose bounded pending question/blocker observations from append-only MCP runtime signals.",
+      inputSchema: z.object({
+        limit: z.number().int().min(1).max(25).optional().describe("Max pending question records to return (1-25)."),
+        unresolvedOnly: z.boolean().optional().describe("Return unresolved-only when true (default true)."),
+      }).strict(),
+    },
+    createPendingQuestionsTool(deps)
   );
 
   return server;

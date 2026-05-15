@@ -8,7 +8,12 @@ const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio
 const TEST_NAME = "mcp-readonly-stdio-e2e";
 const repoRoot = path.resolve(__dirname, "..", "..");
 const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "stdio.js");
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status", "scaffoldai_packet_visibility"];
+const EXPECTED_TOOLS = [
+  "scaffoldai_identity",
+  "scaffoldai_status",
+  "scaffoldai_packet_visibility",
+  "scaffoldai_pending_questions",
+];
 const FORBIDDEN_TOOLS = [
   "scaffoldai_preflight",
   "scaffoldai_question",

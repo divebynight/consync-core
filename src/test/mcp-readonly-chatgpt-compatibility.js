@@ -12,7 +12,12 @@ const port = Number.parseInt(process.env.TEST_MCP_READONLY_CHATGPT_PORT || "3132
 const baseUrl = `http://127.0.0.1:${port}`;
 const mcpUrl = `${baseUrl}/mcp`;
 
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status", "scaffoldai_packet_visibility"];
+const EXPECTED_TOOLS = [
+  "scaffoldai_identity",
+  "scaffoldai_status",
+  "scaffoldai_packet_visibility",
+  "scaffoldai_pending_questions",
+];
 const FORBIDDEN_TOOLS = [
   "scaffoldai_preflight",
   "scaffoldai_question",

@@ -41,7 +41,7 @@ The repository has **two complementary MCP surfaces**:
 
 **These are NOT duplicates.** They serve different client ecosystems:
 - `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (8 tools including diagnostics)
-- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (2 tools, no diagnostics)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (4 tools, no diagnostics)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 
@@ -55,6 +55,7 @@ Only these tools are exposed:
 scaffoldai_identity
 scaffoldai_status (minimal, no git)
 scaffoldai_packet_visibility (bounded metadata from .scaffoldai/packets)
+scaffoldai_pending_questions (bounded advisory coordination visibility from .scaffoldai/runtime/mcp/signals.jsonl)
 ```
 
 **Deliberately NOT exposed:**
@@ -111,11 +112,13 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls minimal fun
 ### 4. Stricter Than Operational Surface
 
 This surface is **deliberately more constrained** than `src/scaffoldai/mcp/`:
-- **Fewer tools** (3 vs 8)
+- **Fewer tools** (4 vs 8)
 - **No diagnostic tools** (no signal, no shared-memory)
 - **No direct filesystem access in MCP layer** (reads happen through canonical query helpers)
 - **No git integration** (status is git-free)
 - **No process spawning** (boundary enforced)
+
+`scaffoldai_pending_questions` is advisory runtime coordination only. It does not resolve loop state authoritatively and does not grant write authority.
 
 ---
 
@@ -130,8 +133,8 @@ The compatibility test suite verifies:
 5. Initialize returns compatible `protocolVersion`
 6. Initialize establishes or returns valid `mcp-session-id`
 7. `tools/list` requires valid initialized session
-8. `tools/list` returns exactly Phase 1 tools
-9. `tools/call` works for both exposed tools
+8. `tools/list` returns exactly the readonly exposed tools
+9. `tools/call` works for all exposed tools
 10. Write-capable or deferred tools are not exposed
 11. Unknown tools return deterministic MCP-compatible error behavior
 12. Malformed JSON-RPC returns deterministic MCP-compatible error behavior

@@ -27,7 +27,7 @@ The repository has **two complementary MCP surfaces**:
 
 **These are NOT duplicates.** They serve different client ecosystems:
 - `src/scaffoldai/mcp/` is the **local trusted surface** with fuller capabilities (status, preflight, question, verify, closeout, diagnostic tools)
-- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status only)
+- `src/scaffoldai/mcp-readonly/` is the **constrained compatibility surface** with minimal exposure (identity, status, packet visibility, pending questions)
 
 Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core functions. Neither surface should contain business logic or state-transition logic.
 
@@ -49,6 +49,7 @@ Only these tools are exposed:
 scaffoldai_identity
 scaffoldai_status
 scaffoldai_packet_visibility
+scaffoldai_pending_questions
 ```
 
 Deferred or write-capable tools must not be exposed by the readonly server.
@@ -64,13 +65,14 @@ The dedicated compatibility test suite verifies:
 5. Initialize returns a compatible `protocolVersion`.
 6. Initialize establishes or returns a valid `mcp-session-id`.
 7. `tools/list` requires a valid initialized session.
-8. `tools/list` with a valid session returns exactly the Phase 1 tools.
-9. `tools/call` works for both exposed tools.
+8. `tools/list` with a valid session returns exactly the readonly exposed tools.
+9. `tools/call` works for all exposed tools.
 10. Write-capable or deferred tools are not exposed.
 11. Unknown tools return deterministic MCP-compatible error behavior.
 12. Malformed JSON-RPC returns deterministic MCP-compatible error behavior.
 13. Anonymous SSE/bootstrap behavior remains streaming-compatible and does not immediately return JSON `No valid session ID provided`.
 14. `scaffoldai_packet_visibility` provides bounded metadata only (filename/category/existence/title-summary/in-flight relation) with no packet mutation.
+15. `scaffoldai_pending_questions` returns bounded advisory runtime metadata from `.scaffoldai/runtime/mcp/signals.jsonl` only, with no write authority and no authoritative resolution.
 
 ## Boundary
 

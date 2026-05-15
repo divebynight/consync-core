@@ -192,6 +192,34 @@ for (const [name, fn] of toolFns) {
   check(record.signal_type === "connected", "signal JSONL stores signal_type");
   check(typeof record.timestamp === "string" && record.timestamp.length > 0, "signal JSONL stores server timestamp");
 
+  signal.resetSignalRateLimitsForTest();
+  const questionSignal = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question",
+    packet: "packet-20260514T000000Z.sdc",
+    severity: "needs_decision",
+    message: "Pick metadata source",
+    options: ["state-only", "runtime-signals"],
+  }, { now: new Date("2026-05-07T03:00:00.000Z") });
+  check(questionSignal.status === "accepted", "runSignalTool accepts question signal fields");
+
+  const normalizedSeverity = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question",
+    packet: "packet-20260514T000000Z.sdc",
+    severity: "urgent",
+    message: "Use fallback severity",
+  }, { now: new Date("2026-05-07T03:00:11.000Z") });
+  check(normalizedSeverity.status === "accepted", "runSignalTool accepts invalid severity by normalization");
+
+  const allRecords = fs.readFileSync(signal.signalPath, "utf8").trim().split("\n").map((lineValue) => JSON.parse(lineValue));
+  const questionRecord = allRecords.find((entry) => entry.message === "Pick metadata source");
+  const normalizedRecord = allRecords.find((entry) => entry.message === "Use fallback severity");
+  check(questionRecord.packet === "packet-20260514T000000Z.sdc", "signal JSONL stores packet for question signals");
+  check(questionRecord.severity === "needs_decision", "signal JSONL stores valid severity");
+  check(Array.isArray(questionRecord.options) && questionRecord.options.length === 2, "signal JSONL stores decision options");
+  check(normalizedRecord.severity === "info", 'signal JSONL normalizes invalid severity to "info"');
+
   const unknownField = signal.runSignalTool({
     client_id: "unit-unknown-field",
     signal_type: "note",

@@ -14,7 +14,7 @@ v0 includes five read-only observation tools, one bounded append-only local sign
 
 The human remains the final authority for all decisions, execution, verification, closeout, commits, pushes, and workflow transitions.
 
-**Note:** This contract applies to the **operational MCP surface** (`src/scaffoldai/mcp/`), which is the local trusted surface for Copilot, Codex, and other stdio clients. A complementary **readonly MCP surface** (`src/scaffoldai/mcp-readonly/`) exists for external clients (ChatGPT, HTTPS connections) with a stricter, minimal tool subset (identity, status only). See `src/scaffoldai/mcp/README.md` and `src/scaffoldai/mcp-readonly/README.md` for the relationship between these surfaces.
+**Note:** This contract applies to the **operational MCP surface** (`src/scaffoldai/mcp/`), which is the local trusted surface for Copilot, Codex, and other stdio clients. A complementary **readonly MCP surface** (`src/scaffoldai/mcp-readonly/`) exists for external clients (ChatGPT, HTTPS connections) with a stricter, bounded readonly tool subset (identity, status, packet visibility, pending questions). See `src/scaffoldai/mcp/README.md` and `src/scaffoldai/mcp-readonly/README.md` for the relationship between these surfaces.
 
 ---
 
@@ -42,7 +42,7 @@ The MCP surface is separate from Runtime Commands. MCP tools observe and report.
 - `npm run scaffoldai:closeout`
 - `npm run scaffoldai:mcp:snapshot`
 
-**Out of scope:** This contract does not apply to the readonly MCP surface (`src/scaffoldai/mcp-readonly/`), which exposes only `scaffoldai_identity` and `scaffoldai_status` (minimal, no git) for external clients. That surface has tighter boundaries and no diagnostic tools.
+**Out of scope:** This contract does not apply to the readonly MCP surface (`src/scaffoldai/mcp-readonly/`), which exposes `scaffoldai_identity`, `scaffoldai_status` (minimal, no git), `scaffoldai_packet_visibility`, and `scaffoldai_pending_questions` for external clients. That surface has tighter boundaries and no diagnostic tools.
 
 ---
 
@@ -58,7 +58,7 @@ This contract assumes:
 - stdout must remain protocol-clean for MCP protocol messages; human-readable logs belong on stderr.
 - Shared ScaffoldAI state persists independently of MCP process lifetime.
 - The v0 operational MCP surface exposes only the read-only tools, append-only signal tool, and diagnostic shared-memory POC tools listed in this contract.
-- The readonly MCP surface exposes only `scaffoldai_identity` and `scaffoldai_status` (minimal subset).
+- The readonly MCP surface exposes only `scaffoldai_identity`, `scaffoldai_status`, `scaffoldai_packet_visibility`, and `scaffoldai_pending_questions` (bounded readonly subset).
 - Runtime semantics are deterministic and should be preserved in client responses.
 - MCP observations can become stale when files change, verification runs, branches switch, or a human resumes work after interruption.
 - User claims are important context, but MCP observations are the current structured ScaffoldAI runtime evidence available to the client.
