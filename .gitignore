@@ -25,6 +25,10 @@ sandbox/probes/audio-session-capture/workdir/*
 .scaffoldai/state/next-action.md
 .scaffoldai/state/snapshot.md
 .scaffoldai/state/active-stream.md
+.scaffoldai/state/history.jsonl
+
+# MCP signal logs
+.scaffoldai/runtime/mcp/signals.jsonl
 
 # Intake/runtime transient metadata
 .scaffoldai/runtime/packet-intake/latest-intake.json
