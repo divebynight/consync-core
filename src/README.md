@@ -136,6 +136,7 @@ These are documented as current blurry boundaries, not defects:
 - Strict ScaffoldAI packet intake is local CLI only and file-based only; intake validates formal SDC structure, but intake does not imply activation or execution approval
 - Preferred intake source path is `.scaffoldai/inbox/*.sdc.md`; valid sources outside inbox are accepted with an explicit warning for migration compatibility
 - Intake artifact cleanup is explicit via `scaffoldai housekeeping clean-intake-artifacts`; this cleanup removes transient intake metadata/candidates only and preserves accepted packets and append-only logs
+- Unified workspace cleanup is available via `scaffoldai housekeeping clean-workspace`; this orchestrates intake artifact cleanup + runtime-state reset while preserving packets, contracts, implementation files, and append-only logs by default
 
 ---
 

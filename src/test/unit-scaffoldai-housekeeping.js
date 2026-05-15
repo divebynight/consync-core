@@ -10,6 +10,7 @@ const {
   resetRuntimeState,
   parseGitStatusPath,
   cleanIntakeArtifacts,
+  cleanWorkspace,
 } = require("../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 
@@ -232,6 +233,72 @@ function main() {
         "append-only logs should be preserved by intake cleanup"
       );
       console.log("  PASS: intake artifact cleanup removes transient artifacts and preserves durable surfaces");
+    }
+
+    {
+      fs.writeFileSync(
+        path.join(fixture, ".scaffoldai", "state", "active-runtime.json"),
+        JSON.stringify({ in_flight_packet: "runtime-packet.sdc" }, null, 2) + "\n",
+        "utf8"
+      );
+      fs.writeFileSync(
+        path.join(fixture, ".scaffoldai", "state", "next-action.md"),
+        ["TYPE: REFACTOR", "PACKAGE: runtime-packet.sdc", "", "Active runtime packet.", ""].join("\n"),
+        "utf8"
+      );
+      fs.writeFileSync(
+        path.join(fixture, ".scaffoldai", "state", "snapshot.md"),
+        ["# Consync Snapshot", "", "## Current Package", "", "- type: `PROCESS`", "- package: `runtime-packet.sdc`", ""].join("\n"),
+        "utf8"
+      );
+      fs.writeFileSync(path.join(fixture, ".scaffoldai", "runtime", "mcp", "signals.jsonl"), "{\"signal\":\"question\"}\n", "utf8");
+      fs.writeFileSync(path.join(fixture, ".scaffoldai", "runtime", "mcp", "shared-memory.jsonl"), "{\"message\":\"hello\"}\n", "utf8");
+      fs.writeFileSync(path.join(fixture, ".scaffoldai", "state", "history.jsonl"), "{\"summary\":\"record\"}\n", "utf8");
+      fs.writeFileSync(path.join(fixture, ".scaffoldai", "inbox", "runtime-packet.sdc.md"), "# Runtime Packet (Candidate)\n", "utf8");
+      fs.writeFileSync(
+        path.join(fixture, ".scaffoldai", "runtime", "packet-intake", "latest-intake.json"),
+        JSON.stringify(
+          {
+            status: "ACCEPTED",
+            accepted: true,
+            source_path: path.join(fixture, ".scaffoldai", "inbox", "runtime-packet.sdc.md"),
+            packet_id: "runtime-packet.sdc",
+            file_name: "runtime-packet.sdc.md",
+          },
+          null,
+          2
+        ) + "\n",
+        "utf8"
+      );
+
+      const result = cleanWorkspace(fixture);
+      assert.strictEqual(result.status, "PASS", "clean-workspace should pass");
+      assert.strictEqual(result.data.intake_artifacts_cleaned, true, "intake cleanup should execute");
+      assert.strictEqual(result.data.runtime_state_reset, true, "runtime reset should execute");
+      assert.strictEqual(result.data.packet_files_preserved, true, "packets should remain preserved");
+      assert.strictEqual(result.data.logs_preserved, true, "logs should be preserved by default");
+      assert.ok(
+        !fs.existsSync(path.join(fixture, ".scaffoldai", "runtime", "packet-intake", "latest-intake.json")),
+        "latest intake metadata should be removed by unified cleanup"
+      );
+      assert.ok(
+        !fs.existsSync(path.join(fixture, ".scaffoldai", "inbox", "runtime-packet.sdc.md")),
+        "consumed inbox candidate should be removed by unified cleanup"
+      );
+      assert.strictEqual(getInFlightPacket(fixture), null, "next-action should be neutralized by unified cleanup");
+      assert.ok(
+        fs.existsSync(path.join(fixture, ".scaffoldai", "state", "history.jsonl")),
+        "append-only history should be preserved by unified cleanup"
+      );
+      assert.ok(
+        fs.existsSync(path.join(fixture, ".scaffoldai", "runtime", "mcp", "signals.jsonl")),
+        "MCP signal log should be preserved by unified cleanup"
+      );
+      assert.ok(
+        fs.existsSync(path.join(fixture, ".scaffoldai", "packets", "runtime-packet.sdc.md")),
+        "accepted packet should be preserved by unified cleanup"
+      );
+      console.log("  PASS: clean-workspace orchestrates intake cleanup + runtime reset with durable preservation");
     }
 
     {

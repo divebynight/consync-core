@@ -411,6 +411,81 @@ function cleanIntakeArtifacts(repoRoot) {
   };
 }
 
+function mergeUniqueStrings(primary = [], secondary = []) {
+  return Array.from(new Set([...(Array.isArray(primary) ? primary : []), ...(Array.isArray(secondary) ? secondary : [])]));
+}
+
+function mergeSkippedEntries(primary = [], secondary = []) {
+  const combined = [...(Array.isArray(primary) ? primary : []), ...(Array.isArray(secondary) ? secondary : [])];
+  const seen = new Set();
+  const unique = [];
+
+  for (const entry of combined) {
+    if (!entry || typeof entry !== "object") continue;
+    const pathValue = typeof entry.path === "string" ? entry.path : "";
+    const reasonValue = typeof entry.reason === "string" ? entry.reason : "";
+    const key = `${pathValue}::${reasonValue}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push({ path: pathValue, reason: reasonValue });
+  }
+
+  return unique;
+}
+
+function cleanWorkspace(repoRoot, options = {}) {
+  const intake = cleanIntakeArtifacts(repoRoot);
+  const runtime = resetRuntimeState(repoRoot, {
+    includeRuntimeLogs: options.includeRuntimeLogs === true,
+  });
+
+  const status = runtime.status === "BLOCKED" || intake.status === "BLOCKED" ? "BLOCKED" : "PASS";
+  const touched = mergeUniqueStrings(intake.data?.touched, runtime.data?.touched);
+  const skipped = mergeSkippedEntries(intake.data?.skipped, runtime.data?.skipped);
+  const warnings = mergeUniqueStrings(intake.warnings, runtime.warnings);
+  const packetFileCount = Math.max(intake.data?.packet_file_count || 0, runtime.data?.packet_file_count || 0);
+
+  return {
+    tool: "scaffoldai_housekeeping_clean_workspace",
+    execution_class: "LOCAL_WRITE_BOUNDED",
+    status,
+    blockers: [
+      ...(Array.isArray(intake.blockers) ? intake.blockers : []),
+      ...(Array.isArray(runtime.blockers) ? runtime.blockers : []),
+    ],
+    warnings,
+    data: {
+      include_runtime_logs: options.includeRuntimeLogs === true,
+      intake_artifacts_cleaned: intake.status === "PASS",
+      runtime_state_reset: runtime.status === "PASS",
+      touched,
+      skipped,
+      packet_files_preserved: intake.data?.packet_files_preserved === true && runtime.data?.packet_files_preserved === true,
+      packet_file_count: packetFileCount,
+      logs_preserved: options.includeRuntimeLogs !== true,
+      durable_surfaces_preserved: [
+        ".scaffoldai/packets/",
+        ".scaffoldai/state/history.jsonl",
+        ".scaffoldai/runtime/mcp/signals.jsonl",
+        ".scaffoldai/runtime/mcp/shared-memory.jsonl",
+        ".scaffoldai/contracts/",
+        "src/",
+      ],
+      cleaned_transient_surfaces: [
+        ".scaffoldai/runtime/packet-intake/latest-intake.json",
+        ".scaffoldai/inbox/*.sdc.md (consumed latest-intake source only)",
+        ".scaffoldai/state/active-runtime.json",
+        ".scaffoldai/state/next-action.md",
+        ".scaffoldai/state/snapshot.md",
+      ],
+    },
+    next_safe_action:
+      status === "PASS"
+        ? "Workspace transient state cleaned. Review git status and proceed with explicit packet activation when ready."
+        : "Review blockers and preserve-durable constraints before retrying workspace cleanup.",
+  };
+}
+
 module.exports = {
   RUNTIME_STATE_FILES,
   gatherHousekeepingStatus,
@@ -418,5 +493,6 @@ module.exports = {
   parseGitStatusPath,
   resetRuntimeState,
   cleanIntakeArtifacts,
+  cleanWorkspace,
   neutralizeSnapshotContent,
 };

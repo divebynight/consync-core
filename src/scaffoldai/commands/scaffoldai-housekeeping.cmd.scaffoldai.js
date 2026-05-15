@@ -4,13 +4,14 @@ const {
   gatherHousekeepingStatus,
   resetRuntimeState,
   cleanIntakeArtifacts,
+  cleanWorkspace,
 } = require("../../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 
 const repoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai housekeeping <status|reset-runtime-state|clean-intake-artifacts> [--include-runtime-logs]");
+  console.log("Usage: scaffoldai housekeeping <status|reset-runtime-state|clean-intake-artifacts|clean-workspace> [--include-runtime-logs]");
 }
 
 function parseArgs(argv = []) {
@@ -166,6 +167,62 @@ function printCleanIntakeArtifacts(result) {
   console.log(`STATUS: ${result.status}`);
 }
 
+function printCleanWorkspace(result) {
+  console.log("[scaffoldai housekeeping clean-workspace]");
+  console.log("");
+
+  if (result.blockers && result.blockers.length > 0) {
+    for (const blocker of result.blockers) {
+      console.log(`BLOCKER: ${blocker}`);
+    }
+  }
+
+  console.log(`INCLUDE RUNTIME LOGS:      ${result.data.include_runtime_logs ? "yes" : "no"}`);
+  console.log(`INTAKE ARTIFACTS CLEANED:  ${result.data.intake_artifacts_cleaned ? "yes" : "no"}`);
+  console.log(`RUNTIME STATE RESET:       ${result.data.runtime_state_reset ? "yes" : "no"}`);
+  console.log(`PACKETS PRESERVED:         ${result.data.packet_files_preserved ? "yes" : "no"}`);
+  console.log(`LOGS PRESERVED:            ${result.data.logs_preserved ? "yes" : "no"}`);
+  console.log(`PACKET FILE COUNT:         ${result.data.packet_file_count}`);
+
+  console.log("TOUCHED FILES:");
+  if (result.data.touched.length === 0) {
+    console.log("  - none");
+  } else {
+    for (const item of result.data.touched) {
+      console.log(`  - ${item}`);
+    }
+  }
+
+  console.log("SKIPPED FILES:");
+  if (result.data.skipped.length === 0) {
+    console.log("  - none");
+  } else {
+    for (const item of result.data.skipped) {
+      console.log(`  - ${item.path} (${item.reason})`);
+    }
+  }
+
+  console.log("PRESERVED DURABLE SURFACES:");
+  for (const item of result.data.durable_surfaces_preserved) {
+    console.log(`  - ${item}`);
+  }
+
+  console.log("CLEANED TRANSIENT SURFACES:");
+  for (const item of result.data.cleaned_transient_surfaces) {
+    console.log(`  - ${item}`);
+  }
+
+  if (result.warnings && result.warnings.length > 0) {
+    for (const warning of result.warnings) {
+      console.log(`WARNING: ${warning}`);
+    }
+  }
+
+  console.log("");
+  console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
+  console.log(`STATUS: ${result.status}`);
+}
+
 function runScaffoldaiHousekeepingCommand(argv = []) {
   const args = parseArgs(argv);
 
@@ -196,6 +253,17 @@ function runScaffoldaiHousekeepingCommand(argv = []) {
   if (args.action === "clean-intake-artifacts") {
     const result = cleanIntakeArtifacts(repoRoot);
     printCleanIntakeArtifacts(result);
+    return;
+  }
+
+  if (args.action === "clean-workspace") {
+    const result = cleanWorkspace(repoRoot, {
+      includeRuntimeLogs: args.includeRuntimeLogs,
+    });
+    printCleanWorkspace(result);
+    if (result.status === "BLOCKED") {
+      process.exitCode = 1;
+    }
     return;
   }
 

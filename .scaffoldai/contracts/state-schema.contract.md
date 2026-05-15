@@ -94,6 +94,15 @@ Runtime-state housekeeping commands:
 - `scaffoldai housekeeping reset-runtime-state`
 - `scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
 - `scaffoldai housekeeping clean-intake-artifacts`
+- `scaffoldai housekeeping clean-workspace`
+
+`clean-workspace` orchestration behavior:
+
+- runs intake-artifact cleanup first, then runtime-state reset
+- preserves accepted packet archive (`.scaffoldai/packets/`)
+- preserves append-only logs and MCP runtime logs by default
+- preserves contracts and implementation surfaces
+- reports touched files, skipped durable files, and next safe action
 
 Intake-artifact cleanup semantics:
 
