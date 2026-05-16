@@ -6,6 +6,7 @@ const path = require("path");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
 const { gatherPacketVisibility } = require("../lib/scaffoldaiPacketVisibility.query.scaffoldai");
 const { gatherCompletionStatus } = require("../lib/scaffoldaiCompletionStatus.query.scaffoldai");
+const { runMemoryReadTool, runMemoryWriteTool } = require("../scaffoldai/mcp/shared-memory");
 
 const TEST_NAME = "unit-scaffoldai-mcp-readonly";
 
@@ -573,6 +574,124 @@ for (const [name, fn] of toolFns) {
     }
   } catch {
     fail("Could not read src/scaffoldai/mcp/ for /tmp check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 20: server.js exposes the expected local MCP tool inventory
+// -----------------------------------------------------------------------
+
+{
+  const serverPath = path.join(__dirname, "..", "scaffoldai", "mcp", "server.js");
+  const expectedTools = [
+    "scaffoldai_status",
+    "scaffoldai_preflight",
+    "scaffoldai_question",
+    "scaffoldai_verify_recommend",
+    "scaffoldai_closeout_readiness",
+    "scaffoldai_completion_status",
+    "scaffoldai_verify_run",
+    "scaffoldai_signal",
+    "scaffoldai_submit_sdc_candidate",
+    "scaffoldai_memory_write",
+    "scaffoldai_memory_read",
+  ];
+
+  try {
+    const source = fs.readFileSync(serverPath, "utf8");
+    const matches = [...source.matchAll(/server\.(?:tool|registerTool)\(\s*"([^"]+)"/g)].map((entry) => entry[1]);
+    check(matches.length === expectedTools.length, `server tool registration count matches expected (${expectedTools.length})`);
+
+    for (const toolName of expectedTools) {
+      check(matches.includes(toolName), `server registers ${toolName}`);
+    }
+  } catch {
+    fail("Could not read server.js for MCP tool inventory check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 21: shared-memory tools are bounded and fail closed with diagnostics
+// -----------------------------------------------------------------------
+
+{
+  const storagePath = path.join(__dirname, "..", "..", ".scaffoldai", "runtime", "mcp", "shared-memory.jsonl");
+  const storageDir = path.dirname(storagePath);
+  const prior = fs.existsSync(storagePath) ? fs.readFileSync(storagePath, "utf8") : null;
+
+  try {
+    const missingFrom = runMemoryWriteTool({ to: "all", message: "hello" });
+    check(missingFrom.execution_class === "LOCAL_SHARED_MEMORY_APPEND_ONLY", "memory write rejection includes append-only execution class");
+    check(missingFrom.status === "rejected", "memory write rejects missing required fields");
+    check(typeof missingFrom.reason === "string" && missingFrom.reason.length > 0, "memory write rejection includes reason");
+    check(missingFrom.error_category === "schema_input_mismatch", "memory write rejection includes schema_input_mismatch category");
+    check(Array.isArray(missingFrom.guard_errors), "memory write rejection includes guard_errors array");
+
+    const unknownField = runMemoryWriteTool({ from: "a", to: "all", message: "x", path: "../escape" });
+    check(unknownField.status === "rejected", "memory write rejects unknown fields to stay fail-closed");
+    check(unknownField.error_category === "guard_failure", "memory write unknown-field rejection uses guard_failure category");
+
+    const accepted = runMemoryWriteTool({ from: "unit.mcp", to: "all", topic: "mcp", message: "guard test record" });
+    check(accepted.status === "accepted", "memory write accepts valid append-only payload");
+    check(accepted.execution_class === "LOCAL_SHARED_MEMORY_APPEND_ONLY", "memory write accepted response includes append-only execution class");
+    check(accepted.storage === ".scaffoldai/runtime/mcp/shared-memory.jsonl", "memory write stays inside the bounded shared-memory path");
+
+    const readRejected = runMemoryReadTool({});
+    check(readRejected.status === "rejected", "memory read rejects missing audience");
+    check(readRejected.execution_class === "READ_ONLY", "memory read rejection reports READ_ONLY execution class");
+
+    const readAccepted = runMemoryReadTool({ audience: "all", limit: 5 });
+    check(readAccepted.status === "accepted", "memory read accepts valid audience query");
+    check(readAccepted.execution_class === "READ_ONLY", "memory read accepted response reports READ_ONLY execution class");
+    check(Array.isArray(readAccepted.messages), "memory read accepted response includes messages array");
+
+    check(fs.existsSync(storageDir), "memory write creates only the bounded runtime/mcp directory");
+    check(fs.existsSync(storagePath), "memory write appends only to shared-memory.jsonl");
+  } finally {
+    if (prior === null) {
+      try {
+        fs.unlinkSync(storagePath);
+      } catch (err) {
+        if (err.code !== "ENOENT") throw err;
+      }
+    } else {
+      fs.writeFileSync(storagePath, prior, "utf8");
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 22: non-read-only MCP source files do not invoke git mutation or broad cleanup
+// -----------------------------------------------------------------------
+
+{
+  const nonReadOnlyFiles = [
+    path.join(__dirname, "..", "scaffoldai", "mcp", "submit-sdc-candidate.js"),
+    path.join(__dirname, "..", "scaffoldai", "mcp", "signal.js"),
+    path.join(__dirname, "..", "scaffoldai", "mcp", "shared-memory.js"),
+    path.join(__dirname, "..", "lib", "scaffoldaiVerifyRun.auth.scaffoldai.js"),
+  ];
+
+  const forbidden = [
+    "git commit",
+    "git push",
+    "git branch",
+    "git checkout",
+    "git switch",
+    "rm -rf",
+    "fs.rmSync(",
+    "fs.rmdirSync(",
+  ];
+
+  for (const filePath of nonReadOnlyFiles) {
+    try {
+      const source = fs.readFileSync(filePath, "utf8");
+      for (const token of forbidden) {
+        check(!source.includes(token), `${path.basename(filePath)} does not include forbidden mutation token: ${token}`);
+      }
+    } catch {
+      fail(`Could not read ${path.basename(filePath)} for mutation token checks`);
+    }
   }
 }
 
