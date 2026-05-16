@@ -14,6 +14,31 @@ function normalizePacketId(value) {
   return value.trim().toLowerCase().replace(/\.md$/i, "");
 }
 
+function findPacketFileMatchesById(rootPath, packetId) {
+  const normalized = normalizePacketId(packetId);
+  if (!normalized) return [];
+
+  const packetsRoot = path.resolve(rootPath, PACKETS_DIR_RELATIVE);
+  if (!fs.existsSync(packetsRoot)) return [];
+
+  const matches = [];
+  for (const entry of fs.readdirSync(packetsRoot, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.toLowerCase().endsWith(".md")) continue;
+    if (entry.name.toLowerCase() === "readme.md") continue;
+
+    if (normalizePacketId(entry.name) === normalized) {
+      matches.push({
+        absolutePath: path.join(packetsRoot, entry.name),
+        fileName: entry.name,
+        packetId: normalizePacketId(entry.name),
+      });
+    }
+  }
+
+  return matches;
+}
+
 function parseActiveStreamName(activeStreamText) {
   if (!activeStreamText) return null;
 
@@ -61,7 +86,20 @@ function resolvePacketPath(rootPath, inputPath) {
   }
 
   if (!fs.existsSync(candidatePath) || !fs.statSync(candidatePath).isFile()) {
-    throw new Error(`packet not found: ${path.relative(rootPath, candidatePath)}`);
+    if (!looksLikePath) {
+      const matches = findPacketFileMatchesById(rootPath, rawInput);
+      if (matches.length > 1) {
+        const candidateNames = matches.map((entry) => entry.fileName).join(", ");
+        throw new Error(`ambiguous packet id: ${rawInput}; matches: ${candidateNames}`);
+      }
+      if (matches.length === 1) {
+        candidatePath = matches[0].absolutePath;
+      }
+    }
+
+    if (!fs.existsSync(candidatePath) || !fs.statSync(candidatePath).isFile()) {
+      throw new Error(`packet not found: ${path.relative(rootPath, candidatePath)}`);
+    }
   }
 
   const fileName = path.basename(candidatePath);
@@ -74,32 +112,20 @@ function resolvePacketPath(rootPath, inputPath) {
     packetsRoot,
     absolutePath: candidatePath,
     fileName,
-    packetId: fileName.replace(/\.md$/i, ""),
+    packetId: normalizePacketId(fileName),
   };
 }
 
 function findPacketFileById(rootPath, packetId) {
-  const normalized = normalizePacketId(packetId);
-  if (!normalized) return null;
-
-  const packetsRoot = path.resolve(rootPath, PACKETS_DIR_RELATIVE);
-  if (!fs.existsSync(packetsRoot)) return null;
-
-  for (const entry of fs.readdirSync(packetsRoot, { withFileTypes: true })) {
-    if (!entry.isFile()) continue;
-    if (!entry.name.toLowerCase().endsWith(".md")) continue;
-    if (entry.name.toLowerCase() === "readme.md") continue;
-
-    if (normalizePacketId(entry.name) === normalized) {
-      return {
-        absolutePath: path.join(packetsRoot, entry.name),
-        fileName: entry.name,
-        packetId: entry.name.replace(/\.md$/i, ""),
-      };
-    }
+  const matches = findPacketFileMatchesById(rootPath, packetId);
+  if (matches.length === 0) return null;
+  if (matches.length > 1) {
+    return {
+      ambiguous: true,
+      matches: matches.map((entry) => entry.fileName),
+    };
   }
-
-  return null;
+  return matches[0];
 }
 
 function readPacketMetadata(packetPath, fileName) {
@@ -296,6 +322,20 @@ function getPacketStatus(rootPath) {
       title: null,
       category: null,
       next_safe_action: "Active pointer file is missing. Clear pointer or activate an existing packet.",
+    };
+  }
+
+  if (resolved.ambiguous) {
+    return {
+      action: "status",
+      active_packet: inFlight,
+      packet_file: null,
+      exists: false,
+      title: null,
+      category: null,
+      ambiguous_identity: true,
+      ambiguous_matches: resolved.matches,
+      next_safe_action: "Resolve duplicate normalized packet ids in .scaffoldai/packets before continuing lifecycle operations.",
     };
   }
 

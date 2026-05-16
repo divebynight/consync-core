@@ -137,6 +137,11 @@ function main() {
       assert.strictEqual(result.status, "ACCEPTED");
       assert.strictEqual(result.packet_id, "add-strict-intake-validation.sdc");
       assert.strictEqual(result.file_name, "add-strict-intake-validation.sdc.md");
+      assert.strictEqual(result.normalized_slug, "add-strict-intake-validation");
+      assert.strictEqual(result.identity.packet_id, result.packet_id);
+      assert.strictEqual(result.identity.durable_packet_file, result.file_name);
+      assert.strictEqual(result.identity.normalized_slug, result.normalized_slug);
+      assert.strictEqual(result.identity.packet_title, result.packet_title);
       assert.ok(fs.existsSync(path.join(fixture, ".scaffoldai", "packets", result.file_name)));
       console.log("  PASS: valid SDC accepted");
     }
@@ -360,6 +365,50 @@ function main() {
       assert.strictEqual(result.source_in_inbox, false);
       assert.ok(result.warnings.some((item) => item.includes("outside .scaffoldai/inbox")));
       console.log("  PASS: external path intake warns but accepts valid packet");
+    }
+
+    // 13. repeated intake of identical packet reuses durable identity
+    {
+      const sourcePath = writeIncomingPacket(
+        fixture,
+        "repeat-identical.md",
+        validPacketContent().replace("Add Strict Intake Validation", "Repeat Identity Packet")
+      );
+      const first = intakePacket(fixture, sourcePath);
+      const second = intakePacket(fixture, sourcePath);
+
+      assert.strictEqual(first.accepted, true);
+      assert.strictEqual(second.accepted, true);
+      assert.strictEqual(second.packet_id, first.packet_id);
+      assert.strictEqual(second.file_name, first.file_name);
+      assert.strictEqual(second.reused_existing_packet, true);
+      assert.ok(second.warnings.some((entry) => entry.includes("reusing durable packet identity")));
+      console.log("  PASS: repeated identical intake reuses durable packet identity");
+    }
+
+    // 14. different source with same normalized slug but different content is rejected
+    {
+      const firstPath = writeInboxPacket(
+        fixture,
+        "collision-a.sdc.md",
+        validPacketContent().replace("Add Strict Intake Validation", "Collision Packet")
+      );
+      const secondPath = writeIncomingPacket(
+        fixture,
+        "collision-b.md",
+        validPacketContent()
+          .replace("Add Strict Intake Validation", "Collision Packet")
+          .replace("Accept only formally structured SDC packets.", "Accept only canonical packet identity surfaces.")
+      );
+
+      const first = intakePacket(fixture, firstPath);
+      const second = intakePacket(fixture, secondPath);
+
+      assert.strictEqual(first.accepted, true);
+      assert.strictEqual(second.accepted, false);
+      assert.strictEqual(second.normalized_slug, "collision-packet");
+      assert.ok(second.validation_errors.some((entry) => entry.includes("normalized packet filename already exists")));
+      console.log("  PASS: duplicate normalized slug with different content is rejected");
     }
 
     console.log(`[${TEST_NAME}] PASS`);

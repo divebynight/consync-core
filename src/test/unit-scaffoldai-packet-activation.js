@@ -164,6 +164,16 @@ function main() {
       console.log("  PASS: invalid or missing packet is rejected");
     }
 
+    // 2b) Packet-id input resolves to canonical durable filename.
+    {
+      clearActivePacket(fixture);
+      const result = activatePacket(fixture, "ALPHA-PROCESS.SDC");
+      assert.strictEqual(result.status, "PASS", "packet-id activation should succeed via normalized lookup");
+      assert.strictEqual(result.packet_id, "alpha-process.sdc", "packet-id activation should resolve canonical packet id");
+      assert.strictEqual(getInFlightPacket(fixture), "alpha-process.sdc", "in-flight packet should match canonical id");
+      console.log("  PASS: packet-id activation resolves canonical durable packet");
+    }
+
     // 3) Path traversal / outside path is rejected.
     {
       fs.writeFileSync(path.join(fixture, "outside.md"), "# outside\n", "utf8");

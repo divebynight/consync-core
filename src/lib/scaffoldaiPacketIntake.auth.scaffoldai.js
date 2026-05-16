@@ -270,6 +270,7 @@ function buildPacketIdentity(title) {
     return {
       packet_id: null,
       file_name: null,
+      normalized_slug: null,
       error: "title does not produce a valid packet filename",
     };
   }
@@ -277,6 +278,7 @@ function buildPacketIdentity(title) {
   return {
     packet_id: `${slug}.sdc`,
     file_name: `${slug}.sdc.md`,
+    normalized_slug: slug,
     error: null,
   };
 }
@@ -329,7 +331,14 @@ function validateStrictSdcPacket(content) {
   errors.push(...approval.errors);
   errors.push(...blockedPolicyReasons);
 
-  const identity = title.valid ? buildPacketIdentity(title.title) : { packet_id: null, file_name: null, error: null };
+  const identity = title.valid
+    ? buildPacketIdentity(title.title)
+    : {
+      packet_id: null,
+      file_name: null,
+      normalized_slug: null,
+      error: null,
+    };
   if (identity.error) errors.push(identity.error);
 
   return {
@@ -346,6 +355,7 @@ function validateStrictSdcPacket(content) {
     approval: approval.values,
     packet_id: identity.packet_id,
     file_name: identity.file_name,
+    normalized_slug: identity.normalized_slug,
     normalized_content: ensureTrailingNewline(content),
     recovery_hints: [],
   };
@@ -372,6 +382,7 @@ function readLatestIntakeResult(repoRoot) {
 
 function intakePacket(repoRoot, inputPath) {
   const source = readSourceMarkdown(repoRoot, inputPath);
+  const sourceFileName = path.basename(source.source_path);
   const sourceInInbox = isSourceInsideInbox(repoRoot, source.source_path);
   const warnings = sourceInInbox
     ? []
@@ -388,8 +399,16 @@ function intakePacket(repoRoot, inputPath) {
       source_path: source.source_path,
       packet_id: validation.packet_id,
       file_name: validation.file_name,
+      normalized_slug: validation.normalized_slug,
       packet_title: validation.packet_title,
       mode: validation.mode,
+      identity: {
+        packet_id: validation.packet_id,
+        durable_packet_file: validation.file_name,
+        normalized_slug: validation.normalized_slug,
+        packet_title: validation.packet_title,
+        source_filename: sourceFileName,
+      },
       validation_errors: validation.errors,
       missing_sections: validation.missing_sections,
       section_order_issues: validation.section_order_issues,
@@ -408,6 +427,8 @@ function intakePacket(repoRoot, inputPath) {
   const packetsDir = path.join(repoRoot, PACKETS_DIR_RELATIVE);
   const targetPath = path.join(packetsDir, validation.file_name);
   fs.mkdirSync(packetsDir, { recursive: true });
+  let reusedExistingPacket = false;
+  const acceptedWarnings = [...warnings];
 
   if (fs.existsSync(targetPath)) {
     const existing = fs.readFileSync(targetPath, "utf8");
@@ -418,8 +439,16 @@ function intakePacket(repoRoot, inputPath) {
         source_path: source.source_path,
         packet_id: validation.packet_id,
         file_name: validation.file_name,
+        normalized_slug: validation.normalized_slug,
         packet_title: validation.packet_title,
         mode: validation.mode,
+        identity: {
+          packet_id: validation.packet_id,
+          durable_packet_file: validation.file_name,
+          normalized_slug: validation.normalized_slug,
+          packet_title: validation.packet_title,
+          source_filename: sourceFileName,
+        },
         validation_errors: [`normalized packet filename already exists: ${validation.file_name}`],
         missing_sections: [],
         blocked_policy_reasons: [],
@@ -432,6 +461,9 @@ function intakePacket(repoRoot, inputPath) {
       writeLatestIntakeResult(repoRoot, conflict);
       return conflict;
     }
+
+    reusedExistingPacket = true;
+    acceptedWarnings.push("normalized packet filename already existed with identical content; reusing durable packet identity");
   } else {
     fs.writeFileSync(targetPath, validation.normalized_content, "utf8");
   }
@@ -442,13 +474,22 @@ function intakePacket(repoRoot, inputPath) {
     source_path: source.source_path,
     packet_id: validation.packet_id,
     file_name: validation.file_name,
+    normalized_slug: validation.normalized_slug,
     packet_title: validation.packet_title,
     mode: validation.mode,
     packet_path: path.join(PACKETS_DIR_RELATIVE, validation.file_name).split(path.sep).join("/"),
     approval: validation.approval,
     normalized: true,
+    reused_existing_packet: reusedExistingPacket,
+    identity: {
+      packet_id: validation.packet_id,
+      durable_packet_file: validation.file_name,
+      normalized_slug: validation.normalized_slug,
+      packet_title: validation.packet_title,
+      source_filename: sourceFileName,
+    },
     source_in_inbox: sourceInInbox,
-    warnings,
+    warnings: acceptedWarnings,
     next_safe_action: "Packet accepted. Activate it explicitly with --activate or scaffoldai packet activate <packet> when ready.",
     recorded_at: new Date().toISOString(),
   };

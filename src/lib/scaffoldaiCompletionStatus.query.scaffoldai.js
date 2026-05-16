@@ -16,7 +16,7 @@ function cleanString(value) {
 }
 
 function normalizePacket(value) {
-  return cleanString(value).toLowerCase();
+  return cleanString(value).toLowerCase().replace(/\.md$/i, "");
 }
 
 function clampLimit(value) {

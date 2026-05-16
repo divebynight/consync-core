@@ -11,9 +11,31 @@ const repoRoot = getRepoRoot(__dirname);
 const fixtureRoot = path.join(repoRoot, ".scaffoldai", "tmp", `${TEST_NAME}-fixture`);
 const fixtureSignalDir = path.join(fixtureRoot, ".scaffoldai", "runtime", "mcp");
 const fixtureSignalPath = path.join(fixtureSignalDir, "signals.jsonl");
+const fixtureStateDir = path.join(fixtureRoot, ".scaffoldai", "state");
+const fixtureContractsDir = path.join(fixtureRoot, ".scaffoldai", "contracts");
 
 function writeFixtureSignals() {
   fs.mkdirSync(fixtureSignalDir, { recursive: true });
+  fs.mkdirSync(fixtureStateDir, { recursive: true });
+  fs.mkdirSync(fixtureContractsDir, { recursive: true });
+
+  fs.writeFileSync(path.join(fixtureStateDir, "next-action.md"), "TYPE: REFACTOR\nPACKET_ID: packet-beta.sdc\n", "utf8");
+  fs.writeFileSync(
+    path.join(fixtureStateDir, "active-runtime.json"),
+    JSON.stringify({ in_flight_packet: "packet-beta.sdc" }, null, 2) + "\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureContractsDir, "active-policy.json"),
+    JSON.stringify({
+      mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+      allowed_packet_types: ["process"],
+      blocked_packet_types: ["product"],
+      require_clean_git: false,
+      require_dry_run: false,
+    }, null, 2) + "\n",
+    "utf8"
+  );
 
   const rows = [
     {
@@ -103,6 +125,11 @@ function main() {
 
   const noMatch = gatherCompletionStatus(fixtureRoot, { packet: "missing-packet.sdc.md", latestOnly: true, limit: 25 });
   assert.strictEqual(noMatch.data.returned_count, 0, "non-matching packet filter should return no completions");
+
+  const activeOnly = gatherCompletionStatus(fixtureRoot, { activePacketOnly: true, latestOnly: true, limit: 25 });
+  assert.strictEqual(activeOnly.data.active_packet, "packet-beta.sdc", "active packet should be read from state");
+  assert.strictEqual(activeOnly.data.returned_count, 1, "active packet filter should match .md completion records by normalized id");
+  assert.strictEqual(activeOnly.data.completions[0].packet, "packet-beta.sdc.md");
 
   cleanupFixture();
   console.log(`[${TEST_NAME}] PASS`);
