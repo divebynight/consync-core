@@ -38,6 +38,8 @@ sandbox/probes/audio-session-capture/workdir/*
 
 # Candidate packet inbox contents
 .scaffoldai/inbox/*.sdc.md
+.scaffoldai/inbox/soft-delete
+
 
 # Runtime temp output
 .scaffoldai/tmp/*
@@ -52,3 +54,4 @@ sandbox/probes/audio-session-capture/workdir/*
 output.txt
 verification_output.txt
 verify-run-files.txt
+

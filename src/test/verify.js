@@ -503,6 +503,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI MCP candidate submission", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-submit-sdc-candidate.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Validate remote submit duplicate and pending guards", [path.join(repoRoot, "src", "test", "validate-remote-submit-duplicate-and-pending-guards.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
