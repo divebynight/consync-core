@@ -161,6 +161,29 @@ async function main() {
     assert.deepStrictEqual(names, EXPECTED_TOOLS.slice().sort(), "HTTP tools/list should expose only readonly tools");
     console.log("  PASS: tools/list exposes only readonly tools");
 
+    const submitAttempt = await postMcp(
+      {
+        jsonrpc: "2.0",
+        id: 200,
+        method: "tools/call",
+        params: {
+          name: "scaffoldai_submit_sdc_candidate",
+          arguments: {
+            content: "# SDC — Observer Submit Attempt\n\nMODE: PROCESS_REFACTOR\nEXECUTION SURFACE: LOCAL_REPOSITORY_ONLY\n\nAPPROVAL:\n  execute: PENDING\n  commit: PENDING\n\nGOAL:\nforbidden\n\nTASKS:\n1. no-op\n\nVERIFY:\n- npm run verify:scaffoldai\n\nOUTPUT:\n1. no-op\n\nCONSTRAINTS:\n- none\n",
+          },
+        },
+      },
+      sessionId
+    );
+    assert.ok(submitAttempt.response.ok, "observer submit attempt should return MCP error envelope");
+    assert.strictEqual(submitAttempt.data.result.isError, true, "observer submit attempt should set isError");
+    assert.match(
+      submitAttempt.data.result.content[0].text,
+      /not found|Unknown tool/i,
+      "observer submit attempt should be rejected as unknown tool"
+    );
+    console.log("  PASS: observer HTTPS cannot call scaffoldai_submit_sdc_candidate");
+
     for (const name of EXPECTED_TOOLS) {
       const args = name === "scaffoldai_pending_questions"
         ? { unresolvedOnly: false, limit: 5 }

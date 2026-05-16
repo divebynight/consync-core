@@ -199,6 +199,27 @@ async function main() {
     }
     console.log("  PASS: tools/list exposes exactly readonly tools");
 
+    const submitAttempt = await postMcp(
+      "tools/call",
+      {
+        name: "scaffoldai_submit_sdc_candidate",
+        arguments: {
+          content:
+            "# SDC — Observer Submit Attempt\\n\\nMODE: PROCESS_REFACTOR\\nEXECUTION SURFACE: LOCAL_REPOSITORY_ONLY\\n\\nAPPROVAL:\\n  execute: PENDING\\n  commit: PENDING\\n\\nGOAL:\\nforbidden\\n\\nTASKS:\\n1. no-op\\n\\nVERIFY:\\n- npm run verify:scaffoldai\\n\\nOUTPUT:\\n1. no-op\\n\\nCONSTRAINTS:\\n- none\\n",
+        },
+      },
+      250,
+      sessionId
+    );
+    assert.ok(submitAttempt.response.ok, "submit attempt should return MCP error envelope");
+    assert.strictEqual(submitAttempt.data.result.isError, true, "submit attempt should set isError");
+    assert.match(
+      submitAttempt.data.result.content[0].text,
+      /not found|Unknown tool/i,
+      "submit attempt should be rejected as unknown tool"
+    );
+    console.log("  PASS: observer HTTPS rejects submit tool calls");
+
     for (const toolName of EXPECTED_TOOLS) {
       const call = await postMcp("tools/call", { name: toolName, arguments: {} }, toolName, sessionId);
       assert.ok(call.response.ok, `${toolName} should be callable`);
