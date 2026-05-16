@@ -62,6 +62,7 @@ Both surfaces remain **thin adapters** calling the same shared ScaffoldAI core f
 
 **Diagnostic:**
 - `scaffoldai_signal` - Client capability and presence signaling (diagnostic POC)
+- `scaffoldai_submit_sdc_candidate` - Bounded candidate SDC submission to `.scaffoldai/inbox/` (candidate only, no intake/activation/claim)
 - `scaffoldai_memory_write` - Inter-client message write (diagnostic POC)
 - `scaffoldai_memory_read` - Inter-client message read (diagnostic POC)
 
@@ -96,7 +97,12 @@ The MCP server never touches `.scaffoldai/state/` directly. It calls functions l
 - `gatherQuestions()` (read-only query)
 - `resolveVerifyCommand()` (read-only query)
 
-**No MCP tool currently performs state mutation.** When mutation is added (future SDC), it must:
+Bounded mutation currently allowed in this surface:
+- `scaffoldai_submit_sdc_candidate` may write candidate files under `.scaffoldai/inbox/` only.
+- It must never intake, activate, claim, execute, closeout, clean, or commit.
+- It must never mutate `.scaffoldai/state/` or `.scaffoldai/streams/`.
+
+All other operational tools remain read-only or append-only diagnostic surfaces. When additional mutation is added in future SDCs, it must:
 - Go through gatekeeper authority functions
 - Validate transitions
 - Append history via `scaffoldaiState.appendHistory()`

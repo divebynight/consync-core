@@ -21,6 +21,7 @@ const FORBIDDEN_TOOLS = [
   "scaffoldai_verify_recommend",
   "scaffoldai_closeout_readiness",
   "scaffoldai_signal",
+  "scaffoldai_submit_sdc_candidate",
   "scaffoldai_memory_write",
   "scaffoldai_memory_read",
   "scaffoldai_feature_contract_create",

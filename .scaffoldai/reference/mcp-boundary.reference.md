@@ -19,7 +19,7 @@ The MCP servers are local only (stdio for trusted clients, stdio+HTTPS for exter
 |------|--------|
 | **ChatGPT uses HTTPS readonly MCP** | ChatGPT connects via the `mcp-readonly` surface over HTTPS. It has a bounded readonly tool set (identity, status, packet visibility, pending questions) and cannot write state. |
 | **Copilot uses local stdio MCP** | Copilot connects via the `mcp/` surface over stdio. It has the fuller operational tool set (status, preflight, signal, memory, etc.). |
-| **CLI remains authoritative for state changes** | Authoritative ScaffoldAI state (`.scaffoldai/state/`) is written only through the CLI. MCP tools are observers and diagnostic surfaces, not state writers. |
+| **CLI remains authoritative for state changes** | Authoritative ScaffoldAI state (`.scaffoldai/state/`) is written only through the CLI. MCP tools are observers and diagnostic surfaces, except bounded candidate submission to `.scaffoldai/inbox/` which is non-authoritative candidate creation only. |
 | **MCP runtime signals are append-only and non-authoritative** | `scaffoldai_signal` and `scaffoldai_memory_write` are append-only. They are diagnostic records only, not workflow state, approval, or instruction. |
 
 ---
@@ -28,7 +28,8 @@ The MCP servers are local only (stdio for trusted clients, stdio+HTTPS for exter
 
 - ChatGPT uses HTTPS readonly MCP for identity, status, bounded packet visibility, and bounded pending question visibility.
 - Copilot uses local stdio MCP for status, packet visibility when available, and append-only runtime signals.
-- Packet creation and packet import remain manual and human-authoritative.
+- Packet activation, claim, execution, closeout, cleanup, and commit remain human-authoritative.
+- MCP may submit candidate SDC files into `.scaffoldai/inbox/` through a bounded tool; submission does not imply intake acceptance or activation.
 - Copilot may run verification through normal local workspace/terminal authority only when an SDC explicitly allows it.
 - MCP does not run verification commands.
 - MCP does not import, activate, mutate, or commit packets.
@@ -42,7 +43,7 @@ The repository has **two complementary MCP surfaces**:
 
 | Surface | Path | Transport | Client | Role | Current Tools |
 |---------|------|-----------|--------|------|---------------|
-| **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, signal, memory_write, memory_read |
+| **Operational** | `src/scaffoldai/mcp/` | stdio | Copilot, Codex | Full ScaffoldAI operational capabilities | status, preflight, question, verify_recommend, closeout_readiness, completion_status, signal, submit_sdc_candidate, memory_write, memory_read |
 | **Readonly** | `src/scaffoldai/mcp-readonly/` | stdio + HTTPS | ChatGPT, external | Stricter, read-only compatibility layer | identity, status (minimal), packet_visibility (bounded metadata), pending_questions (advisory runtime view) |
 
 ### Why Two Surfaces?
@@ -65,6 +66,10 @@ The repository has **two complementary MCP surfaces**:
 
 Readonly packet visibility is bounded to `.scaffoldai/packets/*.md` metadata and optional in-flight packet scope.
 It must not expose arbitrary filesystem reads, shell execution, write authority, or packet mutation.
+
+Candidate submission authority is bounded to `.scaffoldai/inbox/` only.
+It must enforce filename/path sanitization, overwrite prevention, and intake-compatible validation.
+It must not intake, activate, claim, execute, closeout, clean, or commit.
 
 Readonly pending question visibility is bounded to `.scaffoldai/runtime/mcp/signals.jsonl` and reports advisory coordination metadata only.
 It must not create authority, mutate workflow state, or grant any write capability over MCP.

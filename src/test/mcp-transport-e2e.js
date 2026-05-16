@@ -291,6 +291,78 @@ async function main() {
     {
       let parsed;
       try {
+        ({ parsed } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
+          content: [
+            "# SDC — MCP Transport Candidate",
+            "",
+            "MODE: PROCESS_REFACTOR",
+            "EXECUTION SURFACE: MCP transport e2e candidate submission",
+            "",
+            "APPROVAL:",
+            "  execute: PENDING",
+            "  commit: PENDING",
+            "",
+            "GOAL:",
+            "Exercise bounded candidate submission.",
+            "",
+            "TASKS:",
+            "1. Submit candidate.",
+            "",
+            "VERIFY:",
+            "- npm run verify:scaffoldai",
+            "",
+            "OUTPUT:",
+            "1. candidate result",
+            "",
+            "CONSTRAINTS:",
+            "- no activation",
+            "- no claim",
+            "",
+          ].join("\n"),
+          suggestedFileName: "transport-e2e-candidate",
+          submittedBy: "mcp-e2e-client",
+        }));
+        pass("scaffoldai_submit_sdc_candidate valid call succeeds");
+      } catch (err) {
+        fail(`scaffoldai_submit_sdc_candidate call failed: ${err.message}`);
+        parsed = null;
+      }
+
+      if (parsed) {
+        check(
+          parsed.execution_class === "LOCAL_CANDIDATE_INBOX_WRITE_ONLY",
+          'scaffoldai_submit_sdc_candidate returns execution_class "LOCAL_CANDIDATE_INBOX_WRITE_ONLY"'
+        );
+        check(parsed.status === "accepted", "scaffoldai_submit_sdc_candidate accepts valid candidate content");
+        check(parsed.candidate_submitted === true, "scaffoldai_submit_sdc_candidate marks candidate_submitted=true");
+        check(parsed.accepted === false, "candidate submission does not imply intake acceptance");
+        check(parsed.activated === false, "candidate submission does not imply activation");
+        check(parsed.claimed === false, "candidate submission does not imply claim");
+      }
+
+      let rejected;
+      try {
+        ({ parsed: rejected } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
+          content: "# SDC — Invalid Candidate",
+          suggestedFileName: "../escape",
+        }));
+      } catch (err) {
+        fail(`scaffoldai_submit_sdc_candidate invalid call failed unexpectedly: ${err.message}`);
+        rejected = null;
+      }
+
+      if (rejected) {
+        check(rejected.status === "rejected", "scaffoldai_submit_sdc_candidate rejects unsafe filename/path inputs");
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // scaffoldai_signal
+    // -----------------------------------------------------------------------
+
+    {
+      let parsed;
+      try {
         ({ parsed } = await callTool(client, "scaffoldai_signal", {
           client_id: "mcp-e2e-client",
           signal_type: "connected",

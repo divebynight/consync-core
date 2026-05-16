@@ -15,6 +15,7 @@ const {
 } = require("./tools");
 const { runSignalTool } = require("./signal");
 const { runMemoryWriteTool, runMemoryReadTool } = require("./shared-memory");
+const { runSubmitSdcCandidateTool } = require("./submit-sdc-candidate");
 
 const server = new McpServer({
   name: "scaffoldai-consync",
@@ -150,6 +151,23 @@ server.registerTool(
       logMcp(`signal rejected: ${signalType} ${clientId}`);
     }
 
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_submit_sdc_candidate",
+  {
+    description:
+      "Submit a candidate SDC packet into .scaffoldai/inbox/ with bounded inbox-only authority. Does not intake, activate, claim, execute, closeout, cleanup, or commit.",
+    inputSchema: z.object({
+      content: z.string().describe("Candidate SDC markdown content."),
+      suggestedFileName: z.string().optional().describe("Optional suggested candidate filename or label (sanitized, inbox-bounded)."),
+      submittedBy: z.string().optional().describe("Optional submitter identifier (alphanumeric plus . _ -)."),
+    }),
+  },
+  withToolLogging("scaffoldai_submit_sdc_candidate", async (args) => {
+    const result = runSubmitSdcCandidateTool(args || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );

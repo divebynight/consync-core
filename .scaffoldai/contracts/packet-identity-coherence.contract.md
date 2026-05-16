@@ -77,7 +77,7 @@ Append-only surfaces are never used to mutate or override authoritative lifecycl
 
 ## Non-Goals For This Packet
 
-- no MCP write authority.
+- no MCP write authority beyond bounded inbox candidate submission.
 - no autonomous execution behavior.
 - no forced migration to GUID identity.
 - no lifecycle authority boundary weakening.

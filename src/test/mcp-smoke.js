@@ -25,6 +25,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_closeout_readiness",
   "scaffoldai_completion_status",
   "scaffoldai_signal",
+  "scaffoldai_submit_sdc_candidate",
   "scaffoldai_memory_write",
   "scaffoldai_memory_read",
 ];

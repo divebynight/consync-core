@@ -66,6 +66,7 @@ scaffoldai_completion_status (bounded advisory packet completion visibility from
 - `scaffoldai_verify_run` (local execution tool, never exposed on readonly/HTTPS surface)
 - `scaffoldai_closeout_readiness` (not needed for external observation)
 - `scaffoldai_signal` (diagnostic tool, local only)
+- `scaffoldai_submit_sdc_candidate` (candidate write authority, operational surface only)
 - `scaffoldai_memory_write` (diagnostic tool, local only)
 - `scaffoldai_memory_read` (diagnostic tool, local only)
 

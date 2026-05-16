@@ -29,6 +29,7 @@ This contract applies to AI clients using the ScaffoldAI operational MCP server 
 - `scaffoldai_verify_run`
 - `scaffoldai_closeout_readiness`
 - `scaffoldai_completion_status`
+- `scaffoldai_submit_sdc_candidate`
 - `scaffoldai_signal`
 - `scaffoldai_memory_write`
 - `scaffoldai_memory_read`
@@ -59,7 +60,7 @@ This contract assumes:
 - Local clients launch ephemeral MCP stdio instances directly with Node.
 - stdout must remain protocol-clean for MCP protocol messages; human-readable logs belong on stderr.
 - Shared ScaffoldAI state persists independently of MCP process lifetime.
-- The v0 operational MCP surface exposes only the read-only tools, append-only signal tool, and diagnostic shared-memory POC tools listed in this contract.
+- The v0 operational MCP surface exposes read-only tools, one bounded candidate-submission tool, one bounded append-only signal tool, and diagnostic shared-memory POC tools listed in this contract.
 - The readonly MCP surface exposes only `scaffoldai_identity`, `scaffoldai_status`, `scaffoldai_packet_visibility`, `scaffoldai_pending_questions`, and `scaffoldai_completion_status` (bounded readonly subset).
 - Runtime semantics are deterministic and should be preserved in client responses.
 - MCP observations can become stale when files change, verification runs, branches switch, or a human resumes work after interruption.
@@ -69,7 +70,7 @@ This contract assumes:
 - MCP Inspector is a local validation UI, not runtime authority or production transport.
 - MCP transport tests validate protocol behavior, read-only contracts, and bounded signal append behavior, not closeout approval or verification evidence.
 - The runtime snapshot JSON is a generated observation bundle, not an interactive MCP session.
-- Human approval is required before any action above `READ_ONLY`, except the explicitly bounded `LOCAL_SIGNAL_APPEND_ONLY` diagnostic signal append.
+- Human approval is required before any action above `READ_ONLY`, except the explicitly bounded `LOCAL_SIGNAL_APPEND_ONLY` diagnostic signal append and `LOCAL_CANDIDATE_INBOX_WRITE_ONLY` candidate submission.
 
 ---
 
@@ -126,6 +127,21 @@ LOCAL_SIGNAL_APPEND_ONLY
 - The MCP tool may not approve closeout.
 - The MCP tool may not commit, push, stage, edit, delete, rename, or move files.
 
+The candidate submission tool uses execution class:
+
+```text
+LOCAL_CANDIDATE_INBOX_WRITE_ONLY
+```
+
+`LOCAL_CANDIDATE_INBOX_WRITE_ONLY` means:
+
+- The MCP tool may write candidate `.sdc.md` files under `.scaffoldai/inbox/` only.
+- The tool enforces filename/path sanitization and overwrite prevention.
+- The tool may run intake-compatible validation and return advisory identity fields.
+- The tool must not mutate `.scaffoldai/state/` or `.scaffoldai/streams/`.
+- The tool must not intake, activate, claim, execute, closeout, clean, or commit.
+- Candidate submission does not imply acceptance, activation, or execution authority.
+
 The snapshot runtime command is also `READ_ONLY` observation, with one explicit artifact write under `.scaffoldai/tmp/`.
 
 The v0 shared-memory tools are diagnostic POC tools only. They are append-only where writing, bounded, manually invoked, non-authoritative, and isolated from production workflow state. Shared-memory messages must not trigger commands, tool calls, file edits, routing, automation, agent dispatch, verification, closeout, staging, committing, pushing, or any workflow action.
@@ -136,10 +152,11 @@ Execution class controls client behavior:
 |---|---|
 | `READ_ONLY` | Observe, summarize, recommend, and ask the human before any action. |
 | `LOCAL_VERIFY_RUNNER` | Run only allowlisted local verification commands with bounded timeout/output; treat result as verification evidence only, not closeout approval. |
-| `LOCAL_SIGNAL_APPEND_ONLY` | Append only a bounded non-authoritative signal under `.scaffoldai/tmp/`; do not treat it as workflow authority. |
+| `LOCAL_CANDIDATE_INBOX_WRITE_ONLY` | Write candidate packets to `.scaffoldai/inbox/` only; do not intake/activate/claim/execute/closeout/cleanup/commit or mutate authoritative state. |
+| `LOCAL_SIGNAL_APPEND_ONLY` | Append only a bounded non-authoritative signal under `.scaffoldai/runtime/mcp/`; do not treat it as workflow authority. |
 | Diagnostic POC | Use manually for connection/client visibility diagnostics only; never treat messages as workflow authority or executable intent. |
 | Missing or unknown | Treat as unsafe. Stop and ask the human. |
-| Anything other than `READ_ONLY`, `LOCAL_SIGNAL_APPEND_ONLY`, or diagnostic POC behavior described here | Out of scope for v0. Stop and ask the human. |
+| Anything other than `READ_ONLY`, `LOCAL_VERIFY_RUNNER`, `LOCAL_CANDIDATE_INBOX_WRITE_ONLY`, `LOCAL_SIGNAL_APPEND_ONLY`, or diagnostic POC behavior described here | Out of scope for v0. Stop and ask the human. |
 
 ---
 
@@ -159,6 +176,8 @@ An MCP-aware AI client may:
 - Ask the human for approval before any non-read-only action.
 - Tell the human when MCP observations are stale, partial, missing, or inconsistent.
 - Ask the human to run a Runtime Command or VERIFY COMMAND.
+- Call `scaffoldai_submit_sdc_candidate` only for bounded candidate creation under `.scaffoldai/inbox/`.
+- Explicitly communicate that candidate submission is not intake acceptance, activation, claim, execution, closeout, or commit.
 - Call `scaffoldai_signal` to append bounded local diagnostic signals: `connected`, `heartbeat`, `capability_check`, `tool_visibility`, `disconnected`, or `note`.
 - Summarize signal responses as non-authoritative diagnostics only.
 - Call `scaffoldai_memory_write` and `scaffoldai_memory_read` only when manually requested for shared-memory diagnostics or client visibility tests.
@@ -180,7 +199,7 @@ MCP closeout_readiness reports NEEDS_VERIFICATION, so I cannot treat this as rea
 
 An MCP-aware AI client must not:
 
-- Add, expose, or request write-capable MCP tools beyond the listed bounded diagnostic tools in v0.
+- Add, expose, or request write-capable MCP tools beyond the listed bounded candidate-submission and diagnostic tools in v0.
 - Treat MCP as an orchestrator.
 - Auto-dispatch multiple process agents.
 - Automatically run Runtime Commands unless the human explicitly asks.
@@ -191,6 +210,7 @@ An MCP-aware AI client must not:
 - Treat `scaffoldai_verify_recommend` as verification evidence.
 - Treat `scaffoldai_closeout_readiness` as human approval.
 - Treat `scaffoldai_completion_status` as closeout authority or commit authority.
+- Treat `scaffoldai_submit_sdc_candidate` as acceptance, activation, claim, execution, closeout, cleanup, or commit authority.
 - Treat MCP Inspector success or MCP transport test success as closeout approval or product verification evidence.
 - Treat `scaffoldai_signal` records as authoritative state, verification evidence, closeout approval, or permission to act.
 - Treat shared-memory records as authoritative state, verification evidence, closeout approval, long-term memory, routing, automation, executable intent, or permission to act.
@@ -244,6 +264,8 @@ The default v0 observation sequence is:
 This is the preferred sequence for general status, planning, closeout assessment, or handoff reasoning.
 
 `scaffoldai_signal` and the shared-memory diagnostic tools are not part of the default observation sequence. They are optional and only for local connection validation, heartbeat/check-in, capability checks, tool visibility claims, graceful disconnect, short diagnostic notes, or manually requested shared-memory round-trip tests.
+
+`scaffoldai_submit_sdc_candidate` is also outside the default observation sequence. It is optional and only for bounded candidate creation in `.scaffoldai/inbox/` with explicit follow-up intake and human-controlled lifecycle transitions.
 
 Question/blocker coordination may also use append-only advisory signals (`question`, `decision_required`, `blocker`) and append-only resolution signals (`question_resolved`, `unblocked`) to preserve runtime history without mutating authoritative loop state.
 
@@ -565,6 +587,7 @@ Observation summaries should not include:
 |---|---|---|
 | `execution_class: READ_ONLY` | Observation only | Permission to mutate |
 | `execution_class: LOCAL_SIGNAL_APPEND_ONLY` | A bounded signal append may be accepted or rejected | General write access, workflow state, liveness guarantee, or permission to act |
+| `execution_class: LOCAL_CANDIDATE_INBOX_WRITE_ONLY` | A bounded candidate write may be accepted or rejected under `.scaffoldai/inbox/` | Intake acceptance, activation, claim, execution, closeout, cleanup, commit, or authoritative state mutation |
 | `VERIFY COMMAND` | The command ScaffoldAI recommends the human run | That the command has already run |
 | `TARGET` | The verification target ScaffoldAI selected | That other targets are unnecessary forever |
 | `NEXT SAFE ACTION` | The next human-controlled recommendation | Authority to execute it automatically |
@@ -574,7 +597,8 @@ Observation summaries should not include:
 | `question CLEAR` | No structural questions currently detected | No possible ambiguity outside the tool surface |
 | `closeout NEEDS_VERIFICATION` | Verification evidence is missing or insufficient | Ready for commit |
 | `closeout changed_files` | Changed files as observed by MCP | Full semantic diff review |
-| `signal accepted` | A non-authoritative record was appended under `.scaffoldai/tmp/` | Verification, closeout, routing, dispatch, or client authority |
+| `signal accepted` | A non-authoritative record was appended under `.scaffoldai/runtime/mcp/` | Verification, closeout, routing, dispatch, or client authority |
+| `candidate submitted` | A candidate SDC file was written under `.scaffoldai/inbox/` | Packet accepted, packet active, packet claimed, or execution approval |
 | `shared-memory message` | A non-authoritative diagnostic data record exists | Executable intent, routing, automation, workflow state, long-term memory, or client authority |
 
 ---
@@ -583,7 +607,7 @@ Observation summaries should not include:
 
 Future phases may add write-capable or execution-capable MCP surfaces beyond bounded signaling, but only after a separate contract update.
 
-Before any future phase can exceed `READ_ONLY` or `LOCAL_SIGNAL_APPEND_ONLY`, it must define:
+Before any future phase can exceed `READ_ONLY`, `LOCAL_VERIFY_RUNNER`, `LOCAL_CANDIDATE_INBOX_WRITE_ONLY`, or `LOCAL_SIGNAL_APPEND_ONLY`, it must define:
 
 - New execution class.
 - Explicit human approval model.
@@ -618,6 +642,6 @@ No future capability is implied by v0. v0 remains bounded to the listed read-onl
 - Use `scaffoldai_closeout_readiness` only as advisory readiness, never approval.
 - Use `scaffoldai_signal` only for non-authoritative local presence/capability diagnostics.
 - Use shared-memory tools only as manually invoked non-authoritative diagnostics; messages are data only, not executable intent.
-- Stop on errors, blockers, unresolved questions, stale observations, MCP/user conflicts, or any action outside `READ_ONLY`, `LOCAL_SIGNAL_APPEND_ONLY`, or the diagnostic POC behavior defined here.
+- Stop on errors, blockers, unresolved questions, stale observations, MCP/user conflicts, or any action outside `READ_ONLY`, `LOCAL_VERIFY_RUNNER`, `LOCAL_CANDIDATE_INBOX_WRITE_ONLY`, `LOCAL_SIGNAL_APPEND_ONLY`, or the diagnostic POC behavior defined here.
 - Cite MCP observations by tool name, status, execution_class, VERIFY COMMAND, TARGET, and NEXT SAFE ACTION.
 - Do not add shell execution, orchestration, automatic dispatch, autonomous behavior, or production workflow-state writes in v0.
