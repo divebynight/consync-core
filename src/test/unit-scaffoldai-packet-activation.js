@@ -8,6 +8,7 @@ const {
   activatePacket,
   clearActivePacket,
 } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
+const { claimPacket } = require("../lib/packetClaim.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
 const { gatherPacketVisibility } = require("../lib/scaffoldaiPacketVisibility.query.scaffoldai");
@@ -97,6 +98,20 @@ function createFixtureRepo() {
       "",
       "GOAL:",
       "Validate packet activation.",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  fs.writeFileSync(
+    path.join(packetsDir, "beta-process.sdc.md"),
+    [
+      "# Beta Process Packet",
+      "",
+      "MODE: PROCESS_REFACTOR",
+      "",
+      "GOAL:",
+      "Validate packet replacement guard.",
       "",
     ].join("\n"),
     "utf8"
@@ -196,6 +211,39 @@ function main() {
       assert.strictEqual(visibility.data.packet_count, 1, "in_flight visibility should return one packet");
       assert.strictEqual(visibility.data.packets[0].in_flight_relation, "active", "packet visibility relation should be active");
       console.log("  PASS: MCP visibility and status are consistent");
+    }
+
+    // 6) Replacing an active packet is blocked until explicit clear.
+    {
+      const blocked = activatePacket(fixture, "beta-process.sdc.md");
+
+      assert.strictEqual(blocked.status, "BLOCKED", "replacement activation should be blocked");
+      assert.strictEqual(blocked.reason, "active_packet_exists", "blocked activation should use stable reason");
+      assert.strictEqual(blocked.active_packet, "alpha-process.sdc", "current active packet should remain unchanged");
+      assert.strictEqual(getInFlightPacket(fixture), "alpha-process.sdc", "blocked activation must not replace active packet");
+
+      const runtime = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
+      );
+      assert.strictEqual(runtime.in_flight_packet, "alpha-process.sdc", "runtime pointer should remain coherent after blocked activation");
+      console.log("  PASS: replacement activation is blocked without explicit clear");
+    }
+
+    // 7) Replacing a claimed active packet is blocked with claim-aware diagnostics.
+    {
+      const claimResult = claimPacket(fixture, "test-client");
+      assert.strictEqual(claimResult.success, true, "claim should succeed on active packet");
+
+      const blocked = activatePacket(fixture, "beta-process.sdc.md");
+      assert.strictEqual(blocked.status, "BLOCKED", "claimed replacement activation should be blocked");
+      assert.strictEqual(blocked.claimed_by, "test-client", "blocked result should expose current claimant");
+      assert.ok(blocked.next_safe_action.includes("Release claim"), "blocked result should guide explicit release before clear");
+
+      const runtime = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
+      );
+      assert.strictEqual(runtime.in_flight_packet, "alpha-process.sdc", "blocked claimed activation must preserve active packet");
+      console.log("  PASS: claimed active packet cannot be replaced and returns clear diagnostics");
     }
 
     console.log(`[${TEST_NAME}] PASS`);

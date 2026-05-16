@@ -825,32 +825,36 @@ const LIFECYCLE_MATRIX = [
         // Setup: intake and activate first packet
         const inboxPath1 = writeInboxPacket(fixture, "replace-test1.sdc.md", "Replace Test 1");
         const intakeResult1 = intakePacket(fixture, inboxPath1);
-        const firstActivate = activatePacket(fixture, intakeResult1.file_name);
+        activatePacket(fixture, intakeResult1.file_name);
         const firstPacketId = intakeResult1.packet_id;
 
         // Setup: intake second packet
         const inboxPath2 = writeInboxPacket(fixture, "replace-test2.sdc.md", "Replace Test 2");
         const intakeResult2 = intakePacket(fixture, inboxPath2);
 
-        // Test: According to contract F05, activating a second packet while first is active
-        // should be forbidden. The lifecycle harness blocks this at higher level.
-        // However, the activatePacket function itself does not prevent this.
-        // For now, verify that activation succeeds but that the lifecycle invariant
-        // would be violated if allowed in normal operation.
-        // In practice, the CLI/gatekeeper layer should prevent this.
-        // For this test, we verify the activation behavior exists but note it as a gap.
-        
+        const beforeAuthoritative = snapshotAuthoritativeState(fixture);
+
         const secondActivateResult = activatePacket(fixture, intakeResult2.file_name);
-        assert.strictEqual(secondActivateResult.packet_id, intakeResult2.packet_id, "F05: second packet is activated");
-        
-        // Note: This is an actual gap - activatePacket allows replacement without explicit clear.
-        // The lifecycle simulation test has a higher-level check that prevents this.
-        // This is a known test limitation - the gatekeeper/lifecycle harness layer should block this.
+        assert.strictEqual(secondActivateResult.status, "BLOCKED", "F05: second activation must be blocked");
+        assert.strictEqual(secondActivateResult.reason, "active_packet_exists", "F05: blocked activation should use stable reason");
+        assert.strictEqual(secondActivateResult.active_packet, firstPacketId, "F05: current active packet should be preserved");
+
+        const afterAuthoritative = snapshotAuthoritativeState(fixture);
+        assertNoPartialAuthoritativeMutation(beforeAuthoritative, afterAuthoritative, "F05");
+
+        const inFlightAfter = getInFlightPacket(fixture);
+        assert.strictEqual(inFlightAfter, firstPacketId, "F05: in-flight packet should remain coherent");
+
+        const nextActionText = fs.readFileSync(
+          path.join(fixture, ".scaffoldai", "state", "next-action.md"),
+          "utf8"
+        );
+        assert.ok(nextActionText.includes(`PACKAGE: ${firstPacketId}`), "F05: next-action should remain pointed at first packet");
 
         const afterLive = snapshotLiveRuntime(repoRoot);
         assertLiveRuntimeUnchanged(beforeLive, afterLive, "F05");
 
-        console.log("    F05 PASS: active replacement allowed at function level (gatekeeper prevents at CLI level)");
+        console.log("    F05 PASS: active replacement blocked without explicit clear");
       } finally {
         fs.rmSync(fixture, { recursive: true, force: true });
       }

@@ -45,10 +45,26 @@ function printStatus(result) {
 function printActivate(result) {
   console.log("[scaffoldai packet activate]");
   console.log("");
+
+  if (result.status === "BLOCKED") {
+    console.log(`REQUESTED PACKET: ${result.packet_id}`);
+    console.log(`PACKET FILE:      ${result.packet_file}`);
+    console.log(`ACTIVE PACKET:    ${result.active_packet || "(none)"}`);
+    console.log(`CLAIMED BY:       ${result.claimed_by || "(none)"}`);
+    console.log(`CLAIM STATUS:     ${result.claim_status || "(none)"}`);
+    console.log(`REASON:           ${result.reason}`);
+    console.log(`MESSAGE:          ${result.message}`);
+    console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
+    console.log("");
+    console.log("STATUS: FAIL");
+    return;
+  }
+
   console.log(`ACTIVE PACKET:    ${result.packet_id}`);
   console.log(`PACKET FILE:      ${result.packet_file}`);
   console.log(`PACKET TITLE:     ${result.title || "(none)"}`);
   console.log(`PACKET CATEGORY:  ${result.category || "(none)"}`);
+  if (result.idempotent) console.log("NOTE:             Idempotent - packet already active");
   console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
   console.log("");
   console.log("STATUS: PASS");
@@ -180,7 +196,9 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
         process.exitCode = 1;
         return;
       }
-      printActivate(activatePacket(commandRepoRoot, packetInput));
+      const result = activatePacket(commandRepoRoot, packetInput);
+      printActivate(result);
+      if (result.status === "BLOCKED") process.exitCode = 1;
       return;
     }
 
@@ -208,7 +226,9 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
 
       if (shouldActivate) {
         console.log("");
-        printActivate(activatePacket(commandRepoRoot, intakeResult.file_name));
+        const activationResult = activatePacket(commandRepoRoot, intakeResult.file_name);
+        printActivate(activationResult);
+        if (activationResult.status === "BLOCKED") process.exitCode = 1;
       }
       return;
     }

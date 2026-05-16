@@ -215,11 +215,52 @@ function activatePacket(rootPath, packetInput) {
   const resolved = resolvePacketPath(rootPath, packetInput);
   const metadata = readPacketMetadata(resolved.absolutePath, resolved.fileName);
 
+  const currentActivePacket = getInFlightPacket(rootPath);
+  const currentRuntime = scaffoldaiState.readActiveRuntime(rootPath) || {};
+
+  if (currentActivePacket && currentActivePacket !== resolved.packetId) {
+    const claimedBy = currentRuntime.claimed_by || null;
+    const claimStatus = currentRuntime.claim_status || null;
+
+    return {
+      action: "activate",
+      status: "BLOCKED",
+      reason: "active_packet_exists",
+      packet_id: resolved.packetId,
+      packet_file: path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/"),
+      exists: true,
+      title: metadata.title,
+      category: metadata.category,
+      active_packet: currentActivePacket,
+      claimed_by: claimedBy,
+      claim_status: claimStatus,
+      message: `Active packet \"${currentActivePacket}\" must be cleared before activating \"${resolved.packetId}\".`,
+      next_safe_action: claimedBy
+        ? `Release claim from \"${claimedBy}\", then run scaffoldai packet clear before activating a successor packet.`
+        : "Run scaffoldai packet clear before activating a successor packet.",
+    };
+  }
+
+  if (currentActivePacket === resolved.packetId) {
+    return {
+      action: "activate",
+      status: "PASS",
+      idempotent: true,
+      packet_id: resolved.packetId,
+      packet_file: path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/"),
+      exists: true,
+      title: metadata.title,
+      category: metadata.category,
+      next_safe_action: "Packet already active. Proceed with the current packet or clear it explicitly before switching.",
+    };
+  }
+
   writePacketPointerState(rootPath, resolved.packetId, metadata.category);
   appendPointerHistory(rootPath, resolved.packetId, "activate");
 
   return {
     action: "activate",
+    status: "PASS",
     packet_id: resolved.packetId,
     packet_file: path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/"),
     exists: true,
