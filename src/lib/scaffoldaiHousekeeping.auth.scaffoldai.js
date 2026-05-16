@@ -9,6 +9,7 @@ const {
   LATEST_INTAKE_RESULT_RELATIVE,
 } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
 const { getGitStatus } = require("./gitStatus.util.shared");
+const { getClaimStatus } = require("./packetClaim.auth.scaffoldai");
 
 const STATE_ROOT = path.join(".scaffoldai", "state");
 
@@ -434,6 +435,39 @@ function mergeSkippedEntries(primary = [], secondary = []) {
 }
 
 function cleanWorkspace(repoRoot, options = {}) {
+  // F08: Cleanup safety precondition - reject if active claim exists
+  const claimStatus = getClaimStatus(repoRoot);
+  if (claimStatus.has_claim) {
+    return {
+      tool: "scaffoldai_housekeeping_clean_workspace",
+      execution_class: "LOCAL_WRITE_BOUNDED",
+      status: "BLOCKED",
+      reason: "active_claim_exists",
+      blockers: [`Cleanup blocked: active claim exists (claimed by "${claimStatus.claimed_by}"). Release claim before cleanup.`],
+      warnings: [],
+      data: {
+        include_runtime_logs: options.includeRuntimeLogs === true,
+        intake_artifacts_cleaned: false,
+        runtime_state_reset: false,
+        touched: [],
+        skipped: [],
+        packet_files_preserved: true,
+        packet_file_count: 0,
+        logs_preserved: true,
+        durable_surfaces_preserved: [
+          ".scaffoldai/packets/",
+          ".scaffoldai/state/history.jsonl",
+          ".scaffoldai/runtime/mcp/signals.jsonl",
+          ".scaffoldai/runtime/mcp/shared-memory.jsonl",
+          ".scaffoldai/contracts/",
+          "src/",
+        ],
+        cleaned_transient_surfaces: [],
+      },
+      next_safe_action: `Release active claim (claimed by "${claimStatus.claimed_by}") before cleanup. Use 'scaffoldai packet release --client <id>' or contact claim holder.`,
+    };
+  }
+
   const intake = cleanIntakeArtifacts(repoRoot);
   const runtime = resetRuntimeState(repoRoot, {
     includeRuntimeLogs: options.includeRuntimeLogs === true,

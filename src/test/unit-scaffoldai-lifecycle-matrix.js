@@ -955,29 +955,44 @@ const LIFECYCLE_MATRIX = [
         claimPacket(fixture, "test-client");
 
         // Test: attempt to clean while claim is active
-        // NOTE: According to the lifecycle contract, this should be BLOCKED.
-        // However, the current cleanWorkspace implementation does not check for active claims.
-        // This is a known gap (see contract F08 and lifecycle-simulation.js which has gatekeeper protection).
-        // The gatekeeper at the CLI layer prevents this in normal operation.
+        // F08: Cleanup must be blocked when active claim exists (lifecycle safety precondition)
         const cleanResult = cleanWorkspace(fixture);
         
-        // Document the actual behavior (implementation gap)
-        if (cleanResult.status !== "BLOCKED") {
-          // This is expected with current implementation - document it
-          assert.ok(true, "F08: cleanup does not currently check for active claims (implementation gap)");
-        } else {
-          // If blocked, that's better
-          assert.strictEqual(cleanResult.status, "BLOCKED", "F08: cleanup while claimed should be blocked");
-        }
+        // Verify cleanup is blocked with appropriate reason
+        assert.strictEqual(cleanResult.status, "BLOCKED", "F08: cleanup while claimed MUST be BLOCKED");
+        assert.strictEqual(cleanResult.reason, "active_claim_exists", "F08: reason should indicate active claim");
+        assert.ok(cleanResult.blockers.length > 0, "F08: should provide blocker explanation");
+        assert.ok(
+          cleanResult.blockers[0].includes("active claim"),
+          "F08: blocker should mention active claim"
+        );
 
-        // Verify state is unchanged (packet and claim should still be active)
+        // Verify no partial mutation: state should be completely unchanged
+        assertNoPartialAuthoritativeMutation(
+          { before: snapshotAuthoritativeState(fixture), after: snapshotAuthoritativeState(fixture) },
+          "F08"
+        );
+
+        // Verify claimed state is intact
         assertActiveRequiredForClaim(fixture);
         assertAcceptedPacketDurable(fixture, intakeResult.packet_id);
+
+        // Verify no transient cleanup occurred
+        assert.strictEqual(
+          cleanResult.data.intake_artifacts_cleaned,
+          false,
+          "F08: intake should NOT be cleaned when claim exists"
+        );
+        assert.strictEqual(
+          cleanResult.data.runtime_state_reset,
+          false,
+          "F08: runtime should NOT be reset when claim exists"
+        );
 
         const afterLive = snapshotLiveRuntime(repoRoot);
         assertLiveRuntimeUnchanged(beforeLive, afterLive, "F08");
 
-        console.log("    F08 PASS: cleanup claim-blocking test (documents implementation gap)");
+        console.log("    F08 PASS: cleanup blocked while claimed (enforced lifecycle precondition)");
       } finally {
         fs.rmSync(fixture, { recursive: true, force: true });
       }
@@ -1085,6 +1100,148 @@ const LIFECYCLE_MATRIX = [
         assertLiveRuntimeUnchanged(beforeLive, afterLive, "F10");
 
         console.log("    F10 PASS: append-only logs preserved during cleanup");
+      } finally {
+        fs.rmSync(fixture, { recursive: true, force: true });
+      }
+    },
+  },
+
+  {
+    id: "CS-01",
+    label: "cleanup allowed when safe_idle (no claim, no active packet)",
+    test: function () {
+      const fixture = initializeFixtureRoot("CS-01");
+      try {
+        const beforeLive = snapshotLiveRuntime(repoRoot);
+
+        // Setup: create fixture without activating any packet
+        // System is in safe_idle state: in_flight_packet=null, claimed_by=null
+        const claimStatus = getClaimStatus(fixture);
+        assert.strictEqual(claimStatus.has_claim, false, "CS-01: should have no claim in safe_idle");
+        assert.strictEqual(claimStatus.active_packet, null, "CS-01: should have no active packet in safe_idle");
+
+        // Test: cleanup succeeds in safe_idle
+        const cleanResult = cleanWorkspace(fixture);
+        assert.strictEqual(cleanResult.status, "PASS", "CS-01: cleanup should succeed in safe_idle");
+
+        // Verify no blockers from claim check
+        const claimBlocker = (cleanResult.blockers || []).find((b) => b.includes("active claim"));
+        assert.ok(!claimBlocker, "CS-01: should not have claim-related blocker in safe_idle");
+
+        const afterLive = snapshotLiveRuntime(repoRoot);
+        assertLiveRuntimeUnchanged(beforeLive, afterLive, "CS-01");
+
+        console.log("    CS-01 PASS: cleanup allowed in safe_idle (no claim, no packet)");
+      } finally {
+        fs.rmSync(fixture, { recursive: true, force: true });
+      }
+    },
+  },
+
+  {
+    id: "CS-02",
+    label: "cleanup allowed after release (claimed → released → cleaned)",
+    test: function () {
+      const fixture = initializeFixtureRoot("CS-02");
+      try {
+        const beforeLive = snapshotLiveRuntime(repoRoot);
+
+        // Setup: intake, activate, claim, then release
+        const inboxPath = writeInboxPacket(fixture, "release-cleanup-test.sdc.md", "Release Cleanup Test");
+        const intakeResult = intakePacket(fixture, inboxPath);
+        activatePacket(fixture, intakeResult.file_name);
+        claimPacket(fixture, "test-client");
+
+        // Verify claim is active
+        let claimStatus = getClaimStatus(fixture);
+        assert.strictEqual(claimStatus.has_claim, true, "CS-02: claim should be active");
+
+        // Release the claim
+        releasePacket(fixture, "test-client");
+
+        // Verify claim is released
+        claimStatus = getClaimStatus(fixture);
+        assert.strictEqual(claimStatus.has_claim, false, "CS-02: claim should be released");
+
+        // Test: cleanup succeeds after release
+        const cleanResult = cleanWorkspace(fixture);
+        assert.strictEqual(cleanResult.status, "PASS", "CS-02: cleanup should succeed after release");
+        assert.strictEqual(
+          cleanResult.data.runtime_state_reset,
+          true,
+          "CS-02: runtime state should be reset"
+        );
+
+        const afterLive = snapshotLiveRuntime(repoRoot);
+        assertLiveRuntimeUnchanged(beforeLive, afterLive, "CS-02");
+
+        console.log("    CS-02 PASS: cleanup allowed after release (claimed → released → cleaned)");
+      } finally {
+        fs.rmSync(fixture, { recursive: true, force: true });
+      }
+    },
+  },
+
+  {
+    id: "CS-03",
+    label: "cleanup blocks with clear diagnostic when claimed (no partial mutation)",
+    test: function () {
+      const fixture = initializeFixtureRoot("CS-03");
+      try {
+        const beforeLive = snapshotLiveRuntime(repoRoot);
+        const beforeAuth = snapshotAuthoritativeState(fixture);
+
+        // Setup: intake, activate, and claim
+        const inboxPath = writeInboxPacket(fixture, "diagnostic-test.sdc.md", "Diagnostic Test");
+        const intakeResult = intakePacket(fixture, inboxPath);
+        activatePacket(fixture, intakeResult.file_name);
+        claimPacket(fixture, "test-client");
+
+        // Test: cleanup attempt returns clear blockers and diagnostics
+        const cleanResult = cleanWorkspace(fixture);
+        assert.strictEqual(cleanResult.status, "BLOCKED", "CS-03: cleanup should be BLOCKED when claimed");
+        assert.ok(
+          cleanResult.blockers && cleanResult.blockers.length > 0,
+          "CS-03: should have blockers array"
+        );
+        assert.ok(
+          cleanResult.blockers[0].includes("test-client"),
+          "CS-03: blocker should identify the claiming client"
+        );
+        assert.ok(
+          cleanResult.next_safe_action.includes("Release"),
+          "CS-03: next_safe_action should mention release"
+        );
+
+        // Verify no partial mutation: state unchanged
+        const afterAuth = snapshotAuthoritativeState(fixture);
+        assertNoPartialAuthoritativeMutation(
+          { before: beforeAuth, after: afterAuth },
+          "CS-03"
+        );
+
+        // Verify intake and runtime NOT cleaned
+        assert.strictEqual(
+          cleanResult.data.intake_artifacts_cleaned,
+          false,
+          "CS-03: intake artifacts should NOT be cleaned"
+        );
+        assert.strictEqual(
+          cleanResult.data.runtime_state_reset,
+          false,
+          "CS-03: runtime state should NOT be reset"
+        );
+
+        // Verify durable surfaces still protected in response
+        assert.ok(
+          cleanResult.data.packet_files_preserved,
+          "CS-03: response should indicate packets protected"
+        );
+
+        const afterLive = snapshotLiveRuntime(repoRoot);
+        assertLiveRuntimeUnchanged(beforeLive, afterLive, "CS-03");
+
+        console.log("    CS-03 PASS: cleanup diagnostic reporting (blocked with clear reason, no mutation)");
       } finally {
         fs.rmSync(fixture, { recursive: true, force: true });
       }
