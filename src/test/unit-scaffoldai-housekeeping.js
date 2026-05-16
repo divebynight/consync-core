@@ -12,6 +12,7 @@ const {
   cleanIntakeArtifacts,
   cleanWorkspace,
 } = require("../lib/scaffoldaiHousekeeping.auth.scaffoldai");
+const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-housekeeping";
@@ -118,6 +119,49 @@ function createFixtureRepo() {
   return fixture;
 }
 
+function writeTerminalHandoff(fixture, packageName, status = "PASS") {
+  scaffoldaiState.writeHandoff(
+    fixture,
+    [
+      "TYPE: PROCESS",
+      `PACKAGE: ${packageName}`,
+      "",
+      "STATUS",
+      "",
+      status,
+      "",
+      "SUMMARY",
+      "",
+      `Closed ${packageName} for cleanup testing.`,
+      "",
+      "FILES CREATED",
+      "",
+      "- none",
+      "",
+      "FILES MODIFIED",
+      "",
+      "- none",
+      "",
+      "FILES DELETED",
+      "",
+      "- none",
+      "",
+      "COMMANDS TO RUN",
+      "",
+      "- none",
+      "",
+      "HUMAN VERIFICATION",
+      "",
+      "- confirm goal is met",
+      "",
+      "VERIFICATION NOTES",
+      "",
+      "- cleanup test fixture",
+      "",
+    ].join("\n")
+  );
+}
+
 function runHousekeepingStatus(args = []) {
   return spawnSync(process.execPath, [cliPath, "scaffoldai", "housekeeping", "status", ...args], {
     cwd: repoRoot,
@@ -213,9 +257,18 @@ function main() {
     }
 
     {
+      writeTerminalHandoff(fixture, "runtime-packet.sdc", "PASS");
       fs.writeFileSync(path.join(fixture, ".scaffoldai", "state", "history.jsonl"), "{\"summary\":\"record\"}\n", "utf8");
       const cleanupResult = cleanIntakeArtifacts(fixture);
       assert.strictEqual(cleanupResult.status, "PASS", "clean-intake-artifacts should pass");
+      assert.strictEqual(cleanupResult.data.packet_closed, true, "matching terminal handoff should be recognized as closed");
+      assert.strictEqual(cleanupResult.data.cleanup_performed, true, "cleanup should remove the matched inbox candidate");
+      assert.strictEqual(cleanupResult.data.inbox_candidate_removed, true, "cleanup should report candidate removal");
+      assert.ok(Array.isArray(cleanupResult.data.removed_paths) && cleanupResult.data.removed_paths.some((entry) => entry.endsWith("runtime-packet.sdc.md")));
+      assert.ok(Array.isArray(cleanupResult.data.skipped_paths));
+      assert.deepStrictEqual(cleanupResult.data.validation_errors, []);
+      assert.deepStrictEqual(cleanupResult.data.guard_errors, []);
+      assert.strictEqual(cleanupResult.data.error_category, null);
       assert.ok(
         !fs.existsSync(path.join(fixture, ".scaffoldai", "runtime", "packet-intake", "latest-intake.json")),
         "latest intake metadata should be removed"
@@ -233,9 +286,37 @@ function main() {
         "append-only logs should be preserved by intake cleanup"
       );
       console.log("  PASS: intake artifact cleanup removes transient artifacts and preserves durable surfaces");
+
+      const rerun = cleanIntakeArtifacts(fixture);
+      assert.strictEqual(rerun.status, "PASS", "cleanup rerun should remain safe");
+      assert.strictEqual(rerun.data.cleanup_performed, false, "cleanup rerun should be idempotent");
+      assert.strictEqual(rerun.data.inbox_candidate_removed, false, "cleanup rerun should not remove anything");
+      assert.ok(Array.isArray(rerun.data.removed_paths) && rerun.data.removed_paths.length === 0, "cleanup rerun should not delete anything");
     }
 
     {
+      const mismatchFixture = createFixtureRepo();
+      try {
+        writeTerminalHandoff(mismatchFixture, "different-packet.sdc", "PASS");
+        const mismatch = cleanIntakeArtifacts(mismatchFixture);
+        assert.strictEqual(mismatch.status, "PASS", "mismatched cleanup should stay non-dangerous");
+        assert.strictEqual(mismatch.data.cleanup_performed, false, "mismatched cleanup must not remove candidate");
+        assert.strictEqual(mismatch.data.inbox_candidate_removed, false, "mismatched cleanup must not remove candidate");
+        assert.ok(
+          mismatch.data.skipped_paths.some((entry) => entry.endsWith("runtime-packet.sdc.md")),
+          "mismatched cleanup should report the preserved candidate"
+        );
+        assert.ok(
+          fs.existsSync(path.join(mismatchFixture, ".scaffoldai", "inbox", "runtime-packet.sdc.md")),
+          "mismatched cleanup must preserve the unrelated inbox candidate"
+        );
+      } finally {
+        fs.rmSync(mismatchFixture, { recursive: true, force: true });
+      }
+    }
+
+    {
+      writeTerminalHandoff(fixture, "runtime-packet.sdc", "PASS");
       fs.writeFileSync(
         path.join(fixture, ".scaffoldai", "state", "active-runtime.json"),
         JSON.stringify({ in_flight_packet: "runtime-packet.sdc" }, null, 2) + "\n",
@@ -275,6 +356,9 @@ function main() {
       assert.strictEqual(result.status, "PASS", "clean-workspace should pass");
       assert.strictEqual(result.data.intake_artifacts_cleaned, true, "intake cleanup should execute");
       assert.strictEqual(result.data.runtime_state_reset, true, "runtime reset should execute");
+      assert.strictEqual(result.data.packet_closed, true, "composite cleanup should surface closed packet state");
+      assert.strictEqual(result.data.cleanup_performed, true, "composite cleanup should surface candidate removal");
+      assert.strictEqual(result.data.inbox_candidate_removed, true, "composite cleanup should report inbox candidate removal");
       assert.strictEqual(result.data.packet_files_preserved, true, "packets should remain preserved");
       assert.strictEqual(result.data.logs_preserved, true, "logs should be preserved by default");
       assert.ok(

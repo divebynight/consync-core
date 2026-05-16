@@ -114,6 +114,24 @@ function clearSnapshotCurrentPackage(snapshotText) {
   return [...before, ...newSection, ...after].join("\n");
 }
 
+function buildCloseoutDiagnostics({ packetClosed, packageName, status, handoffStatus = null, reason = null }) {
+  return {
+    tool: "scaffoldai_gatekeeper_close",
+    execution_class: "LOCAL_CLOSEOUT_BOUNDED",
+    packet_closed: packetClosed,
+    cleanup_performed: false,
+    inbox_candidate_removed: false,
+    removed_paths: [],
+    skipped_paths: [],
+    validation_errors: [],
+    guard_errors: reason ? [reason] : [],
+    error_category: reason ? "guard_failure" : null,
+    package_name: packageName || null,
+    status: status || null,
+    handoff_status: handoffStatus,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Write operations
 // ---------------------------------------------------------------------------
@@ -251,7 +269,12 @@ async function runGatekeeperClose(rootPath) {
     console.log("DECISION: REFUSE");
     console.log(`REASON: ${closeMode.reason}`);
     process.exitCode = 1;
-    return;
+    return buildCloseoutDiagnostics({
+      packetClosed: false,
+      packageName: null,
+      status: "REFUSE",
+      reason: closeMode.reason,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -295,7 +318,12 @@ async function runGatekeeperClose(rootPath) {
     console.log(`files written: snapshot.md, streams/${state.activeStreamName}/stream.md`);
     console.log(`files unchanged: handoff.md, next-action.md`);
     console.log(`next: run gatekeeper mount to mount the next package`);
-    return;
+    return buildCloseoutDiagnostics({
+      packetClosed: true,
+      packageName: closeMode.packageName,
+      status: closeMode.handoffStatus,
+      handoffStatus: closeMode.handoffStatus,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -316,7 +344,12 @@ async function runGatekeeperClose(rootPath) {
     session.close();
     console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
     process.exitCode = 1;
-    return;
+    return buildCloseoutDiagnostics({
+      packetClosed: false,
+      packageName: closeMode.packageName,
+      status: "ABORTED",
+      reason: `invalid status: ${statusInput}`,
+    });
   }
 
   const summary = await session.ask("SUMMARY (one line): ");
@@ -325,7 +358,12 @@ async function runGatekeeperClose(rootPath) {
     session.close();
     console.log("Summary is required. Aborted.");
     process.exitCode = 1;
-    return;
+    return buildCloseoutDiagnostics({
+      packetClosed: false,
+      packageName: closeMode.packageName,
+      status: "ABORTED",
+      reason: "summary is required",
+    });
   }
 
   console.log("");
@@ -348,7 +386,12 @@ async function runGatekeeperClose(rootPath) {
   if (confirmAnswer !== "yes") {
     console.log("Aborted. No files written.");
     if (confirmAnswer !== "no") process.exitCode = 1;
-    return;
+    return buildCloseoutDiagnostics({
+      packetClosed: false,
+      packageName: closeMode.packageName,
+      status: "ABORTED",
+      reason: "closeout not confirmed",
+    });
   }
 
   executeCloseWritesA(rootPath, closeMode.packageName, closeMode.type, status, summary, state.activeStreamName);
@@ -360,6 +403,13 @@ async function runGatekeeperClose(rootPath) {
   console.log(`files written: handoff.md, snapshot.md, streams/${state.activeStreamName}/stream.md`);
   console.log(`files unchanged: next-action.md`);
   console.log(`next: run gatekeeper mount to mount the next package`);
+
+  return buildCloseoutDiagnostics({
+    packetClosed: true,
+    packageName: closeMode.packageName,
+    status,
+    handoffStatus: status,
+  });
 }
 
 module.exports = {

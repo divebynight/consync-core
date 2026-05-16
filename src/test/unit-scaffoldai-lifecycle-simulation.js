@@ -444,6 +444,9 @@ function main() {
     const cleanup = safeCleanWorkspace(fixtureRoot, summary);
     assert.strictEqual(cleanup.status, "ok", "clean-workspace should pass after claim release");
     assert.strictEqual(cleanup.data.status, "PASS", "clean-workspace status should be PASS");
+    assert.strictEqual(cleanup.data.data.packet_closed, false, "cleanup should report no terminal closeout in this fixture");
+    assert.strictEqual(cleanup.data.data.cleanup_performed, false, "cleanup should not consume inbox candidate before closeout");
+    assert.strictEqual(cleanup.data.data.inbox_candidate_removed, false, "cleanup should preserve inbox candidate before closeout");
     summary.cleanup = {
       touched: cleanup.data.data.touched,
       skipped: cleanup.data.data.skipped,
@@ -472,6 +475,10 @@ function main() {
     assert.ok(
       fs.existsSync(path.join(fixtureRoot, ".scaffoldai", "runtime", "mcp", "signals.jsonl")),
       "append-only signal log must be preserved after clean-workspace"
+    );
+    assert.ok(
+      fs.existsSync(secondInboxPath),
+      "cleanup before closeout must preserve the remaining inbox candidate"
     );
 
     assert.strictEqual(getInFlightPacket(fixtureRoot), null, "final packet pointer should be neutralized after clean-workspace");

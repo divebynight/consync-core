@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
+const { parseHandoff } = require("./stateIntegrityCheck.check.scaffoldai");
 const {
   readLatestIntakeResult,
   LATEST_INTAKE_RESULT_RELATIVE,
@@ -343,52 +344,103 @@ function cleanIntakeArtifacts(repoRoot) {
   const touched = [];
   const skipped = [];
   const warnings = [];
+  const removedPaths = [];
+  const skippedPaths = [];
+  const validationErrors = [];
+  const guardErrors = [];
 
   const latestIntakePath = resolveWithinScaffoldAi(repoRoot, LATEST_INTAKE_RESULT_RELATIVE);
   const latestIntake = readLatestIntakeResult(repoRoot);
-
-  if (fs.existsSync(latestIntakePath)) {
-    fs.unlinkSync(latestIntakePath);
-    touched.push(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE));
-  } else {
-    skipped.push({
-      path: normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE),
-      reason: "not present",
-    });
-  }
+  const handoffText = scaffoldaiState.readHandoff(repoRoot);
+  const handoff = handoffText ? parseHandoff(handoffText) : null;
+  const terminalHandoff =
+    handoff &&
+    typeof handoff === "object" &&
+    handoff.packageName &&
+    (handoff.status === "PASS" || handoff.status === "FAIL")
+      ? handoff
+      : null;
+  const packetClosed = Boolean(terminalHandoff);
+  let cleanupPerformed = false;
+  let inboxCandidateRemoved = false;
+  let errorCategory = null;
 
   const inboxRoot = resolveWithinScaffoldAi(repoRoot, INBOX_RELATIVE);
   const packetsRoot = resolveWithinScaffoldAi(repoRoot, path.join(".scaffoldai", "packets"));
 
-  if (latestIntake && typeof latestIntake.source_path === "string" && latestIntake.source_path.trim()) {
+  if (!latestIntake || typeof latestIntake.source_path !== "string" || !latestIntake.source_path.trim()) {
+    warnings.push("latest intake metadata missing or malformed; no consumed inbox candidate determined");
+    validationErrors.push("latest intake metadata missing or malformed");
+    errorCategory = "validation_failure";
+  } else {
     const sourcePath = path.resolve(latestIntake.source_path.trim());
+    const sourceRelativePath = normalizeRelativePath(path.relative(repoRoot, sourcePath));
 
     if (!isWithinDirectory(inboxRoot, sourcePath)) {
       skipped.push({
         path: latestIntake.source_path,
         reason: "outside inbox; cleanup is bounded to .scaffoldai/inbox",
       });
-    } else if (!sourcePath.toLowerCase().endsWith(".sdc.md")) {
+      skippedPaths.push(latestIntake.source_path);
+    } else if (!latestIntake.packet_id || !latestIntake.file_name) {
+      validationErrors.push("latest intake result is missing packet identity");
+      errorCategory = errorCategory || "validation_failure";
       skipped.push({
-        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
+        path: sourceRelativePath,
+        reason: "latest intake result is missing packet identity",
+      });
+      skippedPaths.push(sourceRelativePath);
+    } else if (!packetClosed) {
+      skipped.push({
+        path: sourceRelativePath,
+        reason: "closeout not complete; completed inbox candidate not removed",
+      });
+      skippedPaths.push(sourceRelativePath);
+    } else if (terminalHandoff.packageName !== latestIntake.packet_id) {
+      guardErrors.push(
+        `completed packet identity ${terminalHandoff.packageName} does not match inbox candidate ${latestIntake.packet_id}`
+      );
+      errorCategory = errorCategory || "guard_failure";
+      skipped.push({
+        path: sourceRelativePath,
+        reason: `completed packet identity ${terminalHandoff.packageName} does not match inbox candidate ${latestIntake.packet_id}`,
+      });
+      skippedPaths.push(sourceRelativePath);
+    } else if (!sourcePath.toLowerCase().endsWith(".sdc.md")) {
+      guardErrors.push("latest intake source is not an inbox .sdc.md candidate");
+      errorCategory = errorCategory || "guard_failure";
+      skipped.push({
+        path: sourceRelativePath,
         reason: "not an inbox .sdc.md candidate",
       });
+      skippedPaths.push(sourceRelativePath);
     } else if (isWithinDirectory(packetsRoot, sourcePath)) {
+      guardErrors.push("latest intake source points at a durable packet surface");
+      errorCategory = errorCategory || "guard_failure";
       skipped.push({
-        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
+        path: sourceRelativePath,
         reason: "accepted packet surface is durable and never cleaned here",
       });
+      skippedPaths.push(sourceRelativePath);
     } else if (!fs.existsSync(sourcePath)) {
       skipped.push({
-        path: normalizeRelativePath(path.relative(repoRoot, sourcePath)),
-        reason: "not present",
+        path: sourceRelativePath,
+        reason: "originating inbox candidate missing",
       });
+      skippedPaths.push(sourceRelativePath);
+      warnings.push("originating inbox candidate is missing; cleanup is idempotent and preserved this state");
     } else {
       fs.unlinkSync(sourcePath);
-      touched.push(normalizeRelativePath(path.relative(repoRoot, sourcePath)));
+      touched.push(sourceRelativePath);
+      removedPaths.push(sourceRelativePath);
+      cleanupPerformed = true;
+      inboxCandidateRemoved = true;
+
+      if (fs.existsSync(latestIntakePath)) {
+        fs.unlinkSync(latestIntakePath);
+        removedPaths.push(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE));
+      }
     }
-  } else {
-    warnings.push("latest intake metadata missing or malformed; no consumed inbox candidate determined");
   }
 
   const packetFileCount = fs.existsSync(packetsRoot)
@@ -402,13 +454,23 @@ function cleanIntakeArtifacts(repoRoot) {
     blockers: [],
     warnings,
     data: {
+      packet_closed: packetClosed,
+      cleanup_performed: cleanupPerformed,
+      inbox_candidate_removed: inboxCandidateRemoved,
+      removed_paths: removedPaths,
+      skipped_paths: skippedPaths,
+      validation_errors: validationErrors,
+      guard_errors: guardErrors,
+      error_category: errorCategory,
       touched,
       skipped,
-      latest_intake_cleared: touched.includes(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE)),
+      latest_intake_cleared: removedPaths.includes(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE)),
       packet_files_preserved: true,
       packet_file_count: packetFileCount,
     },
-    next_safe_action: "Review git status and proceed with explicit packet intake when ready.",
+    next_safe_action: packetClosed
+      ? "Review git status and proceed with explicit packet activation when ready."
+      : "Complete closeout before rerunning cleanup so the matching inbox candidate can be removed.",
   };
 }
 
@@ -449,6 +511,14 @@ function cleanWorkspace(repoRoot, options = {}) {
         include_runtime_logs: options.includeRuntimeLogs === true,
         intake_artifacts_cleaned: false,
         runtime_state_reset: false,
+        packet_closed: false,
+        cleanup_performed: false,
+        inbox_candidate_removed: false,
+        removed_paths: [],
+        skipped_paths: [],
+        validation_errors: [],
+        guard_errors: [],
+        error_category: "guard_failure",
         touched: [],
         skipped: [],
         packet_files_preserved: true,
@@ -490,8 +560,16 @@ function cleanWorkspace(repoRoot, options = {}) {
     warnings,
     data: {
       include_runtime_logs: options.includeRuntimeLogs === true,
-      intake_artifacts_cleaned: intake.status === "PASS",
+      intake_artifacts_cleaned: intake.data?.cleanup_performed === true,
       runtime_state_reset: runtime.status === "PASS",
+      packet_closed: intake.data?.packet_closed === true,
+      cleanup_performed: intake.data?.cleanup_performed === true,
+      inbox_candidate_removed: intake.data?.inbox_candidate_removed === true,
+      removed_paths: Array.isArray(intake.data?.removed_paths) ? intake.data.removed_paths : [],
+      skipped_paths: Array.isArray(intake.data?.skipped_paths) ? intake.data.skipped_paths : [],
+      validation_errors: Array.isArray(intake.data?.validation_errors) ? intake.data.validation_errors : [],
+      guard_errors: Array.isArray(intake.data?.guard_errors) ? intake.data.guard_errors : [],
+      error_category: intake.data?.error_category || null,
       touched,
       skipped,
       packet_files_preserved: intake.data?.packet_files_preserved === true && runtime.data?.packet_files_preserved === true,
