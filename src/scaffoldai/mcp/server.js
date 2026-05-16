@@ -161,10 +161,10 @@ server.registerTool(
     description:
       "Submit a candidate SDC packet into .scaffoldai/inbox/ with bounded inbox-only authority. Does not intake, activate, claim, execute, closeout, cleanup, or commit.",
     inputSchema: z.object({
-      content: z.string().describe("Candidate SDC markdown content."),
-      suggestedFileName: z.string().optional().describe("Optional suggested candidate filename or label (sanitized, inbox-bounded)."),
-      submittedBy: z.string().optional().describe("Optional submitter identifier (alphanumeric plus . _ -)."),
-    }),
+      content: z.any().optional().describe("Candidate SDC markdown content."),
+      suggestedFileName: z.any().optional().describe("Optional suggested candidate filename or label (sanitized, inbox-bounded)."),
+      submittedBy: z.any().optional().describe("Optional submitter identifier (alphanumeric plus . _ -)."),
+    }).passthrough(),
   },
   withToolLogging("scaffoldai_submit_sdc_candidate", async (args) => {
     const result = runSubmitSdcCandidateTool(args || {});

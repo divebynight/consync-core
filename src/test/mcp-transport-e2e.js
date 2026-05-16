@@ -19,6 +19,8 @@ const {
 const TEST_NAME = "mcp-transport-e2e";
 const OVERALL_TIMEOUT_MS = 30000;
 const CALL_TIMEOUT_MS = 5000;
+const UNIQUE_CANDIDATE_STEM = `transport-e2e-candidate-${process.pid}`;
+const UNIQUE_CANDIDATE_TITLE = `MCP Transport Candidate ${process.pid}`;
 
 const repoRoot = getRepoRoot(__dirname);
 const SERVER_PATH = path.join(repoRoot, "src", "scaffoldai", "mcp", "server.js");
@@ -35,6 +37,19 @@ function fail(msg) {
 function check(condition, msg) {
   if (condition) pass(msg);
   else fail(msg);
+}
+
+function checkSubmitDiagnosticsShape(parsed, label) {
+  check(Object.prototype.hasOwnProperty.call(parsed, "candidate_submitted"), `${label} includes candidate_submitted`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "candidate_path"), `${label} includes candidate_path`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "accepted"), `${label} includes accepted`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "activated"), `${label} includes activated`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "claimed"), `${label} includes claimed`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "active_runtime_mutated"), `${label} includes active_runtime_mutated`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "next_action_mutated"), `${label} includes next_action_mutated`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "validation_errors"), `${label} includes validation_errors`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "guard_errors"), `${label} includes guard_errors`);
+  check(Object.prototype.hasOwnProperty.call(parsed, "error_category"), `${label} includes error_category`);
 }
 
 /**
@@ -293,7 +308,7 @@ async function main() {
       try {
         ({ parsed } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
           content: [
-            "# SDC — MCP Transport Candidate",
+            `# SDC — ${UNIQUE_CANDIDATE_TITLE}`,
             "",
             "MODE: PROCESS_REFACTOR",
             "EXECUTION SURFACE: MCP transport e2e candidate submission",
@@ -319,7 +334,7 @@ async function main() {
             "- no claim",
             "",
           ].join("\n"),
-          suggestedFileName: "transport-e2e-candidate",
+          suggestedFileName: UNIQUE_CANDIDATE_STEM,
           submittedBy: "mcp-e2e-client",
         }));
         pass("scaffoldai_submit_sdc_candidate valid call succeeds");
@@ -329,21 +344,54 @@ async function main() {
       }
 
       if (parsed) {
+        checkSubmitDiagnosticsShape(parsed, "accepted candidate response");
         check(
           parsed.execution_class === "LOCAL_CANDIDATE_INBOX_WRITE_ONLY",
           'scaffoldai_submit_sdc_candidate returns execution_class "LOCAL_CANDIDATE_INBOX_WRITE_ONLY"'
         );
         check(parsed.status === "accepted", "scaffoldai_submit_sdc_candidate accepts valid candidate content");
         check(parsed.candidate_submitted === true, "scaffoldai_submit_sdc_candidate marks candidate_submitted=true");
+        check(typeof parsed.candidate_path === "string" && parsed.candidate_path.includes(".scaffoldai/inbox/"), "scaffoldai_submit_sdc_candidate returns candidate_path");
         check(parsed.accepted === false, "candidate submission does not imply intake acceptance");
         check(parsed.activated === false, "candidate submission does not imply activation");
         check(parsed.claimed === false, "candidate submission does not imply claim");
+        check(parsed.active_runtime_mutated === false, "candidate submission does not mutate active runtime state");
+        check(parsed.next_action_mutated === false, "candidate submission does not mutate next-action state");
+        check(Array.isArray(parsed.validation_errors) && parsed.validation_errors.length === 0, "accepted candidate includes empty validation_errors");
+        check(Array.isArray(parsed.guard_errors) && parsed.guard_errors.length === 0, "accepted candidate includes empty guard_errors");
+        check(parsed.error_category === null, "accepted candidate includes null error_category");
       }
 
       let rejected;
       try {
         ({ parsed: rejected } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
-          content: "# SDC — Invalid Candidate",
+          content: [
+            "# SDC — MCP Transport Invalid Path Candidate",
+            "",
+            "MODE: PROCESS_REFACTOR",
+            "EXECUTION SURFACE: MCP transport e2e candidate submission",
+            "",
+            "APPROVAL:",
+            "  execute: PENDING",
+            "  commit: PENDING",
+            "",
+            "GOAL:",
+            "Exercise unsafe suggestedFileName rejection.",
+            "",
+            "TASKS:",
+            "1. Submit candidate.",
+            "",
+            "VERIFY:",
+            "- npm run verify:scaffoldai",
+            "",
+            "OUTPUT:",
+            "1. candidate result",
+            "",
+            "CONSTRAINTS:",
+            "- no activation",
+            "- no claim",
+            "",
+          ].join("\n"),
           suggestedFileName: "../escape",
         }));
       } catch (err) {
@@ -352,7 +400,74 @@ async function main() {
       }
 
       if (rejected) {
+        checkSubmitDiagnosticsShape(rejected, "rejected candidate response");
         check(rejected.status === "rejected", "scaffoldai_submit_sdc_candidate rejects unsafe filename/path inputs");
+        check(rejected.error_category === "guard_failure", "unsafe filename/path rejection uses guard_failure category");
+        check(Array.isArray(rejected.guard_errors) && rejected.guard_errors.length > 0, "rejected candidate includes guard_errors");
+        check(rejected.accepted === false, "rejected candidate preserves accepted=false");
+        check(rejected.activated === false, "rejected candidate preserves activated=false");
+        check(rejected.claimed === false, "rejected candidate preserves claimed=false");
+        check(rejected.active_runtime_mutated === false, "rejected candidate preserves active_runtime_mutated=false");
+        check(rejected.next_action_mutated === false, "rejected candidate preserves next_action_mutated=false");
+      }
+
+      let missingContent;
+      try {
+        ({ parsed: missingContent } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
+          suggestedFileName: "missing-content-case",
+        }));
+      } catch (err) {
+        fail(`scaffoldai_submit_sdc_candidate missing content call failed unexpectedly: ${err.message}`);
+        missingContent = null;
+      }
+
+      if (missingContent) {
+        checkSubmitDiagnosticsShape(missingContent, "missing content rejection response");
+        check(missingContent.status === "rejected", "scaffoldai_submit_sdc_candidate rejects missing content");
+        check(missingContent.error_category === "schema_input_mismatch", "missing content rejection uses schema_input_mismatch category");
+      }
+
+      let pathInput;
+      try {
+        ({ parsed: pathInput } = await callTool(client, "scaffoldai_submit_sdc_candidate", {
+          content: [
+            "# SDC — MCP Transport Path Input Candidate",
+            "",
+            "MODE: PROCESS_REFACTOR",
+            "EXECUTION SURFACE: MCP transport e2e candidate submission",
+            "",
+            "APPROVAL:",
+            "  execute: PENDING",
+            "  commit: PENDING",
+            "",
+            "GOAL:",
+            "Exercise path field rejection.",
+            "",
+            "TASKS:",
+            "1. Submit candidate.",
+            "",
+            "VERIFY:",
+            "- npm run verify:scaffoldai",
+            "",
+            "OUTPUT:",
+            "1. candidate result",
+            "",
+            "CONSTRAINTS:",
+            "- no activation",
+            "- no claim",
+            "",
+          ].join("\n"),
+          path: ".scaffoldai/inbox/forbidden.sdc.md",
+        }));
+      } catch (err) {
+        fail(`scaffoldai_submit_sdc_candidate path-style input call failed unexpectedly: ${err.message}`);
+        pathInput = null;
+      }
+
+      if (pathInput) {
+        checkSubmitDiagnosticsShape(pathInput, "path-style input rejection response");
+        check(pathInput.status === "rejected", "scaffoldai_submit_sdc_candidate rejects path-style submission inputs");
+        check(pathInput.error_category === "schema_input_mismatch", "path-style input rejection uses schema_input_mismatch category");
       }
     }
 
