@@ -1,6 +1,7 @@
 const { getGitStatus } = require("./gitStatus.util.shared");
 const { resolveVerifyCommand, readActiveContract } = require("./resolveVerifyCommand.query.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
+const scaffoldaiVerifyEvidence = require("./scaffoldaiVerifyEvidence.state.scaffoldai");
 
 // -----------------------------------------------------------------------
 // Commit prefix inference
@@ -133,9 +134,27 @@ function gatherCloseoutReadiness(repoRoot, options) {
   const hasChanges = !git.clean && !git.error;
 
   // --- Verification evidence ---
+  let verificationEvidenceRecord = null;
+  let verificationEvidenceState = "not_requested";
+  let verificationEvidenceReason = null;
   let verificationEvidence;
   if (verifyPassed) {
-    verificationEvidence = "--verify-passed provided (human attestation)";
+    const packetId = inFlightPacket || null;
+    const validation = scaffoldaiVerifyEvidence.validateVerifyEvidence(repoRoot, packetId);
+
+    if (!validation.valid) {
+      verificationEvidenceState = "invalid";
+      verificationEvidenceReason = validation.reason;
+      verificationEvidenceRecord = validation.evidence || scaffoldaiVerifyEvidence.readVerifyEvidence(repoRoot);
+      verificationEvidence = verificationEvidenceRecord
+        ? `--verify-passed provided (human attestation); ${validation.reason} — ${scaffoldaiVerifyEvidence.formatVerifyEvidence(verificationEvidenceRecord)}`
+        : `--verify-passed provided (human attestation); ${validation.reason}`;
+      blockers.push(`verification evidence invalid: ${validation.reason}`);
+    } else {
+      verificationEvidenceState = "valid";
+      verificationEvidenceRecord = validation.evidence;
+      verificationEvidence = `--verify-passed provided (human attestation); ${scaffoldaiVerifyEvidence.formatVerifyEvidence(validation.evidence)}`;
+    }
   } else {
     verificationEvidence = "none — run verify and re-run with --verify-passed";
     if (hasChanges) {
@@ -174,6 +193,9 @@ function gatherCloseoutReadiness(repoRoot, options) {
       commitSuggestion,
       hasChanges,
       verificationEvidence,
+      verificationEvidenceRecord,
+      verificationEvidenceState,
+      verificationEvidenceReason,
     },
   };
 }

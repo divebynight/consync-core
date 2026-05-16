@@ -27,6 +27,7 @@ These files represent the current operational runtime state of ScaffoldAI:
 - `handoff.md` — Current handoff document for active work
 - `snapshot.md` — Current operational snapshot
 - `cleanup-complete-checkpoint.md` — Cleanup completion marker
+- `verify-evidence.json` — Current canonical verification evidence for active packet (timestamp, status, command)
 
 Durable process policy is tracked separately at:
 
@@ -73,6 +74,14 @@ These subdirectories are approved for specific purposes:
 | **Companion Docs** | Documents a specific state artifact | `active-contract.md`, `history.md` | Created alongside the artifact it documents |
 | **Append-Only History** | Non-authoritative audit trail | `history.jsonl` | Via `scaffoldaiState.appendHistory()` only |
 | **Observational Subdirs** | Non-authoritative diagnostic data | `history/` | Not source of truth, may be diagnostic only |
+**Operational State Verification Layer:**
+
+- `verify-evidence.json` — Canonical verification evidence for active packet during lifecycle closeout
+  - Created by: `verify:scaffoldai` command after successful test completion
+  - Read by: `close-feature` lifecycle wrapper to validate verification status
+  - Write pattern: Via `scaffoldaiVerifyEvidence.writeVerifyEvidence()` helper
+  - Contains: active_packet_id, packet_id, verify_status, verify_command, timestamp, exit_code
+  - Validation: Packet-specific, expire-on-stale (1-hour max age), reject if status is not "passed"
 
 ## Runtime-State Housekeeping Categories
 

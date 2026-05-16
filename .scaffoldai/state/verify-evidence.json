@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-05-16T20:16:30.342Z",
+  "timestamp_ms": 1778962590342,
+  "packet_id": "add-scaffoldai-lifecycle-convenience-wrappers.sdc",
+  "active_packet_id": "add-scaffoldai-lifecycle-convenience-wrappers.sdc",
+  "verify_command": "npm run verify:scaffoldai",
+  "verify_target": "scaffoldai",
+  "verify_status": "passed",
+  "exit_code": 0,
+  "surface": "scaffoldai"
+}

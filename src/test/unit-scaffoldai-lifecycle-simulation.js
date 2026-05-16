@@ -18,6 +18,7 @@ const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaf
 const { gatherCompletionStatus } = require("../lib/scaffoldaiCompletionStatus.query.scaffoldai");
 const { cleanWorkspace } = require("../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
+const scaffoldaiVerifyEvidence = require("../lib/scaffoldaiVerifyEvidence.state.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-lifecycle-simulation";
 const repoRoot = getRepoRoot(__dirname);
@@ -224,7 +225,7 @@ function safeActivatePacket(fixtureRoot, packetInput, summary) {
   return { status: "ok", data: activated };
 }
 
-function safeVerify(fixtureRoot, summary, verificationState, deps) {
+function safeVerify(fixtureRoot, summary, verificationState, packetId, deps) {
   const claim = getClaimStatus(fixtureRoot);
   if (!claim.has_claim) {
     summary.blockedTransitions.push({
@@ -242,6 +243,16 @@ function safeVerify(fixtureRoot, summary, verificationState, deps) {
 
   if (result.status === "passed") {
     verificationState.passed = true;
+    const evidence = scaffoldaiVerifyEvidence.buildVerifyEvidence({
+      active_packet_id: packetId,
+      packet_id: packetId,
+      verify_command: "npm run verify:scaffoldai",
+      verify_target: "scaffoldai",
+      verify_status: "passed",
+      exit_code: 0,
+      surface: "scaffoldai",
+    });
+    scaffoldaiVerifyEvidence.writeVerifyEvidence(fixtureRoot, evidence);
   }
 
   return {
@@ -400,6 +411,7 @@ function main() {
       fixtureRoot,
       summary,
       verificationState,
+      intake.packet_id,
       {
         execute: () => ({ status: 0, stdout: "verify ok", stderr: "" }),
         now: new Date("2026-05-15T00:20:00.000Z"),

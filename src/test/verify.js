@@ -4,6 +4,10 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+
+const scaffoldaiVerifyEvidence = require("../lib/scaffoldaiVerifyEvidence.state.scaffoldai");
+const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
+const { resolveActivePacketIdentity } = require("../lib/scaffoldaiLifecycleResolution.query.scaffoldai");
 const reset = "\x1b[0m";
 
 const GROUPS = {
@@ -521,6 +525,34 @@ function main() {
   printSummary();
   printCoverageConfidenceSummary();
   console.log("");
+  
+  // Wire verification evidence if scaffoldai surface was run
+  const overallStatus = [...groupResults.values()].some((result) => result.status === "FAIL") ? "FAIL" : "PASS";
+  
+  if (activeSurface === SURFACES.SCAFFOLDAI || activeSurface === SURFACES.ALL) {
+    try {
+      const activePacket = resolveActivePacketIdentity(repoRoot);
+      const packetId = activePacket.ok ? activePacket.value.packet_id : null;
+      
+      if (packetId) {
+        const evidence = scaffoldaiVerifyEvidence.buildVerifyEvidence({
+          active_packet_id: packetId,
+          packet_id: packetId,
+          verify_command: "npm run verify:scaffoldai",
+          verify_target: "scaffoldai",
+          verify_status: overallStatus === "PASS" ? "passed" : "failed",
+          exit_code: overallStatus === "PASS" ? 0 : 1,
+          surface: "scaffoldai",
+        });
+        
+        scaffoldaiVerifyEvidence.writeVerifyEvidence(repoRoot, evidence);
+        console.log("[verify] Verification evidence persisted for packet: " + packetId);
+      }
+    } catch (error) {
+      console.log("[verify] Warning: Could not write verification evidence: " + error.message);
+    }
+  }
+  
   console.log("[verify] PASS");
 }
 

@@ -903,6 +903,7 @@ function checkStateSchemaInvariant() {
     "cleanup-complete-checkpoint.md",
     "history.md",
     "history.jsonl", // Created on first append — may not exist initially
+    "verify-evidence.json", // Canonical verification evidence for active packet
   ]);
 
   // Approved subdirectories (per state-schema.contract.md)

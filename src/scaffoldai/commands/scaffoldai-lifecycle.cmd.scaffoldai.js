@@ -28,6 +28,7 @@ const {
   resolveActivePacketIdentity,
   enforceSingleDomainContext,
 } = require("../../lib/scaffoldaiLifecycleResolution.query.scaffoldai");
+const scaffoldaiVerifyEvidence = require("../../lib/scaffoldaiVerifyEvidence.state.scaffoldai");
 
 const defaultRepoRoot = getRepoRoot(__dirname);
 
@@ -311,18 +312,33 @@ function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  const completion = gatherCompletionStatus(commandRepoRoot, {
-    packet: active.value.packet_id,
-    latestOnly: true,
-    limit: 1,
-  });
+  const verifyEvidence = scaffoldaiVerifyEvidence.validateVerifyEvidence(
+    commandRepoRoot,
+    active.value.packet_id
+  );
 
-  const completionRecord = completion.data.completions[0] || null;
-  const completionVerified = Boolean(completionRecord && completionRecord.verify_status === "passed");
+  const verificationReady = verifyEvidence.valid && parsed.verifyPassed;
 
   const closeout = gatherCloseoutReadiness(commandRepoRoot, {
     verifyPassed: parsed.verifyPassed,
   });
+
+  if (closeout.status === "BLOCKED" && closeout.data.verificationEvidenceState === "invalid") {
+    printRefusal("close-feature", {
+      status: "BLOCKED",
+      reason: closeout.data.verificationEvidenceReason || "verification_evidence_invalid",
+      next_safe_action:
+        closeout.data.verificationEvidenceReason === "verify_evidence_failed"
+          ? "Resolve verification failures, re-run npm run verify:scaffoldai, then retry close-feature --verify-passed."
+          : "Refresh verification evidence for the active packet, then retry close-feature --verify-passed.",
+      data: {
+        active_packet: active.value.packet_id,
+        resolved_identity: active.value.packet_id,
+        verification_ready: false,
+      },
+    });
+    return;
+  }
 
   if (closeout.status === "BLOCKED") {
     printRefusal("close-feature", {
@@ -337,18 +353,22 @@ function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  if (!parsed.verifyPassed || !completionVerified) {
-    printRefusal("close-feature", {
-      status: "BLOCKED",
-      reason: "verification_evidence_missing",
-      next_safe_action:
-        "Run verification, emit/confirm packet_completed verify_status=passed evidence, then rerun close-feature --verify-passed.",
-      data: {
-        active_packet: active.value.packet_id,
-        resolved_identity: active.value.packet_id,
-        verification_ready: parsed.verifyPassed && completionVerified,
-      },
-    });
+  if (!verificationReady) {
+    if (!verifyEvidence.valid) {
+      printRefusal("close-feature", verifyEvidence.diagnostic);
+    } else {
+      printRefusal("close-feature", {
+        status: "BLOCKED",
+        reason: "verify_passed_flag_required",
+        next_safe_action:
+          "Verify evidence is available. Re-run with: scaffoldai lifecycle close-feature --verify-passed",
+        data: {
+          active_packet: active.value.packet_id,
+          resolved_identity: active.value.packet_id,
+          verification_ready: false,
+        },
+      });
+    }
     return;
   }
 

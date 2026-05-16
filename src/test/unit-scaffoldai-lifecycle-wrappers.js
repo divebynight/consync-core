@@ -134,6 +134,23 @@ function appendCompletionSignal(fixtureRoot, packetId, verifyStatus) {
   fs.appendFileSync(signalPath, `${JSON.stringify(row)}\n`, "utf8");
 }
 
+function writeVerifyEvidence(fixtureRoot, packetId, verifyStatus) {
+  const evidencePath = path.join(fixtureRoot, ".scaffoldai", "state", "verify-evidence.json");
+  const evidence = {
+    timestamp: "2026-05-16T00:00:00.000Z",
+    timestamp_ms: Date.now(),
+    active_packet_id: packetId,
+    packet_id: packetId,
+    verify_command: "npm run verify:scaffoldai",
+    verify_target: "scaffoldai",
+    verify_status: verifyStatus,
+    exit_code: verifyStatus === "passed" ? 0 : 1,
+    surface: "scaffoldai",
+  };
+  fs.mkdirSync(path.dirname(evidencePath), { recursive: true });
+  fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + "\n", "utf8");
+}
+
 function writeTerminalHandoff(fixtureRoot, packetId, status) {
   scaffoldaiState.writeHandoff(
     fixtureRoot,
@@ -256,7 +273,7 @@ function main() {
       const claimed = claimPacket(fixture, "test-client");
       assert.strictEqual(claimed.success, true);
 
-      appendCompletionSignal(fixture, activatedPacketId(fixture), "passed");
+      writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
       writeTerminalHandoff(fixture, activatedPacketId(fixture), "PASS");
 
       const closeWhileClaimed = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
@@ -267,8 +284,28 @@ function main() {
       console.log("  PASS: close-feature cleanup gating blocks active claim");
     }
 
-    // 7) close-feature orchestration success path
+    // 7) stale verification evidence from another packet must fail closed
     {
+      writeVerifyEvidence(fixture, "stale-packet.sdc", "passed");
+
+      const staleEvidence = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      assert.strictEqual(staleEvidence, 1, "close-feature should fail when evidence belongs to another packet");
+      console.log("  PASS: stale verification evidence fails closed");
+    }
+
+    // 8) failed verification evidence must fail closed
+    {
+      writeVerifyEvidence(fixture, activatedPacketId(fixture), "failed");
+
+      const failedEvidence = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      assert.strictEqual(failedEvidence, 1, "close-feature should fail when verification evidence failed");
+      console.log("  PASS: failed verification evidence blocks close-feature");
+    }
+
+    // 9) close-feature orchestration success path
+    {
+      const expectedPacketId = activatedPacketId(fixture);
+      writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
       const success = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
       assert.strictEqual(success, 0, "close-feature should pass when verification and cleanup gates are met");
 
@@ -277,6 +314,15 @@ function main() {
       );
       assert.strictEqual(runtime.in_flight_packet, null, "cleanup should clear active packet runtime pointer");
       console.log("  PASS: close-feature orchestration runs cleanup and closes active packet context");
+
+      const evidence = JSON.parse(
+        fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "verify-evidence.json"), "utf8")
+      );
+      assert.strictEqual(
+        evidence.active_packet_id,
+        expectedPacketId,
+        "verification evidence should be bound to the active packet"
+      );
     }
 
     console.log(`[${TEST_NAME}] PASS`);
