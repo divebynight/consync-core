@@ -71,6 +71,10 @@ The current manual execution flow (including Intake and Preflight CLI commands) 
 
 `.scaffoldai/process/manual-execution-flow.process.md`
 
+For the bounded remote proposal / local lifecycle operator pattern, see:
+
+`.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md`
+
 The system remains manual and non-orchestrated.
 
 ## Core Operating Loop

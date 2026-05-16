@@ -82,6 +82,10 @@ Lifecycle examples:
 - start latest packet flow with ordering guards: `npm run scaffoldai:start-latest`
 - close active packet with gates: `npm run scaffoldai:close-feature -- --verify-passed`
 
+Remote proposal / local lifecycle operator runbook:
+
+- `.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md`
+
 Housekeeping commands:
 
 - `node src/scaffoldai.js scaffoldai housekeeping status`

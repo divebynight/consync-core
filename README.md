@@ -307,6 +307,7 @@ consync-core/
 Additional documentation:
 - `src/README.md`
 - `.scaffoldai/README.md`
+- `.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md`
 
 ---
 
@@ -318,6 +319,7 @@ Additional documentation:
 | CLI commands reference | `src/commands/README.md` |
 | ScaffoldAI runtime state | `.scaffoldai/reference/current-runtime-state.reference.md` |
 | ScaffoldAI process guide | `.scaffoldai/process/runbook.process.md` |
+| Remote proposal / local lifecycle runbook | `.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md` |
 | MCP client contract | `.scaffoldai/contracts/scaffoldai-mcp-client-interaction-v0.contract.md` |
 | Desktop/Electron layer | `src/electron/README.md` |
 | Sandbox fixtures | `sandbox/README.md` |
