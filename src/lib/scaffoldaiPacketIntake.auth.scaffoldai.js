@@ -506,6 +506,7 @@ module.exports = {
   LATEST_INTAKE_RESULT_RELATIVE,
   buildPacketIdentity,
   intakePacket,
+  parseTitle,
   parseApprovalBlock,
   parseMode,
   readLatestIntakeResult,

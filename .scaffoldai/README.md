@@ -55,11 +55,32 @@ Current ScaffoldAI Runtime Commands include:
 - `npm run scaffoldai:verify`
 - `npm run scaffoldai:closeout`
 - `npm run scaffoldai:housekeeping`
+- `npm run scaffoldai:intake-latest`
+- `npm run scaffoldai:activate-latest`
+- `npm run scaffoldai:start-latest`
+- `npm run scaffoldai:close-feature`
 - `npm run scaffoldai:mcp:snapshot`
 
 Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
 
 Use `npm run scaffoldai:housekeeping` to inspect runtime-state changes and separate resettable runtime artifacts from implementation changes.
+
+Lifecycle convenience wrappers are deterministic and fail closed:
+- they resolve packet/candidate identity deterministically
+- they never guess between multiple candidates
+- they refuse operation on ambiguity, active packet conflicts, verification-gate failures, or cleanup precondition failures
+- they do not expand authority and do not bypass explicit lifecycle primitives
+
+Deterministic resolution rules:
+- latest valid inbox candidate: latest `.scaffoldai/inbox/*.sdc.md` with valid identity title
+- latest intake-compatible candidate: latest inbox candidate that passes strict intake validation
+- active packet identity: resolved active packet pointer that must map to a unique durable packet identity
+
+Lifecycle examples:
+- intake latest candidate: `npm run scaffoldai:intake-latest`
+- intake + activate latest candidate: `npm run scaffoldai:activate-latest`
+- start latest packet flow with ordering guards: `npm run scaffoldai:start-latest`
+- close active packet with gates: `npm run scaffoldai:close-feature -- --verify-passed`
 
 Housekeeping commands:
 

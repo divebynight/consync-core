@@ -278,7 +278,17 @@ npm run verify
 | `npm run scaffoldai:status` | Current runtime posture summary |
 | `npm run scaffoldai:preflight` | Pre-work safety check |
 | `npm run scaffoldai:housekeeping` | Classify runtime-state vs implementation changes |
+| `npm run scaffoldai:intake-latest` | Deterministically intake latest intake-compatible inbox candidate |
+| `npm run scaffoldai:activate-latest` | Deterministically intake + activate latest candidate with ordering guards |
+| `npm run scaffoldai:start-latest` | Start latest candidate flow (fails closed on ambiguity/active packet) |
+| `npm run scaffoldai:close-feature` | Close active packet with verification + cleanup gates (human-invoked) |
 | `npm run scaffoldai:mcp` | Starts the local MCP server (stdio) |
+
+Lifecycle wrapper semantics:
+- wrappers are ergonomics only and compose existing intake/activate/closeout/cleanup primitives
+- wrappers refuse on ambiguity and never guess between candidate identities
+- wrappers preserve explicit human-controlled verification and commit/closeout flow
+- wrappers preserve "Remote Proposal, Local Lifecycle" boundaries (no remote execution/cleanup authority)
 
 ---
 
