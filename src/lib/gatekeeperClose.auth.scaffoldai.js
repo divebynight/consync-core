@@ -252,9 +252,10 @@ function makePromptSession() {
 // Main entry
 // ---------------------------------------------------------------------------
 
-async function runGatekeeperClose(rootPath) {
+async function runGatekeeperClose(rootPath, options = {}) {
   const state = readGatekeeperState(rootPath);
   const closeMode = detectCloseMode(state);
+  const nonInteractive = options && options.nonInteractive === true;
 
   // Always print current state summary
   console.log("CURRENT STATE:");
@@ -300,9 +301,14 @@ async function runGatekeeperClose(rootPath) {
     console.log("    .scaffoldai/state/next-action.md");
     console.log("");
 
-    const session = makePromptSession();
-    const answer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
-    session.close();
+    let answer;
+    if (nonInteractive) {
+      answer = options.confirm === false ? "no" : "yes";
+    } else {
+      const session = makePromptSession();
+      answer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
+      session.close();
+    }
 
     if (answer !== "yes") {
       console.log("Aborted. No files written.");
@@ -335,13 +341,53 @@ async function runGatekeeperClose(rootPath) {
   console.log(`PACKAGE: ${closeMode.packageName}`);
   console.log("");
 
-  const session = makePromptSession();
+  let statusInput;
+  let status;
+  let summary;
+  let confirmAnswer;
 
-  const statusInput = await session.ask("STATUS (PASS / FAIL): ");
-  const status = statusInput.toUpperCase();
+  if (nonInteractive) {
+    statusInput = typeof options.status === "string" ? options.status : "";
+    status = statusInput.toUpperCase();
+    summary = typeof options.summary === "string" ? options.summary.trim() : "";
+    confirmAnswer = options.confirm === false ? "no" : "yes";
+  } else {
+    const session = makePromptSession();
+
+    statusInput = await session.ask("STATUS (PASS / FAIL): ");
+    status = statusInput.toUpperCase();
+
+    if (status !== "PASS" && status !== "FAIL") {
+      session.close();
+      console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
+      process.exitCode = 1;
+      return buildCloseoutDiagnostics({
+        packetClosed: false,
+        packageName: closeMode.packageName,
+        status: "ABORTED",
+        reason: `invalid status: ${statusInput}`,
+      });
+    }
+
+    summary = await session.ask("SUMMARY (one line): ");
+
+    if (!summary) {
+      session.close();
+      console.log("Summary is required. Aborted.");
+      process.exitCode = 1;
+      return buildCloseoutDiagnostics({
+        packetClosed: false,
+        packageName: closeMode.packageName,
+        status: "ABORTED",
+        reason: "summary is required",
+      });
+    }
+
+    confirmAnswer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
+    session.close();
+  }
 
   if (status !== "PASS" && status !== "FAIL") {
-    session.close();
     console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
     process.exitCode = 1;
     return buildCloseoutDiagnostics({
@@ -352,10 +398,7 @@ async function runGatekeeperClose(rootPath) {
     });
   }
 
-  const summary = await session.ask("SUMMARY (one line): ");
-
   if (!summary) {
-    session.close();
     console.log("Summary is required. Aborted.");
     process.exitCode = 1;
     return buildCloseoutDiagnostics({
@@ -379,9 +422,6 @@ async function runGatekeeperClose(rootPath) {
   console.log("- files NOT touched:");
   console.log("    .scaffoldai/state/next-action.md");
   console.log("");
-
-  const confirmAnswer = (await session.ask("CONFIRM? (yes / no): ")).toLowerCase();
-  session.close();
 
   if (confirmAnswer !== "yes") {
     console.log("Aborted. No files written.");

@@ -13,6 +13,7 @@ const {
 const {
   gatherCloseoutReadiness,
 } = require("../../lib/scaffoldaiCloseout.auth.scaffoldai");
+const { runGatekeeperClose } = require("../../lib/gatekeeperClose.auth.scaffoldai");
 const {
   cleanWorkspace,
 } = require("../../lib/scaffoldaiHousekeeping.auth.scaffoldai");
@@ -272,7 +273,22 @@ function parseCloseFeatureArgs(argv) {
   };
 }
 
-function runCloseFeature(commandRepoRoot, argv) {
+function readTerminalHandoffForPacket(commandRepoRoot, packetId) {
+  const handoffText = scaffoldaiState.readHandoff(commandRepoRoot);
+  const handoff = handoffText ? parseHandoff(handoffText) : null;
+
+  if (
+    handoff &&
+    handoff.packageName === packetId &&
+    (handoff.status === "PASS" || handoff.status === "FAIL")
+  ) {
+    return handoff;
+  }
+
+  return null;
+}
+
+async function runCloseFeature(commandRepoRoot, argv) {
   const parsed = parseCloseFeatureArgs(argv);
   if (parsed.error) {
     printRefusal("close-feature", {
@@ -385,18 +401,42 @@ function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  const handoffText = scaffoldaiState.readHandoff(commandRepoRoot);
-  const handoff = handoffText ? parseHandoff(handoffText) : null;
-  const hasTerminalHandoff = Boolean(
-    handoff &&
-      handoff.packageName === active.value.packet_id &&
-      (handoff.status === "PASS" || handoff.status === "FAIL")
-  );
+  let terminalHandoff = readTerminalHandoffForPacket(commandRepoRoot, active.value.packet_id);
 
-  if (!hasTerminalHandoff) {
+  if (!terminalHandoff) {
+    const closeoutSummary = `Lifecycle close-feature closeout after verify evidence for ${active.value.packet_id}.`;
+    const closeResult = await runGatekeeperClose(commandRepoRoot, {
+      nonInteractive: true,
+      status: "PASS",
+      summary: closeoutSummary,
+      confirm: true,
+    });
+
+    if (!closeResult || closeResult.packet_closed !== true) {
+      printRefusal("close-feature", {
+        status: "BLOCKED",
+        reason: "closeout_failed",
+        next_safe_action: "Resolve closeout blockers and rerun close-feature --verify-passed.",
+        data: {
+          active_packet: active.value.packet_id,
+          resolved_identity: active.value.packet_id,
+          closeout_status: closeResult && closeResult.status ? closeResult.status : null,
+          closeout_reason:
+            closeResult && Array.isArray(closeResult.guard_errors) && closeResult.guard_errors.length > 0
+              ? closeResult.guard_errors[0]
+              : null,
+        },
+      });
+      return;
+    }
+
+    terminalHandoff = readTerminalHandoffForPacket(commandRepoRoot, active.value.packet_id);
+  }
+
+  if (!terminalHandoff) {
     printRefusal("close-feature", {
       status: "BLOCKED",
-      reason: "cleanup_preconditions_unmet",
+      reason: "closeout_evidence_missing",
       next_safe_action:
         "Write terminal handoff for the active packet (PASS or FAIL) before running close-feature cleanup.",
       data: {
@@ -432,7 +472,7 @@ function runCloseFeature(commandRepoRoot, argv) {
   });
 }
 
-function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
+async function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
   const commandRepoRoot = options.repoRoot || defaultRepoRoot;
   const action = argv[0];
 
@@ -458,7 +498,7 @@ function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
   }
 
   if (action === "close-feature") {
-    runCloseFeature(commandRepoRoot, argv.slice(1));
+    await runCloseFeature(commandRepoRoot, argv.slice(1));
     return;
   }
 

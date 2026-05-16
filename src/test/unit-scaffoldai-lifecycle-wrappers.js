@@ -151,56 +151,13 @@ function writeVerifyEvidence(fixtureRoot, packetId, verifyStatus) {
   fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + "\n", "utf8");
 }
 
-function writeTerminalHandoff(fixtureRoot, packetId, status) {
-  scaffoldaiState.writeHandoff(
-    fixtureRoot,
-    [
-      "TYPE: PROCESS",
-      `PACKAGE: ${packetId}`,
-      "",
-      "STATUS",
-      "",
-      status,
-      "",
-      "SUMMARY",
-      "",
-      "Lifecycle closeout done.",
-      "",
-      "FILES CREATED",
-      "",
-      "- none",
-      "",
-      "FILES MODIFIED",
-      "",
-      "- none",
-      "",
-      "FILES DELETED",
-      "",
-      "- none",
-      "",
-      "COMMANDS TO RUN",
-      "",
-      "- none",
-      "",
-      "HUMAN VERIFICATION",
-      "",
-      "- confirm",
-      "",
-      "VERIFICATION NOTES",
-      "",
-      "- test handoff",
-      "",
-    ].join("\n")
-  );
-}
-
-function runLifecycle(fixtureRoot, argv) {
+async function runLifecycle(fixtureRoot, argv) {
   process.exitCode = 0;
-  runScaffoldaiLifecycleCommand(argv, { repoRoot: fixtureRoot });
+  await runScaffoldaiLifecycleCommand(argv, { repoRoot: fixtureRoot });
   return process.exitCode || 0;
 }
 
-function main() {
+async function main() {
   console.log(`[${TEST_NAME}] Running`);
 
   const fixture = createFixture();
@@ -245,7 +202,7 @@ function main() {
       const activated = activatePacket(fixture, intake.file_name);
       assert.strictEqual(activated.status, "PASS");
 
-      const blockedStart = runLifecycle(fixture, ["start-latest"]);
+      const blockedStart = await runLifecycle(fixture, ["start-latest"]);
       assert.strictEqual(blockedStart, 1, "start-latest should block while packet is active");
       console.log("  PASS: wrapper ordering enforcement blocks start-latest with active packet");
     }
@@ -263,7 +220,7 @@ function main() {
 
     // 5) close-feature verification gating
     {
-      const closeWithoutVerify = runLifecycle(fixture, ["close-feature"]);
+      const closeWithoutVerify = await runLifecycle(fixture, ["close-feature"]);
       assert.strictEqual(closeWithoutVerify, 1, "close-feature should fail without verification evidence");
       console.log("  PASS: close-feature verification gating");
     }
@@ -274,9 +231,7 @@ function main() {
       assert.strictEqual(claimed.success, true);
 
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
-      writeTerminalHandoff(fixture, activatedPacketId(fixture), "PASS");
-
-      const closeWhileClaimed = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const closeWhileClaimed = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
       assert.strictEqual(closeWhileClaimed, 1, "close-feature should fail while claim is active");
 
       const released = releasePacket(fixture, "test-client");
@@ -288,7 +243,7 @@ function main() {
     {
       writeVerifyEvidence(fixture, "stale-packet.sdc", "passed");
 
-      const staleEvidence = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const staleEvidence = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
       assert.strictEqual(staleEvidence, 1, "close-feature should fail when evidence belongs to another packet");
       console.log("  PASS: stale verification evidence fails closed");
     }
@@ -297,22 +252,53 @@ function main() {
     {
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "failed");
 
-      const failedEvidence = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const failedEvidence = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
       assert.strictEqual(failedEvidence, 1, "close-feature should fail when verification evidence failed");
       console.log("  PASS: failed verification evidence blocks close-feature");
     }
 
-    // 9) close-feature orchestration success path
+    // 9) close-feature orchestration success path (end-to-end wrapper flow)
     {
       const expectedPacketId = activatedPacketId(fixture);
+      assert.ok(expectedPacketId, "active packet should exist before close-feature");
+
+      const handoffBefore = scaffoldaiState.readHandoff(fixture);
+      const hasPreexistingTerminalHandoff =
+        Boolean(handoffBefore) &&
+        handoffBefore.includes(`PACKAGE: ${expectedPacketId}`) &&
+        /\nPASS\n|\nFAIL\n/.test(handoffBefore);
+      assert.strictEqual(
+        hasPreexistingTerminalHandoff,
+        false,
+        "success path must not rely on pre-seeded terminal handoff"
+      );
+
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
-      const success = runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const success = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
       assert.strictEqual(success, 0, "close-feature should pass when verification and cleanup gates are met");
+
+      const handoffAfter = scaffoldaiState.readHandoff(fixture);
+      assert.ok(handoffAfter, "terminal handoff evidence should be written by close-feature closeout stage");
+      assert.ok(handoffAfter.includes(`PACKAGE: ${expectedPacketId}`), "handoff should match active packet");
+      assert.ok(/\nPASS\n/.test(handoffAfter), "handoff should include terminal PASS status");
 
       const runtime = JSON.parse(
         fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "active-runtime.json"), "utf8")
       );
       assert.strictEqual(runtime.in_flight_packet, null, "cleanup should clear active packet runtime pointer");
+
+      const latestIntakePath = path.join(
+        fixture,
+        ".scaffoldai",
+        "runtime",
+        "packet-intake",
+        "latest-intake.json"
+      );
+      assert.strictEqual(fs.existsSync(latestIntakePath), false, "cleanup should remove latest intake metadata");
+      assert.strictEqual(fs.existsSync(b), false, "cleanup should remove consumed inbox candidate after closeout evidence");
+
+      const nextAction = fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "next-action.md"), "utf8");
+      assert.ok(nextAction.includes("PACKAGE: NONE"), "final lifecycle state should be clean idle");
       console.log("  PASS: close-feature orchestration runs cleanup and closes active packet context");
 
       const evidence = JSON.parse(
@@ -339,10 +325,8 @@ function activatedPacketId(fixtureRoot) {
   return value === "NONE" ? null : value;
 }
 
-try {
-  main();
-} catch (error) {
+main().catch((error) => {
   console.error(`[${TEST_NAME}] FAIL`);
   console.error(error.stack || error.message);
   process.exitCode = 1;
-}
+});

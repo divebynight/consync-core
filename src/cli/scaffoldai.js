@@ -183,7 +183,7 @@ async function main() {
       return;
     }
     if (subcommand === "lifecycle") {
-      runScaffoldaiLifecycleCommand(process.argv.slice(4));
+      await runScaffoldaiLifecycleCommand(process.argv.slice(4));
       return;
     }
     console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
