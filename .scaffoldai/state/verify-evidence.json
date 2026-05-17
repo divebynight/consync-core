@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-17T13:05:06.257Z",
-  "timestamp_ms": 1779023106257,
-  "packet_id": "plan-split-consync-and-scaffoldai-system-checks.sdc",
-  "active_packet_id": "plan-split-consync-and-scaffoldai-system-checks.sdc",
+  "timestamp": "2026-05-17T16:16:33.664Z",
+  "timestamp_ms": 1779034593664,
+  "packet_id": "audit-scaffoldai-stream-usage-and-authority.sdc",
+  "active_packet_id": "audit-scaffoldai-stream-usage-and-authority.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
