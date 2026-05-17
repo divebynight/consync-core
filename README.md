@@ -281,7 +281,7 @@ npm run verify
 | `npm run scaffoldai:intake-latest` | Deterministically intake latest intake-compatible inbox candidate |
 | `npm run scaffoldai:activate-latest` | Deterministically intake + activate latest candidate with ordering guards |
 | `npm run scaffoldai:start-latest` | Start latest candidate flow (fails closed on ambiguity/active packet) |
-| `npm run scaffoldai:close-feature` | Close active packet with verification + cleanup gates (human-invoked) |
+| `npm run scaffoldai:close-feature` | Close active packet when verification evidence is valid; runs closeout + cleanup gates |
 | `npm run scaffoldai:mcp` | Starts the local MCP server (stdio) |
 
 Lifecycle wrapper semantics:
@@ -289,6 +289,25 @@ Lifecycle wrapper semantics:
 - wrappers refuse on ambiguity and never guess between candidate identities
 - wrappers preserve explicit human-controlled verification and commit/closeout flow
 - wrappers preserve "Remote Proposal, Local Lifecycle" boundaries (no remote execution/cleanup authority)
+- `close-feature` auto-detects valid verification evidence; no `--verify-passed` flag is required
+
+## Canonical Operator Flow
+
+Use this as the authoritative happy path for process packets:
+
+1. Intake packet: run `npm run scaffoldai:intake-latest`
+2. Activate packet: run `npm run scaffoldai:activate-latest`
+3. Execute scoped work manually
+4. Run verification: `npm run verify:scaffoldai`
+5. Confirm readiness: `npm run scaffoldai:status`
+6. Close packet: run `npm run scaffoldai:close-feature`
+7. Review local artifacts with `git status`
+8. Make one intentional checkpoint commit when the phase is stable
+
+Flow guarantees:
+- fail-closed lifecycle behavior remains enforced
+- clean-workspace protections remain enforced on lifecycle transitions
+- close-feature is idempotent when the packet is already closed
 
 ---
 

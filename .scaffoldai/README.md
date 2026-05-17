@@ -80,7 +80,7 @@ Lifecycle examples:
 - intake latest candidate: `npm run scaffoldai:intake-latest`
 - intake + activate latest candidate: `npm run scaffoldai:activate-latest`
 - start latest packet flow with ordering guards: `npm run scaffoldai:start-latest`
-- close active packet with gates: `npm run scaffoldai:close-feature -- --verify-passed`
+- close active packet with evidence + cleanup gates: `npm run scaffoldai:close-feature`
 
 Remote proposal / local lifecycle operator runbook:
 
