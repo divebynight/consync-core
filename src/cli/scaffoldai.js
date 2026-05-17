@@ -6,6 +6,7 @@ const { runScaffoldaiQuestionCommand } = require("../scaffoldai/commands/scaffol
 const { runScaffoldaiPacketCommand } = require("../scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai");
 const { runScaffoldaiHousekeepingCommand } = require("../scaffoldai/commands/scaffoldai-housekeeping.cmd.scaffoldai");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
+const { runProcessCheckCommand } = require("../scaffoldai/commands/process-check.check.scaffoldai");
 const { runHandoffBundleCommand } = require("../scaffoldai/commands/handoff-bundle.process.scaffoldai");
 const { runSystemCheckCommand } = require("../commands/system-check.check.system");
 const { runStateIntegrityCheckCommand } = require("../scaffoldai/commands/state-integrity-check.check.scaffoldai");
@@ -92,6 +93,11 @@ async function main() {
 
   if (command === "handoff-bundle") {
     runHandoffBundleCommand(parseHandoffBundleOptions(process.argv.slice(3)));
+    return;
+  }
+
+  if (command === "process-check") {
+    runProcessCheckCommand();
     return;
   }
 

@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-16T20:50:07.757Z",
-  "timestamp_ms": 1778964607757,
-  "packet_id": "document-remote-proposal-local-lifecycle-runbook.sdc",
-  "active_packet_id": "document-remote-proposal-local-lifecycle-runbook.sdc",
+  "timestamp": "2026-05-17T12:57:40.536Z",
+  "timestamp_ms": 1779022660536,
+  "packet_id": "plan-split-consync-and-scaffoldai-system-checks.sdc",
+  "active_packet_id": "plan-split-consync-and-scaffoldai-system-checks.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",

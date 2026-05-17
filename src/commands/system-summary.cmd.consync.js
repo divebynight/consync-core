@@ -4,7 +4,6 @@ function runSystemSummaryCommand() {
   console.log("- new-guid");
   console.log("- list-guid");
   console.log("- show-guid");
-  console.log("- handoff-bundle");
   console.log("- sandbox-scan");
   console.log("- sandbox-verify");
   console.log("- sandbox-describe");
@@ -14,8 +13,6 @@ function runSystemSummaryCommand() {
   console.log("- sandbox-desktop-search");
   console.log("- system-check");
   console.log("- system-summary");
-  console.log("- state-integrity-check");
-  console.log("- portable");
   console.log("DESKTOP");
   console.log("- npm run start:desktop");
   console.log("- npm run test:desktop-scaffold");
@@ -37,9 +34,7 @@ function runSystemSummaryCommand() {
   console.log("- mixed-flat-small-propose");
   console.log("VERIFY");
   console.log("- npm run verify");
-  console.log("- npm run check:state-preflight");
-  console.log("- npm run check:state-postflight");
-  console.log("- read-only layered checkpoint active");
+  console.log("- npm run verify:consync");
 }
 
 module.exports = {

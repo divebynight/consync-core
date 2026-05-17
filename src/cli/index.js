@@ -4,6 +4,7 @@
 const SCAFFOLDAI_COMMANDS = [
   "scaffoldai",
   "gatekeeper",
+  "process-check",
   "state-integrity-check",
   "portable",
   "handoff-bundle",
@@ -14,7 +15,6 @@ const SCAFFOLDAI_COMMANDS = [
   "preflight-run",
   "verify-run",
   "reference-audit",
-  "system-check",
 ];
 
 async function main() {

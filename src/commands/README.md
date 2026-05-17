@@ -13,7 +13,8 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 - `new-guid.js` — creates a new GUID metadata artifact
 - `list-guid.js` / `show-guid.js` — list and display GUID artifacts
 - Thin `scaffoldai <subcommand>` wrappers, ScaffoldAI agent entrypoints, portable scaffolding, and thin ScaffoldAI process wrappers live under `src/scaffoldai/commands/`
-- `system-check.check.system.js` — verifies required system files across all surfaces (ScaffoldAI, Consync, Electron)
+- `system-check.cmd.consync.js` — Consync product/runtime check surface (sandbox, product commands, desktop scaffold)
+- `system-check.check.system.js` — thin compatibility wrapper that composes Consync `system-check` and ScaffoldAI `process-check`
 - `system-summary.js` — prints a summary of the current system surface
 - `sandbox-verify.cmd.consync.js` / `sandbox-catalog.cmd.consync.js` / `sandbox-describe.cmd.consync.js` / `sandbox-discover.cmd.consync.js` — sandbox fixture inspection commands
 - `sandbox-scan.cmd.consync.js` / `sandbox-search.cmd.consync.js` / `sandbox-propose.cmd.consync.js` / `sandbox-desktop-search.cmd.consync.js` — sandbox query and proposal commands

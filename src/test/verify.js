@@ -259,7 +259,8 @@ function printCoverageConfidenceSummary() {
     { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "run verify:consync:e2e or verify:full",          surface: SURFACES.CONSYNC },
     { label: "ScaffoldAI Bridge / State",     group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet",  surface: SURFACES.SCAFFOLDAI },
     { label: "ScaffoldAI Runtime Commands",   group: GROUPS.CLI,      signal: "consync-run, intake, preflight, verify, handoff", surface: SURFACES.SCAFFOLDAI },
-    { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation",       surface: SURFACES.ALL },
+    { label: "Consync Product Boundary",      group: GROUPS.SYSTEM,   signal: "system-check product/runtime validation",       surface: SURFACES.CONSYNC },
+    { label: "ScaffoldAI Process Boundary",   group: GROUPS.SYSTEM,   signal: "process-check process/infrastructure validation", surface: SURFACES.SCAFFOLDAI },
   ];
 
   const filteredAreas = activeSurface === SURFACES.ALL
@@ -519,7 +520,10 @@ function main() {
   runNodeStep("[verify] ScaffoldAI MCP operator HTTPS submit-only surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
+  runNodeStep("[verify] Consync product/runtime surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.CONSYNC);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI process surface", [path.join(repoRoot, "src", "scaffoldai.js"), "process-check"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   printSummary();
