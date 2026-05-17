@@ -147,16 +147,16 @@ function gatherCloseoutReadiness(repoRoot, options) {
       verificationEvidenceReason = validation.reason;
       verificationEvidenceRecord = validation.evidence || scaffoldaiVerifyEvidence.readVerifyEvidence(repoRoot);
       verificationEvidence = verificationEvidenceRecord
-        ? `--verify-passed provided (human attestation); ${validation.reason} — ${scaffoldaiVerifyEvidence.formatVerifyEvidence(verificationEvidenceRecord)}`
-        : `--verify-passed provided (human attestation); ${validation.reason}`;
+        ? `verification evidence invalid; ${validation.reason} — ${scaffoldaiVerifyEvidence.formatVerifyEvidence(verificationEvidenceRecord)}`
+        : `verification evidence invalid; ${validation.reason}`;
       blockers.push(`verification evidence invalid: ${validation.reason}`);
     } else {
       verificationEvidenceState = "valid";
       verificationEvidenceRecord = validation.evidence;
-      verificationEvidence = `--verify-passed provided (human attestation); ${scaffoldaiVerifyEvidence.formatVerifyEvidence(validation.evidence)}`;
+      verificationEvidence = `verification evidence valid; ${scaffoldaiVerifyEvidence.formatVerifyEvidence(validation.evidence)}`;
     }
   } else {
-    verificationEvidence = "none — run verify and re-run with --verify-passed";
+    verificationEvidence = "none — run verify to generate evidence";
     if (hasChanges) {
       warnings.push("no verification evidence — run verify before committing");
     }

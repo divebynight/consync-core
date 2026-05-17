@@ -183,7 +183,7 @@ function runCloseoutReadinessTool() {
       verify_evidence: "not provided",
       in_flight_packet: inFlightPacket || null,
     },
-    next_safe_action: "Run verify and pass --verify-passed to scaffoldai closeout.",
+    next_safe_action: "Run verify, then run scaffoldai closeout.",
   };
 }
 

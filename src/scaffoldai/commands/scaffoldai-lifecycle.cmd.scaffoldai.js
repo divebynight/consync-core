@@ -34,7 +34,7 @@ const scaffoldaiVerifyEvidence = require("../../lib/scaffoldaiVerifyEvidence.sta
 const defaultRepoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature> [--verify-passed]");
+  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature>");
 }
 
 function printRefusal(action, diagnostic) {
@@ -274,22 +274,23 @@ function runStartLatest(commandRepoRoot) {
 }
 
 function parseCloseFeatureArgs(argv) {
-  let verifyPassed = false;
+  let legacyVerifyFlag = false;
 
   for (const arg of argv) {
     if (arg === "--verify-passed") {
-      verifyPassed = true;
+      // Backward-compatible no-op flag. Verification is now auto-detected from evidence.
+      legacyVerifyFlag = true;
       continue;
     }
 
     return {
       error: `Unknown flag: ${arg}`,
-      verifyPassed: false,
+      legacyVerifyFlag: false,
     };
   }
 
   return {
-    verifyPassed,
+    legacyVerifyFlag,
     error: null,
   };
 }
@@ -315,7 +316,7 @@ async function runCloseFeature(commandRepoRoot, argv) {
     printRefusal("close-feature", {
       status: "BLOCKED",
       reason: "invalid_arguments",
-      next_safe_action: `Use: scaffoldai lifecycle close-feature [--verify-passed]. ${parsed.error}`,
+      next_safe_action: `Use: scaffoldai lifecycle close-feature. ${parsed.error}`,
       data: {
         resolved_identity: null,
       },
@@ -331,6 +332,39 @@ async function runCloseFeature(commandRepoRoot, argv) {
 
   const active = resolveActivePacketIdentity(commandRepoRoot);
   if (!active.ok) {
+    if (active.diagnostic && active.diagnostic.reason === "no_active_packet") {
+      const handoffText = scaffoldaiState.readHandoff(commandRepoRoot);
+      const handoff = handoffText ? parseHandoff(handoffText) : null;
+      const alreadyClosed =
+        Boolean(handoff) && (handoff.status === "PASS" || handoff.status === "FAIL");
+
+      if (alreadyClosed) {
+        printWrapperResult("close-feature", {
+          active_packet: "(none)",
+          resolved_identity: handoff.packageName || null,
+          verification_ready: true,
+          cleanup_ready: true,
+          lifecycle_phase: "already_closed",
+          next_safe_action:
+            "No active packet to close. Review git status, commit intentional artifacts, then activate the next packet.",
+          status: "CLEAN",
+        });
+        return;
+      }
+
+      printRefusal("close-feature", {
+        status: "BLOCKED",
+        reason: "no_active_packet",
+        next_safe_action:
+          "No active packet to close. Activate a packet first, or run scaffoldai status to inspect state.",
+        data: {
+          active_packet: null,
+          resolved_identity: null,
+        },
+      });
+      return;
+    }
+
     printRefusal("close-feature", active.diagnostic);
     return;
   }
@@ -373,10 +407,10 @@ async function runCloseFeature(commandRepoRoot, argv) {
     active.value.packet_id
   );
 
-  const verificationReady = verifyEvidence.valid && parsed.verifyPassed;
+  const verificationReady = verifyEvidence.valid;
 
   const closeout = gatherCloseoutReadiness(commandRepoRoot, {
-    verifyPassed: parsed.verifyPassed,
+    verifyPassed: true,
   });
 
   if (closeout.status === "BLOCKED" && closeout.data.verificationEvidenceState === "invalid") {
@@ -385,8 +419,8 @@ async function runCloseFeature(commandRepoRoot, argv) {
       reason: closeout.data.verificationEvidenceReason || "verification_evidence_invalid",
       next_safe_action:
         closeout.data.verificationEvidenceReason === "verify_evidence_failed"
-          ? "Resolve verification failures, re-run npm run verify:scaffoldai, then retry close-feature --verify-passed."
-          : "Refresh verification evidence for the active packet, then retry close-feature --verify-passed.",
+          ? "Resolve verification failures, re-run npm run verify:scaffoldai, then retry close-feature."
+          : "Refresh verification evidence for the active packet, then retry close-feature.",
       data: {
         active_packet: active.value.packet_id,
         resolved_identity: active.value.packet_id,
@@ -410,21 +444,7 @@ async function runCloseFeature(commandRepoRoot, argv) {
   }
 
   if (!verificationReady) {
-    if (!verifyEvidence.valid) {
-      printRefusal("close-feature", verifyEvidence.diagnostic);
-    } else {
-      printRefusal("close-feature", {
-        status: "BLOCKED",
-        reason: "verify_passed_flag_required",
-        message: "Verification evidence is available. Preferred flow: work → verify → closeout → review artifacts → single final commit.",
-        next_safe_action: "Verify evidence is fresh and evidence tests passed. Retry with: npm run scaffoldai:close-feature -- --verify-passed",
-        data: {
-          active_packet: active.value.packet_id,
-          resolved_identity: active.value.packet_id,
-          verification_ready: false,
-        },
-      });
-    }
+    printRefusal("close-feature", verifyEvidence.diagnostic);
     return;
   }
 
@@ -432,7 +452,7 @@ async function runCloseFeature(commandRepoRoot, argv) {
     printRefusal("close-feature", {
       status: "BLOCKED",
       reason: "closeout_requires_verification",
-      next_safe_action: "Run verify and rerun close-feature with --verify-passed.",
+      next_safe_action: "Run verify and rerun close-feature.",
       data: {
         active_packet: active.value.packet_id,
         resolved_identity: active.value.packet_id,
@@ -456,7 +476,7 @@ async function runCloseFeature(commandRepoRoot, argv) {
       printRefusal("close-feature", {
         status: "BLOCKED",
         reason: "closeout_failed",
-        next_safe_action: "Resolve closeout blockers and rerun close-feature --verify-passed.",
+        next_safe_action: "Resolve closeout blockers and rerun close-feature.",
         data: {
           active_packet: active.value.packet_id,
           resolved_identity: active.value.packet_id,

@@ -105,7 +105,7 @@ function validateVerifyEvidence(repoRoot, packetId, options = {}) {
         status: "BLOCKED",
         reason: "no_verify_evidence",
         next_safe_action:
-          "Run npm run verify:scaffoldai to generate verification evidence, then retry close-feature --verify-passed.",
+          "Run npm run verify:scaffoldai to generate verification evidence, then retry close-feature.",
         data: {
           active_packet: packetId,
           verify_evidence_file: VERIFY_EVIDENCE_RELATIVE,
@@ -122,7 +122,7 @@ function validateVerifyEvidence(repoRoot, packetId, options = {}) {
         status: "BLOCKED",
         reason: "verify_evidence_expired",
         next_safe_action:
-          "Re-run npm run verify:scaffoldai to refresh verification evidence, then retry close-feature --verify-passed.",
+          "Re-run npm run verify:scaffoldai to refresh verification evidence, then retry close-feature.",
         data: {
           active_packet: packetId,
           evidence_age_ms: Date.now() - evidence.timestamp_ms,
@@ -142,7 +142,7 @@ function validateVerifyEvidence(repoRoot, packetId, options = {}) {
         status: "BLOCKED",
         reason: "verify_evidence_packet_mismatch",
         next_safe_action:
-          "Run npm run verify:scaffoldai for the current packet, then retry close-feature --verify-passed.",
+          "Run npm run verify:scaffoldai for the current packet, then retry close-feature.",
         data: {
           active_packet: packetId,
           evidence_packet: evidence.active_packet_id || evidence.packet_id,
@@ -159,7 +159,7 @@ function validateVerifyEvidence(repoRoot, packetId, options = {}) {
         status: "BLOCKED",
         reason: "verify_evidence_failed",
         next_safe_action:
-          "Resolve verification failures, re-run npm run verify:scaffoldai, then retry close-feature --verify-passed.",
+          "Resolve verification failures, re-run npm run verify:scaffoldai, then retry close-feature.",
         data: {
           active_packet: packetId,
           verify_status: evidence.verify_status,

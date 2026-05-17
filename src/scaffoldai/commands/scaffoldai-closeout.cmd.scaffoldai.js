@@ -35,12 +35,30 @@ function runScaffoldaiCloseoutCommand(argv) {
 
   if (args.error) {
     console.error(`[scaffoldai closeout] Error: ${args.error}`);
-    console.error(`Usage: node src/index.js scaffoldai closeout [--verify-passed]`);
+    console.error(`Usage: node src/index.js scaffoldai closeout`);
     process.exitCode = 1;
     return;
   }
 
-  const result = gatherCloseoutReadiness(repoRoot, { verifyPassed: args.verifyPassed });
+  const baseResult = gatherCloseoutReadiness(repoRoot, { verifyPassed: args.verifyPassed });
+  let result = baseResult;
+
+  // Ergonomic path: if verification is needed, auto-check evidence once before advising.
+  if (!args.verifyPassed && baseResult.status === "NEEDS_VERIFICATION" && baseResult.data.hasChanges) {
+    const evidenceResult = gatherCloseoutReadiness(repoRoot, { verifyPassed: true });
+    const reason = evidenceResult.data.verificationEvidenceReason;
+
+    if (evidenceResult.data.verificationEvidenceState === "valid") {
+      result = evidenceResult;
+    } else if (
+      evidenceResult.data.verificationEvidenceState === "invalid" &&
+      reason !== "no_verify_evidence"
+    ) {
+      // Fail closed when evidence exists but is stale, mismatched, or failed.
+      result = evidenceResult;
+    }
+  }
+
   const { blockers, warnings, status, data } = result;
   const { inFlightPacket, git, resolvedVerify, commitPrefix, commitSuggestion, hasChanges, verificationEvidence } = data;
 
@@ -74,7 +92,7 @@ function runScaffoldaiCloseoutCommand(argv) {
   } else if (status === "CLEAN") {
     nextSafeAction = "No uncommitted changes. Nothing to commit.";
   } else if (status === "NEEDS_VERIFICATION") {
-    nextSafeAction = `Run ${verifyCommand}, then re-run: node src/index.js scaffoldai closeout --verify-passed`;
+    nextSafeAction = `Run ${verifyCommand}, then re-run: node src/index.js scaffoldai closeout`;
   } else if (status === "WARNING") {
     nextSafeAction = `Review warnings above. If acceptable, commit with: git commit -m "${commitSuggestion}"`;
   } else {

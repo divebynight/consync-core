@@ -3,6 +3,7 @@ const path = require("path");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { readLatestIntakeResult } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
+const scaffoldaiVerifyEvidence = require("./scaffoldaiVerifyEvidence.state.scaffoldai");
 
 // -----------------------------------------------------------------------
 // State file readers
@@ -172,6 +173,36 @@ function gatherStatus(repoRoot, options = {}) {
   const verifySurface = recommendedVerifySurface(contract);
   const latestIntake = readLatestIntakeResult(repoRoot);
 
+  // Contextual next safe action for operators.
+  let computedNextSafeAction = nextActionSummary || "(none — see next-action.md)";
+
+  if (claimState.busy) {
+    computedNextSafeAction = claimState.next_safe_action;
+  } else if (inFlightPacket) {
+    if (!git || git.error) {
+      computedNextSafeAction = "Resolve git status availability before lifecycle transitions.";
+    } else if (!git.clean) {
+      computedNextSafeAction =
+        "Active packet in progress with uncommitted artifacts. Review git status and commit intentional changes before lifecycle transitions.";
+    } else {
+      const evidence = scaffoldaiVerifyEvidence.validateVerifyEvidence(repoRoot, inFlightPacket);
+      if (evidence.valid) {
+        computedNextSafeAction = "Verification evidence is valid. Run npm run scaffoldai:close-feature to close and clean the active packet.";
+      } else if (evidence.reason === "no_verify_evidence") {
+        computedNextSafeAction = `Run ${verifySurface} for the active packet, then run npm run scaffoldai:close-feature.`;
+      } else if (evidence.reason === "verify_evidence_failed") {
+        computedNextSafeAction = `Verification failed. Fix issues, rerun ${verifySurface}, then run npm run scaffoldai:close-feature.`;
+      } else {
+        computedNextSafeAction = `Refresh verification evidence with ${verifySurface}, then run npm run scaffoldai:close-feature.`;
+      }
+    }
+  } else if (git && !git.error && !git.clean) {
+    computedNextSafeAction =
+      "No active packet, but local artifacts are uncommitted. Review git status and commit intentional closeout artifacts, then intake the next packet.";
+  } else if (!inFlightPacket) {
+    computedNextSafeAction = "No active packet. Intake latest with npm run scaffoldai:intake-latest or activate latest with npm run scaffoldai:activate-latest.";
+  }
+
   // ---- Overall status ----
   const hasBlocker = warnings.some((w) => w.startsWith("BLOCKER"));
   const overallStatus = hasBlocker ? "BLOCKED" : "ON_TRACK";
@@ -189,13 +220,13 @@ function gatherStatus(repoRoot, options = {}) {
       claim_busy: claimState.busy,
       claim_next_safe_action: claimState.next_safe_action,
       latest_intake: latestIntake,
-      next_safe_action: nextActionSummary || "(none — see next-action.md)",
+      next_safe_action: computedNextSafeAction,
       contract: contract || null,
       verify_command: verifySurface,
       warnings,
       ...(includeGit ? { git } : { git: "not included" }),
     },
-    next_safe_action: nextActionSummary || "(none — see next-action.md)",
+    next_safe_action: computedNextSafeAction,
   };
 }
 
