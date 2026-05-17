@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — ideas-grouping-in-notes-panel-v1 complete and validated; system stable; next slice TBD
+- summary: active — last package: plan-split-consync-and-scaffoldai-system-checks.sdc (PASS)
 
 ## Active Checkpoint
 
