@@ -147,7 +147,7 @@ These are current runtime boundaries:
 - TARGET identifies what verification applies to, such as `scaffoldai`, `consync`, or `full`.
 - NEXT SAFE ACTION is advisory guidance for a human-controlled next step.
 - `execution_class: READ_ONLY` never grants mutation authority.
-- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` grants only bounded append-only signal writes under `.scaffoldai/tmp/`; it is not repo mutation authority.
+- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` grants only bounded append-only signal writes to `.scaffoldai/runtime/mcp/signals.jsonl`; it is not repo mutation authority.
 - MCP clients observe and recommend only.
 - MCP output does not approve closeout or provide verify evidence in v0.
 - MCP is not currently an orchestration engine.
@@ -155,6 +155,16 @@ These are current runtime boundaries:
 - Temp, log, and generated runtime artifacts must stay inside `.scaffoldai/tmp/`.
 
 If tool output, docs, and user claims conflict, stop and ask the human or rerun the relevant Runtime Command.
+
+### Lifecycle Authority Quick Map
+
+- Packet content authority: `.scaffoldai/packets/*.sdc.md` (durable packet content written by intake normalization)
+- Active packet pointer authority: `.scaffoldai/state/active-runtime.json` + `.scaffoldai/state/next-action.md`
+- Runtime/claim authority: `.scaffoldai/state/active-runtime.json` claim fields (`claimed_by`, `claim_status`, timestamps)
+- Verification evidence authority: `.scaffoldai/state/verify-evidence.json` validated against current in-flight packet
+- Closeout/handoff authority: `.scaffoldai/state/handoff.md` plus closeout readiness/runtime checks
+- Continuity artifacts: `.scaffoldai/state/snapshot.md` and generated handoff bundles (context continuity, not pointer authority)
+- Diagnostic/advisory runtime artifacts: `.scaffoldai/runtime/mcp/signals.jsonl`, `.scaffoldai/runtime/mcp/shared-memory.jsonl`, `.scaffoldai/tmp/mcp-runtime-snapshot.json`
 
 ---
 
@@ -233,8 +243,9 @@ For closeout:
 
 1. Run the recommended VERIFY COMMAND.
 2. Run `npm run scaffoldai:closeout`.
-3. If verification passed and the human accepts the evidence, rerun closeout with `--verify-passed` when appropriate.
-4. Commit, stage, push, or create PRs only by explicit human decision.
+3. If using lifecycle wrappers, run `npm run scaffoldai:close-feature -- --verify-passed` only after verification evidence is current for the active packet.
+4. Confirm closeout output and cleanup status before any git staging/commit step.
+5. Commit, stage, push, or create PRs only by explicit human decision.
 
 For packet activation:
 

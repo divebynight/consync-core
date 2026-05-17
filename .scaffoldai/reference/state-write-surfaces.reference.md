@@ -177,7 +177,7 @@ flowchart TB
     HttpClient -->|READ_ONLY| Active
     HttpClient -->|READ_ONLY| StreamDoc
 
-    CLI -->|no current runtime writer discovered| Packets
+    CLI -->|AUTHORITATIVE_WRITE intake durable packet file| Packets
 ```
 
 ## Inventory: Runtime And Command Surfaces
@@ -190,6 +190,7 @@ flowchart TB
 | Gatekeeper close writes | src/lib/gatekeeperClose.auth.scaffoldai.js (executeCloseWritesA/B) | helper/library (called by CLI) | handoff.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Gatekeeper switch writes | src/lib/gatekeeperSwitch.auth.scaffoldai.js (executeSwitchWrites) | helper/library (called by CLI) | active-stream.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Packet activation writes | src/lib/scaffoldaiPacketActivation.auth.scaffoldai.js (activatePacket, clearActivePacket) | helper/library (called by CLI) | active-contract.json, next-action.md, snapshot.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Packet files are read-only inputs; pointer state is the authority. |
+| Packet intake writes | src/lib/scaffoldaiPacketIntake.auth.scaffoldai.js (intakePacket) | helper/library (called by CLI) | .scaffoldai/packets/*.sdc.md, .scaffoldai/runtime/packet-intake/latest-intake.json | AUTHORITATIVE_WRITE + AUTHORITATIVE_WRITE (runtime-derived metadata) | Valid accepted packet content is normalized into durable packet storage; latest intake metadata is runtime-derived. |
 | Gatekeeper command entry | src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js | CLI | Indirect: delegates to gatekeeper auth modules above | AUTHORITATIVE_WRITE + APPEND_ONLY | Primary stream and closeout mutation entrypoint. |
 | ScaffoldAI packet command entry | src/scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai.js | CLI | Indirect: delegates to packet activation auth module | AUTHORITATIVE_WRITE + APPEND_ONLY | Human-approved activation surface for in-flight packet pointer. |
 | Consync run soft gate | src/scaffoldai/commands/consync-run.cmd.scaffoldai.js | CLI | Reads .scaffoldai/state/active-contract.json + next-action.md | READ_ONLY | Prompts approval but does not execute writes. |
@@ -221,7 +222,8 @@ flowchart TB
   - scaffoldai_memory_write appends to .scaffoldai/runtime/mcp/shared-memory.jsonl
   - scaffoldai_signal appends/rotates .scaffoldai/runtime/mcp/signals.jsonl
 - HTTP MCP surface is read-only and does not expose write tools.
-- No current runtime path mutates .scaffoldai/packets.
+- Intake runtime path mutates .scaffoldai/packets by writing normalized accepted packets via scaffoldai packet intake.
+- Packet activation/clear and MCP runtime surfaces do not mutate packet files; they mutate pointer/state surfaces.
 
 ## Authority Mismatches And Risk Notes
 
@@ -242,9 +244,10 @@ No hard policy violations were found in current runtime code. The following boun
 
 ## .scaffoldai/packets Status
 
-- No runtime writer mutates packet files under .scaffoldai/packets in command or MCP runtime surfaces.
-- Packet files now serve as archive/inbox inputs for manual CLI activation.
-- Active packet authority lives in .scaffoldai/state/active-contract.json and .scaffoldai/state/next-action.md.
+- Packet intake runtime writes normalized accepted packet files under .scaffoldai/packets.
+- Packet activation/clear and MCP runtime surfaces do not mutate packet files.
+- Packet files serve as durable packet content source for manual CLI activation.
+- Active packet pointer authority lives in .scaffoldai/state/active-runtime.json and .scaffoldai/state/next-action.md (with active-contract.json compatibility during migration).
 
 ## Mermaid Authority Map
 
@@ -276,7 +279,7 @@ flowchart LR
 
     CLI -->|READ_ONLY verify or status| SState
     CLI -->|READ_ONLY verify or status| SStream
-    CLI -->|no current runtime writer| SPackets
+    CLI -->|AUTHORITATIVE_WRITE intake| SPackets
 
     H -->|approves execution and commit| CLI
 ```

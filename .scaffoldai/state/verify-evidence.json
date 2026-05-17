@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-17T17:22:52.821Z",
-  "timestamp_ms": 1779038572821,
-  "packet_id": "audit-packet-lifecycle-authority-surfaces.sdc",
-  "active_packet_id": "audit-packet-lifecycle-authority-surfaces.sdc",
+  "timestamp": "2026-05-17T17:51:24.274Z",
+  "timestamp_ms": 1779040284274,
+  "packet_id": "repair-scaffoldai-lifecycle-authority-documentation-drift.sdc",
+  "active_packet_id": "repair-scaffoldai-lifecycle-authority-documentation-drift.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",

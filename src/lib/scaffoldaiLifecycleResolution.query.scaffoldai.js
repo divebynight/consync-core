@@ -112,7 +112,7 @@ function resolveLatestValidInboxCandidate(repoRoot) {
       diagnostic: toDiagnostic(
         "BLOCKED",
         "latest_candidate_invalid_title",
-        "Fix the latest inbox candidate title to '# SDC - <Title>' format, then retry.",
+        "Fix the latest inbox candidate title to '# SDC — <Title>' format, then retry.",
         {
           latest_candidate: latest.value.relative_path,
           validation_error: titleResult.error,

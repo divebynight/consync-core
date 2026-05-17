@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — last package: audit-packet-lifecycle-authority-surfaces.sdc (PASS)
+- summary: active — last package: repair-scaffoldai-lifecycle-authority-documentation-drift.sdc (PASS)
 
 ## Active Checkpoint
 

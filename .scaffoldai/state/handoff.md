@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: audit-packet-lifecycle-authority-surfaces.sdc
+PACKAGE: repair-scaffoldai-lifecycle-authority-documentation-drift.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for audit-packet-lifecycle-authority-surfaces.sdc.
+Lifecycle close-feature closeout after verify evidence for repair-scaffoldai-lifecycle-authority-documentation-drift.sdc.
 
 FILES CREATED
 
