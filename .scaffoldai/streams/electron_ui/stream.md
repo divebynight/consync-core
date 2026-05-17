@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — last package: plan-split-consync-and-scaffoldai-system-checks.sdc (PASS)
+- summary: active — last package: audit-scaffoldai-stream-usage-and-authority.sdc (PASS)
 
 ## Active Checkpoint
 

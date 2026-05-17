@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: plan-split-consync-and-scaffoldai-system-checks.sdc
+PACKAGE: audit-scaffoldai-stream-usage-and-authority.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for plan-split-consync-and-scaffoldai-system-checks.sdc.
+Lifecycle close-feature closeout after verify evidence for audit-scaffoldai-stream-usage-and-authority.sdc.
 
 FILES CREATED
 
