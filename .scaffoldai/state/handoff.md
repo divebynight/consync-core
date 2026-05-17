@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: audit-scaffoldai-stream-usage-and-authority.sdc
+PACKAGE: audit-packet-lifecycle-authority-surfaces.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for audit-scaffoldai-stream-usage-and-authority.sdc.
+Lifecycle close-feature closeout after verify evidence for audit-packet-lifecycle-authority-surfaces.sdc.
 
 FILES CREATED
 

@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-17T16:16:33.664Z",
-  "timestamp_ms": 1779034593664,
-  "packet_id": "audit-scaffoldai-stream-usage-and-authority.sdc",
-  "active_packet_id": "audit-scaffoldai-stream-usage-and-authority.sdc",
+  "timestamp": "2026-05-17T17:22:52.821Z",
+  "timestamp_ms": 1779038572821,
+  "packet_id": "audit-packet-lifecycle-authority-surfaces.sdc",
+  "active_packet_id": "audit-packet-lifecycle-authority-surfaces.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
