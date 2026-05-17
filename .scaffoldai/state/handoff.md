@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: repair-scaffoldai-lifecycle-authority-documentation-drift.sdc
+PACKAGE: harden-packet-completion-boundaries-and-operator-ergonomics.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for repair-scaffoldai-lifecycle-authority-documentation-drift.sdc.
+Lifecycle close-feature closeout after verify evidence for harden-packet-completion-boundaries-and-operator-ergonomics.sdc.
 
 FILES CREATED
 
