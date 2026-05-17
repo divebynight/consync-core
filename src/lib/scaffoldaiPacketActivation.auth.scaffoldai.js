@@ -6,6 +6,7 @@ const path = require("path");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { detectCategory, extractTitle } = require("./scaffoldaiPacketVisibility.query.scaffoldai");
+const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 
@@ -238,6 +239,25 @@ function appendPointerHistory(rootPath, packetIdOrNull, action) {
 }
 
 function activatePacket(rootPath, packetInput) {
+  // Enforce clean workspace before allowing activation.
+  const cleanliness = checkWorkspaceCleanliness(rootPath);
+  if (!cleanliness.clean) {
+    return {
+      action: "activate",
+      status: "BLOCKED",
+      reason: cleanliness.reason,
+      packet_id: null,
+      packet_file: null,
+      exists: false,
+      title: null,
+      category: null,
+      message: cleanliness.message,
+      dirty_files_count: cleanliness.count,
+      dirty_files: cleanliness.files,
+      next_safe_action: cleanliness.next_safe_action,
+    };
+  }
+
   const resolved = resolvePacketPath(rootPath, packetInput);
   const metadata = readPacketMetadata(resolved.absolutePath, resolved.fileName);
 

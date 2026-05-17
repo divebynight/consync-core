@@ -43,6 +43,24 @@ function printRefusal(action, diagnostic) {
   console.log("");
   console.log(`STATUS:           ${diagnostic.status || "BLOCKED"}`);
   console.log(`REFUSAL REASON:   ${diagnostic.reason || "unspecified_refusal"}`);
+  
+  if (diagnostic.message) {
+    console.log(`MESSAGE:          ${diagnostic.message}`);
+  }
+  
+  if (data.dirty_files_count !== undefined) {
+    console.log(`DIRTY FILES:      ${data.dirty_files_count}`);
+    if (Array.isArray(data.dirty_files) && data.dirty_files.length > 0) {
+      console.log("  Files:");
+      for (const file of data.dirty_files.slice(0, 5)) {
+        console.log(`    ${file}`);
+      }
+      if (data.dirty_files.length > 5) {
+        console.log(`    ... and ${data.dirty_files.length - 5} more`);
+      }
+    }
+  }
+
   console.log(`NEXT SAFE ACTION: ${diagnostic.next_safe_action || "Review lifecycle state and retry intentionally."}`);
 
   if (data.resolved_identity) {
@@ -203,10 +221,13 @@ function runActivateLatest(commandRepoRoot) {
     printRefusal("activate-latest", {
       status: "BLOCKED",
       reason: activated.reason || "activation_blocked",
+      message: activated.message,
       next_safe_action: activated.next_safe_action,
       data: {
         active_packet: activated.active_packet || null,
         resolved_identity: activated.packet_id || null,
+        dirty_files_count: activated.dirty_files_count,
+        dirty_files: activated.dirty_files,
       },
     });
     return;
@@ -328,6 +349,25 @@ async function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
+  // Enforce clean workspace before closing packet (final state must be clean).
+  const { checkWorkspaceCleanliness } = require("../../lib/workspaceCleanlinessCheck.auth.scaffoldai");
+  const cleanliness = checkWorkspaceCleanliness(commandRepoRoot);
+  if (!cleanliness.clean) {
+    printRefusal("close-feature", {
+      status: "BLOCKED",
+      reason: "workspace_not_clean",
+      message: cleanliness.message,
+      next_safe_action: cleanliness.next_safe_action,
+      data: {
+        active_packet: active.value.packet_id,
+        resolved_identity: active.value.packet_id,
+        dirty_files_count: cleanliness.count,
+        dirty_files: cleanliness.files,
+      },
+    });
+    return;
+  }
+
   const verifyEvidence = scaffoldaiVerifyEvidence.validateVerifyEvidence(
     commandRepoRoot,
     active.value.packet_id
@@ -376,8 +416,8 @@ async function runCloseFeature(commandRepoRoot, argv) {
       printRefusal("close-feature", {
         status: "BLOCKED",
         reason: "verify_passed_flag_required",
-        next_safe_action:
-          "Verify evidence is available. Re-run with: scaffoldai lifecycle close-feature --verify-passed",
+        message: "Verification evidence is available. Preferred flow: work → verify → closeout → review artifacts → single final commit.",
+        next_safe_action: "Verify evidence is fresh and evidence tests passed. Retry with: npm run scaffoldai:close-feature -- --verify-passed",
         data: {
           active_packet: active.value.packet_id,
           resolved_identity: active.value.packet_id,

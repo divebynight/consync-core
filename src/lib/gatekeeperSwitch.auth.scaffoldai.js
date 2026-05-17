@@ -4,6 +4,7 @@ const readline = require("readline");
 
 const { readGatekeeperState, updateStreamSummary } = require("./gatekeeperMount.auth.scaffoldai");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
+const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 
 const STREAMS_ROOT = path.join(".scaffoldai", "streams");
 const STATE_ROOT = path.join(".scaffoldai", "state");
@@ -43,7 +44,22 @@ function hasPauseCheckpoint(streamDocText) {
 // ---------------------------------------------------------------------------
 
 function evaluateSwitch(state, targetStream) {
-  const { activeStreamName, activeStreamText, nextAction, handoff } = state;
+  const { activeStreamName, activeStreamText, nextAction, handoff, rootPath } = state;
+
+  // Enforce clean workspace before allowing stream switch.
+  if (rootPath) {
+    const cleanliness = checkWorkspaceCleanliness(rootPath);
+    if (!cleanliness.clean) {
+      return {
+        decision: "REFUSE",
+        reason: "workspace_not_clean",
+        message: cleanliness.message,
+        dirty_files_count: cleanliness.count,
+        dirty_files: cleanliness.files,
+        next_safe_action: cleanliness.next_safe_action,
+      };
+    }
+  }
 
   if (!targetStream || !targetStream.trim()) {
     return {

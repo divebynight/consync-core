@@ -161,6 +161,26 @@ function initializeFixtureRoot() {
   });
   assert.strictEqual(gitInit.status, 0, `fixture git init failed: ${gitInit.stderr || gitInit.stdout}`);
 
+  // Configure git user for the fixture repo (needed for operations)
+  spawnSync("git", ["config", "user.email", "test@example.com"], { cwd: fixtureRoot });
+  spawnSync("git", ["config", "user.name", "Test User"], { cwd: fixtureRoot });
+
+  // Stage all files so workspace is clean for lifecycle testing
+  const gitAdd = spawnSync("git", ["add", "-A"], {
+    cwd: fixtureRoot,
+    encoding: "utf8",
+    timeout: 15000,
+  });
+  assert.strictEqual(gitAdd.status, 0, `fixture git add failed: ${gitAdd.stderr || gitAdd.stdout}`);
+
+  // Commit the initial state so workspace is clean
+  const gitCommit = spawnSync("git", ["commit", "-m", "fixture: initial state"], {
+    cwd: fixtureRoot,
+    encoding: "utf8",
+    timeout: 15000,
+  });
+  assert.strictEqual(gitCommit.status, 0, `fixture git commit failed: ${gitCommit.stderr || gitCommit.stdout}`);
+
   return fixtureRoot;
 }
 
@@ -221,6 +241,20 @@ function safeActivatePacket(fixtureRoot, packetInput, summary) {
   }
 
   const activated = activatePacket(fixtureRoot, packetInput);
+  
+  // Check if the underlying activation was blocked (e.g., dirty workspace)
+  if (activated.status === "BLOCKED") {
+    summary.blockedTransitions.push({
+      transition: "activate_blocked",
+      reason: activated.reason,
+    });
+    return {
+      status: "blocked",
+      reason: activated.reason,
+      data: activated,
+    };
+  }
+  
   summary.lifecyclePhases.push("packet_activate");
   return { status: "ok", data: activated };
 }
@@ -313,6 +347,30 @@ function safeCleanWorkspace(fixtureRoot, summary) {
   };
 }
 
+function stageFixtureFiles(fixtureRoot) {
+  // Stage any new/modified files in git fixture so workspace stays clean
+  const addResult = spawnSync("git", ["add", "-A"], {
+    cwd: fixtureRoot,
+    encoding: "utf8",
+    timeout: 15000,
+  });
+  if (addResult.status !== 0) {
+    console.error(`[WARN] git add failed: ${addResult.stderr || addResult.stdout}`);
+    return;
+  }
+
+  // Commit the staged files to keep workspace clean
+  const commitResult = spawnSync("git", ["commit", "-m", "fixture: stage lifecycle changes"], {
+    cwd: fixtureRoot,
+    encoding: "utf8",
+    timeout: 15000,
+  });
+  // Commit might fail if there's nothing to commit (nothing changed), which is OK
+  if (commitResult.status !== 0 && !commitResult.stdout.includes("nothing to commit")) {
+    console.error(`[WARN] git commit failed: ${commitResult.stderr || commitResult.stdout}`);
+  }
+}
+
 function main() {
   console.log(`[${TEST_NAME}] Running`);
 
@@ -351,6 +409,7 @@ function main() {
     const intake = intakePacket(fixtureRoot, packetInboxPath);
     assert.strictEqual(intake.accepted, true, "intake should accept valid packet");
     summary.lifecyclePhases.push("packet_intake");
+    stageFixtureFiles(fixtureRoot);  // Keep fixture workspace clean
 
     // Happy path activate.
     const activateResult = safeActivatePacket(fixtureRoot, intake.file_name, summary);
@@ -364,6 +423,7 @@ function main() {
     );
     const secondIntake = intakePacket(fixtureRoot, secondInboxPath);
     assert.strictEqual(secondIntake.accepted, true, "secondary intake should accept");
+    stageFixtureFiles(fixtureRoot);  // Keep fixture workspace clean
 
     const blockedActivation = safeActivatePacket(fixtureRoot, secondIntake.file_name, summary);
     assert.strictEqual(blockedActivation.status, "blocked", "activate while active should be blocked by lifecycle harness");
