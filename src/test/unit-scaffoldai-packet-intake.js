@@ -3,6 +3,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 
 const {
   intakePacket,
@@ -71,7 +72,22 @@ function createFixtureRepo() {
   fs.writeFileSync(path.join(stateDir, "handoff.md"), "handoff\n", "utf8");
   fs.writeFileSync(path.join(packetsDir, "README.md"), "# Packets\n", "utf8");
 
+  spawnSync("git", ["init"], { cwd: fixture, stdio: "pipe" });
+  spawnSync("git", ["config", "user.email", "test@local"], { cwd: fixture, stdio: "pipe" });
+  spawnSync("git", ["config", "user.name", "Test User"], { cwd: fixture, stdio: "pipe" });
+  commitFixture(fixture, "fixture: initialize packet intake state");
+
   return fixture;
+}
+
+function commitFixture(fixture, message) {
+  spawnSync("git", ["add", "."], { cwd: fixture, stdio: "pipe" });
+  const status = spawnSync("git", ["status", "--porcelain"], { cwd: fixture, encoding: "utf8" });
+  if (!status.stdout.trim()) {
+    return;
+  }
+
+  spawnSync("git", ["commit", "-m", message], { cwd: fixture, stdio: "pipe" });
 }
 
 function writeInboxPacket(fixturePath, fileName, content) {
@@ -296,6 +312,8 @@ function main() {
         "activate.md",
         validPacketContent().replace("Add Strict Intake Validation", "Activate Intake Packet")
       );
+
+      fs.writeFileSync(path.join(fixture, "dirty-marker.txt"), "dirty\n", "utf8");
 
       process.exitCode = 0;
       runScaffoldaiPacketCommand(["intake", sourcePath, "--activate"], { repoRoot: fixture });
