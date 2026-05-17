@@ -3,6 +3,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 
 const {
   resolveLatestValidInboxCandidate,
@@ -82,7 +83,22 @@ function createFixture() {
   writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "signals.jsonl"), "");
   writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "shared-memory.jsonl"), "");
 
+  spawnSync("git", ["init"], { cwd: fixtureRoot, stdio: "pipe" });
+  spawnSync("git", ["config", "user.email", "test@local"], { cwd: fixtureRoot, stdio: "pipe" });
+  spawnSync("git", ["config", "user.name", "Test User"], { cwd: fixtureRoot, stdio: "pipe" });
+  commitFixture(fixtureRoot, "fixture: initialize wrapper test state");
+
   return fixtureRoot;
+}
+
+function commitFixture(fixtureRoot, message) {
+  spawnSync("git", ["add", "."], { cwd: fixtureRoot, stdio: "pipe" });
+  const status = spawnSync("git", ["status", "--porcelain"], { cwd: fixtureRoot, encoding: "utf8" });
+  if (!status.stdout.trim()) {
+    return;
+  }
+
+  spawnSync("git", ["commit", "-m", message], { cwd: fixtureRoot, stdio: "pipe" });
 }
 
 function packetContent(title) {
@@ -169,6 +185,7 @@ async function main() {
 
     writeFile(a, packetContent("Alpha Candidate"));
     writeFile(b, packetContent("Beta Candidate"));
+    commitFixture(fixture, "fixture: seed inbox candidates");
 
     // 1) deterministic latest candidate resolution
     {
@@ -199,8 +216,10 @@ async function main() {
     {
       const intake = intakePacket(fixture, b);
       assert.strictEqual(intake.accepted, true);
+      commitFixture(fixture, "fixture: intake packet for activation");
       const activated = activatePacket(fixture, intake.file_name);
       assert.strictEqual(activated.status, "PASS");
+      commitFixture(fixture, "fixture: activate packet");
 
       const blockedStart = await runLifecycle(fixture, ["start-latest"]);
       assert.strictEqual(blockedStart, 1, "start-latest should block while packet is active");
@@ -229,21 +248,25 @@ async function main() {
     {
       const claimed = claimPacket(fixture, "test-client");
       assert.strictEqual(claimed.success, true);
+      commitFixture(fixture, "fixture: claim active packet");
 
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
-      const closeWhileClaimed = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      commitFixture(fixture, "fixture: write verification evidence for claimed packet");
+      const closeWhileClaimed = await runLifecycle(fixture, ["close-feature"]);
       assert.strictEqual(closeWhileClaimed, 1, "close-feature should fail while claim is active");
 
       const released = releasePacket(fixture, "test-client");
       assert.strictEqual(released.success, true);
+      commitFixture(fixture, "fixture: release packet claim");
       console.log("  PASS: close-feature cleanup gating blocks active claim");
     }
 
     // 7) stale verification evidence from another packet must fail closed
     {
       writeVerifyEvidence(fixture, "stale-packet.sdc", "passed");
+      commitFixture(fixture, "fixture: write stale verification evidence");
 
-      const staleEvidence = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const staleEvidence = await runLifecycle(fixture, ["close-feature"]);
       assert.strictEqual(staleEvidence, 1, "close-feature should fail when evidence belongs to another packet");
       console.log("  PASS: stale verification evidence fails closed");
     }
@@ -251,8 +274,9 @@ async function main() {
     // 8) failed verification evidence must fail closed
     {
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "failed");
+      commitFixture(fixture, "fixture: write failed verification evidence");
 
-      const failedEvidence = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+      const failedEvidence = await runLifecycle(fixture, ["close-feature"]);
       assert.strictEqual(failedEvidence, 1, "close-feature should fail when verification evidence failed");
       console.log("  PASS: failed verification evidence blocks close-feature");
     }
@@ -274,7 +298,8 @@ async function main() {
       );
 
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "passed");
-      const success = await runLifecycle(fixture, ["close-feature", "--verify-passed"]);
+  commitFixture(fixture, "fixture: write passing verification evidence");
+      const success = await runLifecycle(fixture, ["close-feature"]);
       assert.strictEqual(success, 0, "close-feature should pass when verification and cleanup gates are met");
 
       const handoffAfter = scaffoldaiState.readHandoff(fixture);
@@ -309,6 +334,16 @@ async function main() {
         expectedPacketId,
         "verification evidence should be bound to the active packet"
       );
+    }
+
+    // 10) close-feature is idempotent after packet is already closed
+    {
+      const secondClose = await runLifecycle(fixture, ["close-feature"]);
+      assert.strictEqual(secondClose, 0, "close-feature should return success when packet is already closed");
+
+      const nextAction = fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "next-action.md"), "utf8");
+      assert.ok(nextAction.includes("PACKAGE: NONE"), "idempotent close-feature should keep idle next-action state");
+      console.log("  PASS: close-feature is idempotent when already closed");
     }
 
     console.log(`[${TEST_NAME}] PASS`);

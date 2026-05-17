@@ -3,6 +3,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 
 const {
   activatePacket,
@@ -117,7 +118,22 @@ function createFixtureRepo() {
     "utf8"
   );
 
+  spawnSync("git", ["init"], { cwd: fixture, stdio: "pipe" });
+  spawnSync("git", ["config", "user.email", "test@local"], { cwd: fixture, stdio: "pipe" });
+  spawnSync("git", ["config", "user.name", "Test User"], { cwd: fixture, stdio: "pipe" });
+  commitFixture(fixture, "fixture: initialize packet activation state");
+
   return fixture;
+}
+
+function commitFixture(fixture, message) {
+  spawnSync("git", ["add", "."], { cwd: fixture, stdio: "pipe" });
+  const status = spawnSync("git", ["status", "--porcelain"], { cwd: fixture, encoding: "utf8" });
+  if (!status.stdout.trim()) {
+    return;
+  }
+
+  spawnSync("git", ["commit", "-m", message], { cwd: fixture, stdio: "pipe" });
 }
 
 function cleanupFixtureRepo(fixturePath) {
@@ -152,6 +168,7 @@ function main() {
       const historyPath = path.join(fixture, ".scaffoldai", "state", "history.jsonl");
       assert.ok(fs.existsSync(historyPath), "history append should run for activation");
       console.log("  PASS: valid activation writes pointer and metadata");
+      commitFixture(fixture, "fixture: activation baseline committed");
     }
 
     // 2) Missing packet rejects activation.
@@ -167,16 +184,22 @@ function main() {
     // 2b) Packet-id input resolves to canonical durable filename.
     {
       clearActivePacket(fixture);
+      commitFixture(fixture, "fixture: clear active packet before packet-id activation");
       const result = activatePacket(fixture, "ALPHA-PROCESS.SDC");
       assert.strictEqual(result.status, "PASS", "packet-id activation should succeed via normalized lookup");
       assert.strictEqual(result.packet_id, "alpha-process.sdc", "packet-id activation should resolve canonical packet id");
       assert.strictEqual(getInFlightPacket(fixture), "alpha-process.sdc", "in-flight packet should match canonical id");
       console.log("  PASS: packet-id activation resolves canonical durable packet");
+      commitFixture(fixture, "fixture: packet-id activation committed");
     }
 
     // 3) Path traversal / outside path is rejected.
     {
+      clearActivePacket(fixture);
+      commitFixture(fixture, "fixture: clear active packet before path traversal checks");
+
       fs.writeFileSync(path.join(fixture, "outside.md"), "# outside\n", "utf8");
+      commitFixture(fixture, "fixture: add outside file for path traversal checks");
 
       assert.throws(
         () => activatePacket(fixture, "../outside.md"),
@@ -194,6 +217,10 @@ function main() {
 
     // 4) Clear clears only pointer, keeps packet files.
     {
+      const reactivated = activatePacket(fixture, "alpha-process.sdc.md");
+      assert.strictEqual(reactivated.status, "PASS", "alpha packet should reactivate before clear test");
+      commitFixture(fixture, "fixture: reactivate alpha before clear behavior check");
+
       const clearResult = clearActivePacket(fixture);
 
       assert.strictEqual(clearResult.previous_packet, "alpha-process.sdc", "clear should report previous packet");
@@ -207,10 +234,12 @@ function main() {
       const packetPath = path.join(fixture, ".scaffoldai", "packets", "alpha-process.sdc.md");
       assert.ok(fs.existsSync(packetPath), "clear must not delete packet files");
       console.log("  PASS: clear behavior only clears active pointer");
+      commitFixture(fixture, "fixture: clear pointer committed");
     }
 
     // 5) MCP-facing status and packet visibility stay consistent.
     {
+      commitFixture(fixture, "fixture: ensure clean workspace before activation visibility check");
       activatePacket(fixture, "alpha-process.sdc.md");
 
       const status = gatherStatus(fixture, { includeGit: false });
@@ -225,6 +254,7 @@ function main() {
 
     // 6) Replacing an active packet is blocked until explicit clear.
     {
+      commitFixture(fixture, "fixture: commit active packet state before replacement guard check");
       const blocked = activatePacket(fixture, "beta-process.sdc.md");
 
       assert.strictEqual(blocked.status, "BLOCKED", "replacement activation should be blocked");
@@ -243,6 +273,7 @@ function main() {
     {
       const claimResult = claimPacket(fixture, "test-client");
       assert.strictEqual(claimResult.success, true, "claim should succeed on active packet");
+      commitFixture(fixture, "fixture: commit claim state before claimed replacement guard check");
 
       const blocked = activatePacket(fixture, "beta-process.sdc.md");
       assert.strictEqual(blocked.status, "BLOCKED", "claimed replacement activation should be blocked");

@@ -145,8 +145,7 @@ function main() {
       console.log("  PASS: output contains all required sections");
     }
 
-    // 13. Without --verify-passed, status must not be READY_FOR_REVIEW when changes exist
-    //     (in a dirty repo) — or be CLEAN/NEEDS_VERIFICATION in clean repo
+    // 13. Without flags, command reports a deterministic closeout status
     {
       const result = runCloseout();
       const out = result.stdout;
@@ -155,23 +154,22 @@ function main() {
       const isNeedsVerification = out.includes("STATUS: NEEDS_VERIFICATION");
       const isBlocked = out.includes("STATUS: BLOCKED");
       const isReadyForReview = out.includes("STATUS: READY_FOR_REVIEW");
+      const isWarning = out.includes("STATUS: WARNING");
 
-      // Without --verify-passed, READY_FOR_REVIEW must not appear
       assert.ok(
-        !isReadyForReview,
-        `STATUS: READY_FOR_REVIEW must not appear without --verify-passed. Got:\n${out}`
+        isClean || isNeedsVerification || isBlocked || isReadyForReview || isWarning,
+        `Expected a valid closeout status with no flags. Got:\n${out}`
       );
 
       assert.ok(
-        isClean || isNeedsVerification || isBlocked,
-        `Expected STATUS: CLEAN, NEEDS_VERIFICATION, or BLOCKED without --verify-passed. Got:\n${out}`
+        !out.includes("--verify-passed"),
+        `Closeout output should not require --verify-passed guidance. Got:\n${out}`
       );
 
-      console.log("  PASS: without --verify-passed → no READY_FOR_REVIEW");
+      console.log("  PASS: closeout status is deterministic without flag ergonomics");
     }
 
-    // 14. With --verify-passed, if there are changes → READY_FOR_REVIEW or WARNING
-    //     If no changes → CLEAN
+    // 14. Legacy --verify-passed remains accepted for backward compatibility
     {
       const result = runCloseout(["--verify-passed"]);
       const out = result.stdout;
@@ -186,13 +184,12 @@ function main() {
         `Expected a valid status with --verify-passed. Got:\n${out}`
       );
 
-      // Verify evidence line mentions --verify-passed
       assert.ok(
-        out.includes("--verify-passed"),
-        `Expected --verify-passed in VERIFICATION EVIDENCE line. Got:\n${out}`
+        !out.includes("--verify-passed"),
+        `Closeout evidence messaging should be evidence-based, not flag-based. Got:\n${out}`
       );
 
-      console.log("  PASS: --verify-passed changes verification evidence line");
+      console.log("  PASS: legacy --verify-passed remains compatible");
     }
 
     // 15. Commit prefix section is advisory (contains prefix text, not a command that runs)

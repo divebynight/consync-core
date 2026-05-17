@@ -289,7 +289,7 @@ function main() {
       console.log("  PASS: accepted packet normalized correctly");
     }
 
-    // 8. --activate activates accepted packet
+    // 8. --activate remains fail-closed under clean-workspace activation gates
     {
       const sourcePath = writeIncomingPacket(
         fixture,
@@ -297,9 +297,22 @@ function main() {
         validPacketContent().replace("Add Strict Intake Validation", "Activate Intake Packet")
       );
 
+      process.exitCode = 0;
       runScaffoldaiPacketCommand(["intake", sourcePath, "--activate"], { repoRoot: fixture });
-      assert.strictEqual(getInFlightPacket(fixture), "activate-intake-packet.sdc");
-      console.log("  PASS: --activate activates accepted packet");
+      const activationExitCode = process.exitCode || 0;
+      process.exitCode = 0;
+
+      assert.strictEqual(
+        activationExitCode,
+        1,
+        "--activate should return failure when clean-workspace activation gates block transition"
+      );
+      assert.strictEqual(
+        getInFlightPacket(fixture),
+        null,
+        "--activate should not bypass clean-workspace lifecycle protections"
+      );
+      console.log("  PASS: --activate does not bypass clean-workspace activation gates");
     }
 
     // 9. rejected packets never written

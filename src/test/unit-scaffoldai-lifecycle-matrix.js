@@ -1083,7 +1083,7 @@ const LIFECYCLE_MATRIX = [
         assert.notStrictEqual(
           closeout.status,
           "READY_FOR_REVIEW",
-          "F07: closeout must not be READY_FOR_REVIEW without --verify-passed evidence"
+          "F07: closeout must not be READY_FOR_REVIEW without valid verification evidence"
         );
         assert.ok(
           closeout.data.verificationEvidence.includes("none"),
