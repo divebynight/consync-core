@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-17T18:37:48.607Z",
-  "timestamp_ms": 1779043068607,
-  "packet_id": "harden-packet-completion-boundaries-and-operator-ergonomics.sdc",
-  "active_packet_id": "harden-packet-completion-boundaries-and-operator-ergonomics.sdc",
+  "timestamp": "2026-05-18T00:37:51.024Z",
+  "timestamp_ms": 1779064671024,
+  "packet_id": "stabilize-end-to-end-packet-operator-flow.sdc",
+  "active_packet_id": "stabilize-end-to-end-packet-operator-flow.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
