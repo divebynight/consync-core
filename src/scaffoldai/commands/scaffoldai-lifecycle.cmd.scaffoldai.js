@@ -3,6 +3,7 @@
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const {
   intakePacket,
+  readLatestIntakeResult,
 } = require("../../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const {
   activatePacket,
@@ -50,6 +51,10 @@ function printRefusal(action, diagnostic) {
   
   if (data.dirty_files_count !== undefined) {
     console.log(`DIRTY FILES:      ${data.dirty_files_count}`);
+    if (data.lifecycle_owned_files_count !== undefined || data.operator_owned_files_count !== undefined) {
+      console.log(`LIFECYCLE-OWNED:  ${data.lifecycle_owned_files_count || 0}`);
+      console.log(`OPERATOR-OWNED:   ${data.operator_owned_files_count || 0}`);
+    }
     if (Array.isArray(data.dirty_files) && data.dirty_files.length > 0) {
       console.log("  Files:");
       for (const file of data.dirty_files.slice(0, 5)) {
@@ -110,6 +115,15 @@ function printWrapperResult(action, details) {
 
   if (details.cleanup_ready !== undefined) {
     console.log(`CLEANUP READY:      ${details.cleanup_ready ? "yes" : "no"}`);
+  }
+
+  if (details.dirty_files_count !== undefined) {
+    console.log(`DIRTY FILES:        ${details.dirty_files_count}`);
+  }
+
+  if (details.lifecycle_owned_files_count !== undefined || details.operator_owned_files_count !== undefined) {
+    console.log(`LIFECYCLE-OWNED:    ${details.lifecycle_owned_files_count || 0}`);
+    console.log(`OPERATOR-OWNED:     ${details.operator_owned_files_count || 0}`);
   }
 
   if (details.lifecycle_phase) {
@@ -202,21 +216,39 @@ function runActivateLatest(commandRepoRoot) {
     return;
   }
 
-  const intake = intakePacket(commandRepoRoot, resolution.value.source_path);
-  if (!intake.accepted) {
-    printRefusal("activate-latest", {
-      status: "BLOCKED",
-      reason: "intake_rejected",
-      next_safe_action: intake.next_safe_action,
-      data: {
-        resolved_identity: intake.packet_id || null,
-        validation_errors: intake.validation_errors || [],
-      },
-    });
-    return;
+  let activationInput = resolution.value.durable_packet_file;
+  let resolvedIdentity = resolution.value.packet_id;
+
+  const latestIntake = readLatestIntakeResult(commandRepoRoot);
+  const canReuseLatestIntake =
+    Boolean(latestIntake) &&
+    latestIntake.accepted === true &&
+    latestIntake.packet_id === resolution.value.packet_id &&
+    typeof latestIntake.file_name === "string";
+
+  if (canReuseLatestIntake) {
+    activationInput = latestIntake.file_name;
+    resolvedIdentity = latestIntake.packet_id;
+  } else {
+    const intake = intakePacket(commandRepoRoot, resolution.value.source_path);
+    if (!intake.accepted) {
+      printRefusal("activate-latest", {
+        status: "BLOCKED",
+        reason: "intake_rejected",
+        next_safe_action: intake.next_safe_action,
+        data: {
+          resolved_identity: intake.packet_id || null,
+          validation_errors: intake.validation_errors || [],
+        },
+      });
+      return;
+    }
+
+    activationInput = intake.file_name;
+    resolvedIdentity = intake.packet_id;
   }
 
-  const activated = activatePacket(commandRepoRoot, intake.file_name);
+  const activated = activatePacket(commandRepoRoot, activationInput);
   if (activated.status === "BLOCKED") {
     printRefusal("activate-latest", {
       status: "BLOCKED",
@@ -225,9 +257,13 @@ function runActivateLatest(commandRepoRoot) {
       next_safe_action: activated.next_safe_action,
       data: {
         active_packet: activated.active_packet || null,
-        resolved_identity: activated.packet_id || null,
+        resolved_identity: activated.packet_id || resolvedIdentity || null,
         dirty_files_count: activated.dirty_files_count,
         dirty_files: activated.dirty_files,
+        lifecycle_owned_files_count: activated.lifecycle_owned_files_count,
+        operator_owned_files_count: activated.operator_owned_files_count,
+        lifecycle_owned_files: activated.lifecycle_owned_files,
+        operator_owned_files: activated.operator_owned_files,
       },
     });
     return;
@@ -383,24 +419,8 @@ async function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  // Enforce clean workspace before closing packet (final state must be clean).
   const { checkWorkspaceCleanliness } = require("../../lib/workspaceCleanlinessCheck.auth.scaffoldai");
-  const cleanliness = checkWorkspaceCleanliness(commandRepoRoot);
-  if (!cleanliness.clean) {
-    printRefusal("close-feature", {
-      status: "BLOCKED",
-      reason: "workspace_not_clean",
-      message: cleanliness.message,
-      next_safe_action: cleanliness.next_safe_action,
-      data: {
-        active_packet: active.value.packet_id,
-        resolved_identity: active.value.packet_id,
-        dirty_files_count: cleanliness.count,
-        dirty_files: cleanliness.files,
-      },
-    });
-    return;
-  }
+  const workspaceBeforeClose = checkWorkspaceCleanliness(commandRepoRoot);
 
   const verifyEvidence = scaffoldaiVerifyEvidence.validateVerifyEvidence(
     commandRepoRoot,
@@ -521,13 +541,29 @@ async function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
+  const workspaceAfterClose = checkWorkspaceCleanliness(commandRepoRoot);
+  const finalDirtyCount = workspaceAfterClose.clean ? 0 : workspaceAfterClose.count;
+  const finalLifecycleOwnedCount = workspaceAfterClose.clean
+    ? 0
+    : workspaceAfterClose.lifecycle_owned_files_count || 0;
+  const finalOperatorOwnedCount = workspaceAfterClose.clean
+    ? 0
+    : workspaceAfterClose.operator_owned_files_count || 0;
+
+  const nextSafeAction = workspaceAfterClose.clean
+    ? "Workspace is clean. Activate the next packet intentionally."
+    : "Workspace intentionally remains dirty after close-feature. Review and commit operator-owned and lifecycle-owned artifacts, then activate the next packet.";
+
   printWrapperResult("close-feature", {
     active_packet: "(none)",
     resolved_identity: active.value.packet_id,
     verification_ready: true,
     cleanup_ready: true,
     lifecycle_phase: "packet_closed_and_workspace_cleaned",
-    next_safe_action: "Review git status and run explicit packet activation for the next packet.",
+    dirty_files_count: finalDirtyCount,
+    lifecycle_owned_files_count: finalLifecycleOwnedCount,
+    operator_owned_files_count: finalOperatorOwnedCount,
+    next_safe_action: nextSafeAction,
     status: "PASS",
   });
 }

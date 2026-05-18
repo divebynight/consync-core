@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: stabilize-end-to-end-packet-operator-flow.sdc
+PACKAGE: stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for stabilize-end-to-end-packet-operator-flow.sdc.
+Lifecycle close-feature closeout after verify evidence for stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc.
 
 FILES CREATED
 

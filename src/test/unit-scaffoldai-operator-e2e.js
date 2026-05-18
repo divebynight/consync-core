@@ -1,35 +1,16 @@
 "use strict";
 
-/**
- * E2E-style operator workflow test.
- * 
- * This test covers the full real operator journey:
- *   1. Intake an SDC candidate
- *   2. Activate the packet
- *   3. Do work (modify files)
- *   4. Run verification
- *   5. Closeout (with generated artifacts)
- *   6. Simulate final commit boundary
- *   7. Verify clean status
- * 
- * Purpose: Make the basic happy path boring, predictable, and testable.
- * Tests that the operator does not need to remember flags, choreography, or artifact timing.
- */
-
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
-const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
-const { activatePacket, clearActivePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
-const { runVerifyTool } = require("../lib/scaffoldaiVerifyRun.auth.scaffoldai");
-const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
-const { cleanWorkspace } = require("../lib/scaffoldaiHousekeeping.auth.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
-const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
+const { claimPacket, releasePacket } = require("../lib/packetClaim.auth.scaffoldai");
+const scaffoldaiVerifyEvidence = require("../lib/scaffoldaiVerifyEvidence.state.scaffoldai");
+const { checkWorkspaceCleanliness } = require("../lib/workspaceCleanlinessCheck.auth.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-operator-e2e";
 const repoRoot = getRepoRoot(__dirname);
@@ -49,9 +30,10 @@ function writeJson(filePath, value) {
 }
 
 function commitFixtureFiles(fixtureRoot, message) {
-  const addResult = spawnSync("git", ["add", "-A"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
-  if (addResult.status !== 0) return;
-  const commitResult = spawnSync("git", ["commit", "-m", message], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
+  spawnSync("git", ["add", "-A"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
+  const status = spawnSync("git", ["status", "--short"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
+  if (!status.stdout.trim()) return;
+  spawnSync("git", ["commit", "-m", message], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
 }
 
 function initializeFixture() {
@@ -75,21 +57,21 @@ function initializeFixture() {
 
   writeJson(path.join(scaffoldaiRoot, "state", "active-runtime.json"), { in_flight_packet: null });
   writeFile(path.join(scaffoldaiRoot, "state", "next-action.md"), "TYPE: REFACTOR\nPACKAGE: NONE\n\nNo active packet.\n");
+  writeFile(
+    path.join(scaffoldaiRoot, "state", "snapshot.md"),
+    ["# Consync Snapshot", "", "## Current Package", "", "- type: `REFACTOR`", "- package: `NONE`", ""].join("\n")
+  );
   writeFile(path.join(scaffoldaiRoot, "state", "active-stream.md"), "ACTIVE STREAM\nprocess\n");
   writeFile(path.join(scaffoldaiRoot, "state", "history.jsonl"), "{\"seed\":\"history\"}\n");
-  writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "signals.jsonl"), "{\"seed\":\"signals\"}\n");
-  writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "shared-memory.jsonl"), "{\"seed\":\"shared\"}\n");
+  writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "signals.jsonl"), "");
+  writeFile(path.join(scaffoldaiRoot, "runtime", "mcp", "shared-memory.jsonl"), "");
   writeFile(path.join(fixtureRoot, "README.md"), "# E2E Operator Test Fixture\n");
 
-  // Initialize git repo
   spawnSync("git", ["init"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
   spawnSync("git", ["config", "user.email", "test@example.com"], { cwd: fixtureRoot });
   spawnSync("git", ["config", "user.name", "Test User"], { cwd: fixtureRoot });
 
-  // Commit initial state
-  spawnSync("git", ["add", "-A"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
-  spawnSync("git", ["commit", "-m", "fixture: initial state"], { cwd: fixtureRoot, encoding: "utf8", timeout: 15000 });
-
+  commitFixtureFiles(fixtureRoot, "fixture: initial state");
   return fixtureRoot;
 }
 
@@ -101,134 +83,179 @@ function writeInboxPacket(fixtureRoot, fileName, title) {
       `# SDC — ${title}`,
       "",
       "MODE: PROCESS_REFACTOR",
-      "EXECUTION SURFACE: E2E operator workflow test",
+      "EXECUTION SURFACE: deterministic operator workflow test",
       "",
       "APPROVAL:",
       "  execute: APPROVED",
-      "  commit: APPROVED",
+      "  commit: PENDING",
       "",
       "GOAL:",
-      "Validate that the operator workflow is predictable and requires minimal guidance.",
+      "Validate phase-1 lifecycle choreography and ownership semantics.",
       "",
       "TASKS:",
-      "1. Intake the packet.",
-      "2. Activate it.",
-      "3. Simulate work (create a file).",
-      "4. Verify evidence.",
-      "5. Closeout and cleanup.",
-      "6. Confirm clean state.",
+      "1. Intake",
+      "2. Activate",
+      "3. Verify and close",
       "",
       "VERIFY:",
-      "All phases complete without confusion or unexpected flags.",
+      "- npm run verify:scaffoldai",
       "",
       "OUTPUT:",
-      "- E2E test passes",
-      "- All phases report success",
-      "- Final state is clean",
+      "- deterministic state transitions",
       "",
       "CONSTRAINTS:",
-      "- No auto-commit",
-      "- No auto-push",
-      "- Preserve fail-closed behavior",
+      "- no autonomous execution",
+      "- no autonomous commits",
+      "",
     ].join("\n")
   );
+
   return inboxPath;
+}
+
+function appendCompletionSignal(fixtureRoot, packetId) {
+  const signalPath = path.join(fixtureRoot, ".scaffoldai", "runtime", "mcp", "signals.jsonl");
+  fs.appendFileSync(
+    signalPath,
+    `${JSON.stringify({
+      timestamp: "2026-05-17T00:00:00.000Z",
+      client_id: "operator-e2e-client",
+      signal_type: "packet_completed",
+      packet: `${packetId}.md`,
+      message: "Operator e2e completion",
+      verify_command: "npm run verify:scaffoldai",
+      verify_status: "passed",
+      changed_files: ["src/test/unit-scaffoldai-operator-e2e.js"],
+    })}\n`,
+    "utf8"
+  );
+}
+
+function writeVerifyEvidence(fixtureRoot, packetId) {
+  const evidence = scaffoldaiVerifyEvidence.buildVerifyEvidence({
+    active_packet_id: packetId,
+    packet_id: packetId,
+    verify_command: "npm run verify:scaffoldai",
+    verify_target: "scaffoldai",
+    verify_status: "passed",
+    exit_code: 0,
+    surface: "scaffoldai",
+  });
+
+  scaffoldaiVerifyEvidence.writeVerifyEvidence(fixtureRoot, evidence);
+}
+
+async function runLifecycle(fixtureRoot, args) {
+  process.exitCode = 0;
+  await runScaffoldaiLifecycleCommand(args, { repoRoot: fixtureRoot });
+  return process.exitCode || 0;
+}
+
+async function runCycle(fixtureRoot, cycleLabel) {
+  const packetPath = writeInboxPacket(fixtureRoot, `${cycleLabel}.sdc.md`, `Operator ${cycleLabel}`);
+  commitFixtureFiles(fixtureRoot, `fixture: add ${cycleLabel} candidate`);
+
+  const intakeResult = await runLifecycle(fixtureRoot, ["intake-latest"]);
+  assert.strictEqual(intakeResult, 0, `${cycleLabel}: intake-latest should pass`);
+
+  const dirtyAfterIntake = checkWorkspaceCleanliness(fixtureRoot);
+  assert.strictEqual(dirtyAfterIntake.clean, false, `${cycleLabel}: intake should dirty workspace`);
+  assert.ok(
+    dirtyAfterIntake.lifecycle_owned_files_count > 0,
+    `${cycleLabel}: dirty intake should report lifecycle-owned artifacts`
+  );
+
+  const blockedActivation = await runLifecycle(fixtureRoot, ["activate-latest"]);
+  assert.strictEqual(blockedActivation, 1, `${cycleLabel}: activation should block until intake artifacts are committed`);
+
+  commitFixtureFiles(fixtureRoot, `fixture: commit ${cycleLabel} intake artifacts`);
+
+  const activateResult = await runLifecycle(fixtureRoot, ["activate-latest"]);
+  assert.strictEqual(activateResult, 0, `${cycleLabel}: activation should pass after commit`);
+
+  const activePacket = getInFlightPacket(fixtureRoot);
+  assert.ok(activePacket, `${cycleLabel}: packet should be active`);
+
+  const claim = claimPacket(fixtureRoot, "operator-e2e-client");
+  assert.strictEqual(claim.success, true, `${cycleLabel}: claim should succeed`);
+
+  const closeWhileClaimed = await runLifecycle(fixtureRoot, ["close-feature"]);
+  assert.strictEqual(closeWhileClaimed, 1, `${cycleLabel}: close-feature should block while claim active`);
+
+  const release = releasePacket(fixtureRoot, "operator-e2e-client");
+  assert.strictEqual(release.success, true, `${cycleLabel}: release should recover interrupted close transition`);
+
+  writeFile(path.join(fixtureRoot, `${cycleLabel}-WORK.md`), `${cycleLabel} operator work\n`);
+  writeVerifyEvidence(fixtureRoot, activePacket);
+  appendCompletionSignal(fixtureRoot, activePacket);
+
+  const closeResult = await runLifecycle(fixtureRoot, ["close-feature"]);
+  assert.strictEqual(closeResult, 0, `${cycleLabel}: close-feature should pass with dirty active work`);
+
+  const dirtyAfterClose = checkWorkspaceCleanliness(fixtureRoot);
+  assert.strictEqual(dirtyAfterClose.clean, false, `${cycleLabel}: close-feature should leave explicit dirty state`);
+
+  return {
+    packetPath,
+    packetId: activePacket,
+    dirtyAfterClose,
+  };
 }
 
 async function main() {
   const fixture = initializeFixture();
 
   try {
-    console.log(`\n[${TEST_NAME}] Starting E2E operator workflow test\n`);
+    console.log(`[${TEST_NAME}] Running`);
 
-    // ===== PHASE 1: Intake =====
-    console.log("PHASE 1: Intake");
-    const inboxPath = writeInboxPacket(fixture, "e2e-test-packet.sdc.md", "E2E Test Packet");
-    commitFixtureFiles(fixture, "fixture: add candidate");
+    const firstCycle = await runCycle(fixture, "cycle-one");
 
-    const intakeResult = intakePacket(fixture, inboxPath);
-    assert.ok(intakeResult.accepted, "packet should be accepted");
-    assert.ok(intakeResult.packet_id, "packet should have ID");
-    commitFixtureFiles(fixture, "fixture: after intake");
-    console.log(`  ✓ Intake: packet ${intakeResult.packet_id} accepted\n`);
+    const blockedStartSecond = await runLifecycle(fixture, ["activate-latest"]);
+    assert.strictEqual(
+      blockedStartSecond,
+      1,
+      "activation should remain blocked after close-feature until operator commits lifecycle-owned artifacts"
+    );
 
-    // ===== PHASE 2: Activate =====
-    console.log("PHASE 2: Activate");
-    const activateResult = activatePacket(fixture, intakeResult.packet_id);
-    assert.ok(activateResult.status !== "BLOCKED", `activation should succeed, got ${activateResult.status}`);
-    commitFixtureFiles(fixture, "fixture: after activation");
+    commitFixtureFiles(fixture, "fixture: commit cycle-one close artifacts");
 
-    const activePacket = getInFlightPacket(fixture);
-    assert.strictEqual(activePacket, intakeResult.packet_id, "active packet should match activated packet");
-    console.log(`  ✓ Activate: packet is now active\n`);
+    const secondPacketPath = writeInboxPacket(fixture, "cycle-two.sdc.md", "Operator cycle-two");
+    commitFixtureFiles(fixture, "fixture: add cycle-two candidate");
 
-    // ===== PHASE 3: Work (modify files) =====
-    console.log("PHASE 3: Do work");
-    const workFile = path.join(fixture, "WORK.md");
-    writeFile(workFile, "# Work done by agent\n\nThis file was generated during packet work.\n");
-    console.log(`  ✓ Work: created WORK.md\n`);
+    const intakeTwo = await runLifecycle(fixture, ["intake-latest"]);
+    assert.strictEqual(intakeTwo, 0, "cycle-two intake should pass");
+    commitFixtureFiles(fixture, "fixture: commit cycle-two intake artifacts");
 
-    // ===== PHASE 4: Verify =====
-    console.log("PHASE 4: Verify");
-    // Use test-aware verify runner which properly persists evidence
-    const verifyResult = runVerifyTool(fixture, "scaffoldai");
-    assert.ok(verifyResult && verifyResult.status !== "FAILED", "verify should succeed");
-    commitFixtureFiles(fixture, "fixture: after verify (generated evidence)");
-    console.log(`  ✓ Verify: evidence persisted\n`);
+    const activateTwo = await runLifecycle(fixture, ["activate-latest"]);
+    assert.strictEqual(activateTwo, 0, "cycle-two activation should pass");
 
-    // ===== PHASE 5: Closeout =====
-    console.log("PHASE 5: Closeout");
-    // Manually create verification evidence record so closeout passes
-    const streamRoot = path.join(fixture, ".scaffoldai", "streams", "active-stream");
-    const verifyEvidencePath = path.join(streamRoot, "verify-evidence.jsonl");
-    writeFile(verifyEvidencePath, JSON.stringify({
-      recorded_at: new Date().toISOString(),
-      surface: "scaffoldai",
-      outcome: "PASS",
-      command: "npm run verify:scaffoldai",
-      source: "test",
-    }) + "\n");
-    
-    // Commit the evidence so git is clean
-    commitFixtureFiles(fixture, "fixture: after verification evidence");
-    
-    const closeoutReady = gatherCloseoutReadiness(fixture, {});
-    const validCloseoutStatus = ["PASS", "CLEAN"];
-    assert.ok(validCloseoutStatus.includes(closeoutReady.status), 
-      `closeout should be PASS or CLEAN, got ${closeoutReady.status}`);
-    console.log(`  ✓ Closeout: ready for cleanup\n`);
+    const packetTwo = getInFlightPacket(fixture);
+    assert.ok(packetTwo, "cycle-two packet should be active");
 
-    // ===== PHASE 6: Cleanup =====
-    console.log("PHASE 6: Cleanup");
-    const cleanup = cleanWorkspace(fixture, { includeRuntimeLogs: false });
-    assert.strictEqual(cleanup.status, "PASS", `cleanup should succeed, got ${cleanup.status}`);
-    commitFixtureFiles(fixture, "fixture: after cleanup");
-    console.log(`  ✓ Cleanup: workspace cleaned\n`);
+    // Verify-evidence ownership semantics: stale evidence from previous packet must fail close-feature.
+    const staleEvidenceClose = await runLifecycle(fixture, ["close-feature"]);
+    assert.strictEqual(staleEvidenceClose, 1, "cycle-two close-feature should fail on stale verify evidence ownership");
 
-    // ===== PHASE 7: Final commit boundary (simulated) =====
-    console.log("PHASE 7: Final commit boundary");
-    const activePacketAfterCleanup = getInFlightPacket(fixture);
-    assert.strictEqual(activePacketAfterCleanup, null, "active packet should be cleared after cleanup");
-    console.log(`  ✓ Final boundary: active packet cleared\n`);
+    writeVerifyEvidence(fixture, packetTwo);
+    appendCompletionSignal(fixture, packetTwo);
 
-    // ===== PHASE 8: Clean status =====
-    console.log("PHASE 8: Verify clean status");
-    const gitStatus = spawnSync("git", ["status", "--short"], { cwd: fixture, encoding: "utf8" });
-    assert.strictEqual(gitStatus.status, 0, "git status should succeed");
-    assert.strictEqual(gitStatus.stdout.trim(), "", "workspace should be clean after cleanup");
-    console.log(`  ✓ Clean status: workspace is clean\n`);
+    const closeTwo = await runLifecycle(fixture, ["close-feature"]);
+    assert.strictEqual(closeTwo, 0, "cycle-two close-feature should pass with packet-owned verify evidence");
 
-    console.log(`[${TEST_NAME}] PASS ✓`);
-    console.log(`\nOperator happy path validated:`);
-    console.log(`  • Intake → Activate → Work → Verify → Closeout → Clean`);
-    console.log(`  • No confusing flags or choreography required`);
-    console.log(`  • Artifacts generated and committed predictably\n`);
+    assert.strictEqual(
+      fs.existsSync(secondPacketPath),
+      false,
+      "consumed inbox candidate should be removed after successful close-feature cleanup"
+    );
+
+    console.log(`[${TEST_NAME}] PASS`);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 }
 
-main().catch((err) => {
-  console.error(`[${TEST_NAME}] FAIL\n`, err);
+main().catch((error) => {
+  console.error(`[${TEST_NAME}] FAIL`);
+  console.error(error.stack || error.message);
   process.exit(1);
 });

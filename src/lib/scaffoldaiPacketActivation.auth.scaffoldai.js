@@ -254,6 +254,10 @@ function activatePacket(rootPath, packetInput) {
       message: cleanliness.message,
       dirty_files_count: cleanliness.count,
       dirty_files: cleanliness.files,
+      lifecycle_owned_files_count: cleanliness.lifecycle_owned_files_count || 0,
+      operator_owned_files_count: cleanliness.operator_owned_files_count || 0,
+      lifecycle_owned_files: cleanliness.lifecycle_owned_files || [],
+      operator_owned_files: cleanliness.operator_owned_files || [],
       next_safe_action: cleanliness.next_safe_action,
     };
   }

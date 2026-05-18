@@ -8,6 +8,7 @@ const { spawnSync } = require("child_process");
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { activatePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
+const { checkWorkspaceCleanliness } = require("../lib/workspaceCleanlinessCheck.auth.scaffoldai");
 const {
   claimPacket,
   releasePacket,
@@ -382,6 +383,7 @@ function main() {
       lifecyclePhases: [],
       blockedTransitions: [],
       collisions: [],
+      recoveries: [],
       cleanup: null,
       preservedDurableArtifacts: null,
       runtimeIsolation: null,
@@ -409,6 +411,26 @@ function main() {
     const intake = intakePacket(fixtureRoot, packetInboxPath);
     assert.strictEqual(intake.accepted, true, "intake should accept valid packet");
     summary.lifecyclePhases.push("packet_intake");
+
+    const dirtyAfterIntake = checkWorkspaceCleanliness(fixtureRoot);
+    assert.strictEqual(dirtyAfterIntake.clean, false, "intake should dirty workspace before activation");
+    assert.ok(
+      dirtyAfterIntake.lifecycle_owned_files_count > 0,
+      "dirty workspace should explicitly report lifecycle-owned artifacts"
+    );
+
+    const activationBlockedByDirtyIntake = activatePacket(fixtureRoot, intake.file_name);
+    assert.strictEqual(
+      activationBlockedByDirtyIntake.status,
+      "BLOCKED",
+      "activation should block until lifecycle-owned intake artifacts are committed"
+    );
+    assert.strictEqual(activationBlockedByDirtyIntake.reason, "workspace_not_clean");
+    summary.blockedTransitions.push({
+      transition: "activate_with_uncommitted_intake_artifacts",
+      reason: activationBlockedByDirtyIntake.reason,
+    });
+
     stageFixtureFiles(fixtureRoot);  // Keep fixture workspace clean
 
     // Happy path activate.
@@ -506,6 +528,11 @@ function main() {
     const release = releasePacket(fixtureRoot, "client-a");
     assert.strictEqual(release.success, true, "claim release should succeed");
     summary.lifecyclePhases.push("claim_release");
+    summary.recoveries.push({
+      transition: "cleanup_while_claimed",
+      recovery_action: "release_claim_then_retry",
+      recovered: true,
+    });
 
     // Happy path closeout readiness observation.
     const closeoutReadiness = gatherCloseoutReadiness(fixtureRoot, { verifyPassed: true });
@@ -535,6 +562,17 @@ function main() {
 
     assert.strictEqual(completionStatus.data.returned_count, 1, "completion status should include emitted packet_completed record");
     assert.strictEqual(completionStatus.data.completions[0].verify_status, "passed", "completion verify status should be passed");
+
+    const ownershipMismatch = scaffoldaiVerifyEvidence.validateVerifyEvidence(
+      fixtureRoot,
+      "other-packet.sdc"
+    );
+    assert.strictEqual(ownershipMismatch.valid, false, "verify evidence should be packet-owned");
+    assert.strictEqual(
+      ownershipMismatch.reason,
+      "verify_evidence_packet_mismatch",
+      "verify evidence packet mismatch should fail closed"
+    );
 
     assert.ok(
       fs.existsSync(path.join(fixtureRoot, ".scaffoldai", "packets", `${intake.packet_id}.md`)),

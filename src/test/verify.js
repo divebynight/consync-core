@@ -505,6 +505,9 @@ function main() {
   runNodeStep("[verify] ScaffoldAI lifecycle convenience wrappers", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-wrappers.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI operator e2e workflow", [path.join(repoRoot, "src", "test", "unit-scaffoldai-operator-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI MCP read-only surface", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-readonly.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

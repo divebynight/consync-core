@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — last package: stabilize-end-to-end-packet-operator-flow.sdc (PASS)
+- summary: active — last package: stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc (PASS)
 
 ## Active Checkpoint
 

@@ -167,6 +167,23 @@ function writeVerifyEvidence(fixtureRoot, packetId, verifyStatus) {
   fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + "\n", "utf8");
 }
 
+function readGitDirtyFiles(fixtureRoot) {
+  const status = spawnSync("git", ["status", "--short"], {
+    cwd: fixtureRoot,
+    encoding: "utf8",
+  });
+
+  if (status.status !== 0) {
+    return [];
+  }
+
+  return status.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[A-Z?]{1,2}\s+/, ""));
+}
+
 async function runLifecycle(fixtureRoot, argv) {
   process.exitCode = 0;
   await runScaffoldaiLifecycleCommand(argv, { repoRoot: fixtureRoot });
@@ -344,6 +361,116 @@ async function main() {
       const nextAction = fs.readFileSync(path.join(fixture, ".scaffoldai", "state", "next-action.md"), "utf8");
       assert.ok(nextAction.includes("PACKAGE: NONE"), "idempotent close-feature should keep idle next-action state");
       console.log("  PASS: close-feature is idempotent when already closed");
+    }
+
+    // 11) intake dirties workspace and activation is blocked until operator commits lifecycle-owned artifacts
+    {
+      const phaseFixture = createFixture();
+      try {
+        const inbox = path.join(phaseFixture, ".scaffoldai", "inbox", "phase1-intake.sdc.md");
+        writeFile(inbox, packetContent("Phase 1 Intake"));
+        commitFixture(phaseFixture, "fixture: phase1 intake candidate");
+
+        const intake = intakePacket(phaseFixture, inbox);
+        assert.strictEqual(intake.accepted, true, "phase1 intake should be accepted");
+
+        const dirtyAfterIntake = readGitDirtyFiles(phaseFixture);
+        assert.ok(dirtyAfterIntake.length > 0, "intake should dirty workspace before activation");
+
+        const blockedActivation = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(blockedActivation.status, "BLOCKED", "activation should block on uncommitted intake artifacts");
+        assert.strictEqual(blockedActivation.reason, "workspace_not_clean", "activation should fail with explicit dirty workspace reason");
+
+        commitFixture(phaseFixture, "fixture: commit lifecycle-owned intake artifacts");
+        const activated = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(activated.status, "PASS", "activation should succeed after committing intake artifacts");
+      } finally {
+        fs.rmSync(phaseFixture, { recursive: true, force: true });
+      }
+      console.log("  PASS: intake dirties workspace and activation waits for explicit operator commit");
+    }
+
+    // 12) close-feature should allow dirty active work and then leave deterministic dirty lifecycle artifacts for commit choreography
+    {
+      const phaseFixture = createFixture();
+      try {
+        const inbox = path.join(phaseFixture, ".scaffoldai", "inbox", "phase1-close.sdc.md");
+        writeFile(inbox, packetContent("Phase 1 Close"));
+        commitFixture(phaseFixture, "fixture: phase1 close candidate");
+
+        const intake = intakePacket(phaseFixture, inbox);
+        assert.strictEqual(intake.accepted, true);
+        commitFixture(phaseFixture, "fixture: phase1 close intake committed");
+
+        const activated = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(activated.status, "PASS");
+        commitFixture(phaseFixture, "fixture: phase1 close activation committed");
+
+        writeFile(path.join(phaseFixture, "OPERATOR-WORK.md"), "operator work\n");
+
+        writeVerifyEvidence(phaseFixture, activated.packet_id, "passed");
+        appendCompletionSignal(phaseFixture, activated.packet_id, "passed");
+
+        const closeResult = await runLifecycle(phaseFixture, ["close-feature"]);
+        assert.strictEqual(
+          closeResult,
+          0,
+          "close-feature should succeed with dirty active packet workspace and defer commit choreography to operator"
+        );
+
+        const dirtyAfterClose = readGitDirtyFiles(phaseFixture);
+        assert.ok(dirtyAfterClose.length > 0, "close-feature should leave intentional dirty artifacts for operator commit");
+      } finally {
+        fs.rmSync(phaseFixture, { recursive: true, force: true });
+      }
+      console.log("  PASS: close-feature succeeds with dirty active work and leaves deterministic dirty state");
+    }
+
+    // 13) repeated verify/close cycles enforce verify-evidence packet ownership
+    {
+      const phaseFixture = createFixture();
+      try {
+        const inboxA = path.join(phaseFixture, ".scaffoldai", "inbox", "cycle-a.sdc.md");
+        writeFile(inboxA, packetContent("Cycle A"));
+        commitFixture(phaseFixture, "fixture: cycle A candidate");
+
+        const intakeA = intakePacket(phaseFixture, inboxA);
+        assert.strictEqual(intakeA.accepted, true);
+        commitFixture(phaseFixture, "fixture: cycle A intake");
+
+        const activateA = activatePacket(phaseFixture, intakeA.file_name);
+        assert.strictEqual(activateA.status, "PASS");
+        commitFixture(phaseFixture, "fixture: cycle A activate");
+
+        writeVerifyEvidence(phaseFixture, activateA.packet_id, "passed");
+        appendCompletionSignal(phaseFixture, activateA.packet_id, "passed");
+        const closeA = await runLifecycle(phaseFixture, ["close-feature"]);
+        assert.strictEqual(closeA, 0, "cycle A close-feature should pass");
+        commitFixture(phaseFixture, "fixture: cycle A close committed");
+
+        const inboxB = path.join(phaseFixture, ".scaffoldai", "inbox", "cycle-b.sdc.md");
+        writeFile(inboxB, packetContent("Cycle B"));
+        commitFixture(phaseFixture, "fixture: cycle B candidate");
+
+        const intakeB = intakePacket(phaseFixture, inboxB);
+        assert.strictEqual(intakeB.accepted, true);
+        commitFixture(phaseFixture, "fixture: cycle B intake");
+
+        const activateB = activatePacket(phaseFixture, intakeB.file_name);
+        assert.strictEqual(activateB.status, "PASS");
+        commitFixture(phaseFixture, "fixture: cycle B activate");
+
+        const staleClose = await runLifecycle(phaseFixture, ["close-feature"]);
+        assert.strictEqual(staleClose, 1, "cycle B close-feature should fail on cycle A verify evidence ownership");
+
+        writeVerifyEvidence(phaseFixture, activateB.packet_id, "passed");
+        appendCompletionSignal(phaseFixture, activateB.packet_id, "passed");
+        const closeB = await runLifecycle(phaseFixture, ["close-feature"]);
+        assert.strictEqual(closeB, 0, "cycle B close-feature should pass with packet-owned verify evidence");
+      } finally {
+        fs.rmSync(phaseFixture, { recursive: true, force: true });
+      }
+      console.log("  PASS: repeated verify/close cycles enforce packet-scoped verification evidence ownership");
     }
 
     console.log(`[${TEST_NAME}] PASS`);
