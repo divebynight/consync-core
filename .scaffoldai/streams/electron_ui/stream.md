@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — last package: harden-packet-completion-boundaries-and-operator-ergonomics.sdc (PASS)
+- summary: active — last package: stabilize-end-to-end-packet-operator-flow.sdc (PASS)
 
 ## Active Checkpoint
 

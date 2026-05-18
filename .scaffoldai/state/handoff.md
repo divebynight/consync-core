@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: harden-packet-completion-boundaries-and-operator-ergonomics.sdc
+PACKAGE: stabilize-end-to-end-packet-operator-flow.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for harden-packet-completion-boundaries-and-operator-ergonomics.sdc.
+Lifecycle close-feature closeout after verify evidence for stabilize-end-to-end-packet-operator-flow.sdc.
 
 FILES CREATED
 
