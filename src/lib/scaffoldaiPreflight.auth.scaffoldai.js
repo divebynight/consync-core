@@ -4,7 +4,7 @@ const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { getGitStatus } = require("./gitStatus.util.shared");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 
-const REQUIRED_STATE_FILES = [
+const RUNTIME_PROJECTION_STATE_FILES = [
   "active-stream.md",
   "active-runtime.json",
   "next-action.md",
@@ -25,7 +25,7 @@ function checkStateFiles(repoRoot) {
   const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
   const results = [];
 
-  for (const filename of REQUIRED_STATE_FILES) {
+  for (const filename of RUNTIME_PROJECTION_STATE_FILES) {
     const fullPath = path.join(STATE_DIR, filename);
     const exists = fs.existsSync(fullPath);
     results.push({ filename, exists });
@@ -117,10 +117,10 @@ function gatherPreflightResults(repoRoot) {
   const blockers = [];
   const warnings = [];
 
-  // Check 1: required state files
+  // Check 1: runtime projection state files (may be absent in clean clones)
   const stateFileResults = checkStateFiles(repoRoot);
   for (const f of stateFileResults.filter((r) => !r.exists)) {
-    blockers.push(`Missing required state file: ${f.filename}`);
+    warnings.push(`Missing runtime state file: ${f.filename}`);
   }
 
   // Check 2: active-contract integrity
