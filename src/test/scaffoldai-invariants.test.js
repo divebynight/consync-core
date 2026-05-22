@@ -911,14 +911,12 @@ function checkStateSchemaInvariant() {
     "history", // Observational history artifacts (not authoritative state)
   ]);
 
-  // Required files that must always exist
+  // Required files that must always exist in git-tracked baseline state.
+  // Runtime state projections are approved but may be absent on clean CI clones
+  // because they are intentionally ignored in .gitignore.
   const REQUIRED_STATE_FILES = new Set([
     "active-contract.md",
-    "active-runtime.json",
-    "active-stream.md",
-    "next-action.md",
     "handoff.md",
-    "snapshot.md",
     "cleanup-complete-checkpoint.md",
     "history.md",
     // history.jsonl is intentionally NOT required — created on first append
@@ -966,7 +964,7 @@ function checkStateSchemaInvariant() {
     const filePath = path.join(stateDir, requiredFile);
     if (!fs.existsSync(filePath)) {
       violations.push(
-        `  Missing required file: ${requiredFile} (per .scaffoldai/contracts/state-schema.contract.md)`
+        `  Missing required tracked file: ${requiredFile} (per .scaffoldai/contracts/state-schema.contract.md)`
       );
     }
   }

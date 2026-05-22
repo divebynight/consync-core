@@ -29,6 +29,8 @@ These files represent the current operational runtime state of ScaffoldAI:
 - `cleanup-complete-checkpoint.md` — Cleanup completion marker
 - `verify-evidence.json` — Current canonical verification evidence for active packet (timestamp, status, command)
 
+Runtime state projections (`active-runtime.json`, `active-stream.md`, `next-action.md`, `snapshot.md`) are approved schema members but may be absent on clean clones because they are intentionally untracked runtime surfaces.
+
 Durable process policy is tracked separately at:
 
 - `.scaffoldai/contracts/active-policy.json` — mode + allowed/blocked packet types + policy requirements
@@ -138,6 +140,17 @@ Recommended workflow before commit:
 
 `--include-runtime-logs` should be used only when intentionally clearing local runtime telemetry.
 
+## Required Baseline State Files
+
+The following `.scaffoldai/state/` files are required as git-tracked baseline schema surfaces and must exist in clean CI clones:
+
+- `active-contract.md`
+- `handoff.md`
+- `cleanup-complete-checkpoint.md`
+- `history.md`
+
+All other approved state artifacts remain allowed but may be absent depending on local runtime lifecycle activity.
+
 ---
 
 ## Adding New State Artifacts
@@ -191,7 +204,7 @@ The invariant test `checkStateSchemaInvariant()` in `src/test/scaffoldai-invaria
 2. Comparing against the approved list in this contract
 3. Failing if unexpected files or directories appear
 4. Allowing `history.jsonl` to be absent (created on first append)
-5. Failing if required operational state files are missing
+5. Failing if required tracked baseline files are missing
 
 Run verification:
 
