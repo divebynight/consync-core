@@ -49,19 +49,8 @@ function checkStateFilesPresent(repoRoot) {
     };
   }
 
-  // Runtime projection files are intentionally untracked — missing on clean clones is expected
-  const runtimeProjections = ["active-stream.md", "active-runtime.json", "next-action.md"];
-  const missing = runtimeProjections.filter((f) => !fs.existsSync(path.join(STATE_DIR, f)));
-
-  if (missing.length === 0) return null;
-
-  return {
-    category: CATEGORIES.TOOL_BOUNDARY_CONCERN,
-    severity: SEVERITY.WARNING,
-    condition: `Runtime state file(s) not present: ${missing.join(", ")}`,
-    why: "These files are runtime projections and may be absent on a clean clone. Runtime commands may have reduced context.",
-    action: "Run scaffoldai lifecycle commands to restore runtime state if actively developing.",
-  };
+  // Runtime projection files are intentionally untracked — missing on clean clones is expected, not a question condition
+  return null;
 }
 
 function checkContractCoherence(contract) {
