@@ -36,22 +36,31 @@ const SEVERITY = {
 
 function checkStateFilesPresent(repoRoot) {
   const STATE_DIR = path.join(repoRoot, ".scaffoldai", "state");
-  const requiredState = ["active-stream.md", "active-runtime.json", "next-action.md"];
-  const missing = requiredState.filter((f) => !fs.existsSync(path.join(STATE_DIR, f)));
   const policyPath = path.join(repoRoot, ".scaffoldai", "contracts", "active-policy.json");
 
+  // active-policy.json is always tracked and required
   if (!fs.existsSync(policyPath)) {
-    missing.push("../contracts/active-policy.json");
+    return {
+      category: CATEGORIES.TOOL_BOUNDARY_CONCERN,
+      severity: SEVERITY.BLOCKED,
+      condition: "Required contract file missing: active-policy.json",
+      why: "ScaffoldAI runtime commands cannot operate without a valid active policy.",
+      action: "Restore .scaffoldai/contracts/active-policy.json before running any runtime command.",
+    };
   }
+
+  // Runtime projection files are intentionally untracked — missing on clean clones is expected
+  const runtimeProjections = ["active-stream.md", "active-runtime.json", "next-action.md"];
+  const missing = runtimeProjections.filter((f) => !fs.existsSync(path.join(STATE_DIR, f)));
 
   if (missing.length === 0) return null;
 
   return {
     category: CATEGORIES.TOOL_BOUNDARY_CONCERN,
-    severity: SEVERITY.BLOCKED,
-    condition: `Required state file(s) missing: ${missing.join(", ")}`,
-    why: "ScaffoldAI runtime commands cannot operate without these files.",
-    action: "Restore the missing state files before running any runtime command.",
+    severity: SEVERITY.WARNING,
+    condition: `Runtime state file(s) not present: ${missing.join(", ")}`,
+    why: "These files are runtime projections and may be absent on a clean clone. Runtime commands may have reduced context.",
+    action: "Run scaffoldai lifecycle commands to restore runtime state if actively developing.",
   };
 }
 
