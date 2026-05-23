@@ -16,9 +16,9 @@ const STATE_ROOT = path.join(".scaffoldai", "state");
 function detectCloseMode(state) {
   const { nextAction, handoff, activeStreamName, activeStreamText } = state;
 
-  if (!activeStreamText || !activeStreamName) {
-    return { mode: "REFUSE", reason: "active-stream.md is missing or unreadable" };
-  }
+  // Allow closeout even when runtime state (active-stream.md) is missing
+  // This enables clean-checkout closeout after verification passes
+  const hasRuntimeState = Boolean(activeStreamText && activeStreamName);
 
   if (!nextAction || !nextAction.packageName) {
     return { mode: "REFUSE", reason: "next-action.md has no mounted package — nothing to close" };
@@ -35,6 +35,7 @@ function detectCloseMode(state) {
       packageName: nextAction.packageName,
       type: nextAction.type,
       handoffStatus: handoff.status,
+      hasRuntimeState,
     };
   }
 
@@ -43,6 +44,7 @@ function detectCloseMode(state) {
     mode: "A",
     packageName: nextAction.packageName,
     type: nextAction.type,
+    hasRuntimeState,
   };
 }
 
@@ -154,25 +156,33 @@ function executeCloseWritesA(rootPath, packageName, type, status, summary, activ
     }
   }
 
-  // 3. Update stream.md summary line
-  const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
+  // 3. Update stream.md summary line (skip if stream name unknown due to missing runtime state)
+  if (activeStreamName) {
+    const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
 
-  if (streamDocText) {
-    const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${status})`);
-    scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
+    if (streamDocText) {
+      const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${status})`);
+      scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
+    } else {
+      console.warn("warning: could not update stream.md summary — update manually");
+    }
   } else {
-    console.warn("warning: could not update stream.md summary — update manually");
+    console.warn("warning: stream.md not updated — active stream unknown (runtime state missing)");
   }
 
-  // 4. Append history after successful state writes
-  scaffoldaiState.appendHistory(rootPath, {
-    operation: "close",
-    surface: "cli",
-    stream: activeStreamName,
-    package: packageName,
-    status: status,
-    summary: `closed: ${packageName} (${status})`,
-  });
+  // 4. Append history after successful state writes (skip if stream name unknown)
+  if (activeStreamName) {
+    scaffoldaiState.appendHistory(rootPath, {
+      operation: "close",
+      surface: "cli",
+      stream: activeStreamName,
+      package: packageName,
+      status: status,
+      summary: `closed: ${packageName} (${status})`,
+    });
+  } else {
+    console.warn("warning: history.jsonl not updated — active stream unknown (runtime state missing)");
+  }
 }
 
 function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamName) {
@@ -189,25 +199,33 @@ function executeCloseWritesB(rootPath, packageName, handoffStatus, activeStreamN
     }
   }
 
-  // 2. Update stream.md summary line
-  const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
+  // 2. Update stream.md summary line (skip if stream name unknown due to missing runtime state)
+  if (activeStreamName) {
+    const streamDocText = scaffoldaiState.readStreamDoc(rootPath, activeStreamName);
 
-  if (streamDocText) {
-    const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${handoffStatus})`);
-    scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
+    if (streamDocText) {
+      const updated = updateStreamSummary(streamDocText, `active — last package: ${packageName} (${handoffStatus})`);
+      scaffoldaiState.writeStreamDoc(rootPath, activeStreamName, updated);
+    } else {
+      console.warn("warning: could not update stream.md summary — update manually");
+    }
   } else {
-    console.warn("warning: could not update stream.md summary — update manually");
+    console.warn("warning: stream.md not updated — active stream unknown (runtime state missing)");
   }
 
-  // 3. Append history after successful state writes (reconciliation)
-  scaffoldaiState.appendHistory(rootPath, {
-    operation: "close",
-    surface: "cli",
-    stream: activeStreamName,
-    package: packageName,
-    status: handoffStatus,
-    summary: `closed (reconciliation): ${packageName} (${handoffStatus})`,
-  });
+  // 3. Append history after successful state writes (reconciliation) (skip if stream name unknown)
+  if (activeStreamName) {
+    scaffoldaiState.appendHistory(rootPath, {
+      operation: "close",
+      surface: "cli",
+      stream: activeStreamName,
+      package: packageName,
+      status: handoffStatus,
+      summary: `closed (reconciliation): ${packageName} (${handoffStatus})`,
+    });
+  } else {
+    console.warn("warning: history.jsonl not updated — active stream unknown (runtime state missing)");
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -284,6 +302,9 @@ async function runGatekeeperClose(rootPath, options = {}) {
 
   if (closeMode.mode === "B") {
     console.log("DECISION: READY_TO_CLOSE (Mode B — reconciliation)");
+    if (!closeMode.hasRuntimeState) {
+      console.log("NOTE: Runtime state missing — stream updates will be skipped");
+    }
     console.log("");
     console.log(
       `NOTE: handoff.md already records ${closeMode.packageName} as ${closeMode.handoffStatus} — handoff.md will NOT be rewritten`
@@ -295,10 +316,17 @@ async function runGatekeeperClose(rootPath, options = {}) {
     console.log(`- handoff status: ${closeMode.handoffStatus} (existing)`);
     console.log("- files to be written:");
     console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
-    console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+    if (state.activeStreamName) {
+      console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+    }
     console.log("- files NOT touched:");
     console.log("    .scaffoldai/state/handoff.md");
     console.log("    .scaffoldai/state/next-action.md");
+    if (!state.activeStreamName) {
+      console.log("- files SKIPPED (runtime state missing):");
+      console.log("    .scaffoldai/streams/*/stream.md");
+      console.log("    .scaffoldai/state/history.jsonl");
+    }
     console.log("");
 
     let answer;
@@ -320,8 +348,14 @@ async function runGatekeeperClose(rootPath, options = {}) {
 
     console.log("");
     console.log(`closed (reconciliation): ${closeMode.packageName}`);
-    console.log(`stream: ${state.activeStreamName}`);
-    console.log(`files written: snapshot.md, streams/${state.activeStreamName}/stream.md`);
+    if (state.activeStreamName) {
+      console.log(`stream: ${state.activeStreamName}`);
+      console.log(`files written: snapshot.md, streams/${state.activeStreamName}/stream.md`);
+    } else {
+      console.log(`stream: (unknown — runtime state missing)`);
+      console.log(`files written: snapshot.md`);
+      console.log(`files skipped: stream.md, history.jsonl`);
+    }
     console.log(`files unchanged: handoff.md, next-action.md`);
     console.log(`next: run gatekeeper mount to mount the next package`);
     return buildCloseoutDiagnostics({
@@ -337,6 +371,9 @@ async function runGatekeeperClose(rootPath, options = {}) {
   // -------------------------------------------------------------------------
 
   console.log("DECISION: READY_TO_CLOSE (Mode A — normal)");
+  if (!closeMode.hasRuntimeState) {
+    console.log("NOTE: Runtime state missing — stream updates will be skipped");
+  }
   console.log("");
   console.log(`PACKAGE: ${closeMode.packageName}`);
   console.log("");
@@ -418,9 +455,16 @@ async function runGatekeeperClose(rootPath, options = {}) {
   console.log("- files to be written:");
   console.log("    .scaffoldai/state/handoff.md");
   console.log("    .scaffoldai/state/snapshot.md (Current Package section only)");
-  console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+  if (state.activeStreamName) {
+    console.log(`    .scaffoldai/streams/${state.activeStreamName}/stream.md (summary line only)`);
+  }
   console.log("- files NOT touched:");
   console.log("    .scaffoldai/state/next-action.md");
+  if (!state.activeStreamName) {
+    console.log("- files SKIPPED (runtime state missing):");
+    console.log("    .scaffoldai/streams/*/stream.md");
+    console.log("    .scaffoldai/state/history.jsonl");
+  }
   console.log("");
 
   if (confirmAnswer !== "yes") {
@@ -438,9 +482,18 @@ async function runGatekeeperClose(rootPath, options = {}) {
 
   console.log("");
   console.log(`closed: ${closeMode.packageName}`);
-  console.log(`stream: ${state.activeStreamName}`);
+  if (state.activeStreamName) {
+    console.log(`stream: ${state.activeStreamName}`);
+  } else {
+    console.log(`stream: (unknown — runtime state missing)`);
+  }
   console.log(`status: ${status}`);
-  console.log(`files written: handoff.md, snapshot.md, streams/${state.activeStreamName}/stream.md`);
+  if (state.activeStreamName) {
+    console.log(`files written: handoff.md, snapshot.md, streams/${state.activeStreamName}/stream.md`);
+  } else {
+    console.log(`files written: handoff.md, snapshot.md`);
+    console.log(`files skipped: stream.md, history.jsonl`);
+  }
   console.log(`files unchanged: next-action.md`);
   console.log(`next: run gatekeeper mount to mount the next package`);
 
