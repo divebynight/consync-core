@@ -36,6 +36,16 @@ function readRequiredFile(rootPath, relativePath, failures) {
   return fs.readFileSync(absolutePath, "utf8");
 }
 
+function readOptionalFile(rootPath, relativePath) {
+  const absolutePath = path.join(rootPath, relativePath);
+
+  if (!fs.existsSync(absolutePath)) {
+    return "";
+  }
+
+  return fs.readFileSync(absolutePath, "utf8");
+}
+
 function getSectionBody(text, heading) {
   const lines = text.split(/\r?\n/);
   const startIndex = lines.findIndex(line => line.trim() === heading);
@@ -175,27 +185,45 @@ function getMissingSections(text, sections) {
 
 function evaluateStateIntegrity(rootPath, mode) {
   const failures = [];
+  const warnings = [];
   const normalizedMode = mode === "postflight" ? "postflight" : "preflight";
+  
+  // Runtime state files (gitignored) can be missing in both modes on clean checkout
+  // or after cleaning ignored files. Read them optionally and validate what we have.
+  // Postflight validates handoff sections more strictly, but missing runtime state
+  // from a clean checkout is still acceptable.
+  
   const files = {
-    activeStream: readRequiredFile(rootPath, CORE_STATE_FILES.activeStream, failures),
-    nextAction: readRequiredFile(rootPath, CORE_STATE_FILES.nextAction, failures),
+    activeStream: readOptionalFile(rootPath, CORE_STATE_FILES.activeStream),
+    nextAction: readOptionalFile(rootPath, CORE_STATE_FILES.nextAction),
     handoff: readRequiredFile(rootPath, CORE_STATE_FILES.handoff, failures),
-    snapshot: readRequiredFile(rootPath, CORE_STATE_FILES.snapshot, failures),
+    snapshot: readOptionalFile(rootPath, CORE_STATE_FILES.snapshot),
   };
+  
+  // Track missing runtime files as warnings
+  const hasRuntimeState = Boolean(files.activeStream || files.snapshot);
+  if (!hasRuntimeState) {
+    if (!files.activeStream) warnings.push("active-stream.md missing (will be reconciled when work begins)");
+    if (!files.snapshot) warnings.push("snapshot.md missing (will be reconciled when work begins)");
+    if (!files.nextAction) warnings.push("next-action.md missing (will be reconciled when work begins)");
+  }
 
   const activeStream = parseActiveStream(files.activeStream);
   const nextAction = parseNextAction(files.nextAction);
   const handoff = parseHandoff(files.handoff);
   const snapshot = parseSnapshot(files.snapshot);
 
-  if (!activeStream.activeStream) {
+  // Validate activeStream only if the file was present
+  if (files.activeStream && !activeStream.activeStream) {
     failures.push("active stream is missing or unreadable");
   }
 
-  if (!nextAction.type || !nextAction.packageName) {
+  // Validate nextAction only if the file was present  
+  if (files.nextAction && (!nextAction.type || !nextAction.packageName)) {
     failures.push("mounted next-action package is missing TYPE or PACKAGE");
   }
 
+  // Always validate handoff (it's tracked and should exist)
   if (!handoff.type || !handoff.packageName) {
     failures.push("handoff package is missing TYPE or PACKAGE");
   }
@@ -204,19 +232,23 @@ function evaluateStateIntegrity(rootPath, mode) {
     failures.push("handoff status is missing or unreadable");
   }
 
-  const missingSnapshotSections = getMissingSections(files.snapshot, REQUIRED_SNAPSHOT_SECTIONS);
-  for (const section of missingSnapshotSections) {
-    failures.push(`snapshot missing section: ${section.replace(/^##\s*/, "")}`);
+  // Validate snapshot only if the file was present
+  if (files.snapshot) {
+    const missingSnapshotSections = getMissingSections(files.snapshot, REQUIRED_SNAPSHOT_SECTIONS);
+    for (const section of missingSnapshotSections) {
+      failures.push(`snapshot missing section: ${section.replace(/^##\s*/, "")}`);
+    }
+
+    if (snapshot.activeStream && activeStream.activeStream && snapshot.activeStream !== activeStream.activeStream) {
+      failures.push(`snapshot active stream mismatch: ${snapshot.activeStream} != ${activeStream.activeStream}`);
+    }
+
+    if (snapshot.currentPackage && nextAction.packageName && snapshot.currentPackage !== nextAction.packageName) {
+      failures.push(`snapshot current package mismatch: ${snapshot.currentPackage} != ${nextAction.packageName}`);
+    }
   }
 
-  if (snapshot.activeStream && activeStream.activeStream && snapshot.activeStream !== activeStream.activeStream) {
-    failures.push(`snapshot active stream mismatch: ${snapshot.activeStream} != ${activeStream.activeStream}`);
-  }
-
-  if (snapshot.currentPackage && nextAction.packageName && snapshot.currentPackage !== nextAction.packageName) {
-    failures.push(`snapshot current package mismatch: ${snapshot.currentPackage} != ${nextAction.packageName}`);
-  }
-
+  // Validate live owner note only if active stream data is present
   if (
     activeStream.activeStream &&
     activeStream.liveOwnerNote &&
@@ -225,8 +257,12 @@ function evaluateStateIntegrity(rootPath, mode) {
     failures.push("live owner note does not name the active stream explicitly");
   }
 
-  evaluateStreamLocalState(rootPath, activeStream, failures);
+  // Validate stream-local state only if active stream is known
+  if (activeStream.activeStream) {
+    evaluateStreamLocalState(rootPath, activeStream, failures);
+  }
 
+  // Preflight-specific validation
   if (normalizedMode === "preflight") {
     if (
       nextAction.packageName &&
@@ -251,13 +287,19 @@ function evaluateStateIntegrity(rootPath, mode) {
   let nextSafeAction = "reconcile live state before continuing";
 
   if (ok && normalizedMode === "preflight") {
-    nextSafeAction = isPackageMounted
-      ? `execute mounted package ${nextAction.packageName}`
-      : "no active package; define and mount the next work package";
+    if (!hasRuntimeState) {
+      nextSafeAction = "runtime state files missing — reconcile with scaffoldai:preflight or begin work to initialize";
+    } else if (isPackageMounted) {
+      nextSafeAction = `execute mounted package ${nextAction.packageName}`;
+    } else {
+      nextSafeAction = "no active package; define and mount the next work package";
+    }
   }
 
   if (ok && normalizedMode === "postflight") {
-    if (isPackageMounted && handoff.packageName && nextAction.packageName === handoff.packageName) {
+    if (!hasRuntimeState) {
+      nextSafeAction = "verification passed with missing runtime state — reconcile before resuming work";
+    } else if (isPackageMounted && handoff.packageName && nextAction.packageName === handoff.packageName) {
       nextSafeAction = `accept closeout for ${handoff.packageName} and mount the next package intentionally`;
     } else if (isPackageMounted) {
       nextSafeAction = `last completed handoff ${handoff.packageName} is coherent; mounted package ${nextAction.packageName} is now live`;
@@ -270,13 +312,15 @@ function evaluateStateIntegrity(rootPath, mode) {
     ok,
     mode: normalizedMode,
     status: ok ? "PASS" : "FAIL",
-    activeStream: activeStream.activeStream || "unreadable",
-    activePackage: nextAction.packageName || "unreadable",
+    activeStream: activeStream.activeStream || (!hasRuntimeState ? "(runtime state missing)" : "unreadable"),
+    activePackage: nextAction.packageName || (!hasRuntimeState ? "(runtime state missing)" : "unreadable"),
     handoffPackage: handoff.packageName || "unreadable",
-    systemState,
+    systemState: !hasRuntimeState ? "RUNTIME_STATE_MISSING" : systemState,
     nextSafeAction,
     streamLocalStatus: failures.some(item => item.includes("stream ") || item.includes("stream id ")) ? "FAIL" : "PASS",
     failures,
+    warnings,
+    hasRuntimeState,
   };
 }
 
