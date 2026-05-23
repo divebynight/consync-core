@@ -16,7 +16,7 @@ All PROCESS zone references across `src/`, `.github/`, `scripts/`, and markdown
 surfaces have been identified and classified.
 
 **Corrected finding from prior audit:**  
-`src/commands/handoff-bundle.js` was previously classified as "LOW risk — runbook
+`src/commands/handoff-bundle.process.scaffoldai.js` was previously classified as "LOW risk — runbook
 path is content string." This is incorrect. The command calls
 `readRequiredFile(RUNBOOK_PATH)` at runtime when `--full` is passed. This is a
 **RUNTIME_CRITICAL** reference. It is covered by `integration-handoff-bundle-cli.js`,
@@ -35,8 +35,8 @@ well-bounded set of doc/string surfaces.
 
 | File | Reference | Classification | Covered by Tests | Migration Risk |
 |---|---|---|---|---|
-| `src/commands/handoff-bundle.js` | `.scaffoldai/process/runbook.process.md` (line 9 — RUNBOOK_PATH constant; read at runtime via `readRequiredFile`) | RUNTIME_CRITICAL | YES — `integration-handoff-bundle-cli.js` seeds and tests `--full` path | HIGH |
-| `src/lib/intakeClassify.js` | `.scaffoldai/process/`, `.scaffoldai/agents/` (line 12 — classification pattern strings) | STRING_ONLY | YES — `unit-intake-run` tests classification flow, but does not assert zone strings specifically | LOW–MEDIUM |
+| `src/commands/handoff-bundle.process.scaffoldai.js` | `.scaffoldai/process/runbook.process.md` (line 9 — RUNBOOK_PATH constant; read at runtime via `readRequiredFile`) | RUNTIME_CRITICAL | YES — `integration-handoff-bundle-cli.js` seeds and tests `--full` path | HIGH |
+| `src/lib/intakeClassify.agent.scaffoldai.js` | `.scaffoldai/process/`, `.scaffoldai/agents/` (line 12 — classification pattern strings) | STRING_ONLY | YES — `unit-intake-run` tests classification flow, but does not assert zone strings specifically | LOW–MEDIUM |
 | `src/commands/reference-audit.js` | `.scaffoldai/process/`, `.scaffoldai/agents/`, `.scaffoldai/skills/`, `.scaffoldai/templates/`, `.scaffoldai/contracts/` (lines 7–27 — search needle strings in REFERENCE_CATEGORIES) | STRING_ONLY | NO | LOW–MEDIUM |
 | `src/lib/gatekeeperDecision.js` | `.scaffoldai/agents/gatekeeper.agent.md` (line 5 — `@see` doc comment) | DOC_ONLY | NO | NONE |
 | `.github/prompts/run_closeout.prompt.md` | `.scaffoldai/skills/closeout-agent.md` (lines 6, 15, 28 — line 15 is a bare `#file:`-style path inclusion read by AI tool) | PROMPT_ONLY | NO | MEDIUM–HIGH |
@@ -90,7 +90,7 @@ update. No test coverage.
 
 ### LOW–MEDIUM
 
-**`src/lib/intakeClassify.js`** — zone strings in classification dictionary  
+**`src/lib/intakeClassify.agent.scaffoldai.js`** — zone strings in classification dictionary  
 Does not crash if stale. `unit-intake-run` tests classification outcomes (e.g.,
 `CLASSIFICATION: process`) but does not assert the zone path strings specifically.
 Stale strings degrade classification hints in the intake output without breaking
@@ -107,7 +107,7 @@ while missing `.scaffoldai/` occurrences). No dedicated test for this command.
 
 Surfaces requiring careful handling and explicit update in the migration packet:
 
-### 1. `src/commands/handoff-bundle.js` + `src/test/integration-handoff-bundle-cli.js`
+### 1. `src/commands/handoff-bundle.process.scaffoldai.js` + `src/test/integration-handoff-bundle-cli.js`
 **Risk: HIGH**  
 `RUNBOOK_PATH = path.join(".consync", "process", "runbook.process.md")` is a
 runtime file read. The integration test seeds a temp directory with this path and
@@ -176,7 +176,7 @@ Concrete updates required in the migration packet, in execution order:
        .scaffoldai/planning/     → .scaffoldai/planning/
        .scaffoldai/audits/       → .scaffoldai/audits/
 
-[ ] 3. RUNTIME_CRITICAL — update src/commands/handoff-bundle.js
+[ ] 3. RUNTIME_CRITICAL — update src/commands/handoff-bundle.process.scaffoldai.js
        Change: path.join(".consync", "process", "runbook.process.md")
        To:     path.join(".scaffoldai", "process", "runbook.process.md")
 
@@ -185,7 +185,7 @@ Concrete updates required in the migration packet, in execution order:
        To:     path.join(".scaffoldai", "process", "runbook.process.md")
        (This is the temp dir seed path used to exercise the --full path)
 
-[ ] 5. STRING — update src/lib/intakeClassify.js
+[ ] 5. STRING — update src/lib/intakeClassify.agent.scaffoldai.js
        Change: ".scaffoldai/process/" → ".scaffoldai/process/"
        Change: ".scaffoldai/agents/"  → ".scaffoldai/agents/"
 
@@ -252,11 +252,11 @@ Concrete updates required in the migration packet, in execution order:
 **PROCEED WITH CAUTION**
 
 The PROCESS zone is safe to migrate — confirmed zero Node.js runtime dependency
-except for one well-tested surface (`handoff-bundle.js` RUNBOOK_PATH).
+except for one well-tested surface (`handoff-bundle.process.scaffoldai.js` RUNBOOK_PATH).
 
 Caution is warranted because:
 
-1. **The prior reference audit underclassified `handoff-bundle.js`** as LOW risk.
+1. **The prior reference audit underclassified `handoff-bundle.process.scaffoldai.js`** as LOW risk.
    It is RUNTIME_CRITICAL. Both the command and the test must be updated atomically.
    The test provides a clear verification gate.
 

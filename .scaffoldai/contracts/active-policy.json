@@ -1,0 +1,14 @@
+{
+  "mode": "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+  "allowed_packet_types": [
+    "process",
+    "contract",
+    "planning"
+  ],
+  "blocked_packet_types": [
+    "product",
+    "agent"
+  ],
+  "require_clean_git": true,
+  "require_dry_run": true
+}

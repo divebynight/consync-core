@@ -1,271 +1,34 @@
-const { runNewGuidCommand } = require("../commands/new-guid");
-const { runScaffoldaiStatusCommand } = require("../commands/scaffoldai-status");
-const { runScaffoldaiPreflightCommand } = require("../commands/scaffoldai-preflight");
-const { runScaffoldaiVerifyCommand } = require("../commands/scaffoldai-verify");
-const { runScaffoldaiCloseoutCommand } = require("../commands/scaffoldai-closeout");
-const { runScaffoldaiQuestionCommand } = require("../commands/scaffoldai-question");
-const { runListGuidCommand } = require("../commands/list-guid");
-const { runShowGuidCommand } = require("../commands/show-guid");
-const { runHandoffBundleCommand } = require("../commands/handoff-bundle");
-const { runSandboxScanCommand } = require("../commands/sandbox-scan");
-const { runSandboxVerifyCommand } = require("../commands/sandbox-verify");
-const { runSandboxDescribeCommand } = require("../commands/sandbox-describe");
-const { runSandboxProposeCommand } = require("../commands/sandbox-propose");
-const { runSandboxCatalogCommand } = require("../commands/sandbox-catalog");
-const { runSandboxDiscoverCommand } = require("../commands/sandbox-discover");
-const { runSandboxSearchCommand } = require("../commands/sandbox-search");
-const { runSandboxDesktopSearchCommand } = require("../commands/sandbox-desktop-search");
-const { runSystemCheckCommand } = require("../commands/system-check");
-const { runSystemSummaryCommand } = require("../commands/system-summary");
-const { runStateIntegrityCheckCommand } = require("../commands/state-integrity-check");
-const { runPortableCommand } = require("../commands/portable");
-const { runGatekeeperCommand } = require("../commands/gatekeeper");
-const { runReentryCheckCommand } = require("../commands/reentry-check");
-const { runDryRunCheckCommand } = require("../commands/dry-run-check");
-const { runConsyncRunCommand } = require("../commands/consync-run");
-const { runIntakeRunCommand } = require("../commands/intake-run");
-const { runReferenceAuditCommand } = require("../commands/reference-audit");
-const { runFolderSummaryCommand } = require("../commands/folder-summary");
+// Compatibility router — delegates to surface-specific CLI routers
+// This maintains backward compatibility with existing invocations
 
-function parseNewGuidOptions(argv) {
-  if (argv[0] === "--note") {
-    return {
-      note: argv[1] || "",
-    };
-  }
-
-  return {};
-}
-
-function parsePortableOptions(argv) {
-  let targetPath;
-  let force = false;
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index];
-
-    if (argument === "--target") {
-      targetPath = argv[index + 1];
-      index += 1;
-      continue;
-    }
-
-    if (argument === "--force") {
-      force = true;
-      continue;
-    }
-
-    throw new Error(`Unknown option: ${argument}`);
-  }
-
-  return {
-    force,
-    targetPath,
-  };
-}
-
-function parseStateIntegrityCheckOptions(argv) {
-  const mode = argv[0];
-
-  if (!mode || (mode !== "preflight" && mode !== "postflight")) {
-    throw new Error("Usage: state-integrity-check <preflight|postflight> [--root <path>]");
-  }
-
-  let rootPath;
-
-  for (let index = 1; index < argv.length; index += 1) {
-    const argument = argv[index];
-
-    if (argument === "--root") {
-      rootPath = argv[index + 1];
-      index += 1;
-      continue;
-    }
-
-    throw new Error(`Unknown option: ${argument}`);
-  }
-
-  return {
-    mode,
-    rootPath,
-  };
-}
-
-function parseHandoffBundleOptions(argv) {
-  if (argv.length === 0) {
-    return {
-      full: false,
-    };
-  }
-
-  if (argv.length === 1 && argv[0] === "--full") {
-    return {
-      full: true,
-    };
-  }
-
-  throw new Error("Usage: handoff-bundle [--full]");
-}
+const SCAFFOLDAI_COMMANDS = [
+  "scaffoldai",
+  "gatekeeper",
+  "process-check",
+  "state-integrity-check",
+  "portable",
+  "handoff-bundle",
+  "reentry-check",
+  "dry-run-check",
+  "consync-run",
+  "intake-run",
+  "preflight-run",
+  "verify-run",
+  "reference-audit",
+];
 
 async function main() {
   const command = process.argv[2];
 
-  if (command === "new-guid") {
-    await runNewGuidCommand(parseNewGuidOptions(process.argv.slice(3)));
+  if (SCAFFOLDAI_COMMANDS.includes(command)) {
+    const scaffoldaiCli = require("./scaffoldai");
+    await scaffoldaiCli.main();
     return;
   }
 
-  if (command === "list-guid") {
-    runListGuidCommand();
-    return;
-  }
-
-  if (command === "show-guid") {
-    runShowGuidCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "handoff-bundle") {
-    runHandoffBundleCommand(parseHandoffBundleOptions(process.argv.slice(3)));
-    return;
-  }
-
-  if (command === "sandbox-scan") {
-    runSandboxScanCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "sandbox-verify") {
-    runSandboxVerifyCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "sandbox-describe") {
-    runSandboxDescribeCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "sandbox-propose") {
-    runSandboxProposeCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "sandbox-catalog") {
-    runSandboxCatalogCommand();
-    return;
-  }
-
-  if (command === "sandbox-discover") {
-    runSandboxDiscoverCommand(process.argv[3]);
-    return;
-  }
-
-  if (command === "sandbox-search") {
-    runSandboxSearchCommand(process.argv[3], process.argv.slice(4).join(" "));
-    return;
-  }
-
-  if (command === "sandbox-desktop-search") {
-    runSandboxDesktopSearchCommand(process.argv[3], process.argv.slice(4).join(" "));
-    return;
-  }
-
-  if (command === "system-check") {
-    runSystemCheckCommand();
-    return;
-  }
-
-  if (command === "system-summary") {
-    runSystemSummaryCommand();
-    return;
-  }
-
-  if (command === "state-integrity-check") {
-    runStateIntegrityCheckCommand(parseStateIntegrityCheckOptions(process.argv.slice(3)));
-    return;
-  }
-
-  if (command === "portable") {
-    runPortableCommand(parsePortableOptions(process.argv.slice(3)));
-    return;
-  }
-
-  if (command === "gatekeeper") {
-    await runGatekeeperCommand(process.argv[3], process.argv.slice(4));
-    return;
-  }
-
-  if (command === "reentry-check") {
-    await runReentryCheckCommand();
-    return;
-  }
-
-  if (command === "dry-run-check") {
-    runDryRunCheckCommand(process.argv.slice(3));
-    return;
-  }
-
-  if (command === "consync-run") {
-    await runConsyncRunCommand(process.argv.slice(3));
-    return;
-  }
-
-  if (command === "intake-run") {
-    runIntakeRunCommand(process.argv.slice(3));
-    return;
-  }
-
-  if (command === "reference-audit") {
-    runReferenceAuditCommand();
-    return;
-  }
-
-  if (command === "folder-summary") {
-    runFolderSummaryCommand(process.argv[3]);
-    return;
-  }
-
-    if (command === "preflight-run") {
-      const { runPreflightRunCommand } = require("../commands/preflight-run");
-      runPreflightRunCommand(process.argv.slice(3));
-      return;
-    }
-
-      if (command === "verify-run") {
-        const { runVerifyRunCommand } = require("../commands/verify-run");
-        runVerifyRunCommand(process.argv.slice(3));
-        return;
-      }
-
-  if (command === "scaffoldai") {
-    const subcommand = process.argv[3];
-    if (subcommand === "status") {
-      runScaffoldaiStatusCommand();
-      return;
-    }
-    if (subcommand === "preflight") {
-      runScaffoldaiPreflightCommand();
-      return;
-    }
-    if (subcommand === "verify") {
-      runScaffoldaiVerifyCommand(process.argv.slice(4));
-      return;
-    }
-    if (subcommand === "closeout") {
-      runScaffoldaiCloseoutCommand(process.argv.slice(4));
-      return;
-    }
-    if (subcommand === "question") {
-      runScaffoldaiQuestionCommand(process.argv.slice(4));
-      return;
-    }
-    console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
-    process.exitCode = 1;
-    return;
-  }
-
-  console.error("Unknown command");
-  process.exitCode = 1;
+  // Default to Consync CLI for all other commands
+  const consyncCli = require("./consync");
+  await consyncCli.main();
 }
 
 module.exports = {

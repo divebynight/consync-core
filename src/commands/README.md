@@ -12,19 +12,12 @@ Each command file is a thin entry point: it parses arguments, validates inputs, 
 
 - `new-guid.js` — creates a new GUID metadata artifact
 - `list-guid.js` / `show-guid.js` — list and display GUID artifacts
-- `dry-run-check.js` — runs the Gatekeeper decision logic in simulation mode; prints a report without prompting
-- `consync-run.js` — runs the Gatekeeper decision logic with a user approval prompt; does not execute work
-- `gatekeeper.js` — Gatekeeper mount/close/switch subcommands
-- `state-integrity-check.js` — preflight and postflight state integrity check
-- `reentry-check.js` — checks re-entry readiness
-- `system-check.js` — verifies required system files are present
+- Thin `scaffoldai <subcommand>` wrappers, ScaffoldAI agent entrypoints, portable scaffolding, and thin ScaffoldAI process wrappers live under `src/scaffoldai/commands/`
+- `system-check.cmd.consync.js` — Consync product/runtime check surface (sandbox, product commands, desktop scaffold)
+- `system-check.check.system.js` — thin compatibility wrapper that composes Consync `system-check` and ScaffoldAI `process-check`
 - `system-summary.js` — prints a summary of the current system surface
-- `handoff-bundle.js` — bundles the current handoff state for delivery
-- `intake-run.js` / `preflight-run.js` / `verify-run.js` — agent execution entry points
-- `reference-audit.js` — audits path references across the repo
-- `portable.js` — generates a portable scaffold
-- `sandbox-verify.js` / `sandbox-catalog.js` / `sandbox-describe.js` / `sandbox-discover.js` — sandbox fixture inspection commands
-- `sandbox-scan.js` / `sandbox-search.js` / `sandbox-propose.js` / `sandbox-desktop-search.js` — sandbox query and proposal commands
+- `sandbox-verify.cmd.consync.js` / `sandbox-catalog.cmd.consync.js` / `sandbox-describe.cmd.consync.js` / `sandbox-discover.cmd.consync.js` — sandbox fixture inspection commands
+- `sandbox-scan.cmd.consync.js` / `sandbox-search.cmd.consync.js` / `sandbox-propose.cmd.consync.js` / `sandbox-desktop-search.cmd.consync.js` — sandbox query and proposal commands
 
 ---
 

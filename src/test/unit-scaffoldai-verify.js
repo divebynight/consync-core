@@ -1,11 +1,11 @@
 const assert = require("assert");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { resolveVerifyCommand } = require("../lib/resolveVerifyCommand");
+const { resolveVerifyCommand } = require("../lib/resolveVerifyCommand.query.scaffoldai");
 
 const TEST_NAME = "unit-scaffoldai-verify";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);

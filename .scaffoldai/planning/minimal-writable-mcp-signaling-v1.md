@@ -11,8 +11,8 @@ This plan was implemented as the minimal v0 signal layer:
 
 - MCP tool: `scaffoldai_signal`
 - execution class: `LOCAL_SIGNAL_APPEND_ONLY`
-- storage: `.scaffoldai/tmp/mcp-signals.jsonl`
-- rotation: `.scaffoldai/tmp/mcp-signals.jsonl.1`
+- storage: `.scaffoldai/runtime/mcp/signals.jsonl`
+- rotation: `.scaffoldai/runtime/mcp/signals.jsonl.1`
 - transport: local stdio only
 - authority: non-authoritative diagnostic signaling only
 
@@ -108,7 +108,7 @@ Recommended response:
   "data": {
     "record_id": "<timestamp>-<short-random>",
     "signal_type": "connected",
-    "stored_at": ".scaffoldai/tmp/mcp-signals.jsonl"
+    "stored_at": ".scaffoldai/runtime/mcp/signals.jsonl"
   },
   "authority": {
     "authoritative_state": false,
@@ -141,7 +141,7 @@ The tool should not return previous signal records by default. Inspection can ha
 Recommended storage path:
 
 ```text
-.scaffoldai/tmp/mcp-signals.jsonl
+.scaffoldai/runtime/mcp/signals.jsonl
 ```
 
 Rationale:
@@ -289,14 +289,14 @@ Recommended write behavior:
 
 Recommended rotation behavior:
 
-- If the signal log exceeds 64 KB before appending, rotate it to `.scaffoldai/tmp/mcp-signals.1.jsonl`.
+- If the signal log exceeds 64 KB before appending, rotate it to `.scaffoldai/runtime/mcp/signals.jsonl.1`.
 - Keep at most one rotated file in v1.
 - If rotation fails, reject the signal with `LOG_LIMIT_REACHED`; do not truncate the active file silently.
 - Do not rotate into `.scaffoldai/state/`, `.scaffoldai/streams/`, source, docs, or system temp paths.
 
 Rate limiting approach:
 
-- Prefer reconstructing last-seen timestamps by reading only the tail of `.scaffoldai/tmp/mcp-signals.jsonl`.
+- Prefer reconstructing last-seen timestamps by reading only the tail of `.scaffoldai/runtime/mcp/signals.jsonl`.
 - If a small index becomes necessary, store it only at `.scaffoldai/tmp/mcp-signal-index.json`.
 - The index is cache only and must be reconstructable from JSONL.
 
@@ -328,7 +328,7 @@ The signal surface must never authorize or imply:
 Any future implementation must include tests that assert:
 
 - `server.js` exposes only the planned new signal tool in addition to existing tools.
-- The signal tool writes only `.scaffoldai/tmp/mcp-signals.jsonl` and optional rotation/index files under `.scaffoldai/tmp/`.
+- The signal tool writes only `.scaffoldai/runtime/mcp/signals.jsonl` and optional rotation/index files under `.scaffoldai/runtime/mcp/`.
 - The signal tool does not import or invoke Runtime Commands.
 - The signal tool does not spawn shell commands.
 - The signal tool does not write or append outside `.scaffoldai/tmp/`.
@@ -444,7 +444,7 @@ The accepted implementation packet was:
 2. Add tests before implementation:
    - tool appears in `tools/list`
    - existing five read-only tools remain unchanged
-   - accepted signal appends one JSONL line under `.scaffoldai/tmp/mcp-signals.jsonl`
+  - accepted signal appends one JSONL line under `.scaffoldai/runtime/mcp/signals.jsonl`
    - unknown signal types are rejected
    - unknown fields are rejected
    - oversized message and oversized record are rejected
@@ -472,7 +472,7 @@ scaffoldai_signal
 Recommended storage:
 
 ```text
-.scaffoldai/tmp/mcp-signals.jsonl
+.scaffoldai/runtime/mcp/signals.jsonl
 ```
 
 Recommended limits:

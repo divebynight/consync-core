@@ -17,8 +17,10 @@ Tests here validate that the product works correctly, that state contracts are u
 - `unit-new-guid.js` — GUID generation logic
 - `unit-dry-run-check.js` — Gatekeeper decision rules (pure logic, temp dir fixtures)
 - `unit-get-in-flight-packet.js` — in-flight packet state reader
-- `unit-consync-run.js` — consync-run command behavior
+- `unit-consync-run.js` — consync-run.cmd.scaffoldai command behavior
 - `unit-intake-run.js` / `unit-preflight-run.js` / `unit-verify-run.js` — agent execution entry points
+- `unit-scaffoldai-housekeeping.js` — runtime-state classification and bounded reset behavior
+- `unit-scaffoldai-policy-runtime.js` — active policy/runtime composition and mutation boundary
 - `unit-standalone-notes-grouping.js` — notes grouping logic
 
 ### Integration tests — command/lib workflows
@@ -30,6 +32,13 @@ Tests here validate that the product works correctly, that state contracts are u
 - `state-integrity-checks.js` — preflight/postflight state integrity check behavior
 - `gatekeeper-checks.js` — Gatekeeper decision rule contracts
 - `handoff-contract-checker.js` — handoff and next-action required field contracts
+
+### Architectural invariant tests — boundary enforcement
+- `scaffoldai-invariants.test.js` — enforces ScaffoldAI architectural boundaries:
+  - No forbidden `.consync/` references in active files
+  - README link integrity
+  - Verify surface invariants
+  - ScaffoldAI authority boundary (MCP/CLI → lib isolation)
 
 ### Renderer slice tests — UI logic without full Electron
 - `renderer-session-panel.js` — session panel row logic

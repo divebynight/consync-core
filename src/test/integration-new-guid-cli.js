@@ -3,7 +3,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { CONSYNC_STATE_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs");
+const { CONSYNC_HISTORY_DIR, SANDBOX_CURRENT_DIR } = require("../lib/fs.util.consync");
 
 const TEST_NAME = "integration-new-guid-cli";
 
@@ -16,7 +16,7 @@ function fail(error) {
 function runScenario(args, note, expectsPrompt) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "consync-integration-"));
   const repoRoot = path.resolve(__dirname, "..", "..");
-  const cliPath = path.join(repoRoot, "src", "index.js");
+  const cliPath = path.join(repoRoot, "src", "consync.js");
 
   try {
     const result = spawnSync(process.execPath, [cliPath, "new-guid", ...args], {
@@ -59,7 +59,7 @@ function runScenario(args, note, expectsPrompt) {
     assert.match(payload.guid, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 
     const expectedFilePath = `./sandbox/current/${createdFiles[0]}`;
-    const logPath = path.join(tempDir, CONSYNC_STATE_HISTORY_DIR, "events.log");
+    const logPath = path.join(tempDir, CONSYNC_HISTORY_DIR, "events.log");
     assert.ok(fs.existsSync(logPath), "Expected event log to be created");
 
     const logContent = fs.readFileSync(logPath, "utf8");

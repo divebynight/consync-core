@@ -1,8 +1,11 @@
 "use strict";
 
 const assert = require("assert");
-const { createIdentityTool } = require("../mcp-readonly/tools/identity");
-const { createStatusTool } = require("../mcp-readonly/tools/status");
+const { createIdentityTool } = require("../scaffoldai/mcp-readonly/tools/identity");
+const { createStatusTool } = require("../scaffoldai/mcp-readonly/tools/status");
+const { createPacketVisibilityTool } = require("../scaffoldai/mcp-readonly/tools/packet-visibility");
+const { createPendingQuestionsTool } = require("../scaffoldai/mcp-readonly/tools/pending-questions");
+const { createCompletionStatusTool } = require("../scaffoldai/mcp-readonly/tools/completion-status");
 
 const TEST_NAME = "mcp-readonly-unit";
 
@@ -63,6 +66,84 @@ async function main() {
     );
     assert.deepStrictEqual(result, payload, "status MCP tool should return helper payload unchanged");
     console.log("  PASS: scaffoldai_status calls operational helper with includeGit false");
+  }
+
+  {
+    let receivedRepoRoot = null;
+    let receivedArgs = null;
+    const payload = {
+      tool: "scaffoldai_packet_visibility",
+      execution_class: "READ_ONLY",
+      status: "OBSERVE",
+      data: { packet_count: 1 },
+    };
+    const tool = createPacketVisibilityTool({
+      gatherPacketVisibility: (repoRoot, args) => {
+        receivedRepoRoot = repoRoot;
+        receivedArgs = args;
+        return payload;
+      },
+      repoRoot: "/test/repo/root",
+    });
+
+    const args = { scope: "all", limit: 5, includeSummary: false };
+    const result = parseToolResult(await tool(args));
+    assert.strictEqual(receivedRepoRoot, "/test/repo/root", "packet visibility MCP tool should pass repoRoot");
+    assert.deepStrictEqual(receivedArgs, args, "packet visibility MCP tool should pass arguments through");
+    assert.deepStrictEqual(result, payload, "packet visibility MCP tool should return helper payload unchanged");
+    console.log("  PASS: scaffoldai_packet_visibility calls bounded packet visibility helper");
+  }
+
+  {
+    let receivedRepoRoot = null;
+    let receivedArgs = null;
+    const payload = {
+      tool: "scaffoldai_pending_questions",
+      execution_class: "READ_ONLY",
+      status: "OBSERVE",
+      data: { returned_count: 1 },
+    };
+    const tool = createPendingQuestionsTool({
+      gatherPendingQuestions: (repoRoot, args) => {
+        receivedRepoRoot = repoRoot;
+        receivedArgs = args;
+        return payload;
+      },
+      repoRoot: "/test/repo/root",
+    });
+
+    const args = { limit: 3, unresolvedOnly: true };
+    const result = parseToolResult(await tool(args));
+    assert.strictEqual(receivedRepoRoot, "/test/repo/root", "pending questions MCP tool should pass repoRoot");
+    assert.deepStrictEqual(receivedArgs, args, "pending questions MCP tool should pass arguments through");
+    assert.deepStrictEqual(result, payload, "pending questions MCP tool should return helper payload unchanged");
+    console.log("  PASS: scaffoldai_pending_questions calls pending question helper");
+  }
+
+  {
+    let receivedRepoRoot = null;
+    let receivedArgs = null;
+    const payload = {
+      tool: "scaffoldai_completion_status",
+      execution_class: "READ_ONLY",
+      status: "OBSERVE",
+      data: { returned_count: 0, completions: [] },
+    };
+    const tool = createCompletionStatusTool({
+      gatherCompletionStatus: (repoRoot, args) => {
+        receivedRepoRoot = repoRoot;
+        receivedArgs = args;
+        return payload;
+      },
+      repoRoot: "/test/repo/root",
+    });
+
+    const args = { latestOnly: true, limit: 1 };
+    const result = parseToolResult(await tool(args));
+    assert.strictEqual(receivedRepoRoot, "/test/repo/root", "completion status MCP tool should pass repoRoot");
+    assert.deepStrictEqual(receivedArgs, args, "completion status MCP tool should pass arguments through");
+    assert.deepStrictEqual(result, payload, "completion status MCP tool should return helper payload unchanged");
+    console.log("  PASS: scaffoldai_completion_status calls completion helper");
   }
 
   console.log(`[${TEST_NAME}] PASS`);

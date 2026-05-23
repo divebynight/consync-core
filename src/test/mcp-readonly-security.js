@@ -6,7 +6,7 @@ const path = require("path");
 
 const TEST_NAME = "mcp-readonly-security";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const sourceRoot = path.join(repoRoot, "src", "mcp-readonly");
+const sourceRoot = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly");
 
 function collectFiles(dir) {
   const files = [];
@@ -29,7 +29,7 @@ function main() {
   console.log(`[${TEST_NAME}] Running`);
 
   const files = collectFiles(sourceRoot);
-  assert.ok(files.length > 0, "Expected src/mcp-readonly JavaScript files");
+  assert.ok(files.length > 0, "Expected src/scaffoldai/mcp-readonly JavaScript files");
 
   for (const filePath of files) {
     const source = fs.readFileSync(filePath, "utf8");

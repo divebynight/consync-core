@@ -3,8 +3,8 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-const { applyGatekeeperRules } = require("../lib/gatekeeperDecision");
-const { getInFlightPacket } = require("../lib/getInFlightPacket");
+const { applyGatekeeperRules } = require("../lib/gatekeeperDecision.auth.scaffoldai");
+const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 
 const TEST_NAME = "unit-dry-run-check";
 
@@ -174,19 +174,26 @@ function main() {
 
       try {
         const stateDir = path.join(tempDir, ".scaffoldai", "state");
+        const contractsDir = path.join(tempDir, ".scaffoldai", "contracts");
         fs.mkdirSync(stateDir, { recursive: true });
+        fs.mkdirSync(contractsDir, { recursive: true });
 
-        // Write a minimal active-contract.json
+        // Write active policy + runtime files
         fs.writeFileSync(
-          path.join(stateDir, "active-contract.json"),
+          path.join(contractsDir, "active-policy.json"),
           JSON.stringify({
             mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
             allowed_packet_types: ["process", "contract", "planning"],
             blocked_packet_types: ["product", "agent"],
-            in_flight_packet: null,
             require_clean_git: true,
             require_dry_run: true,
           }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-runtime.json"),
+          JSON.stringify({ in_flight_packet: null }),
           "utf8"
         );
 
@@ -199,7 +206,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }
@@ -207,7 +214,7 @@ function main() {
 
         assert.ok(
           result.stdout.includes("active-state-packet-v1"),
-          `Expected in-flight packet from state to appear in report. Got:\n${result.stdout}`
+          `Expected in-flight packet from state to appear in report. Got stdout:\n${result.stdout}\nGot stderr:\n${result.stderr}`
         );
         assert.ok(
           result.stdout.includes("CLOSEOUT_REQUIRED"),
@@ -231,18 +238,25 @@ function main() {
 
       try {
         const stateDir = path.join(tempDir, ".scaffoldai", "state");
+        const contractsDir = path.join(tempDir, ".scaffoldai", "contracts");
         fs.mkdirSync(stateDir, { recursive: true });
+        fs.mkdirSync(contractsDir, { recursive: true });
 
         fs.writeFileSync(
-          path.join(stateDir, "active-contract.json"),
+          path.join(contractsDir, "active-policy.json"),
           JSON.stringify({
             mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
             allowed_packet_types: ["process", "contract", "planning"],
             blocked_packet_types: ["product", "agent"],
-            in_flight_packet: null,
             require_clean_git: true,
             require_dry_run: true,
           }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-runtime.json"),
+          JSON.stringify({ in_flight_packet: null }),
           "utf8"
         );
 
@@ -254,7 +268,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }
@@ -278,18 +292,25 @@ function main() {
 
       try {
         const stateDir = path.join(tempDir, ".scaffoldai", "state");
+        const contractsDir = path.join(tempDir, ".scaffoldai", "contracts");
         fs.mkdirSync(stateDir, { recursive: true });
+        fs.mkdirSync(contractsDir, { recursive: true });
 
         fs.writeFileSync(
-          path.join(stateDir, "active-contract.json"),
+          path.join(contractsDir, "active-policy.json"),
           JSON.stringify({
             mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
             allowed_packet_types: ["process", "contract", "planning"],
             blocked_packet_types: ["product", "agent"],
-            in_flight_packet: null,
             require_clean_git: true,
             require_dry_run: true,
           }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-runtime.json"),
+          JSON.stringify({ in_flight_packet: null }),
           "utf8"
         );
 
@@ -301,7 +322,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean",
             "--in-flight-packet=cli-override-packet"],
@@ -334,18 +355,25 @@ function main() {
 
       try {
         const stateDir = path.join(tempDir, ".scaffoldai", "state");
+        const contractsDir = path.join(tempDir, ".scaffoldai", "contracts");
         fs.mkdirSync(stateDir, { recursive: true });
+        fs.mkdirSync(contractsDir, { recursive: true });
 
         fs.writeFileSync(
-          path.join(stateDir, "active-contract.json"),
+          path.join(contractsDir, "active-policy.json"),
           JSON.stringify({
             mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
             allowed_packet_types: ["process", "contract", "planning"],
             blocked_packet_types: ["product", "agent"],
-            in_flight_packet: null,
             require_clean_git: true,
             require_dry_run: true,
           }),
+          "utf8"
+        );
+
+        fs.writeFileSync(
+          path.join(stateDir, "active-runtime.json"),
+          JSON.stringify({ in_flight_packet: null }),
           "utf8"
         );
 
@@ -353,7 +381,7 @@ function main() {
 
         const result = spawnSync(
           process.execPath,
-          [path.join(repoRoot, "src", "index.js"), "dry-run-check",
+          [path.join(repoRoot, "src", "scaffoldai.js"), "dry-run-check",
             "--request-type=SDC", "--packet-type=contract",
             "--packet-id=new-packet-v1", "--git-status=clean"],
           { cwd: tempDir, encoding: "utf8" }

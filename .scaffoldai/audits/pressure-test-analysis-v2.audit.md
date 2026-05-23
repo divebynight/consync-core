@@ -151,8 +151,8 @@ Prioritized, one at a time:
 
 | Surface | Covered | In `verify`? | Risk |
 |---|---|---|---|
-| `src/lib/folder-summary.js` | `unit-folder-summary.js` | YES | LOW |
-| `src/commands/folder-summary.js` | CLI smoke via `unit-folder-summary.js` fixture path | YES (indirect) | LOW |
+| `src/lib/folder-summary.util.consync.js` | `unit-folder-summary.js` | YES | LOW |
+| `src/commands/folder-summary.cmd.consync.js` | CLI smoke via `unit-folder-summary.js` fixture path | YES (indirect) | LOW |
 | `src/electron/main/ipc.js` (getFolderSummary) | Covered by `app-search-flow.test.jsx` mock | YES (vitest) | LOW |
 | `src/electron/preload/bridge.js` (getFolderSummary) | Covered by bridge mock in vitest | YES (vitest) | LOW |
 | `src/electron/renderer/folder-summary-panel.mjs` | `renderer-folder-summary-panel.js` | YES | LOW |

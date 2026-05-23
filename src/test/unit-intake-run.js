@@ -5,7 +5,7 @@ const { spawnSync } = require("child_process");
 const TEST_NAME = "unit-intake-run";
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);

@@ -2,9 +2,10 @@
 
 ## Status
 
-PLANNED ONLY
+COMPLETE — Executed May 3, 2026 (commit b2e5561)
 
-No files have been moved, renamed, or restructured by this document.
+All files were moved from `.consync/state/` and `.consync/streams/` to 
+`.scaffoldai/state/` and `.scaffoldai/streams/` as planned in this contract.
 
 Related audit:
 `.scaffoldai/audits/scaffoldai-bridge-migration-preflight.audit.md`
@@ -77,10 +78,10 @@ No partial migration should be committed at any point.
 | 6 | `src/lib/gatekeeperSwitch.js` | Update error message string (line ~180) and all console.log path strings (lines ~379–385): `.consync/state/` → `.scaffoldai/state/`, `.consync/streams/` → `.scaffoldai/streams/` |
 | 7 | `src/lib/gatekeeperClose.js` | Update all console.log path strings (lines ~270–339): `.consync/state/` → `.scaffoldai/state/`, `.consync/streams/` → `.scaffoldai/streams/` |
 | 8 | `src/lib/gatekeeperMount.js` | Update all console.log path strings (lines ~577–579): `.consync/state/` → `.scaffoldai/state/`, `.consync/streams/` → `.scaffoldai/streams/` |
-| 9 | `src/commands/reentry-check.js` | Update console.log instruction string (line ~263): `.consync/state/` → `.scaffoldai/state/` |
+| 9 | `src/commands/reentry-check.agent.scaffoldai.js` | Update console.log instruction string (line ~263): `.consync/state/` → `.scaffoldai/state/` |
 | 10 | `src/commands/reference-audit.js` | Update `REFERENCE_CATEGORIES` needle strings and `expectedZones` arrays: `needle: ".consync/state/"` → `".scaffoldai/state/"`, `needle: ".consync/streams/"` → `".scaffoldai/streams/"`, remove `.consync/` from expectedZones for state/streams, add `.scaffoldai/` |
-| 11 | `src/lib/intakeClassify.js` | Update classification data strings (lines 13, 22, 24): `.consync/state/` → `.scaffoldai/state/`, `.consync/docs/` reference does not need to change (`.consync/docs/` is staying) |
-| 12 | `src/commands/handoff-bundle.js` | Update console.log string (line ~66): `.consync/` → `.scaffoldai/` where referring to bridge state |
+| 11 | `src/lib/intakeClassify.agent.scaffoldai.js` | Update classification data strings (lines 13, 22, 24): `.consync/state/` → `.scaffoldai/state/`, `.consync/docs/` reference does not need to change (`.consync/docs/` is staying) |
+| 12 | `src/commands/handoff-bundle.process.scaffoldai.js` | Update console.log string (line ~66): `.consync/` → `.scaffoldai/` where referring to bridge state |
 
 ### Test Files
 

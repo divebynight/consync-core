@@ -7,14 +7,21 @@ const { StdioClientTransport } = require("@modelcontextprotocol/sdk/client/stdio
 
 const TEST_NAME = "mcp-readonly-stdio-e2e";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const serverPath = path.join(repoRoot, "src", "mcp-readonly", "stdio.js");
-const EXPECTED_TOOLS = ["scaffoldai_identity", "scaffoldai_status"];
+const serverPath = path.join(repoRoot, "src", "scaffoldai", "mcp-readonly", "stdio.js");
+const EXPECTED_TOOLS = [
+  "scaffoldai_identity",
+  "scaffoldai_status",
+  "scaffoldai_packet_visibility",
+  "scaffoldai_pending_questions",
+  "scaffoldai_completion_status",
+];
 const FORBIDDEN_TOOLS = [
   "scaffoldai_preflight",
   "scaffoldai_question",
   "scaffoldai_verify_recommend",
   "scaffoldai_closeout_readiness",
   "scaffoldai_signal",
+  "scaffoldai_submit_sdc_candidate",
   "scaffoldai_memory_write",
   "scaffoldai_memory_read",
   "scaffoldai_feature_contract_create",
@@ -45,7 +52,7 @@ async function main() {
 
     const list = await client.listTools({}, { timeout: 5000 });
     const names = (list.tools || []).map((tool) => tool.name).sort();
-    assert.deepStrictEqual(names, EXPECTED_TOOLS.slice().sort(), "stdio tools/list should expose only Phase 1 tools");
+    assert.deepStrictEqual(names, EXPECTED_TOOLS.slice().sort(), "stdio tools/list should expose only readonly tools");
     for (const forbidden of FORBIDDEN_TOOLS) {
       assert.ok(!names.includes(forbidden), `stdio tools/list must not expose ${forbidden}`);
     }

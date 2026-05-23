@@ -5,7 +5,7 @@ const { spawnSync } = require("child_process");
 const TEST_NAME = "unit-preflight-run";
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function run(args) {
   return spawnSync(process.execPath, [cliPath, "preflight-run", ...args], {

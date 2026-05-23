@@ -55,6 +55,71 @@ After the human responds, proceed accordingly.
 
 ---
 
+## Execution Approval Model
+
+**Approval is human authority only.**
+
+Before any repository file mutation, AI tools must verify execution approval:
+
+### Approval Fields
+
+```yaml
+APPROVAL:
+  execute: PENDING | APPROVED
+  commit: PENDING | APPROVED
+```
+
+**Default when missing:** `PENDING` (safe — must ask)
+
+### Required Checks
+
+**Before implementing (file mutation):**
+
+1. Check SDC or work packet for `APPROVAL.execute` field
+2. If missing or `PENDING`:
+   - Stop and ask human for execution approval
+   - Do not infer approval from SDC detail level, packet mounting, or gatekeeper ALLOW
+   - Wait for explicit "yes, proceed" or `APPROVAL.execute = APPROVED`
+3. If `APPROVED`:
+   - May proceed with file mutations within ALLOWED FILES scope
+   - Must still honor MODE constraints and STOP CONDITIONS
+
+**Before committing:**
+
+1. Check `APPROVAL.commit` field
+2. If missing or `PENDING`:
+   - Stop and ask human for commit approval
+   - Closeout PASS is evidence, not approval
+   - Wait for explicit "yes, commit" or `APPROVAL.commit = APPROVED`
+3. If `APPROVED`:
+   - May stage and commit within ALLOWED FILES scope
+   - Must not push without separate explicit instruction
+
+### What Does NOT Grant Approval
+
+These do **not** grant execution or commit approval:
+- Gatekeeper ALLOW decision (routing clearance, not approval)
+- Packet mounted to next-action.md (active context, not approval)
+- Closeout STATUS: PASS (evidence, not approval)
+- MCP tool observations (evidence, not approval)
+- Detailed SDC with file lists (specificity, not approval)
+- Imperative tone in request (check APPROVAL field)
+- EXECUTION PHASES listed (steps, not approval to perform them)
+
+### Backward Compatibility
+
+SDCs without `APPROVAL:` field default to `PENDING`.
+
+**Agent behavior for legacy SDCs:**
+- If MODE is "Read-only" / "Audit" / "Review" → proceed with observation only
+- If MODE is "IMPLEMENT" / "NEXT_ACTION" → ask human for approval before implementing
+
+### Related Documentation
+
+See `.scaffoldai/contracts/approval-authority-v1.contract.md` for complete approval semantics.
+
+---
+
 ## Authoritative ScaffoldAI State
 
 The following paths contain authoritative ScaffoldAI process state:
@@ -206,6 +271,7 @@ In ENFORCED mode, direct state mutation would be blocked by hooks, linters, or r
 ## Related Documentation
 
 - `.scaffoldai/README.md` — ScaffoldAI operational overview
+- `.scaffoldai/contracts/approval-authority-v1.contract.md` — Execution approval semantics
 - `.scaffoldai/agents/` — Agent role definitions
 - `.scaffoldai/process/runbook.process.md` — Process execution guide
 - `AGENTS.md` — Vendor-neutral AI entrypoint (points here)

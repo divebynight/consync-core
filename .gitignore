@@ -1,43 +1,57 @@
 # OS / editor noise
 .DS_Store
+.vscode/
 node_modules/
 .vite/
 out/
 
+# Media / generated artifacts
 *.mp3
 test-results/
 
 # Generated sandbox artifacts
 sandbox/current/*.json
-
-# Generated runtime log
-.scaffoldai/state/history/events.log
-
 sandbox/probes/audio-session-capture/workdir/*
 
-# ScaffoldAI bridge state (do not track)
+# Consync observational history
+.consync/history/
+
+# --------------------------------------------------
+# ScaffoldAI transient runtime state
+# --------------------------------------------------
+
+# Runtime projections
+.scaffoldai/state/active-runtime.json
 .scaffoldai/state/next-action.md
 .scaffoldai/state/snapshot.md
 .scaffoldai/state/active-stream.md
+.scaffoldai/state/history.jsonl
 
-# Optional: if you later add logs/history
-.scaffoldai/state/history/
-.scaffoldai/packets/
+# MCP signal logs
+.scaffoldai/runtime/mcp/signals.jsonl
 
-# ScaffoldAI runtime temp output (logs, debug artifacts, scratch)
-# Keep the directory tracked via .gitkeep; ignore its contents
+# Intake/runtime transient metadata
+.scaffoldai/runtime/packet-intake/latest-intake.json
+
+# Shared-memory working surface
+.scaffoldai/runtime/mcp/shared-memory.jsonl
+
+# Candidate packet inbox contents
+.scaffoldai/inbox/*.sdc.md
+.scaffoldai/inbox/soft-delete
+
+
+# Runtime temp output
 .scaffoldai/tmp/*
 !.scaffoldai/tmp/.gitkeep
+!.scaffoldai/tmp/README.md
 
-# MCP shared memory surface — runtime append-only artifact
-.scaffoldai/streams/shared-memory.jsonl
-
-# Prevent ScaffoldAI verify/debug logs from landing at repo root
+# ScaffoldAI verify/debug logs
 .scaffoldai_verify.log
 .scaffoldai_*.log
-.vscode/
 
 # Test/verification output artifacts
 output.txt
 verification_output.txt
 verify-run-files.txt
+

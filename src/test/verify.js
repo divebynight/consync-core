@@ -4,6 +4,10 @@ const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+
+const scaffoldaiVerifyEvidence = require("../lib/scaffoldaiVerifyEvidence.state.scaffoldai");
+const scaffoldaiState = require("../lib/scaffoldaiState.state.scaffoldai");
+const { resolveActivePacketIdentity } = require("../lib/scaffoldaiLifecycleResolution.query.scaffoldai");
 const reset = "\x1b[0m";
 
 const GROUPS = {
@@ -255,7 +259,8 @@ function printCoverageConfidenceSummary() {
     { label: "E2E Electron App",              group: GROUPS.E2E,      signal: "run verify:consync:e2e or verify:full",          surface: SURFACES.CONSYNC },
     { label: "ScaffoldAI Bridge / State",     group: GROUPS.BRIDGE,   signal: "bridge state + gatekeeper + in-flight packet",  surface: SURFACES.SCAFFOLDAI },
     { label: "ScaffoldAI Runtime Commands",   group: GROUPS.CLI,      signal: "consync-run, intake, preflight, verify, handoff", surface: SURFACES.SCAFFOLDAI },
-    { label: "ScaffoldAI / Process Boundary", group: GROUPS.SYSTEM,   signal: "system-check + path boundary validation",       surface: SURFACES.ALL },
+    { label: "Consync Product Boundary",      group: GROUPS.SYSTEM,   signal: "system-check product/runtime validation",       surface: SURFACES.CONSYNC },
+    { label: "ScaffoldAI Process Boundary",   group: GROUPS.SYSTEM,   signal: "process-check process/infrastructure validation", surface: SURFACES.SCAFFOLDAI },
   ];
 
   const filteredAreas = activeSurface === SURFACES.ALL
@@ -338,21 +343,21 @@ function main() {
   runNodeStep("[verify] Standalone notes grouping", [path.join(repoRoot, "src", "test", "unit-standalone-notes-grouping.js")], GROUPS.RENDERER);
   console.log("");
 
-  runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Fixture verification: basic-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-verify", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Fixture verification: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-verify", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Fixture verification: nested-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-verify", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Descriptive layer: basic-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Descriptive layer: basic-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-describe", "sandbox/fixtures/basic-mixed"], GROUPS.CLI);
   console.log("");
 
-  runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "index.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
+  runNodeStep("[verify] Descriptive layer: nested-mixed", [path.join(repoRoot, "src", "consync.js"), "sandbox-describe", "sandbox/fixtures/nested-mixed"], GROUPS.CLI);
   console.log("");
 
   runExpectationStep(
     "[verify] Nested anchor discovery trial",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-discover", "sandbox/fixtures/nested-anchor-trial"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-discover", "sandbox/fixtures/nested-anchor-trial"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-discover.md"),
     GROUPS.CLI
   );
@@ -360,7 +365,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Nested anchor search trial",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-search-moss.md"),
     GROUPS.CLI
   );
@@ -368,7 +373,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Desktop mock search flow",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-desktop-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-desktop-search", "sandbox/fixtures/nested-anchor-trial", "moss"],
     path.join(repoRoot, "sandbox", "expectations", "nested-anchor-trial-desktop-search-moss.md"),
     GROUPS.CLI
   );
@@ -376,7 +381,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: basic-mixed",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/basic-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "basic-mixed-propose.md"),
     GROUPS.CLI
   );
@@ -384,7 +389,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: nested-mixed",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/nested-mixed"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/nested-mixed"],
     path.join(repoRoot, "sandbox", "expectations", "nested-mixed-propose.md"),
     GROUPS.CLI
   );
@@ -392,7 +397,7 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: single-type-flat",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/single-type-flat"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/single-type-flat"],
     path.join(repoRoot, "sandbox", "expectations", "single-type-flat-propose.md"),
     GROUPS.CLI
   );
@@ -400,19 +405,22 @@ function main() {
 
   runExpectationStep(
     "[verify] Proposal layer: mixed-flat-small",
-    [path.join(repoRoot, "src", "index.js"), "sandbox-propose", "sandbox/fixtures/mixed-flat-small"],
+    [path.join(repoRoot, "src", "consync.js"), "sandbox-propose", "sandbox/fixtures/mixed-flat-small"],
     path.join(repoRoot, "sandbox", "expectations", "mixed-flat-small-propose.md"),
     GROUPS.CLI
   );
   console.log("");
 
-  runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "index.js"), "sandbox-catalog"], GROUPS.CLI);
+  runNodeStep("[verify] Sandbox catalog", [path.join(repoRoot, "src", "consync.js"), "sandbox-catalog"], GROUPS.CLI);
   console.log("");
 
   runNodeStep("[verify] Gatekeeper decision rules", [path.join(repoRoot, "src", "test", "unit-dry-run-check.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] In-flight packet state reader", [path.join(repoRoot, "src", "test", "unit-get-in-flight-packet.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI policy/runtime composition", [path.join(repoRoot, "src", "test", "unit-scaffoldai-policy-runtime.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] Bridge integrity checks", [path.join(repoRoot, "src", "test", "bridge-integrity-checks.js")], GROUPS.BRIDGE, SURFACES.SCAFFOLDAI);
@@ -440,10 +448,19 @@ function main() {
   runNodeStep("[verify] ScaffoldAI architectural invariants", [path.join(repoRoot, "src", "test", "scaffoldai-invariants.test.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI history append", [path.join(repoRoot, "src", "test", "unit-scaffoldai-history.test.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI profile resolver", [path.join(repoRoot, "src", "test", "unit-profile-resolver.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Repo root resolver", [path.join(repoRoot, "src", "test", "unit-repo-root.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI housekeeping command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-housekeeping.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI preflight command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-preflight.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
@@ -452,24 +469,97 @@ function main() {
   runNodeStep("[verify] ScaffoldAI verify command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-verify.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI local MCP verify runner", [path.join(repoRoot, "src", "test", "unit-scaffoldai-verify-runner.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI closeout command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-closeout.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI question command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-question.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI pending question lifecycle", [path.join(repoRoot, "src", "test", "unit-scaffoldai-pending-questions.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI completion handshake visibility", [path.join(repoRoot, "src", "test", "unit-scaffoldai-completion-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI packet claim and collision detection", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-claim.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI packet intake validation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-intake.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI packet visibility query", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-visibility.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI packet activation flow", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-activation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI end-to-end lifecycle simulation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-simulation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI lifecycle transition matrix tests", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-matrix.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI lifecycle convenience wrappers", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-wrappers.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI operator e2e workflow", [path.join(repoRoot, "src", "test", "unit-scaffoldai-operator-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI MCP read-only surface", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-readonly.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI MCP candidate submission", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-submit-sdc-candidate.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] Validate remote submit duplicate and pending guards", [path.join(repoRoot, "src", "test", "validate-remote-submit-duplicate-and-pending-guards.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] System and process surface", [path.join(repoRoot, "src", "index.js"), "system-check"], GROUPS.SYSTEM, SURFACES.ALL);
+  runNodeStep("[verify] ScaffoldAI MCP operator HTTPS submit-only surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] Consync product/runtime surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.CONSYNC);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI process surface", [path.join(repoRoot, "src", "scaffoldai.js"), "process-check"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   printSummary();
   printCoverageConfidenceSummary();
   console.log("");
+  
+  // Wire verification evidence if scaffoldai surface was run
+  const overallStatus = [...groupResults.values()].some((result) => result.status === "FAIL") ? "FAIL" : "PASS";
+  
+  if (activeSurface === SURFACES.SCAFFOLDAI || activeSurface === SURFACES.ALL) {
+    try {
+      const activePacket = resolveActivePacketIdentity(repoRoot);
+      const packetId = activePacket.ok ? activePacket.value.packet_id : null;
+      
+      if (packetId) {
+        const evidence = scaffoldaiVerifyEvidence.buildVerifyEvidence({
+          active_packet_id: packetId,
+          packet_id: packetId,
+          verify_command: "npm run verify:scaffoldai",
+          verify_target: "scaffoldai",
+          verify_status: overallStatus === "PASS" ? "passed" : "failed",
+          exit_code: overallStatus === "PASS" ? 0 : 1,
+          surface: "scaffoldai",
+        });
+        
+        scaffoldaiVerifyEvidence.writeVerifyEvidence(repoRoot, evidence);
+        console.log("[verify] Verification evidence persisted for packet: " + packetId);
+      }
+    } catch (error) {
+      console.log("[verify] Warning: Could not write verification evidence: " + error.message);
+    }
+  }
+  
   console.log("[verify] PASS");
 }
 

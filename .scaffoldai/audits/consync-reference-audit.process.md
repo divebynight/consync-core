@@ -27,15 +27,15 @@ Context: Post-commit of `scaffoldai-consync-separation.contract.md` and `bridge-
 | `src/commands/system-check.js` | BRIDGE | Runtime read | Reads `.consync/state/handoff.md` via file existence check | HIGH |
 | `src/commands/dry-run-check.js` | BRIDGE | Runtime read | Reads `.consync/state/active-contract.json` | HIGH |
 | `src/commands/consync-run.js` | BRIDGE | Runtime read | Reads `.consync/state/active-contract.json` | HIGH |
-| `src/commands/handoff-bundle.js` | BRIDGE + PROCESS | Runtime read | Reads `.consync/state/handoff.md`, `snapshot.md` (BRIDGE); reads `runbook.process.md` path as content (PROCESS pointer, not logic) | HIGH (state paths); LOW (runbook path is content string) |
+| `src/commands/handoff-bundle.process.scaffoldai.js` | BRIDGE + PROCESS | Runtime read | Reads `.consync/state/handoff.md`, `snapshot.md` (BRIDGE); reads `runbook.process.md` path as content (PROCESS pointer, not logic) | HIGH (state paths); LOW (runbook path is content string) |
 | `src/lib/getInFlightPacket.js` | BRIDGE | Runtime read | Hardcodes `.consync/state/next-action.md` as a constant | HIGH |
 | `src/lib/gatekeeperMount.js` | BRIDGE | Console output | Prints `.consync/state/` and `.consync/streams/` paths as operator instructions; no file reads | LOW |
 | `src/lib/gatekeeperSwitch.js` | BRIDGE | Runtime write + console | Writes to `.consync/state/active-stream.md`, `handoff.md`, `next-action.md`, `snapshot.md`; console.log for stream paths | HIGH (write paths); LOW (console output) |
 | `src/lib/gatekeeperClose.js` | BRIDGE | Console output | Prints `.consync/state/` and `.consync/streams/` paths as operator instructions; no file reads | LOW |
 | `src/lib/gatekeeperDecision.js` | PROCESS | Comment only | `@see .scaffoldai/agents/gatekeeper.agent.md` — doc comment, not a file read | NONE |
-| `src/lib/intakeClassify.js` | MIXED | Data strings | `.scaffoldai/process/`, `.scaffoldai/agents/`, `.consync/docs/`, `.consync/state/` appear as classification pattern strings — not filesystem reads | LOW (strings only) |
+| `src/lib/intakeClassify.agent.scaffoldai.js` | MIXED | Data strings | `.scaffoldai/process/`, `.scaffoldai/agents/`, `.consync/docs/`, `.consync/state/` appear as classification pattern strings — not filesystem reads | LOW (strings only) |
 | `src/commands/reference-audit.js` | MIXED | Config strings | REFERENCE_CATEGORIES lists all `.consync/` zones as search needles and expected-zone strings; no file reads at import | LOW–MEDIUM (zone names must stay correct if audit command runs) |
-| `src/commands/reentry-check.js` | BRIDGE | Console output | Prints `.consync/state/` as a reviewer instruction; no file read | LOW |
+| `src/commands/reentry-check.agent.scaffoldai.js` | BRIDGE | Console output | Prints `.consync/state/` as a reviewer instruction; no file read | LOW |
 | `src/test/state-integrity-checks.js` | BRIDGE | Test assertions | Hardcodes `.consync/state/*` and `.consync/streams/process/stream.md`, `electron_ui/stream.md`; reads file content | HIGH |
 | `src/test/bridge-integrity-checks.js` | BRIDGE | Test assertions | Hardcodes `.consync/state/*`, `.consync/streams/process/stream.md`, `electron_ui/stream.md`; reads and parses file content | HIGH |
 | `scripts/check-handoff-contract.js` | BRIDGE | Runtime read | Reads `.consync/state/next-action.md` and `.consync/state/handoff.md` | HIGH |
@@ -59,7 +59,7 @@ These references are hardcoded in runtime code, tests, or scripts. Moving the re
 | `.consync/state/active-contract.json` | `src/commands/dry-run-check.js` (line 6) | Hardcoded constant; read at command invocation |
 | `.consync/state/active-contract.json` | `src/commands/consync-run.js` (line 7) | Hardcoded constant; read at command invocation |
 | `.consync/state/handoff.md` | `src/commands/system-check.js` (line 24) | Existence probe; system-check fails if absent |
-| `.consync/state/handoff.md` + `snapshot.md` | `src/commands/handoff-bundle.js` (lines 4–6) | Both read as bundle content |
+| `.consync/state/handoff.md` + `snapshot.md` | `src/commands/handoff-bundle.process.scaffoldai.js` (lines 4–6) | Both read as bundle content |
 | `.consync/state/next-action.md` | `src/lib/getInFlightPacket.js` (line 4) | Constant; parsed to extract in-flight packet |
 
 ### Runtime Libs
@@ -117,7 +117,7 @@ These references appear in documentation, navigation text, orientation comments,
 
 These require human review before any migration decision.
 
-### `src/lib/intakeClassify.js`
+### `src/lib/intakeClassify.agent.scaffoldai.js`
 - References `.scaffoldai/process/`, `.scaffoldai/agents/`, `.consync/docs/`, `.consync/state/` as **string values** in a classification dictionary (not filesystem reads).
 - Used to map incoming prompts to target surfaces.
 - **Decision needed:** If PROCESS zone migrates to `.scaffoldai/`, these strings must be updated. Not a breaking change (no file read), but the classification model would become stale.
@@ -144,7 +144,7 @@ These require human review before any migration decision.
 | `agents/` | PROCESS | NONE (comment ref only in gatekeeperDecision.js) | Low |
 | `skills/` | PROCESS | NONE runtime; MEDIUM via .github/ prompts | Low–Medium |
 | `contracts/` | PROCESS | NONE | Low |
-| `templates/` | PROCESS | NONE (portableScaffold.js has no .consync/ refs) | Low |
+| `templates/` | PROCESS | NONE (portableScaffold.process.scaffoldai.js has no .consync/ refs) | Low |
 | `prompts/` | PROCESS | NONE | Low |
 | `verification/` | PROCESS | NONE | Low |
 | `planning/` | PROCESS | NONE | Low |

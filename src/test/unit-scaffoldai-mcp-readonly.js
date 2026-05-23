@@ -3,6 +3,11 @@
 const fs = require("fs");
 const path = require("path");
 
+const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
+const { gatherPacketVisibility } = require("../lib/scaffoldaiPacketVisibility.query.scaffoldai");
+const { gatherCompletionStatus } = require("../lib/scaffoldaiCompletionStatus.query.scaffoldai");
+const { runMemoryReadTool, runMemoryWriteTool } = require("../scaffoldai/mcp/shared-memory");
+
 const TEST_NAME = "unit-scaffoldai-mcp-readonly";
 
 console.log(`[${TEST_NAME}] Running`);
@@ -27,7 +32,7 @@ function check(condition, msg) {
 
 let tools;
 try {
-  tools = require("../mcp/tools");
+  tools = require("../scaffoldai/mcp/tools");
   pass("tools.js loads without error");
 } catch (err) {
   fail(`tools.js threw on require: ${err.message}`);
@@ -36,7 +41,7 @@ try {
 
 let signal;
 try {
-  signal = require("../mcp/signal");
+  signal = require("../scaffoldai/mcp/signal");
   pass("signal.js loads without error");
 } catch (err) {
   fail(`signal.js threw on require: ${err.message}`);
@@ -44,7 +49,7 @@ try {
 }
 
 // -----------------------------------------------------------------------
-// Test 2: All 5 tool functions are exported
+// Test 2: All tool functions are exported
 // -----------------------------------------------------------------------
 
 const EXPECTED_TOOL_FNS = [
@@ -52,7 +57,9 @@ const EXPECTED_TOOL_FNS = [
   "runPreflightTool",
   "runQuestionTool",
   "runVerifyRecommendTool",
+  "runVerifyRunTool",
   "runCloseoutReadinessTool",
+  "runCompletionStatusTool",
 ];
 
 for (const name of EXPECTED_TOOL_FNS) {
@@ -69,6 +76,7 @@ const toolFns = [
   ["runQuestionTool", tools.runQuestionTool],
   ["runVerifyRecommendTool", tools.runVerifyRecommendTool],
   ["runCloseoutReadinessTool", tools.runCloseoutReadinessTool],
+  ["runCompletionStatusTool", tools.runCompletionStatusTool],
 ];
 
 for (const [name, fn] of toolFns) {
@@ -84,6 +92,22 @@ for (const [name, fn] of toolFns) {
 }
 
 // -----------------------------------------------------------------------
+// Test 7b: verify runner returns LOCAL_VERIFY_RUNNER and uses bounded model
+// -----------------------------------------------------------------------
+
+{
+  const result = tools.runVerifyRunTool({}, {
+    execute: () => ({ status: 0, stdout: "verify ok", stderr: "" }),
+    now: new Date("2026-05-15T00:00:00.000Z"),
+  });
+  check(
+    result.execution_class === "LOCAL_VERIFY_RUNNER",
+    'runVerifyRunTool returns execution_class "LOCAL_VERIFY_RUNNER"'
+  );
+  check(result.status === "passed", 'runVerifyRunTool returns status "passed" for successful execution');
+}
+
+// -----------------------------------------------------------------------
 // Test 8: runStatusTool returns active_stream when state is readable
 // -----------------------------------------------------------------------
 
@@ -94,6 +118,73 @@ for (const [name, fn] of toolFns) {
       (typeof result.data.active_stream === "string" || result.data.active_stream === null),
     "runStatusTool returns active_stream as string or null"
   );
+}
+
+// -----------------------------------------------------------------------
+// Test 8b: readonly status helpers expose claim/busy visibility
+// -----------------------------------------------------------------------
+
+{
+  const fixtureRoot = path.join(__dirname, "..", "..", ".scaffoldai", "tmp", "unit-scaffoldai-mcp-readonly-claim-fixture");
+  fs.rmSync(fixtureRoot, { recursive: true, force: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "state"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "contracts"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "packets"), { recursive: true });
+  fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai", "runtime", "mcp"), { recursive: true });
+
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "state", "next-action.md"),
+    "TYPE: REFACTOR\nPACKET_ID: sample-packet.sdc\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "state", "active-runtime.json"),
+    JSON.stringify(
+      {
+        in_flight_packet: "sample-packet.sdc",
+        claimed_by: "copilot",
+        claim_status: "in_progress",
+        claimed_at: "2026-05-15T00:00:00.000Z",
+        claim_message: "working packet",
+      },
+      null,
+      2
+    ) + "\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "contracts", "active-policy.json"),
+    JSON.stringify({
+      mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
+      allowed_packet_types: ["process"],
+      blocked_packet_types: ["product"],
+      require_clean_git: false,
+      require_dry_run: false,
+    }, null, 2) + "\n",
+    "utf8"
+  );
+  fs.writeFileSync(
+    path.join(fixtureRoot, ".scaffoldai", "packets", "sample-packet.sdc.md"),
+    "# Sample Packet\n\nGOAL: fixture\n",
+    "utf8"
+  );
+
+  const status = gatherStatus(fixtureRoot, { includeGit: false });
+  check(status.data.claim_owner === "copilot", "gatherStatus exposes claim_owner");
+  check(status.data.claim_busy === true, "gatherStatus exposes claim_busy");
+  check(typeof status.data.claim_next_safe_action === "string", "gatherStatus exposes claim_next_safe_action");
+
+  const packetVisibility = gatherPacketVisibility(fixtureRoot, { scope: "in_flight" });
+  check(packetVisibility.data.claim_owner === "copilot", "gatherPacketVisibility exposes claim_owner");
+  check(packetVisibility.data.claim_busy === true, "gatherPacketVisibility exposes claim_busy");
+  check(typeof packetVisibility.data.claim_next_safe_action === "string", "gatherPacketVisibility exposes claim_next_safe_action");
+
+  const completionStatus = gatherCompletionStatus(fixtureRoot, { activePacketOnly: true, latestOnly: true });
+  check(completionStatus.data.claim_owner === "copilot", "gatherCompletionStatus exposes claim_owner");
+  check(completionStatus.data.claim_busy === true, "gatherCompletionStatus exposes claim_busy");
+  check(typeof completionStatus.data.claim_next_safe_action === "string", "gatherCompletionStatus exposes claim_next_safe_action");
+
+  fs.rmSync(fixtureRoot, { recursive: true, force: true });
 }
 
 // -----------------------------------------------------------------------
@@ -182,7 +273,7 @@ for (const [name, fn] of toolFns) {
     accepted.execution_class === "LOCAL_SIGNAL_APPEND_ONLY",
     'runSignalTool returns execution_class "LOCAL_SIGNAL_APPEND_ONLY"'
   );
-  check(accepted.path === ".scaffoldai/tmp/mcp-signals.jsonl", "runSignalTool reports the bounded signal path");
+  check(accepted.path === ".scaffoldai/runtime/mcp/signals.jsonl", "runSignalTool reports the bounded signal path");
   check(accepted.non_authoritative === true, "runSignalTool marks accepted signals non_authoritative");
   check(fs.existsSync(signal.signalPath), "runSignalTool writes only the signal JSONL artifact");
 
@@ -191,6 +282,123 @@ for (const [name, fn] of toolFns) {
   check(record.client_id === "unit-signal-client", "signal JSONL stores client_id");
   check(record.signal_type === "connected", "signal JSONL stores signal_type");
   check(typeof record.timestamp === "string" && record.timestamp.length > 0, "signal JSONL stores server timestamp");
+
+  signal.resetSignalRateLimitsForTest();
+  const questionSignal = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question",
+    packet: "packet-20260514T000000Z.sdc",
+    severity: "needs_decision",
+    message: "Pick metadata source",
+    options: ["state-only", "runtime-signals"],
+  }, { now: new Date("2026-05-07T03:00:00.000Z") });
+  check(questionSignal.status === "accepted", "runSignalTool accepts question signal fields");
+
+  const normalizedSeverity = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question",
+    packet: "packet-20260514T000000Z.sdc",
+    severity: "urgent",
+    message: "Use fallback severity",
+  }, { now: new Date("2026-05-07T03:00:11.000Z") });
+  check(normalizedSeverity.status === "accepted", "runSignalTool accepts invalid severity by normalization");
+
+  const resolvedSignal = signal.runSignalTool({
+    client_id: "unit-question-client",
+    signal_type: "question_resolved",
+    packet: "packet-20260514T000000Z.sdc",
+    question_id: "q_abc123",
+    question_hash: "abcdef1234567890",
+    question_text: "Pick metadata source",
+    resolved_by: "human.operator",
+    resolution_note: "Decision captured in packet notes.",
+  }, { now: new Date("2026-05-07T03:00:22.000Z") });
+  check(resolvedSignal.status === "accepted", "runSignalTool accepts question resolution payload fields");
+
+  const allRecords = fs.readFileSync(signal.signalPath, "utf8").trim().split("\n").map((lineValue) => JSON.parse(lineValue));
+  const questionRecord = allRecords.find((entry) => entry.message === "Pick metadata source");
+  const normalizedRecord = allRecords.find((entry) => entry.message === "Use fallback severity");
+  const resolvedRecord = allRecords.find((entry) => entry.signal_type === "question_resolved");
+  check(questionRecord.packet === "packet-20260514T000000Z.sdc", "signal JSONL stores packet for question signals");
+  check(questionRecord.severity === "needs_decision", "signal JSONL stores valid severity");
+  check(Array.isArray(questionRecord.options) && questionRecord.options.length === 2, "signal JSONL stores decision options");
+  check(normalizedRecord.severity === "info", 'signal JSONL normalizes invalid severity to "info"');
+  check(resolvedRecord.question_id === "q_abc123", "signal JSONL stores question_id for resolution signals");
+  check(resolvedRecord.question_hash === "abcdef1234567890", "signal JSONL stores question_hash for resolution signals");
+  check(resolvedRecord.resolved_by === "human.operator", "signal JSONL stores resolved_by for resolution signals");
+  check(
+    resolvedRecord.resolution_note === "Decision captured in packet notes.",
+    "signal JSONL stores resolution_note for resolution signals"
+  );
+
+  signal.resetSignalRateLimitsForTest();
+  const completedSignal = signal.runSignalTool({
+    client_id: "unit-completion-client",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Completed packet implementation",
+    verify_command: "npm run verify:scaffoldai",
+    verify_status: "passed",
+    changed_files: [
+      "src/scaffoldai/mcp/signal.js",
+      "../outside/path.js",
+      "/abs/path.js",
+      "src/scaffoldai/mcp/signal.js",
+      "src/scaffoldai/mcp/tools.js",
+    ],
+    summary: "Added completion handshake signal and readonly completion visibility.",
+    commit_suggestion: "scaffoldai: add packet completion handshake",
+    needs_human_closeout: true,
+  }, { now: new Date("2026-05-07T03:00:33.000Z") });
+  check(completedSignal.status === "accepted", "runSignalTool accepts valid packet_completed payload");
+
+  const normalizedVerifyStatus = signal.runSignalTool({
+    client_id: "unit-completion-client",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Completed packet implementation with unknown verify status",
+    verify_command: "npm run verify:scaffoldai",
+    verify_status: "green",
+  }, { now: new Date("2026-05-07T03:00:44.000Z") });
+  check(
+    normalizedVerifyStatus.status === "accepted",
+    "runSignalTool accepts packet_completed with unknown verify_status by normalization"
+  );
+
+  const packetCompletedRecords = fs.readFileSync(signal.signalPath, "utf8").trim().split("\n")
+    .map((lineValue) => JSON.parse(lineValue))
+    .filter((entry) => entry.signal_type === "packet_completed");
+  check(packetCompletedRecords.length >= 2, "signal JSONL stores packet_completed records");
+  const completionRecord = packetCompletedRecords.find(
+    (entry) => entry.message === "Completed packet implementation"
+  );
+  const normalizedCompletionRecord = packetCompletedRecords.find(
+    (entry) => entry.message === "Completed packet implementation with unknown verify status"
+  );
+  check(completionRecord.verify_command === "npm run verify:scaffoldai", "packet_completed stores verify_command");
+  check(completionRecord.verify_status === "passed", "packet_completed stores valid verify_status");
+  check(
+    Array.isArray(completionRecord.changed_files) &&
+      completionRecord.changed_files.length === 2 &&
+      completionRecord.changed_files.includes("src/scaffoldai/mcp/signal.js") &&
+      completionRecord.changed_files.includes("src/scaffoldai/mcp/tools.js"),
+    "packet_completed stores bounded/sanitized changed_files"
+  );
+  check(
+    normalizedCompletionRecord.verify_status === "not_run",
+    'packet_completed normalizes unknown verify_status to "not_run"'
+  );
+
+  const missingCompletionFields = signal.runSignalTool({
+    client_id: "unit-completion-missing",
+    signal_type: "packet_completed",
+    packet: "packet-20260515T010203Z.sdc.md",
+    message: "Missing verify fields",
+  }, { now: new Date("2026-05-07T03:00:55.000Z") });
+  check(
+    missingCompletionFields.status === "rejected",
+    "runSignalTool rejects packet_completed when required verify fields are missing"
+  );
 
   const unknownField = signal.runSignalTool({
     client_id: "unit-unknown-field",
@@ -254,7 +462,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const mcpDir = path.join(__dirname, "..", "mcp");
+  const mcpDir = path.join(__dirname, "..", "scaffoldai", "mcp");
   const forbidden = ["writeFile", "appendFile", "mkdirSync", "writeFileSync"];
   const readOnlyFiles = ["server.js", "tools.js"].map((f) => path.join(mcpDir, f));
 
@@ -275,12 +483,12 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const signalSourcePath = path.join(__dirname, "..", "mcp", "signal.js");
+  const signalSourcePath = path.join(__dirname, "..", "scaffoldai", "mcp", "signal.js");
 
   try {
     const source = fs.readFileSync(signalSourcePath, "utf8");
 
-    check(source.includes('".scaffoldai/tmp/mcp-signals.jsonl"'), "signal.js writes the planned signal path");
+    check(source.includes('".scaffoldai/runtime/mcp/signals.jsonl"'), "signal.js writes the planned signal path");
     check(source.includes("fs.appendFileSync(signalPath"), "signal.js appends only to the signal output variable");
     check(source.includes("fs.mkdirSync(signalDir"), "signal.js creates only the signal tmp directory variable");
     check(!source.includes("child_process"), "signal.js does not import child_process");
@@ -299,7 +507,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const snapshotPath = path.join(__dirname, "..", "mcp", "snapshot.js");
+  const snapshotPath = path.join(__dirname, "..", "scaffoldai", "mcp", "snapshot.js");
 
   try {
     const source = fs.readFileSync(snapshotPath, "utf8");
@@ -335,7 +543,7 @@ for (const [name, fn] of toolFns) {
       const source = fs.readFileSync(filePath, "utf8");
       check(
         !source.includes("mcp/server") && !source.includes("mcp\\server"),
-        `${path.basename(filePath)} does not import src/mcp/server.js`
+        `${path.basename(filePath)} does not import src/scaffoldai/mcp/server.js`
       );
     } catch {
       fail(`Could not read ${path.basename(filePath)}`);
@@ -348,7 +556,7 @@ for (const [name, fn] of toolFns) {
 // -----------------------------------------------------------------------
 
 {
-  const mcpDir = path.join(__dirname, "..", "mcp");
+  const mcpDir = path.join(__dirname, "..", "scaffoldai", "mcp");
 
   try {
     const mcpFiles = fs
@@ -357,7 +565,7 @@ for (const [name, fn] of toolFns) {
       .map((f) => path.join(mcpDir, f));
 
     if (mcpFiles.length === 0) {
-      fail("No .js files found in src/mcp/ — cannot check for /tmp usage");
+      fail("No .js files found in src/scaffoldai/mcp/ — cannot check for /tmp usage");
     } else {
       for (const filePath of mcpFiles) {
         const source = fs.readFileSync(filePath, "utf8");
@@ -365,7 +573,125 @@ for (const [name, fn] of toolFns) {
       }
     }
   } catch {
-    fail("Could not read src/mcp/ for /tmp check");
+    fail("Could not read src/scaffoldai/mcp/ for /tmp check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 20: server.js exposes the expected local MCP tool inventory
+// -----------------------------------------------------------------------
+
+{
+  const serverPath = path.join(__dirname, "..", "scaffoldai", "mcp", "server.js");
+  const expectedTools = [
+    "scaffoldai_status",
+    "scaffoldai_preflight",
+    "scaffoldai_question",
+    "scaffoldai_verify_recommend",
+    "scaffoldai_closeout_readiness",
+    "scaffoldai_completion_status",
+    "scaffoldai_verify_run",
+    "scaffoldai_signal",
+    "scaffoldai_submit_sdc_candidate",
+    "scaffoldai_memory_write",
+    "scaffoldai_memory_read",
+  ];
+
+  try {
+    const source = fs.readFileSync(serverPath, "utf8");
+    const matches = [...source.matchAll(/server\.(?:tool|registerTool)\(\s*"([^"]+)"/g)].map((entry) => entry[1]);
+    check(matches.length === expectedTools.length, `server tool registration count matches expected (${expectedTools.length})`);
+
+    for (const toolName of expectedTools) {
+      check(matches.includes(toolName), `server registers ${toolName}`);
+    }
+  } catch {
+    fail("Could not read server.js for MCP tool inventory check");
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 21: shared-memory tools are bounded and fail closed with diagnostics
+// -----------------------------------------------------------------------
+
+{
+  const storagePath = path.join(__dirname, "..", "..", ".scaffoldai", "runtime", "mcp", "shared-memory.jsonl");
+  const storageDir = path.dirname(storagePath);
+  const prior = fs.existsSync(storagePath) ? fs.readFileSync(storagePath, "utf8") : null;
+
+  try {
+    const missingFrom = runMemoryWriteTool({ to: "all", message: "hello" });
+    check(missingFrom.execution_class === "LOCAL_SHARED_MEMORY_APPEND_ONLY", "memory write rejection includes append-only execution class");
+    check(missingFrom.status === "rejected", "memory write rejects missing required fields");
+    check(typeof missingFrom.reason === "string" && missingFrom.reason.length > 0, "memory write rejection includes reason");
+    check(missingFrom.error_category === "schema_input_mismatch", "memory write rejection includes schema_input_mismatch category");
+    check(Array.isArray(missingFrom.guard_errors), "memory write rejection includes guard_errors array");
+
+    const unknownField = runMemoryWriteTool({ from: "a", to: "all", message: "x", path: "../escape" });
+    check(unknownField.status === "rejected", "memory write rejects unknown fields to stay fail-closed");
+    check(unknownField.error_category === "guard_failure", "memory write unknown-field rejection uses guard_failure category");
+
+    const accepted = runMemoryWriteTool({ from: "unit.mcp", to: "all", topic: "mcp", message: "guard test record" });
+    check(accepted.status === "accepted", "memory write accepts valid append-only payload");
+    check(accepted.execution_class === "LOCAL_SHARED_MEMORY_APPEND_ONLY", "memory write accepted response includes append-only execution class");
+    check(accepted.storage === ".scaffoldai/runtime/mcp/shared-memory.jsonl", "memory write stays inside the bounded shared-memory path");
+
+    const readRejected = runMemoryReadTool({});
+    check(readRejected.status === "rejected", "memory read rejects missing audience");
+    check(readRejected.execution_class === "READ_ONLY", "memory read rejection reports READ_ONLY execution class");
+
+    const readAccepted = runMemoryReadTool({ audience: "all", limit: 5 });
+    check(readAccepted.status === "accepted", "memory read accepts valid audience query");
+    check(readAccepted.execution_class === "READ_ONLY", "memory read accepted response reports READ_ONLY execution class");
+    check(Array.isArray(readAccepted.messages), "memory read accepted response includes messages array");
+
+    check(fs.existsSync(storageDir), "memory write creates only the bounded runtime/mcp directory");
+    check(fs.existsSync(storagePath), "memory write appends only to shared-memory.jsonl");
+  } finally {
+    if (prior === null) {
+      try {
+        fs.unlinkSync(storagePath);
+      } catch (err) {
+        if (err.code !== "ENOENT") throw err;
+      }
+    } else {
+      fs.writeFileSync(storagePath, prior, "utf8");
+    }
+  }
+}
+
+// -----------------------------------------------------------------------
+// Test 22: non-read-only MCP source files do not invoke git mutation or broad cleanup
+// -----------------------------------------------------------------------
+
+{
+  const nonReadOnlyFiles = [
+    path.join(__dirname, "..", "scaffoldai", "mcp", "submit-sdc-candidate.js"),
+    path.join(__dirname, "..", "scaffoldai", "mcp", "signal.js"),
+    path.join(__dirname, "..", "scaffoldai", "mcp", "shared-memory.js"),
+    path.join(__dirname, "..", "lib", "scaffoldaiVerifyRun.auth.scaffoldai.js"),
+  ];
+
+  const forbidden = [
+    "git commit",
+    "git push",
+    "git branch",
+    "git checkout",
+    "git switch",
+    "rm -rf",
+    "fs.rmSync(",
+    "fs.rmdirSync(",
+  ];
+
+  for (const filePath of nonReadOnlyFiles) {
+    try {
+      const source = fs.readFileSync(filePath, "utf8");
+      for (const token of forbidden) {
+        check(!source.includes(token), `${path.basename(filePath)} does not include forbidden mutation token: ${token}`);
+      }
+    } catch {
+      fail(`Could not read ${path.basename(filePath)} for mutation token checks`);
+    }
   }
 }
 

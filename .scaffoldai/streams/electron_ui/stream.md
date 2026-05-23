@@ -5,7 +5,7 @@
 - status: active
 - owner: human
 - mode: build
-- summary: active — ideas-grouping-in-notes-panel-v1 complete and validated; system stable; next slice TBD
+- summary: active — last package: stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc (PASS)
 
 ## Active Checkpoint
 

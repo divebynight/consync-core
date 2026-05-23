@@ -10,7 +10,7 @@ const {
   getValidProfiles,
   getProfileConfig,
   DEFAULT_PROFILE,
-} = require("../lib/profileResolver");
+} = require("../lib/profileResolver.process.scaffoldai");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);
@@ -28,8 +28,8 @@ function main() {
       delete process.env.SCAFFOLDAI_PROCESS_PROFILE;
 
       // Need to re-require to get fresh resolution
-      delete require.cache[require.resolve("../lib/profileResolver")];
-      const { resolveProfile: freshResolve } = require("../lib/profileResolver");
+      delete require.cache[require.resolve("../lib/profileResolver.process.scaffoldai")];
+      const { resolveProfile: freshResolve } = require("../lib/profileResolver.process.scaffoldai");
 
       const profile = freshResolve();
 
@@ -55,8 +55,8 @@ function main() {
       const originalEnv = process.env.SCAFFOLDAI_PROCESS_PROFILE;
       process.env.SCAFFOLDAI_PROCESS_PROFILE = "PROCESS_TEST";
 
-      delete require.cache[require.resolve("../lib/profileResolver")];
-      const { resolveProfile: freshResolve } = require("../lib/profileResolver");
+      delete require.cache[require.resolve("../lib/profileResolver.process.scaffoldai")];
+      const { resolveProfile: freshResolve } = require("../lib/profileResolver.process.scaffoldai");
 
       const profile = freshResolve();
 
@@ -84,8 +84,8 @@ function main() {
       const originalEnv = process.env.SCAFFOLDAI_PROCESS_PROFILE;
       process.env.SCAFFOLDAI_PROCESS_PROFILE = "FULL_GOVERNED";
 
-      delete require.cache[require.resolve("../lib/profileResolver")];
-      const { resolveProfile: freshResolve } = require("../lib/profileResolver");
+      delete require.cache[require.resolve("../lib/profileResolver.process.scaffoldai")];
+      const { resolveProfile: freshResolve } = require("../lib/profileResolver.process.scaffoldai");
 
       const profile = freshResolve();
 
@@ -113,8 +113,8 @@ function main() {
       const originalEnv = process.env.SCAFFOLDAI_PROCESS_PROFILE;
       process.env.SCAFFOLDAI_PROCESS_PROFILE = "DIRECT_WORK";
 
-      delete require.cache[require.resolve("../lib/profileResolver")];
-      const { resolveProfile: freshResolve } = require("../lib/profileResolver");
+      delete require.cache[require.resolve("../lib/profileResolver.process.scaffoldai")];
+      const { resolveProfile: freshResolve } = require("../lib/profileResolver.process.scaffoldai");
 
       const profile = freshResolve();
 
@@ -142,8 +142,8 @@ function main() {
       const originalEnv = process.env.SCAFFOLDAI_PROCESS_PROFILE;
       process.env.SCAFFOLDAI_PROCESS_PROFILE = "INVALID_PROFILE";
 
-      delete require.cache[require.resolve("../lib/profileResolver")];
-      const { resolveProfile: freshResolve } = require("../lib/profileResolver");
+      delete require.cache[require.resolve("../lib/profileResolver.process.scaffoldai")];
+      const { resolveProfile: freshResolve } = require("../lib/profileResolver.process.scaffoldai");
 
       const profile = freshResolve();
 

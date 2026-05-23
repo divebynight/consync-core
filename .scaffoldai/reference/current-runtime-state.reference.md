@@ -118,7 +118,7 @@ MCP does not use HTTP, SSE, WebSocket, ngrok, or remote exposure. stdout must re
 | `scaffoldai_question` | Open structural questions | `READ_ONLY` | Observe | CLEAR means no currently detected structural questions, not universal certainty |
 | `scaffoldai_verify_recommend` | Recommended VERIFY COMMAND and TARGET | `READ_ONLY` | Recommend | Does not run verification |
 | `scaffoldai_closeout_readiness` | Closeout readiness observation | `READ_ONLY` | Recommend | Never returns `READY_FOR_REVIEW` in MCP v0; verify evidence is not provided |
-| `scaffoldai_signal` | Append a tiny local presence/capability signal | `LOCAL_SIGNAL_APPEND_ONLY` | Diagnostic signal only | Writes only `.scaffoldai/tmp/mcp-signals.jsonl`; non-authoritative and ephemeral |
+| `scaffoldai_signal` | Append a tiny local presence/capability signal | `LOCAL_SIGNAL_APPEND_ONLY` | Diagnostic signal only | Writes only `.scaffoldai/runtime/mcp/signals.jsonl`; non-authoritative and ephemeral |
 | `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message | Diagnostic POC | Diagnostic only | Manually invoked; non-authoritative; not workflow state |
 | `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages | Diagnostic POC | Diagnostic only | Manually invoked; messages are data only, not executable intent |
 
@@ -147,7 +147,7 @@ These are current runtime boundaries:
 - TARGET identifies what verification applies to, such as `scaffoldai`, `consync`, or `full`.
 - NEXT SAFE ACTION is advisory guidance for a human-controlled next step.
 - `execution_class: READ_ONLY` never grants mutation authority.
-- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` grants only bounded append-only signal writes under `.scaffoldai/tmp/`; it is not repo mutation authority.
+- `execution_class: LOCAL_SIGNAL_APPEND_ONLY` grants only bounded append-only signal writes to `.scaffoldai/runtime/mcp/signals.jsonl`; it is not repo mutation authority.
 - MCP clients observe and recommend only.
 - MCP output does not approve closeout or provide verify evidence in v0.
 - MCP is not currently an orchestration engine.
@@ -155,6 +155,16 @@ These are current runtime boundaries:
 - Temp, log, and generated runtime artifacts must stay inside `.scaffoldai/tmp/`.
 
 If tool output, docs, and user claims conflict, stop and ask the human or rerun the relevant Runtime Command.
+
+### Lifecycle Authority Quick Map
+
+- Packet content authority: `.scaffoldai/packets/*.sdc.md` (durable packet content written by intake normalization)
+- Active packet pointer authority: `.scaffoldai/state/active-runtime.json` + `.scaffoldai/state/next-action.md`
+- Runtime/claim authority: `.scaffoldai/state/active-runtime.json` claim fields (`claimed_by`, `claim_status`, timestamps)
+- Verification evidence authority: `.scaffoldai/state/verify-evidence.json` validated against current in-flight packet
+- Closeout/handoff authority: `.scaffoldai/state/handoff.md` plus closeout readiness/runtime checks
+- Continuity artifacts: `.scaffoldai/state/snapshot.md` and generated handoff bundles (context continuity, not pointer authority)
+- Diagnostic/advisory runtime artifacts: `.scaffoldai/runtime/mcp/signals.jsonl`, `.scaffoldai/runtime/mcp/shared-memory.jsonl`, `.scaffoldai/tmp/mcp-runtime-snapshot.json`
 
 ---
 
@@ -168,9 +178,10 @@ There are multiple reentry/runtime artifacts. They have different authority.
 | `.scaffoldai/state/next-action.md` | Live next-action state | Current loop | Authoritative state | Determine mounted or idle work |
 | `.scaffoldai/state/handoff.md` | Latest closeout handoff | Updated after closeout | Authoritative state/history | Understand last completed work |
 | `.scaffoldai/streams/` | Per-stream process state | Current and historical by stream | Authoritative stream state | Scope active work and reentry assumptions |
-| `.scaffoldai/packets/` | Completed packet archive | Historical append-only archive | Historical process record | Preserve completed work packet artifacts |
+| `.scaffoldai/packets/` | Packet archive/inbox | Durable packet document store | Packet content source (not active authority by itself) | Hold packet files available for manual activation |
+| `.scaffoldai/state/active-contract.json` + `.scaffoldai/state/next-action.md` | Active packet pointer | Current loop | Authoritative in-flight packet pointer | Determine current packet across CLI and MCP surfaces |
 | `.scaffoldai/tmp/mcp-runtime-snapshot.json` | MCP runtime observation bundle | Ephemeral/generated | Read-only runtime artifact | Paste/upload into AI clients |
-| `.scaffoldai/tmp/mcp-signals.jsonl` | MCP client signal log | Ephemeral/generated | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
+| `.scaffoldai/runtime/mcp/signals.jsonl` | MCP client signal log | Runtime append-only | Non-authoritative diagnostic artifact | Local presence, heartbeat, and capability visibility signals |
 | Handoff bundles | Portable session bootstrap | Generated on demand | Context bundle | Rehydrate another AI session |
 | Runtime Command output | Current local observation | Moment-in-time | Operational evidence | Check current status before acting |
 
@@ -232,8 +243,15 @@ For closeout:
 
 1. Run the recommended VERIFY COMMAND.
 2. Run `npm run scaffoldai:closeout`.
-3. If verification passed and the human accepts the evidence, rerun closeout with `--verify-passed` when appropriate.
-4. Commit, stage, push, or create PRs only by explicit human decision.
+3. If using lifecycle wrappers, run `npm run scaffoldai:close-feature -- --verify-passed` only after verification evidence is current for the active packet.
+4. Confirm closeout output and cleanup status before any git staging/commit step.
+5. Commit, stage, push, or create PRs only by explicit human decision.
+
+For packet activation:
+
+1. Run `node src/scaffoldai.js scaffoldai packet status`.
+2. Run `node src/scaffoldai.js scaffoldai packet activate <packet-filename-or-path>`.
+3. Run `node src/scaffoldai.js scaffoldai packet clear` when in-flight pointer should be reset.
 
 ---
 

@@ -19,7 +19,12 @@ CONTROLLED MCP ACCESS + deterministic local Runtime Commands + human-authoritati
 ScaffoldAI currently is:
 
 - a repo-local process harness for planning, executing, verifying, and closing focused work packets
-- the owner of shared process state under `.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/`
+- the owner of three distinct operational zones:
+  - `.scaffoldai/state/` — current authoritative operational state
+  - `.scaffoldai/streams/` — stream identity and work continuity logs
+  - `.scaffoldai/packets/` — durable accepted packet records and retained packet history
+  - `.scaffoldai/runtime/` — non-authoritative runtime append artifacts
+  - `.scaffoldai/tmp/` — ephemeral runtime and diagnostic artifacts
 - a deterministic Runtime Command layer for status, preflight, question, verify, closeout, and MCP snapshot generation
 - a manual agent/process model where agents are invoked intentionally and never auto-dispatched
 - a controlled MCP capability/access layer for local AI clients such as Codex and Copilot
@@ -49,9 +54,45 @@ Current ScaffoldAI Runtime Commands include:
 - `npm run scaffoldai:question`
 - `npm run scaffoldai:verify`
 - `npm run scaffoldai:closeout`
+- `npm run scaffoldai:housekeeping`
+- `npm run scaffoldai:intake-latest`
+- `npm run scaffoldai:activate-latest`
+- `npm run scaffoldai:start-latest`
+- `npm run scaffoldai:close-feature`
 - `npm run scaffoldai:mcp:snapshot`
 
 Use `npm run scaffoldai:verify` to ask ScaffoldAI which VERIFY COMMAND and TARGET apply. Running verification remains a human-controlled decision unless explicitly requested.
+
+Use `npm run scaffoldai:housekeeping` to inspect runtime-state changes and separate resettable runtime artifacts from implementation changes.
+
+Lifecycle convenience wrappers are deterministic and fail closed:
+- they resolve packet/candidate identity deterministically
+- they never guess between multiple candidates
+- they refuse operation on ambiguity, active packet conflicts, verification-gate failures, or cleanup precondition failures
+- they do not expand authority and do not bypass explicit lifecycle primitives
+
+Deterministic resolution rules:
+- latest valid inbox candidate: latest `.scaffoldai/inbox/*.sdc.md` with valid identity title
+- latest intake-compatible candidate: latest inbox candidate that passes strict intake validation
+- active packet identity: resolved active packet pointer that must map to a unique durable packet identity
+
+Lifecycle examples:
+- intake latest candidate: `npm run scaffoldai:intake-latest`
+- intake + activate latest candidate: `npm run scaffoldai:activate-latest`
+- start latest packet flow with ordering guards: `npm run scaffoldai:start-latest`
+- close active packet with evidence + cleanup gates: `npm run scaffoldai:close-feature`
+
+Remote proposal / local lifecycle operator runbook:
+
+- `.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md`
+
+Housekeeping commands:
+
+- `node src/scaffoldai.js scaffoldai housekeeping status`
+- `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state`
+- `node src/scaffoldai.js scaffoldai housekeeping reset-runtime-state --include-runtime-logs`
+
+Default housekeeping reset behavior neutralizes active runtime state (`active-runtime.json`, `next-action.md`, `snapshot.md`) while preserving append-only runtime logs and packet archives. Runtime logs are only cleared with explicit `--include-runtime-logs`.
 
 ## MCP Model
 
@@ -65,7 +106,7 @@ AI client
 
 Current MCP clients include Codex and Copilot. Each client launches an ephemeral local stdio MCP server instance directly with Node; shared ScaffoldAI state persists independently of any MCP process lifetime.
 
-The MCP surface has read-only observation tools, one bounded append-only signal tool, and a diagnostic shared-memory POC in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only ephemeral, non-authoritative signal records under `.scaffoldai/tmp/mcp-signals.jsonl`.
+The MCP surface has read-only observation tools, one bounded append-only signal tool, and a diagnostic shared-memory POC in the current phase. Observation tools return structured JSON with `execution_class: "READ_ONLY"`. `scaffoldai_signal` returns `execution_class: "LOCAL_SIGNAL_APPEND_ONLY"` and writes only non-authoritative signal records under `.scaffoldai/runtime/mcp/signals.jsonl`.
 
 MCP is not currently an orchestration engine. It does not approve, verify, close, commit, push, stage, edit, execute shell commands, orchestrate workflow, dispatch tools automatically, run autonomous agents, or mutate authoritative state. MCP messages are data only, not executable intent.
 
@@ -132,64 +173,194 @@ Future write-capable MCP or dispatch behavior would require a separate contract,
 | `agents/` | PROCESS | Agent role definitions, invocation contracts, binding status | Active |
 | `audits/` | DOCS | Point-in-time boundary and structure audits | Historical |
 | `contracts/` | PROCESS | Formal behavioral contracts (ownership, migration, integrity) | Active + Historical |
-| `packets/` | HISTORY | Completed work packet artifacts | Historical |
+| `examples/` | DOCS | Reusable passing examples and workflow scenarios | Active |
+| `packets/` | PROCESS | Durable accepted packet records and retained packet history | Active + Historical |
 | `planning/` | PROCESS | Planning docs and current direction | Active + Historical |
 | `process/` | PROCESS | Process docs: runbook, flow maps, execution guides, work log | Active |
 | `prompts/` | EXECUTION | AI prompt files for specific workflow steps | Active |
+| `reference/` | DOCS | Conceptual documentation and reference material | Active |
+| `runtime/` | RUNTIME | Non-authoritative runtime append artifacts | Ephemeral |
 | `skills/` | EXECUTION | Reusable procedure files referenced by agents | Active |
-| `state/` | STATE | Live loop state: next-action, handoff, snapshot, active-stream | Active |
-| `streams/` | STATE | Per-stream state and history | Active |
+| `state/` | STATE | Authoritative operational state (current work) | Active |
+| `streams/` | STATE | Stream identity and work continuity (per-stream context) | Active |
 | `templates/` | TEMPLATES | Work packet template and portable scaffold templates | Active |
+| `tmp/` | RUNTIME | Ephemeral runtime/verification/diagnostic artifacts (gitignored) | Ephemeral |
+| `verification/` | PROCESS | Verification patterns and coverage maps | Active |
 
 ---
 
 ## Folder Details
 
-### `state/` — Live session state
+### `state/` — Authoritative operational state
 The authoritative source of truth for the current development loop.
 
 - `next-action.md` — the one thing to do next (or PACKAGE: NONE when idle)
 - `handoff.md` — closeout record for the most recently completed package
 - `snapshot.md` — fast re-entry summary of current system state
 - `active-stream.md` — which work stream is currently mounted
-- `active-contract.json` — current gatekeeper mode and constraints
-- `history/` — append-only event log
+- `active-runtime.json` — current transient runtime execution state
+- `history.jsonl` — append-only state transition audit trail (optional, created on first append)
+- `history/` — observational artifacts subdirectory (non-authoritative)
 
-### `streams/` — Per-stream state
-Contains subdirectories per stream (e.g. `electron_ui/`, `process/`).
-Each stream tracks its own state and resume checkpoint.
+Durable policy contract:
+
+- `.scaffoldai/contracts/active-policy.json` — mode, allowed/blocked packet types, and process requirements
+
+Git lifecycle guidance:
+
+- `next-action.md` and `snapshot.md` are runtime-facing and often noisy during loop operation.
+- `active-policy.json` contains intentional process-mode edits and should remain tracked.
+- `active-runtime.json` is transient execution state and should be normalized by housekeeping reset when needed.
+- `history.jsonl` is append-only runtime telemetry and should usually be preserved locally rather than committed.
+
+### `streams/` — Stream identity and work continuity
+Contains subdirectories per stream (e.g. `electron_ui/`, `process/`).  
+Each stream has:
+- `stream.md` — stream metadata (id, title, status, branch)
+- `history/` — work continuity logs (gitignored, non-authoritative)
+
+### `runtime/` — Non-authoritative runtime append artifacts
+Contains runtime append-only artifacts outside authoritative state and stream doc namespaces.
+
+Current MCP runtime artifacts:
+- `mcp/signals.jsonl` — bounded append-only diagnostic signals
+- `mcp/shared-memory.jsonl` — bounded append-only diagnostic shared-memory messages
+
+### `packets/` — Durable accepted packets and retained history
+Normalized accepted SDC packets are written here by intake and may later be activated through `.scaffoldai/state/`.
+Timestamped historical packet records may also be retained here as local archive material.
+Reusable examples should live in `examples/`, not `packets/`.
+
+### `tmp/` — Ephemeral runtime artifacts
+Temporary verification logs, runtime snapshots, diagnostic signals, and debug output.  
+**All contents are ephemeral, non-authoritative, and safe to delete.**  
+Gitignored (contents excluded, directory tracked via `.gitkeep`).
 
 ### `agents/` — Agent role contracts
-Defines the Consync agent roles: Preflight, Intake, Verify, Closeout, Reentry, Gatekeeper, Entry Adapter.
+Defines the Consync agent roles: Preflight, Intake, Verify, Closeout, Reentry, Gatekeeper, Entry Adapter.  
 Agents are invoked manually. No automatic dispatcher exists.
 
 ### `process/` — Process documentation
-Runbook, flow maps, AI context guide, execution guides, and the append-only work log.
+Runbook, flow maps, AI context guide, execution guides, and the append-only work log.  
 Read these to understand how the development loop operates.
 
 ### `skills/` — Reusable workflow procedures
-Referenced by agents during execution (e.g. closeout-agent.md).
+Referenced by agents during execution (e.g. closeout-agent.md).  
 Not role definitions — those live in `agents/`.
 
 ### `prompts/` — AI prompt files
 Prompt templates for specific workflow steps (e.g. generate-packet, run closeout).
 
 ### `contracts/` — Behavioral contracts
-Formal agreements about system boundaries, ownership, and integrity rules.
+Formal agreements about system boundaries, ownership, and integrity rules.  
 Includes historical migration contracts and active boundary contracts.
 
 ### `planning/` — Direction and planning
 Current direction docs and feature planning records.
 
 ### `templates/` — Copy-paste templates
-`work-packet-v3.md` — the standard work packet template.
+`work-packet-v3.md` — the standard work packet template.  
+`canonical-sdc-packet-template.sdc.md` — reusable strict-intake SDC authoring template.  
 `portable/` — standalone scaffold templates for separate deployment contexts.
 
-### `packets/` — Completed packet archive
-Historical record of completed work packets. Append-only. Do not modify.
+### Canonical SDC authoring surfaces
+- `.scaffoldai/contracts/canonical-sdc-packet.contract.md` — current validator-backed packet contract
+- `.scaffoldai/examples/canonical-sdc-packet-example.sdc.md` — passing example packet
+- `.scaffoldai/templates/canonical-sdc-packet-template.sdc.md` — reusable template that passes strict intake unchanged
 
 ### `audits/` — Boundary audits
 Point-in-time structural audit records. Historical. Do not modify.
+
+### `reference/` — Conceptual documentation
+Broader conceptual docs and reference material about ScaffoldAI architecture and patterns.
+
+### `verification/` — Verification patterns
+Verification coverage maps and verification strategy documentation.
+
+---
+
+## Artifact Taxonomy
+
+Four distinct categories of ScaffoldAI artifacts with different lifecycles and purposes:
+
+### 1. Authoritative Operational State (`.scaffoldai/state/`)
+
+**Purpose:** Current active work state that drives ScaffoldAI decision-making  
+**Lifetime:** Current work only  
+**Authority:** Source of truth for workflow decisions  
+**Gitignored:** Partially (dynamic files like `next-action.md`, `snapshot.md` excluded)
+
+**Key files:**
+- `active-runtime.json` — current transient in-flight packet metadata
+- `next-action.md` — current in-flight packet or NONE
+- `handoff.md` — current handoff document
+- `snapshot.md` — current operational snapshot
+
+Durable policy source:
+- `.scaffoldai/contracts/active-policy.json` — stable process-policy metadata
+
+**Write authority:** All mutations go through `src/lib/scaffoldaiState.state.scaffoldai.js` gateway
+
+### 2. Stream Identity and Work Continuity (`.scaffoldai/streams/`)
+
+**Purpose:** Parallel work streams with identity and human-readable continuity logs  
+**Lifetime:** Persistent across work (stream metadata), accumulated over stream lifetime (work logs)  
+**Authority:** Stream metadata is authoritative; work logs are observational  
+**Gitignored:** Partially (stream.md committed, history/ excluded)
+
+**Key artifacts:**
+- `stream.md` — stream identity (id, title, status, branch)
+- `history/` — work continuity logs (non-authoritative, for human reentry)
+- runtime append artifacts moved under `.scaffoldai/runtime/mcp/`
+
+**Distinction from state:** Stream history tracks **work continuity** within a stream; state history tracks **state transitions** (mount/close/switch).
+
+### 3. Archived Work Units (`.scaffoldai/packets/`)
+
+**Purpose:** Completed, closed work packets with structured closeout records  
+**Lifetime:** Post-closeout archive  
+**Authority:** Non-authoritative (historical record, not source of truth)  
+**Gitignored:** Yes (entire directory)
+
+**Key properties:**
+- **Not temporary files** — these are durable structured records
+- Timestamped format: `packet-YYYYMMDDTHHMMSSZ.md`
+- Local retention is a manual human decision
+- No automatic cleanup policy
+
+**Distinction from handoff:** Handoff is **current** active work; packets are **archived** closed work.
+
+### 4. Ephemeral Runtime Artifacts (`.scaffoldai/tmp/`)
+
+**Purpose:** Temporary verification logs, runtime snapshots, diagnostic signals  
+**Lifetime:** Ephemeral (safe to delete at any time)  
+**Authority:** Non-authoritative (never participates in decisions)  
+**Gitignored:** Yes (contents excluded, directory tracked via `.gitkeep`)
+
+**Key artifacts:**
+- `verify_sai.log` — verification command output
+- `mcp-runtime-snapshot.json` — generated read-only observation bundle
+- `runtime/mcp/signals.jsonl` — bounded append-only diagnostic signals
+
+**Hard rule:** Never write to `/tmp` or system-wide temp directories; all temporary artifacts must target `.scaffoldai/tmp/`.
+
+---
+
+## History Artifact Clarification
+
+Three distinct history mechanisms serve different purposes:
+
+| Artifact | Purpose | Format | Authority | Gitignored |
+|----------|---------|--------|-----------|------------|
+| **`.scaffoldai/state/history.jsonl`** | State transition audit trail | JSON Lines | Non-authoritative | Yes |
+| **`.scaffoldai/streams/*/history/`** | Work continuity within a stream | Human-readable | Non-authoritative | Yes |
+| **`.scaffoldai/packets/*.md`** | Archived structured closeout records | Markdown | Non-authoritative | Yes |
+
+**State history** tracks **when state changed** (mount/close/switch operations).  
+**Stream history** tracks **what work happened** within a stream context.  
+**Packets** are **complete closeout summaries** of finished work units.
+
+None of these histories participate in decision-making or become source of truth. They are observational only.
 
 ---
 

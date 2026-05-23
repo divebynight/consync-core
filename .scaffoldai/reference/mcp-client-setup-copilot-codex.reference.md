@@ -31,14 +31,14 @@ ScaffoldAI MCP v0 is:
 Supported server command for stdio MCP clients:
 
 ```text
-node src/mcp/server.js
+node src/scaffoldai/mcp/server.js
 ```
 
 Client configuration shape:
 
 ```text
 command: node
-args: ["src/mcp/server.js"]
+args: ["src/scaffoldai/mcp/server.js"]
 ```
 
 Do not launch stdio MCP clients through npm wrappers. stdio MCP clients require protocol-clean stdout: stdout must contain only MCP protocol messages, while human-readable logs, diagnostics, warnings, and startup notes belong on stderr. npm lifecycle output can contaminate stdout and break or degrade client parsing.
@@ -119,7 +119,7 @@ The current MCP server exposes five read-only tools, one append-only signal tool
 | `scaffoldai_memory_write` | Append a bounded shared-memory diagnostic message. | Diagnostic POC only |
 | `scaffoldai_memory_read` | Read bounded shared-memory diagnostic messages. | Diagnostic POC only |
 
-No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/tmp/mcp-signals.jsonl`, which is ephemeral, local, safe to delete, and not ScaffoldAI runtime truth.
+No general write-capable MCP tools are supported in v0. `scaffoldai_signal` writes only `.scaffoldai/runtime/mcp/signals.jsonl`, which is append-only, local, safe to delete, and not ScaffoldAI runtime truth.
 
 `scaffoldai_memory_write` and `scaffoldai_memory_read` are diagnostic-only, append-only where writing, non-authoritative, manually invoked, and isolated from production workflow state. Shared-memory messages are data only, not executable intent.
 
@@ -143,7 +143,7 @@ For VS Code/Copilot, add the `env` block to `.vscode/mcp.json`:
     "scaffoldai": {
       "type": "stdio",
       "command": "node",
-      "args": ["src/mcp/server.js"],
+      "args": ["src/scaffoldai/mcp/server.js"],
       "cwd": "/path/to/consync-core",
       "env": {
         "SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"
@@ -229,10 +229,10 @@ When configuring Copilot manually, use:
 - transport: local stdio
 - working directory: repo root
 - command: `node`
-- args: `["src/mcp/server.js"]`
+- args: `["src/scaffoldai/mcp/server.js"]`
 - env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
-Before relying on the setup, confirm that Copilot can see the six ScaffoldAI tools listed in this guide.
+Before relying on the setup, confirm that Copilot can see the eight ScaffoldAI tools listed in this guide.
 
 Copilot responses should cite tool observations and ask the human before any action beyond read-only observation or bounded signal append.
 
@@ -249,12 +249,12 @@ When configuring Codex manually, use:
 - transport: local stdio
 - working directory: repo root
 - command: `node`
-- args: `["src/mcp/server.js"]`
+- args: `["src/scaffoldai/mcp/server.js"]`
 - env: `{"SCAFFOLDAI_PROCESS_PROFILE": "DEFAULT_DEV"}`
 
 Codex may use MCP observations for orientation and recommendations. It should use Runtime Commands only through the normal human-authorized workspace execution path, not through MCP.
 
-Before relying on the setup, confirm that Codex can see the six ScaffoldAI tools listed in this guide.
+Before relying on the setup, confirm that Codex can see the eight ScaffoldAI tools listed in this guide.
 
 ---
 
@@ -310,7 +310,7 @@ Recommended default observation sequence:
 
 Copilot and Codex must not use ScaffoldAI MCP to:
 
-- write files other than the bounded `scaffoldai_signal` append to `.scaffoldai/tmp/mcp-signals.jsonl`
+- write files other than the bounded `scaffoldai_signal` append to `.scaffoldai/runtime/mcp/signals.jsonl`
 - edit code
 - mutate `.scaffoldai/state/` or `.scaffoldai/streams/`
 - run shell commands
@@ -367,7 +367,7 @@ Useful Runtime Commands:
 | `npm run scaffoldai:closeout` | Human-visible closeout readiness summary. |
 | `npm run scaffoldai:mcp:snapshot` | Generate `.scaffoldai/tmp/mcp-runtime-snapshot.json` from all five MCP tools. |
 
-`scaffoldai_signal` is an MCP tool, not a Runtime Command. It appends only to `.scaffoldai/tmp/mcp-signals.jsonl`.
+`scaffoldai_signal` is an MCP tool, not a Runtime Command. It appends only to `.scaffoldai/runtime/mcp/signals.jsonl`.
 
 ---
 
@@ -421,7 +421,7 @@ When a client cannot connect:
 
 - confirm it is using local stdio
 - confirm its working directory is the repo root
-- confirm the server command is `node src/mcp/server.js`
+- confirm the server command is `node src/scaffoldai/mcp/server.js`
 - confirm stdout contains only MCP protocol messages and human-readable logs go to stderr
 - confirm it is not using HTTP, SSE, WebSocket, ngrok, browser transport, or remote access
 - run `npm run test:mcp`

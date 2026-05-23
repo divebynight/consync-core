@@ -22,7 +22,8 @@ This file is not the full spec. It is the practical decision layer above the dee
 
 ## Source Of Truth Boundary
 
-- `.scaffoldai/state/`, `.scaffoldai/streams/`, and `.scaffoldai/packets/` are the BRIDGE source of truth for live execution state.
+- `.scaffoldai/state/` and `.scaffoldai/streams/` are the BRIDGE source of truth for live execution state and active lifecycle pointers.
+- `.scaffoldai/packets/` is the durable packet content source used by intake/activation flows; packet files are not the active pointer authority by themselves.
 - `.consync/docs/` — navigation and canonical entry docs.
 - `.consync/product/`, `.consync/examples/`, `.consync/archive/` — Consync product content.
 - `.scaffoldai/agents/` defines agent roles, invocation points, binding status, and the manual Entry Adapter.
@@ -70,6 +71,10 @@ The MCP runtime snapshot is machine-generated and read-only. Its summary reports
 The current manual execution flow (including Intake and Preflight CLI commands) is documented in:
 
 `.scaffoldai/process/manual-execution-flow.process.md`
+
+For the bounded remote proposal / local lifecycle operator pattern, see:
+
+`.scaffoldai/process/remote-proposal-local-lifecycle-runbook.process.md`
 
 The system remains manual and non-orchestrated.
 

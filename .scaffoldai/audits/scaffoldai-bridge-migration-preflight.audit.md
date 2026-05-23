@@ -89,9 +89,9 @@ same commit, with `npm run verify:full` confirming success.
 | `src/lib/gatekeeperSwitch.js:180` | `.consync/state/next-action.md` and `handoff.md` in error message string | SCAFFOLDAI_BRIDGE (string) | LOW — assertion text in `state-integrity-checks.js` hardcodes this exact string | Update message string AND update `state-integrity-checks.js` assertion |
 | `src/lib/gatekeeperClose.js:270–339` | `.consync/state/` and `.consync/streams/` in console.log output strings | SCAFFOLDAI_BRIDGE (console-only) | LOW — `gatekeeper-checks.js` tests logic; console strings not asserted | Update console strings |
 | `src/lib/gatekeeperMount.js:577–579` | `.consync/state/` and `.consync/streams/` in console.log output strings | SCAFFOLDAI_BRIDGE (console-only) | LOW — `gatekeeper-checks.js` tests logic; console strings not asserted | Update console strings |
-| `src/commands/reentry-check.js:263` | `.consync/state/` in console.log instruction string | SCAFFOLDAI_BRIDGE (console-only) | LOW — string is user-facing instruction; not asserted in tests | Update console string |
-| `src/commands/handoff-bundle.js:66` | `.consync/` in console.log string | DOCS reference (string) | LOW — integration test runs the command; string not asserted | Update console string |
-| `src/lib/intakeClassify.js:13,22,24` | `.consync/docs/`, `.consync/state/` as classification pattern strings | CLASSIFICATION DATA | LOW — `unit-intake-run.js` tests classification logic; these are data strings, not file reads | Update string values to new paths |
+| `src/commands/reentry-check.agent.scaffoldai.js:263` | `.consync/state/` in console.log instruction string | SCAFFOLDAI_BRIDGE (console-only) | LOW — string is user-facing instruction; not asserted in tests | Update console string |
+| `src/commands/handoff-bundle.process.scaffoldai.js:66` | `.consync/` in console.log string | DOCS reference (string) | LOW — integration test runs the command; string not asserted | Update console string |
+| `src/lib/intakeClassify.agent.scaffoldai.js:13,22,24` | `.consync/docs/`, `.consync/state/` as classification pattern strings | CLASSIFICATION DATA | LOW — `unit-intake-run.js` tests classification logic; these are data strings, not file reads | Update string values to new paths |
 | `src/commands/reference-audit.js:32–38` | `.consync/state/` and `.consync/streams/` as needle strings; `.consync/` in expectedZones | AUDIT CONFIG | NO dedicated test — run as `reference-audit` npm script; NOT in verify pipeline | Update needle strings and expectedZones to `.scaffoldai/state/`, `.scaffoldai/streams/` |
 
 ### Scripts
@@ -215,10 +215,10 @@ In a single commit, update ALL of the following:
 6. `src/lib/gatekeeperSwitch.js` — update console strings + error message string
 7. `src/lib/gatekeeperClose.js` — update console strings
 8. `src/lib/gatekeeperMount.js` — update console strings
-9. `src/commands/reentry-check.js` — update console string
+9. `src/commands/reentry-check.agent.scaffoldai.js` — update console string
 10. `src/commands/reference-audit.js` — update needle strings and expectedZones
-11. `src/lib/intakeClassify.js` — update classification data strings
-12. `src/commands/handoff-bundle.js` — update console string
+11. `src/lib/intakeClassify.agent.scaffoldai.js` — update classification data strings
+12. `src/commands/handoff-bundle.process.scaffoldai.js` — update console string
 13. `scripts/check-handoff-contract.js` — update 2 path constants
 14. `src/test/bridge-integrity-checks.js` — update all path strings
 15. `src/test/state-integrity-checks.js` — update all path strings (must match step 1 constants)

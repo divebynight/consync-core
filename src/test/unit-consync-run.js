@@ -7,7 +7,7 @@ const { spawnSync } = require("child_process");
 const TEST_NAME = "unit-consync-run";
 
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);
@@ -26,14 +26,15 @@ function withTempDir(fn) {
 
 function writeContract(tempDir, overrides = {}) {
   const stateDir = path.join(tempDir, ".scaffoldai", "state");
+  const contractsDir = path.join(tempDir, ".scaffoldai", "contracts");
   fs.mkdirSync(stateDir, { recursive: true });
+  fs.mkdirSync(contractsDir, { recursive: true });
 
-  const contract = Object.assign(
+  const policy = Object.assign(
     {
       mode: "CONTRACT_AND_AGENT_ENFORCEMENT_DESIGN",
       allowed_packet_types: ["process", "contract", "planning"],
       blocked_packet_types: ["product", "agent"],
-      in_flight_packet: null,
       require_clean_git: true,
       require_dry_run: true,
     },
@@ -41,8 +42,14 @@ function writeContract(tempDir, overrides = {}) {
   );
 
   fs.writeFileSync(
-    path.join(stateDir, "active-contract.json"),
-    JSON.stringify(contract),
+    path.join(contractsDir, "active-policy.json"),
+    JSON.stringify(policy),
+    "utf8"
+  );
+
+  fs.writeFileSync(
+    path.join(stateDir, "active-runtime.json"),
+    JSON.stringify({ in_flight_packet: null }),
     "utf8"
   );
 

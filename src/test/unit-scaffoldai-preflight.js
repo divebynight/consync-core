@@ -4,7 +4,7 @@ const { spawnSync } = require("child_process");
 
 const TEST_NAME = "unit-scaffoldai-preflight";
 const repoRoot = path.resolve(__dirname, "..", "..");
-const cliPath = path.join(repoRoot, "src", "index.js");
+const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
 
 function fail(error) {
   console.error(`[${TEST_NAME}] FAIL`);
@@ -80,8 +80,8 @@ function main() {
         `Expected active-stream.md in STATE FILES. Got:\n${out}`
       );
       assert.ok(
-        out.includes("active-contract.json"),
-        `Expected active-contract.json in STATE FILES. Got:\n${out}`
+        out.includes("active-runtime.json"),
+        `Expected active-runtime.json in STATE FILES. Got:\n${out}`
       );
       assert.ok(
         out.includes("next-action.md"),

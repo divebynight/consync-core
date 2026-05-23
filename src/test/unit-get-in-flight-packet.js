@@ -2,7 +2,7 @@ const assert = require("assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { getInFlightPacket } = require("../lib/getInFlightPacket");
+const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 
 const TEST_NAME = "unit-get-in-flight-packet";
 
