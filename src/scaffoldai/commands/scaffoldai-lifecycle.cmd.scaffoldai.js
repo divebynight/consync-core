@@ -35,7 +35,7 @@ const scaffoldaiVerifyEvidence = require("../../lib/scaffoldaiVerifyEvidence.sta
 const defaultRepoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature>");
+  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature|cancel-packet>");
 }
 
 function printRefusal(action, diagnostic) {
@@ -568,6 +568,62 @@ async function runCloseFeature(commandRepoRoot, argv) {
   });
 }
 
+async function runCancelPacket(commandRepoRoot, argv) {
+  const reason = argv[0] || "mistaken or stale packet";
+  
+  const domain = enforceSingleDomainContext(commandRepoRoot, PROCESS_DOMAIN);
+  if (!domain.ok) {
+    printRefusal("cancel-packet", domain.diagnostic);
+    return;
+  }
+
+  const active = resolveActivePacketIdentity(commandRepoRoot);
+  if (!active.ok) {
+    printRefusal("cancel-packet", {
+      status: "BLOCKED",
+      reason: "no_active_packet",
+      next_safe_action: "No active packet to cancel. Run scaffoldai status to inspect state.",
+      data: {
+        active_packet: null,
+        resolved_identity: null,
+      },
+    });
+    return;
+  }
+
+  const cancelSummary = `Cancelled: ${reason}`;
+  const closeResult = await runGatekeeperClose(commandRepoRoot, {
+    nonInteractive: true,
+    status: "CANCELLED",
+    summary: cancelSummary,
+    confirm: true,
+  });
+
+  if (!closeResult || closeResult.packet_closed !== true) {
+    printRefusal("cancel-packet", {
+      status: "BLOCKED",
+      reason: "cancel_failed",
+      next_safe_action: "Resolve blockers and retry cancel-packet.",
+      data: {
+        active_packet: active.value.packet_id,
+        resolved_identity: active.value.packet_id,
+      },
+    });
+    return;
+  }
+
+  const cleanup = cleanWorkspace(commandRepoRoot, { includeRuntimeLogs: false });
+  
+  printWrapperResult("cancel-packet", {
+    active_packet: "(none)",
+    resolved_identity: active.value.packet_id,
+    lifecycle_phase: "packet_cancelled",
+    reason: reason,
+    next_safe_action: "Review abandoned work if needed, commit any keeper artifacts, then activate the next packet.",
+    status: "CANCELLED",
+  });
+}
+
 async function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
   const commandRepoRoot = options.repoRoot || defaultRepoRoot;
   const action = argv[0];
@@ -595,6 +651,11 @@ async function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
 
   if (action === "close-feature") {
     await runCloseFeature(commandRepoRoot, argv.slice(1));
+    return;
+  }
+
+  if (action === "cancel-packet") {
+    await runCancelPacket(commandRepoRoot, argv.slice(1));
     return;
   }
 

@@ -1,13 +1,13 @@
 TYPE: REFACTOR
-PACKAGE: fix-verify-full-clean-checkout-state-preflight.sdc
+PACKAGE: plan-consync-runtime-layer-diagram-function-reorg.sdc
 
 STATUS
 
-PASS
+CANCELLED
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for fix-verify-full-clean-checkout-state-preflight.sdc.
+Cancelled: mistaken or stale packet
 
 FILES CREATED
 

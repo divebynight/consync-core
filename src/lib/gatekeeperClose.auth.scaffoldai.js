@@ -394,9 +394,9 @@ async function runGatekeeperClose(rootPath, options = {}) {
     statusInput = await session.ask("STATUS (PASS / FAIL): ");
     status = statusInput.toUpperCase();
 
-    if (status !== "PASS" && status !== "FAIL") {
+    if (status !== "PASS" && status !== "FAIL" && status !== "CANCELLED" && status !== "ABANDONED") {
       session.close();
-      console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
+      console.log(`Invalid status "${statusInput}". Must be PASS, FAIL, CANCELLED, or ABANDONED. Aborted.`);
       process.exitCode = 1;
       return buildCloseoutDiagnostics({
         packetClosed: false,
@@ -424,8 +424,8 @@ async function runGatekeeperClose(rootPath, options = {}) {
     session.close();
   }
 
-  if (status !== "PASS" && status !== "FAIL") {
-    console.log(`Invalid status "${statusInput}". Must be PASS or FAIL. Aborted.`);
+  if (status !== "PASS" && status !== "FAIL" && status !== "CANCELLED" && status !== "ABANDONED") {
+    console.log(`Invalid status "${statusInput}". Must be PASS, FAIL, CANCELLED, or ABANDONED. Aborted.`);
     process.exitCode = 1;
     return buildCloseoutDiagnostics({
       packetClosed: false,

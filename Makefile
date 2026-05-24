@@ -1,6 +1,6 @@
 .PHONY: help status \
 	verify verify-scaffold verify-consync verify-full \
-	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close
+	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close scaffold-cancel
 
 .DEFAULT_GOAL := help
 
@@ -22,6 +22,7 @@ help:
 	@echo "  make scaffold-activate  Activate latest accepted packet"
 	@echo "  make scaffold-start     Intake + activate latest candidate"
 	@echo "  make scaffold-close     Closeout + cleanup when safe"
+	@echo "  make scaffold-cancel    Cancel stale/mistaken active work without marking PASS"
 
 status:
 	@echo "[status] current branch"
@@ -66,3 +67,6 @@ scaffold-start:
 
 scaffold-close:
 	@npm run scaffoldai:close-feature
+
+scaffold-cancel:
+	@npm run scaffoldai:cancel-packet
