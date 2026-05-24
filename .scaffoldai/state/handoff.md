@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc
+PACKAGE: fix-verify-full-clean-checkout-state-preflight.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc.
+Lifecycle close-feature closeout after verify evidence for fix-verify-full-clean-checkout-state-preflight.sdc.
 
 FILES CREATED
 

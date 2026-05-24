@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-18T03:38:59.439Z",
-  "timestamp_ms": 1779075539439,
-  "packet_id": "stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc",
-  "active_packet_id": "stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc",
+  "timestamp": "2026-05-23T19:15:18.309Z",
+  "timestamp_ms": 1779563718309,
+  "packet_id": "fix-verify-full-clean-checkout-state-preflight.sdc",
+  "active_packet_id": "fix-verify-full-clean-checkout-state-preflight.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
