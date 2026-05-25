@@ -6,6 +6,9 @@ const { runScaffoldaiQuestionCommand } = require("../scaffoldai/commands/scaffol
 const { runScaffoldaiPacketCommand } = require("../scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai");
 const { runScaffoldaiHousekeepingCommand } = require("../scaffoldai/commands/scaffoldai-housekeeping.cmd.scaffoldai");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
+const { runScaffoldDiscussCommand } = require("../scaffoldai/commands/scaffoldai-discuss.cmd.scaffoldai");
+const { runScaffoldPlanCommand } = require("../scaffoldai/commands/scaffoldai-plan.cmd.scaffoldai");
+const { runScaffoldWorkCommand } = require("../scaffoldai/commands/scaffoldai-work.cmd.scaffoldai");
 const { runProcessCheckCommand } = require("../scaffoldai/commands/process-check.check.scaffoldai");
 const { runHandoffBundleCommand } = require("../scaffoldai/commands/handoff-bundle.process.scaffoldai");
 const { runSystemCheckCommand } = require("../commands/system-check.check.system");
@@ -190,6 +193,23 @@ async function main() {
     }
     if (subcommand === "lifecycle") {
       await runScaffoldaiLifecycleCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "discuss") {
+      runScaffoldDiscussCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "plan") {
+      runScaffoldPlanCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "work") {
+      runScaffoldWorkCommand(process.argv.slice(4));
+      return;
+    }
+    if (subcommand === "probe") {
+      const { runScaffoldaiProbeCommand } = require("../scaffoldai/commands/scaffoldai-probe.cmd.scaffoldai");
+      runScaffoldaiProbeCommand(process.argv.slice(4));
       return;
     }
     console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);

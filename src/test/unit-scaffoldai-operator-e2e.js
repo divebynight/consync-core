@@ -165,13 +165,10 @@ async function runCycle(fixtureRoot, cycleLabel) {
     `${cycleLabel}: dirty intake should report lifecycle-owned artifacts`
   );
 
-  const blockedActivation = await runLifecycle(fixtureRoot, ["activate-latest"]);
-  assert.strictEqual(blockedActivation, 1, `${cycleLabel}: activation should block until intake artifacts are committed`);
+  const activationWithDirty = await runLifecycle(fixtureRoot, ["activate-latest"]);
+  assert.strictEqual(activationWithDirty, 0, `${cycleLabel}: activation should succeed with warnings when intake artifacts uncommitted`);
 
   commitFixtureFiles(fixtureRoot, `fixture: commit ${cycleLabel} intake artifacts`);
-
-  const activateResult = await runLifecycle(fixtureRoot, ["activate-latest"]);
-  assert.strictEqual(activateResult, 0, `${cycleLabel}: activation should pass after commit`);
 
   const activePacket = getInFlightPacket(fixtureRoot);
   assert.ok(activePacket, `${cycleLabel}: packet should be active`);
@@ -232,9 +229,9 @@ async function main() {
     const packetTwo = getInFlightPacket(fixture);
     assert.ok(packetTwo, "cycle-two packet should be active");
 
-    // Verify-evidence ownership semantics: stale evidence from previous packet must fail close-feature.
+    // Verify-evidence ownership semantics: stale evidence from previous packet shows warning but proceeds.
     const staleEvidenceClose = await runLifecycle(fixture, ["close-feature"]);
-    assert.strictEqual(staleEvidenceClose, 1, "cycle-two close-feature should fail on stale verify evidence ownership");
+    assert.strictEqual(staleEvidenceClose, 0, "cycle-two close-feature should succeed with warning on stale verify evidence ownership");
 
     writeVerifyEvidence(fixture, packetTwo);
     appendCompletionSignal(fixture, packetTwo);

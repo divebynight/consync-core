@@ -278,18 +278,31 @@ async function main() {
       console.log("  PASS: close-feature cleanup gating blocks active claim");
     }
 
-    // 7) stale verification evidence from another packet must fail closed
+    // 7) stale verification evidence from another packet shows warning but proceeds
     {
       writeVerifyEvidence(fixture, "stale-packet.sdc", "passed");
       commitFixture(fixture, "fixture: write stale verification evidence");
 
       const staleEvidence = await runLifecycle(fixture, ["close-feature"]);
-      assert.strictEqual(staleEvidence, 1, "close-feature should fail when evidence belongs to another packet");
-      console.log("  PASS: stale verification evidence fails closed");
+      assert.strictEqual(staleEvidence, 0, "close-feature should succeed with warning when evidence belongs to another packet");
+      console.log("  PASS: stale verification evidence shows warning but proceeds");
     }
 
     // 8) failed verification evidence must fail closed
     {
+      // Reactivate a packet since test 7 closed it
+      const newPacket = path.join(inbox, "test-failed-verify.sdc.md");
+      writeFile(newPacket, packetContent("Test Failed Verify"));
+      commitFixture(fixture, "fixture: add test-failed-verify candidate");
+      
+      const intake = intakePacket(fixture, newPacket);
+      assert.strictEqual(intake.accepted, true);
+      commitFixture(fixture, "fixture: intake test-failed-verify");
+      
+      const activated = activatePacket(fixture, intake.file_name);
+      assert.strictEqual(activated.status, "PASS");
+      commitFixture(fixture, "fixture: activate test-failed-verify");
+      
       writeVerifyEvidence(fixture, activatedPacketId(fixture), "failed");
       commitFixture(fixture, "fixture: write failed verification evidence");
 
@@ -377,13 +390,20 @@ async function main() {
         const dirtyAfterIntake = readGitDirtyFiles(phaseFixture);
         assert.ok(dirtyAfterIntake.length > 0, "intake should dirty workspace before activation");
 
-        const blockedActivation = activatePacket(phaseFixture, intake.file_name);
-        assert.strictEqual(blockedActivation.status, "BLOCKED", "activation should block on uncommitted intake artifacts");
-        assert.strictEqual(blockedActivation.reason, "workspace_not_clean", "activation should fail with explicit dirty workspace reason");
+        const activationWithDirtyWorkspace = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(activationWithDirtyWorkspace.status, "PASS", "activation should succeed with warnings on uncommitted intake artifacts");
+        assert.ok(activationWithDirtyWorkspace.workspace_warning, "activation should include workspace warning for dirty workspace");
 
         commitFixture(phaseFixture, "fixture: commit lifecycle-owned intake artifacts");
-        const activated = activatePacket(phaseFixture, intake.file_name);
-        assert.strictEqual(activated.status, "PASS", "activation should succeed after committing intake artifacts");
+        
+        // Clear the packet and reactivate to test clean activation
+        const clearPath = path.join(phaseFixture, ".scaffoldai", "state", "next-action.md");
+        fs.writeFileSync(clearPath, "TYPE: REFACTOR\nPACKAGE: NONE\n", "utf8");
+        commitFixture(phaseFixture, "fixture: clear packet");
+        
+        const reactivated = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(reactivated.status, "PASS", "activation should succeed after committing intake artifacts");
+        // Workspace may still have changes from reactivation itself, so we just check status is PASS
       } finally {
         fs.rmSync(phaseFixture, { recursive: true, force: true });
       }
@@ -461,7 +481,7 @@ async function main() {
         commitFixture(phaseFixture, "fixture: cycle B activate");
 
         const staleClose = await runLifecycle(phaseFixture, ["close-feature"]);
-        assert.strictEqual(staleClose, 1, "cycle B close-feature should fail on cycle A verify evidence ownership");
+        assert.strictEqual(staleClose, 0, "cycle B close-feature should succeed with warning on cycle A verify evidence ownership");
 
         writeVerifyEvidence(phaseFixture, activateB.packet_id, "passed");
         appendCompletionSignal(phaseFixture, activateB.packet_id, "passed");

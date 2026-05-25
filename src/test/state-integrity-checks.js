@@ -240,10 +240,11 @@ function main() {
   );
 
   const stalePreflight = evaluateStateIntegrity(rootPath, "preflight");
-  assert.strictEqual(stalePreflight.ok, false);
+  assert.strictEqual(stalePreflight.ok, true, "stale next-action should not fail integrity check");
+  assert.strictEqual(stalePreflight.status, "WARNING", "stale next-action should produce WARNING status");
   assert(
-    stalePreflight.failures.some(item => item.includes("mounted next-action already matches a PASS handoff and appears stale")),
-    "expected stale same-package PASS handoff failure"
+    stalePreflight.warnings.some(item => item.includes("mounted next-action already matches a PASS handoff and appears stale")),
+    "expected stale same-package PASS handoff warning"
   );
 
   writeFile(

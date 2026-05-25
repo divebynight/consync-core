@@ -11,6 +11,13 @@ const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const { gatherCompletionStatus } = require("../../lib/scaffoldaiCompletionStatus.query.scaffoldai");
 const { runVerifyTool } = require("../../lib/scaffoldaiVerifyRun.auth.scaffoldai");
+const { runExecutorPlanTool } = require("../../lib/scaffoldaiExecutorPlan.tool.scaffoldai");
+const {
+  createAndStartJob,
+  getJobStatus,
+  getJobResult,
+  cleanupJobs,
+} = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 const EXECUTION_CLASS = "READ_ONLY";
@@ -211,6 +218,50 @@ function runVerifyRunTool(args = {}, deps = {}) {
 }
 
 // -----------------------------------------------------------------------
+// scaffoldai_executor_plan  [TRANSITIONAL — blocking synchronous path]
+//
+// Kept for backwards compatibility. New coordinators should use the
+// async artifact-backed flow:
+//   scaffoldai_executor_plan_start → _status → _result → _cleanup
+// -----------------------------------------------------------------------
+
+function runExecutorPlanToolMcp(args = {}, deps = {}) {
+  return runExecutorPlanTool(repoRoot, args, deps);
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_start
+// -----------------------------------------------------------------------
+
+function runExecutorPlanStartTool(args = {}, deps = {}) {
+  return createAndStartJob(repoRoot, args, deps);
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_status
+// -----------------------------------------------------------------------
+
+function runExecutorPlanStatusTool(args = {}) {
+  return getJobStatus(repoRoot, args.job_id);
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_result
+// -----------------------------------------------------------------------
+
+function runExecutorPlanResultTool(args = {}) {
+  return getJobResult(repoRoot, args.job_id);
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_cleanup
+// -----------------------------------------------------------------------
+
+function runExecutorPlanCleanupTool(args = {}) {
+  return cleanupJobs(repoRoot, args);
+}
+
+// -----------------------------------------------------------------------
 // Exports
 // -----------------------------------------------------------------------
 
@@ -222,4 +273,9 @@ module.exports = {
   runCloseoutReadinessTool,
   runCompletionStatusTool,
   runVerifyRunTool,
+  runExecutorPlanToolMcp,
+  runExecutorPlanStartTool,
+  runExecutorPlanStatusTool,
+  runExecutorPlanResultTool,
+  runExecutorPlanCleanupTool,
 };

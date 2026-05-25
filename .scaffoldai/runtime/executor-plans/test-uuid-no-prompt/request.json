@@ -1,0 +1,17 @@
+{
+  "job_id": "test-uuid-no-prompt",
+  "active_packet_id": "executor-plan-output-capture-and-terminal-state-reliability.sdc",
+  "started_at": "2026-05-25T00:00:00.000Z",
+  "timeout_ms": 120000,
+  "command_boundary": {
+    "executable": "copilot",
+    "planning_flags": [
+      "--plan",
+      "--disable-builtin-mcps"
+    ],
+    "deny_tools": [
+      "write",
+      "shell(*)"
+    ]
+  }
+}

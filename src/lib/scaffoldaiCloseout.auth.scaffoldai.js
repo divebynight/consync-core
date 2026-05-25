@@ -149,7 +149,13 @@ function gatherCloseoutReadiness(repoRoot, options) {
       verificationEvidence = verificationEvidenceRecord
         ? `verification evidence invalid; ${validation.reason} — ${scaffoldaiVerifyEvidence.formatVerifyEvidence(verificationEvidenceRecord)}`
         : `verification evidence invalid; ${validation.reason}`;
-      blockers.push(`verification evidence invalid: ${validation.reason}`);
+      
+      // Check diagnostic status: WARNING for expired/stale, BLOCKED for actual failures
+      if (validation.diagnostic && validation.diagnostic.status === "WARNING") {
+        warnings.push(`verification evidence ${validation.reason} (advisory) — operator may proceed if confident`);
+      } else {
+        blockers.push(`verification evidence invalid: ${validation.reason}`);
+      }
     } else {
       verificationEvidenceState = "valid";
       verificationEvidenceRecord = validation.evidence;

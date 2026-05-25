@@ -1,6 +1,9 @@
 .PHONY: help status \
 	verify verify-scaffold verify-consync verify-full \
-	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close
+	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close scaffold-cancel \
+	scaffold-discuss scaffold-plan scaffold-work \
+	scaffold-probe-e2e scaffold-probe-clean \
+	scaffold-mcp-operator scaffold-mcp-readonly scaffold-mcp-operator-stdio scaffold-mcp-readonly-stdio
 
 .DEFAULT_GOAL := help
 
@@ -22,6 +25,22 @@ help:
 	@echo "  make scaffold-activate  Activate latest accepted packet"
 	@echo "  make scaffold-start     Intake + activate latest candidate"
 	@echo "  make scaffold-close     Closeout + cleanup when safe"
+	@echo "  make scaffold-cancel    Cancel stale/mistaken active work without marking PASS"
+	@echo ""
+	@echo "ScaffoldAI runners:"
+	@echo "  make scaffold-plan      Read-only planning/analysis mode (no file writes)"
+	@echo "  make scaffold-discuss   Alias for scaffold-plan (backward compat)"
+	@echo "  make scaffold-work      Execute approved next-action (bounded write access)"
+	@echo ""
+	@echo "ScaffoldAI probe:"
+	@echo "  make scaffold-probe-e2e   Run deterministic lifecycle probe (isolated fixture)"
+	@echo "  make scaffold-probe-clean Remove any leftover probe fixtures from .scaffoldai/tmp/"
+	@echo ""
+	@echo "ScaffoldAI MCP servers:"
+	@echo "  make scaffold-mcp-operator        Start operator HTTP MCP server (port 3133)"
+	@echo "  make scaffold-mcp-readonly        Start readonly HTTP MCP server (port 3000)"
+	@echo "  make scaffold-mcp-operator-stdio  Start operator stdio MCP server"
+	@echo "  make scaffold-mcp-readonly-stdio  Start readonly stdio MCP server"
 
 status:
 	@echo "[status] current branch"
@@ -66,3 +85,33 @@ scaffold-start:
 
 scaffold-close:
 	@npm run scaffoldai:close-feature
+
+scaffold-discuss:
+	@npm run scaffoldai:discuss
+
+scaffold-plan:
+	@npm run scaffoldai:plan
+
+scaffold-work:
+	@npm run scaffoldai:work
+
+scaffold-cancel:
+	@npm run scaffoldai:cancel-packet
+
+scaffold-probe-e2e:
+	@npm run scaffoldai:probe
+
+scaffold-probe-clean:
+	@node -e "const fs=require('fs'),path=require('path'),t=path.join('.scaffoldai','tmp');if(fs.existsSync(t)){fs.readdirSync(t).filter(n=>n.startsWith('lifecycle-probe-')).forEach(n=>{fs.rmSync(path.join(t,n),{recursive:true,force:true});console.log('removed: '+n);});console.log('[probe-clean] done');}else{console.log('[probe-clean] nothing to clean');}"
+
+scaffold-mcp-operator:
+	@npm run scaffoldai:mcp:operator:http
+
+scaffold-mcp-readonly:
+	@npm run scaffoldai:mcp:readonly:http
+
+scaffold-mcp-operator-stdio:
+	@npm run scaffoldai:mcp:operator:stdio
+
+scaffold-mcp-readonly-stdio:
+	@npm run scaffoldai:mcp:readonly:stdio

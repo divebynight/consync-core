@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc
+PACKAGE: fix-executor-adapter-ci-test-determinism.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for stabilize-lifecycle-artifact-ownership-and-commit-choreography.sdc.
+Lifecycle close-feature closeout after verify evidence for fix-executor-adapter-ci-test-determinism.sdc.
 
 FILES CREATED
 

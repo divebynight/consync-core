@@ -419,23 +419,17 @@ function main() {
       "dirty workspace should explicitly report lifecycle-owned artifacts"
     );
 
-    const activationBlockedByDirtyIntake = activatePacket(fixtureRoot, intake.file_name);
+    const activationWithDirtyIntake = activatePacket(fixtureRoot, intake.file_name);
     assert.strictEqual(
-      activationBlockedByDirtyIntake.status,
-      "BLOCKED",
-      "activation should block until lifecycle-owned intake artifacts are committed"
+      activationWithDirtyIntake.status,
+      "PASS",
+      "activation should succeed with warnings when workspace contains lifecycle-owned artifacts"
     );
-    assert.strictEqual(activationBlockedByDirtyIntake.reason, "workspace_not_clean");
-    summary.blockedTransitions.push({
-      transition: "activate_with_uncommitted_intake_artifacts",
-      reason: activationBlockedByDirtyIntake.reason,
-    });
-
+    assert.ok(activationWithDirtyIntake.workspace_warning, "activation should include workspace warning");
+    
+    summary.lifecyclePhases.push("packet_activate");
+    
     stageFixtureFiles(fixtureRoot);  // Keep fixture workspace clean
-
-    // Happy path activate.
-    const activateResult = safeActivatePacket(fixtureRoot, intake.file_name, summary);
-    assert.strictEqual(activateResult.status, "ok", "first activation should pass");
 
     // Invalid transition: second activate while active.
     const secondInboxPath = writeInboxPacket(

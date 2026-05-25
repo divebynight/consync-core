@@ -457,6 +457,12 @@ function main() {
   runNodeStep("[verify] Repo root resolver", [path.join(repoRoot, "src", "test", "unit-repo-root.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Executor adapter (plan/work command builder)", [path.join(repoRoot, "src", "test", "unit-executor-adapter.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI MCP executor plan tool", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-executor-plan.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
@@ -497,6 +503,9 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI end-to-end lifecycle simulation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-simulation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI lifecycle probe", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-probe.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI lifecycle transition matrix tests", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-matrix.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
