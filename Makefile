@@ -1,6 +1,7 @@
 .PHONY: help status \
 	verify verify-scaffold verify-consync verify-full \
-	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close scaffold-cancel
+	scaffold-status scaffold-intake scaffold-activate scaffold-start scaffold-close scaffold-cancel \
+	scaffold-discuss scaffold-work
 
 .DEFAULT_GOAL := help
 
@@ -23,6 +24,10 @@ help:
 	@echo "  make scaffold-start     Intake + activate latest candidate"
 	@echo "  make scaffold-close     Closeout + cleanup when safe"
 	@echo "  make scaffold-cancel    Cancel stale/mistaken active work without marking PASS"
+	@echo ""
+	@echo "ScaffoldAI runners:"
+	@echo "  make scaffold-discuss   Read-only planning/discussion mode (no file writes)"
+	@echo "  make scaffold-work      Execute approved next-action (bounded write access)"
 
 status:
 	@echo "[status] current branch"
@@ -66,6 +71,12 @@ scaffold-start:
 	@npm run scaffoldai:start-latest
 
 scaffold-close:
+
+scaffold-discuss:
+	@npm run scaffoldai:discuss
+
+scaffold-work:
+	@npm run scaffoldai:work
 	@npm run scaffoldai:close-feature
 
 scaffold-cancel:

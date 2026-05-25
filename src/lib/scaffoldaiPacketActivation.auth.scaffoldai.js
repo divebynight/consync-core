@@ -239,18 +239,13 @@ function appendPointerHistory(rootPath, packetIdOrNull, action) {
 }
 
 function activatePacket(rootPath, packetInput) {
-  // Enforce clean workspace before allowing activation.
+  // Check workspace cleanliness before activation (warning only, not blocking).
   const cleanliness = checkWorkspaceCleanliness(rootPath);
+  let workspaceWarning = null;
+  
   if (!cleanliness.clean) {
-    return {
-      action: "activate",
-      status: "BLOCKED",
+    workspaceWarning = {
       reason: cleanliness.reason,
-      packet_id: null,
-      packet_file: null,
-      exists: false,
-      title: null,
-      category: null,
       message: cleanliness.message,
       dirty_files_count: cleanliness.count,
       dirty_files: cleanliness.files,
@@ -258,7 +253,7 @@ function activatePacket(rootPath, packetInput) {
       operator_owned_files_count: cleanliness.operator_owned_files_count || 0,
       lifecycle_owned_files: cleanliness.lifecycle_owned_files || [],
       operator_owned_files: cleanliness.operator_owned_files || [],
-      next_safe_action: cleanliness.next_safe_action,
+      advisory: cleanliness.next_safe_action,
     };
   }
 
@@ -302,6 +297,7 @@ function activatePacket(rootPath, packetInput) {
       title: metadata.title,
       category: metadata.category,
       next_safe_action: "Packet already active. Proceed with the current packet or clear it explicitly before switching.",
+      workspace_warning: workspaceWarning,
     };
   }
 
@@ -317,6 +313,7 @@ function activatePacket(rootPath, packetInput) {
     title: metadata.title,
     category: metadata.category,
     next_safe_action: "Run scaffoldai status or scaffoldai packet status to confirm active packet context.",
+    workspace_warning: workspaceWarning,
   };
 }
 

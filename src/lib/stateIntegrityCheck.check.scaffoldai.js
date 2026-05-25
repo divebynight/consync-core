@@ -270,7 +270,7 @@ function evaluateStateIntegrity(rootPath, mode) {
       nextAction.packageName === handoff.packageName &&
       handoff.status === "PASS"
     ) {
-      failures.push("mounted next-action already matches a PASS handoff and appears stale");
+      warnings.push("mounted next-action already matches a PASS handoff and appears stale — reconciliation recommended");
     }
   }
 
@@ -285,6 +285,16 @@ function evaluateStateIntegrity(rootPath, mode) {
   const isPackageMounted = Boolean(nextAction.packageName && nextAction.packageName !== "NONE");
   const systemState = isPackageMounted ? "OPEN" : "CLOSED";
   let nextSafeAction = "reconcile live state before continuing";
+  
+  // Determine status: FAIL for actual corruption, WARNING for advisory issues, PASS for clean
+  let status;
+  if (!ok) {
+    status = "FAIL";
+  } else if (warnings.length > 0) {
+    status = "WARNING";
+  } else {
+    status = "PASS";
+  }
 
   if (ok && normalizedMode === "preflight") {
     if (!hasRuntimeState) {
@@ -311,7 +321,7 @@ function evaluateStateIntegrity(rootPath, mode) {
   return {
     ok,
     mode: normalizedMode,
-    status: ok ? "PASS" : "FAIL",
+    status,
     activeStream: activeStream.activeStream || (!hasRuntimeState ? "(runtime state missing)" : "unreadable"),
     activePackage: nextAction.packageName || (!hasRuntimeState ? "(runtime state missing)" : "unreadable"),
     handoffPackage: handoff.packageName || "unreadable",

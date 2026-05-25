@@ -39,6 +39,8 @@
     "scaffoldai:start-latest": "node src/scaffoldai.js scaffoldai lifecycle start-latest",
     "scaffoldai:close-feature": "node src/scaffoldai.js scaffoldai lifecycle close-feature",
     "scaffoldai:cancel-packet": "node src/scaffoldai.js scaffoldai lifecycle cancel-packet",
+    "scaffoldai:discuss": "node src/scaffoldai.js scaffoldai discuss",
+    "scaffoldai:work": "node src/scaffoldai.js scaffoldai work",
     "scaffoldai:mcp": "node src/scaffoldai/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/scaffoldai/mcp/snapshot.js",
     "scaffoldai:mcp:readonly:stdio": "node src/scaffoldai/mcp-readonly/stdio.js",

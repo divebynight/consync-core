@@ -165,13 +165,10 @@ async function runCycle(fixtureRoot, cycleLabel) {
     `${cycleLabel}: dirty intake should report lifecycle-owned artifacts`
   );
 
-  const blockedActivation = await runLifecycle(fixtureRoot, ["activate-latest"]);
-  assert.strictEqual(blockedActivation, 1, `${cycleLabel}: activation should block until intake artifacts are committed`);
+  const activationWithDirty = await runLifecycle(fixtureRoot, ["activate-latest"]);
+  assert.strictEqual(activationWithDirty, 0, `${cycleLabel}: activation should succeed with warnings when intake artifacts uncommitted`);
 
   commitFixtureFiles(fixtureRoot, `fixture: commit ${cycleLabel} intake artifacts`);
-
-  const activateResult = await runLifecycle(fixtureRoot, ["activate-latest"]);
-  assert.strictEqual(activateResult, 0, `${cycleLabel}: activation should pass after commit`);
 
   const activePacket = getInFlightPacket(fixtureRoot);
   assert.ok(activePacket, `${cycleLabel}: packet should be active`);

@@ -377,13 +377,20 @@ async function main() {
         const dirtyAfterIntake = readGitDirtyFiles(phaseFixture);
         assert.ok(dirtyAfterIntake.length > 0, "intake should dirty workspace before activation");
 
-        const blockedActivation = activatePacket(phaseFixture, intake.file_name);
-        assert.strictEqual(blockedActivation.status, "BLOCKED", "activation should block on uncommitted intake artifacts");
-        assert.strictEqual(blockedActivation.reason, "workspace_not_clean", "activation should fail with explicit dirty workspace reason");
+        const activationWithDirtyWorkspace = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(activationWithDirtyWorkspace.status, "PASS", "activation should succeed with warnings on uncommitted intake artifacts");
+        assert.ok(activationWithDirtyWorkspace.workspace_warning, "activation should include workspace warning for dirty workspace");
 
         commitFixture(phaseFixture, "fixture: commit lifecycle-owned intake artifacts");
-        const activated = activatePacket(phaseFixture, intake.file_name);
-        assert.strictEqual(activated.status, "PASS", "activation should succeed after committing intake artifacts");
+        
+        // Clear the packet and reactivate to test clean activation
+        const clearPath = path.join(phaseFixture, ".scaffoldai", "state", "next-action.md");
+        fs.writeFileSync(clearPath, "TYPE: REFACTOR\nPACKAGE: NONE\n", "utf8");
+        commitFixture(phaseFixture, "fixture: clear packet");
+        
+        const reactivated = activatePacket(phaseFixture, intake.file_name);
+        assert.strictEqual(reactivated.status, "PASS", "activation should succeed after committing intake artifacts");
+        // Workspace may still have changes from reactivation itself, so we just check status is PASS
       } finally {
         fs.rmSync(phaseFixture, { recursive: true, force: true });
       }

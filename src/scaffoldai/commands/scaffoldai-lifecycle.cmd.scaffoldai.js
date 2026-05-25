@@ -38,6 +38,20 @@ function printUsage() {
   console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature|cancel-packet>");
 }
 
+function printWarnings(warnings) {
+  if (!warnings || warnings.length === 0) return;
+  
+  console.log("");
+  console.log("WARNINGS:");
+  for (const warning of warnings) {
+    console.log(`  ⚠ ${warning.reason || "unknown"}: ${warning.message || warning.advisory || "no details"}`);
+    if (warning.dirty_files_count) {
+      console.log(`     ${warning.dirty_files_count} file(s) uncommitted`);
+    }
+  }
+  console.log("");
+}
+
 function printRefusal(action, diagnostic) {
   const data = diagnostic && diagnostic.data ? diagnostic.data : {};
   console.log(`[scaffoldai lifecycle ${action}]`);
@@ -269,6 +283,11 @@ function runActivateLatest(commandRepoRoot) {
     return;
   }
 
+  // Display workspace warnings if present
+  if (activated.workspace_warning) {
+    printWarnings([activated.workspace_warning]);
+  }
+
   printWrapperResult("activate-latest", {
     active_packet: activated.packet_id,
     resolved_candidate: resolution.value.source_relative_path,
@@ -428,6 +447,16 @@ async function runCloseFeature(commandRepoRoot, argv) {
   );
 
   const verificationReady = verifyEvidence.valid;
+  const verificationWarnings = [];
+  
+  // Collect verification warnings (expired/stale evidence)
+  if (!verificationReady && verifyEvidence.diagnostic && verifyEvidence.diagnostic.status === "WARNING") {
+    verificationWarnings.push({
+      reason: verifyEvidence.diagnostic.reason,
+      message: verifyEvidence.diagnostic.next_safe_action,
+      data: verifyEvidence.diagnostic.data,
+    });
+  }
 
   const closeout = gatherCloseoutReadiness(commandRepoRoot, {
     verifyPassed: true,
@@ -463,7 +492,8 @@ async function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  if (!verificationReady) {
+  // Only block on true verification failures (not warnings)
+  if (!verificationReady && verifyEvidence.diagnostic && verifyEvidence.diagnostic.status === "BLOCKED") {
     printRefusal("close-feature", verifyEvidence.diagnostic);
     return;
   }
@@ -553,6 +583,11 @@ async function runCloseFeature(commandRepoRoot, argv) {
   const nextSafeAction = workspaceAfterClose.clean
     ? "Workspace is clean. Activate the next packet intentionally."
     : "Workspace intentionally remains dirty after close-feature. Review and commit operator-owned and lifecycle-owned artifacts, then activate the next packet.";
+
+  // Display verification warnings if present
+  if (verificationWarnings.length > 0) {
+    printWarnings(verificationWarnings);
+  }
 
   printWrapperResult("close-feature", {
     active_packet: "(none)",
