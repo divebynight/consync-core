@@ -1,0 +1,23 @@
+{
+  "job_id": "test-uuid-shell-safety",
+  "active_packet_id": "convert-executor-plan-to-async-artifact-job.sdc",
+  "status": "completed",
+  "exit_code": 0,
+  "duration_ms": 38,
+  "started_at": "2026-05-25T00:00:00.000Z",
+  "completed_at": "2026-05-25T18:49:34.457Z",
+  "stdout": "",
+  "stderr": "",
+  "command_boundary": {
+    "executable": "copilot",
+    "planning_flags": [
+      "--plan",
+      "--silent",
+      "--disable-builtin-mcps"
+    ],
+    "deny_tools": [
+      "write",
+      "shell(*)"
+    ]
+  }
+}

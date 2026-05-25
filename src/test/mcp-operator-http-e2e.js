@@ -20,6 +20,10 @@ const EXPECTED_TOOLS = [
   "scaffoldai_completion_status",
   "scaffoldai_submit_sdc_candidate",
   "scaffoldai_executor_plan",
+  "scaffoldai_executor_plan_start",
+  "scaffoldai_executor_plan_status",
+  "scaffoldai_executor_plan_result",
+  "scaffoldai_executor_plan_cleanup",
 ];
 
 const FORBIDDEN_TOOLS = [

@@ -59,6 +59,7 @@
     "test:mcp:readonly:http": "node src/test/mcp-readonly-http-e2e.js",
     "test:mcp:readonly:chatgpt": "node src/test/mcp-readonly-chatgpt-compatibility.js",
     "test:mcp:operator:http": "node src/test/mcp-operator-http-e2e.js",
+    "test:executor:plan:async": "node src/test/unit-scaffoldai-executor-plan-async.js",
     "test:mcp:readonly": "npm run test:mcp:readonly:unit && npm run test:mcp:readonly:security && npm run test:mcp:readonly:stdio && npm run test:mcp:readonly:http && npm run test:mcp:readonly:chatgpt",
     "test": "npm run test:unit && npm run test:integration",
     "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"

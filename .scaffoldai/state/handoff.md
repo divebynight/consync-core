@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: expose-executor-plan-on-operator-http-mcp.sdc
+PACKAGE: convert-executor-plan-to-async-artifact-job.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for expose-executor-plan-on-operator-http-mcp.sdc.
+Lifecycle close-feature closeout after verify evidence for convert-executor-plan-to-async-artifact-job.sdc.
 
 FILES CREATED
 
