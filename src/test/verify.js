@@ -457,6 +457,9 @@ function main() {
   runNodeStep("[verify] Repo root resolver", [path.join(repoRoot, "src", "test", "unit-repo-root.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Executor adapter (plan/work command builder)", [path.join(repoRoot, "src", "test", "unit-executor-adapter.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

@@ -40,6 +40,7 @@
     "scaffoldai:close-feature": "node src/scaffoldai.js scaffoldai lifecycle close-feature",
     "scaffoldai:cancel-packet": "node src/scaffoldai.js scaffoldai lifecycle cancel-packet",
     "scaffoldai:discuss": "node src/scaffoldai.js scaffoldai discuss",
+    "scaffoldai:plan": "node src/scaffoldai.js scaffoldai plan",
     "scaffoldai:work": "node src/scaffoldai.js scaffoldai work",
     "scaffoldai:mcp": "node src/scaffoldai/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/scaffoldai/mcp/snapshot.js",

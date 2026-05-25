@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-25T14:55:24.738Z",
-  "timestamp_ms": 1779720924738,
-  "packet_id": "apply-copilot-runner-capability-boundaries-to-scaffoldai.sdc",
-  "active_packet_id": "apply-copilot-runner-capability-boundaries-to-scaffoldai.sdc",
+  "timestamp": "2026-05-25T16:18:26.592Z",
+  "timestamp_ms": 1779725906592,
+  "packet_id": "add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc",
+  "active_packet_id": "add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
