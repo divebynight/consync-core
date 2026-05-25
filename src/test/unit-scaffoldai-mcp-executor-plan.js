@@ -252,6 +252,20 @@ console.log(`[${TEST_NAME}] Running`);
   console.log("  PASS: scaffoldaiExecutorPlan.tool.scaffoldai.js does not contain lifecycle-mutating operations");
 }
 
+// -----------------------------------------------------------------------
+// Test 13: mcp-operator/index.js registers scaffoldai_executor_plan
+// -----------------------------------------------------------------------
+
+{
+  const fs = require("fs");
+  const operatorIndexPath = path.join(__dirname, "..", "scaffoldai", "mcp-operator", "index.js");
+  const source = fs.readFileSync(operatorIndexPath, "utf8");
+  assert.ok(source.includes('"scaffoldai_executor_plan"'), "mcp-operator/index.js must register scaffoldai_executor_plan");
+  assert.ok(source.includes("runExecutorPlanToolMcp"), "mcp-operator/index.js must reuse runExecutorPlanToolMcp");
+  assert.ok(!source.includes("runExecutorPlanTool("), "mcp-operator/index.js must not call runExecutorPlanTool directly (use MCP wrapper)");
+  console.log("  PASS: mcp-operator/index.js registers scaffoldai_executor_plan via runExecutorPlanToolMcp");
+}
+
 if (process.exitCode !== 1) {
   console.log(`[${TEST_NAME}] PASS`);
 }

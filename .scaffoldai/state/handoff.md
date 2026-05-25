@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: add-mcp-executor-plan-observation-tool.sdc
+PACKAGE: expose-executor-plan-on-operator-http-mcp.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for add-mcp-executor-plan-observation-tool.sdc.
+Lifecycle close-feature closeout after verify evidence for expose-executor-plan-on-operator-http-mcp.sdc.
 
 FILES CREATED
 

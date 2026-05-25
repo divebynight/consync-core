@@ -19,6 +19,7 @@ const EXPECTED_TOOLS = [
   "scaffoldai_pending_questions",
   "scaffoldai_completion_status",
   "scaffoldai_submit_sdc_candidate",
+  "scaffoldai_executor_plan",
 ];
 
 const FORBIDDEN_TOOLS = [

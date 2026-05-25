@@ -3,6 +3,7 @@
 const { z } = require("zod");
 const { createReadonlyMcpServer } = require("../mcp-readonly");
 const { runSubmitSdcCandidateTool } = require("../mcp/submit-sdc-candidate");
+const { runExecutorPlanToolMcp } = require("../mcp/tools");
 
 function createOperatorMcpServer(deps = {}) {
   const server = createReadonlyMcpServer(deps);
@@ -22,6 +23,21 @@ function createOperatorMcpServer(deps = {}) {
     },
     async (args) => {
       const result = runSubmitSdcCandidateTool(args || {});
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.registerTool(
+    "scaffoldai_executor_plan",
+    {
+      description:
+        "Bounded MCP executor planning tool. Resolves active packet context, constructs the deterministic planning-mode Copilot CLI command boundary, invokes Copilot in read-only planning mode, and returns structured plan output. No arbitrary shell execution. No work-mode execution. Planning only.",
+      inputSchema: z.object({
+        timeout_ms: z.number().int().min(10000).max(600000).optional().describe("Optional timeout in milliseconds (10000-600000, default 120000)."),
+      }),
+    },
+    async (args) => {
+      const result = runExecutorPlanToolMcp(args || {}, deps);
       return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
   );

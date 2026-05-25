@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-25T17:02:18.990Z",
-  "timestamp_ms": 1779728538990,
-  "packet_id": "add-mcp-executor-plan-observation-tool.sdc",
-  "active_packet_id": "add-mcp-executor-plan-observation-tool.sdc",
+  "timestamp": "2026-05-25T18:03:08.542Z",
+  "timestamp_ms": 1779732188542,
+  "packet_id": "expose-executor-plan-on-operator-http-mcp.sdc",
+  "active_packet_id": "expose-executor-plan-on-operator-http-mcp.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
