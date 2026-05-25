@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: executor-plan-output-capture-and-terminal-state-reliability.sdc
+PACKAGE: add-scaffoldai-lifecycle-probe.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for executor-plan-output-capture-and-terminal-state-reliability.sdc.
+Lifecycle close-feature closeout after verify evidence for add-scaffoldai-lifecycle-probe.sdc.
 
 FILES CREATED
 
