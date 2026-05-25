@@ -71,13 +71,13 @@ scaffold-start:
 	@npm run scaffoldai:start-latest
 
 scaffold-close:
+	@npm run scaffoldai:close-feature
 
 scaffold-discuss:
 	@npm run scaffoldai:discuss
 
 scaffold-work:
 	@npm run scaffoldai:work
-	@npm run scaffoldai:close-feature
 
 scaffold-cancel:
 	@npm run scaffoldai:cancel-packet

@@ -588,6 +588,13 @@ async function runCloseFeature(commandRepoRoot, argv) {
   if (verificationWarnings.length > 0) {
     printWarnings(verificationWarnings);
   }
+  
+  // Display closeout warnings if present (expired/stale evidence)
+  if (closeout.warnings && closeout.warnings.length > 0) {
+    for (const warning of closeout.warnings) {
+      console.log(`⚠ ${warning}`);
+    }
+  }
 
   printWrapperResult("close-feature", {
     active_packet: "(none)",
