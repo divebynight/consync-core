@@ -2,6 +2,7 @@ const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const {
   resolveExecutorContext,
   buildPlanCommand,
+  buildPlanPrompt,
 } = require("../../lib/executorAdapter.lib.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
@@ -23,29 +24,6 @@ const repoRoot = getRepoRoot(__dirname);
 // This is a runner capability boundary enforced by the Copilot CLI flags,
 // not by prompt wording.
 // -----------------------------------------------------------------------
-
-/**
- * Build the prompt for plan mode from resolved executor context.
- *
- * @param {{ activePacket: string, packageName: string, nextActionContent: string }} context
- * @returns {string}
- */
-function buildPlanPrompt(context) {
-  return [
-    "You are in ScaffoldAI planning mode (READ-ONLY).",
-    "",
-    `Active packet: ${context.activePacket}`,
-    "",
-    "Next-action:",
-    "---",
-    context.nextActionContent.trim(),
-    "---",
-    "",
-    "Analyze the repository and create a detailed implementation plan for the next-action above.",
-    "Report findings, analysis, and recommendations only.",
-    "Do not write any files. Do not execute any shell commands.",
-  ].join("\n");
-}
 
 /**
  * scaffold-plan command runner.

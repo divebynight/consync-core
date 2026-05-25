@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc
+PACKAGE: add-mcp-executor-plan-observation-tool.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc.
+Lifecycle close-feature closeout after verify evidence for add-mcp-executor-plan-observation-tool.sdc.
 
 FILES CREATED
 

@@ -12,6 +12,7 @@ const {
   runCloseoutReadinessTool,
   runCompletionStatusTool,
   runVerifyRunTool,
+  runExecutorPlanToolMcp,
 } = require("./tools");
 const { runSignalTool } = require("./signal");
 const { runMemoryWriteTool, runMemoryReadTool } = require("./shared-memory");
@@ -203,6 +204,21 @@ server.registerTool(
   },
   withToolLogging("scaffoldai_memory_read", async (args) => {
     const result = runMemoryReadTool(args || {});
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  })
+);
+
+server.registerTool(
+  "scaffoldai_executor_plan",
+  {
+    description:
+      "Bounded MCP executor planning tool. Resolves active packet context, constructs the deterministic planning-mode Copilot CLI command boundary, invokes Copilot in read-only planning mode, and returns structured plan output. No arbitrary shell execution. No work-mode execution. Planning only.",
+    inputSchema: z.object({
+      timeout_ms: z.number().int().min(10000).max(600000).optional().describe("Optional timeout in milliseconds (10000-600000, default 120000)."),
+    }),
+  },
+  withToolLogging("scaffoldai_executor_plan", async (args) => {
+    const result = runExecutorPlanToolMcp(args || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   })
 );

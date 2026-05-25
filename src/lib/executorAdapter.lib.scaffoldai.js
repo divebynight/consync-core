@@ -159,8 +159,36 @@ function buildWorkCommand({ repoRoot, prompt }) {
   };
 }
 
+/**
+ * Build the standard planning-mode prompt from resolved executor context.
+ *
+ * PURE — receives context fields and returns a prompt string.
+ * Defined here so both the CLI command and MCP tool can reuse without
+ * lib → commands import inversion.
+ *
+ * @param {{ activePacket: string, nextActionContent: string }} context
+ * @returns {string}
+ */
+function buildPlanPrompt(context) {
+  return [
+    "You are in ScaffoldAI planning mode (READ-ONLY).",
+    "",
+    `Active packet: ${context.activePacket}`,
+    "",
+    "Next-action:",
+    "---",
+    context.nextActionContent.trim(),
+    "---",
+    "",
+    "Analyze the repository and create a detailed implementation plan for the next-action above.",
+    "Report findings, analysis, and recommendations only.",
+    "Do not write any files. Do not execute any shell commands.",
+  ].join("\n");
+}
+
 module.exports = {
   resolveExecutorContext,
   buildPlanCommand,
   buildWorkCommand,
+  buildPlanPrompt,
 };

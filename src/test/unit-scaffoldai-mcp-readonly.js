@@ -595,6 +595,7 @@ for (const [name, fn] of toolFns) {
     "scaffoldai_submit_sdc_candidate",
     "scaffoldai_memory_write",
     "scaffoldai_memory_read",
+    "scaffoldai_executor_plan",
   ];
 
   try {

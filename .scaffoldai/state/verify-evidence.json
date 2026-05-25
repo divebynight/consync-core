@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-05-25T16:18:26.592Z",
-  "timestamp_ms": 1779725906592,
-  "packet_id": "add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc",
-  "active_packet_id": "add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc",
+  "timestamp": "2026-05-25T17:02:18.990Z",
+  "timestamp_ms": 1779728538990,
+  "packet_id": "add-mcp-executor-plan-observation-tool.sdc",
+  "active_packet_id": "add-mcp-executor-plan-observation-tool.sdc",
   "verify_command": "npm run verify:scaffoldai",
   "verify_target": "scaffoldai",
   "verify_status": "passed",
