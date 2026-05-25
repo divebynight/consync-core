@@ -27,6 +27,11 @@ sandbox/probes/audio-session-capture/workdir/*
 .scaffoldai/state/active-stream.md
 .scaffoldai/state/history.jsonl
 
+.scaffoldai/runtime/
+.scaffoldai/state/verify-evidence.json
+
+.scaffoldai/state/history/
+
 # MCP signal logs
 .scaffoldai/runtime/mcp/signals.jsonl
 

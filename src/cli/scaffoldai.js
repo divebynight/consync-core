@@ -207,6 +207,11 @@ async function main() {
       runScaffoldWorkCommand(process.argv.slice(4));
       return;
     }
+    if (subcommand === "probe") {
+      const { runScaffoldaiProbeCommand } = require("../scaffoldai/commands/scaffoldai-probe.cmd.scaffoldai");
+      runScaffoldaiProbeCommand(process.argv.slice(4));
+      return;
+    }
     console.error(`Unknown scaffoldai subcommand: ${subcommand || "(none)"}`);
     process.exitCode = 1;
     return;

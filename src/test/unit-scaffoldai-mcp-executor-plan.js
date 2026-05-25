@@ -141,7 +141,7 @@ console.log(`[${TEST_NAME}] Running`);
 
   assert.strictEqual(capturedArgs.executable, "copilot", "boundary: executable should be copilot");
   assert.ok(capturedArgs.args.includes("--plan"), "boundary: args should include --plan");
-  assert.ok(capturedArgs.args.includes("--silent"), "boundary: args should include --silent");
+  assert.ok(!capturedArgs.args.includes("--silent"), "boundary: args should not include --silent");
   assert.ok(capturedArgs.args.includes("--disable-builtin-mcps"), "boundary: args should include --disable-builtin-mcps");
   assert.ok(capturedArgs.args.includes("--deny-tool=write"), "boundary: args should deny write tool");
   assert.ok(capturedArgs.args.includes("--deny-tool=shell(*)"), "boundary: args should deny shell(*) tool");

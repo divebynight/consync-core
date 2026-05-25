@@ -42,6 +42,7 @@
     "scaffoldai:discuss": "node src/scaffoldai.js scaffoldai discuss",
     "scaffoldai:plan": "node src/scaffoldai.js scaffoldai plan",
     "scaffoldai:work": "node src/scaffoldai.js scaffoldai work",
+    "scaffoldai:probe": "node src/scaffoldai.js scaffoldai probe",
     "scaffoldai:mcp": "node src/scaffoldai/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/scaffoldai/mcp/snapshot.js",
     "scaffoldai:mcp:readonly:stdio": "node src/scaffoldai/mcp-readonly/stdio.js",
