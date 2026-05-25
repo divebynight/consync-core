@@ -1,5 +1,7 @@
 const assert = require("assert");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 const { spawnSync } = require("child_process");
 const {
   resolveExecutorContext,
@@ -10,6 +12,33 @@ const {
 const TEST_NAME = "unit-executor-adapter";
 const repoRoot = path.resolve(__dirname, "..", "..");
 const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
+
+// Helper to create a temporary test repo with ScaffoldAI state
+function createTempTestRepo() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "scaffoldai-test-"));
+  const stateDir = path.join(tmpDir, ".scaffoldai", "state");
+  fs.mkdirSync(stateDir, { recursive: true });
+  
+  return {
+    root: tmpDir,
+    stateDir,
+    cleanup: () => {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  };
+}
+
+// Helper to write a mock next-action.md file
+function writeMockNextAction(stateDir, packageName) {
+  const nextActionPath = path.join(stateDir, "next-action.md");
+  const content = `TYPE: REFACTOR
+PACKAGE: ${packageName}
+
+Mock next-action content for testing.
+`;
+  fs.writeFileSync(nextActionPath, content, "utf8");
+  return nextActionPath;
+}
 
 function fail(message, err) {
   console.error(`[${TEST_NAME}] FAIL: ${message}`);
@@ -130,6 +159,35 @@ function main() {
   }
 
   // -----------------------------------------------------------------------
+  // resolveExecutorContext — refusal when no active packet
+  // -----------------------------------------------------------------------
+
+  {
+    const testRepo = createTempTestRepo();
+    
+    try {
+      // Create state dir but don't write next-action.md (no active packet)
+      assert.throws(
+        () => resolveExecutorContext(testRepo.root),
+        /No active packet/,
+        "resolve: should throw when no active packet exists"
+      );
+      console.log("  PASS: resolveExecutorContext rejects when no active packet exists");
+      
+      // Write next-action.md with NONE package (no active packet)
+      writeMockNextAction(testRepo.stateDir, "NONE");
+      assert.throws(
+        () => resolveExecutorContext(testRepo.root),
+        /No active packet/,
+        "resolve: should throw when package is NONE"
+      );
+      console.log("  PASS: resolveExecutorContext rejects when package is NONE");
+    } finally {
+      testRepo.cleanup();
+    }
+  }
+
+  // -----------------------------------------------------------------------
   // resolveExecutorContext — refusal when repoRoot is invalid
   // -----------------------------------------------------------------------
 
@@ -143,25 +201,34 @@ function main() {
   }
 
   // -----------------------------------------------------------------------
-  // resolveExecutorContext — live repo: succeeds with active packet
+  // resolveExecutorContext — succeeds with active packet (using temp fixture)
   // -----------------------------------------------------------------------
 
   {
-    // This repo has an active packet mounted (add-minimal-executor-adapter-cli-first-mcp-ready-boundary.sdc)
-    let context;
+    const testRepo = createTempTestRepo();
+    const testPackageName = "test-packet.sdc";
+    
     try {
-      context = resolveExecutorContext(repoRoot);
-    } catch (err) {
-      fail("resolveExecutorContext should succeed with active packet in live repo", err);
-    }
+      writeMockNextAction(testRepo.stateDir, testPackageName);
+      
+      let context;
+      try {
+        context = resolveExecutorContext(testRepo.root);
+      } catch (err) {
+        fail("resolveExecutorContext should succeed with active packet in test fixture", err);
+      }
 
-    assert.ok(context.activePacket, "resolve: should return activePacket");
-    assert.ok(context.packageName, "resolve: should return packageName");
-    assert.ok(typeof context.nextActionContent === "string", "resolve: should return nextActionContent string");
-    assert.ok(context.nextActionContent.length > 0, "resolve: nextActionContent should be non-empty");
-    assert.strictEqual(context.repoRoot, repoRoot, "resolve: repoRoot should match input");
-    console.log("  PASS: resolveExecutorContext succeeds with active packet");
-    console.log(`         activePacket: ${context.activePacket}`);
+      assert.strictEqual(context.activePacket, testPackageName, "resolve: should return activePacket matching fixture");
+      assert.strictEqual(context.packageName, testPackageName, "resolve: should return packageName matching fixture");
+      assert.ok(typeof context.nextActionContent === "string", "resolve: should return nextActionContent string");
+      assert.ok(context.nextActionContent.length > 0, "resolve: nextActionContent should be non-empty");
+      assert.ok(context.nextActionContent.includes("Mock next-action content"), "resolve: should include fixture content");
+      assert.strictEqual(context.repoRoot, testRepo.root, "resolve: repoRoot should match input");
+      console.log("  PASS: resolveExecutorContext succeeds with active packet");
+      console.log(`         activePacket: ${context.activePacket}`);
+    } finally {
+      testRepo.cleanup();
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -240,8 +307,8 @@ function main() {
       );
       console.log("  PASS: scaffold-plan outputs complete EXECUTOR COMMAND block");
     } else {
-      // Active packet present but may have edge case — ensure it's an error about packet
-      console.log("  SKIP: scaffold-plan exited non-zero (acceptable if no active packet condition)");
+      // Expected in CI/clean environments without active packet
+      console.log("  SKIP: scaffold-plan exited non-zero (no active packet in live repo - expected in CI)");
     }
   }
 
@@ -271,7 +338,8 @@ function main() {
       );
       console.log("  PASS: scaffold-work outputs complete EXECUTOR COMMAND block");
     } else {
-      console.log("  SKIP: scaffold-work exited non-zero (acceptable if no active packet condition)");
+      // Expected in CI/clean environments without active packet
+      console.log("  SKIP: scaffold-work exited non-zero (no active packet in live repo - expected in CI)");
     }
   }
 
