@@ -1,13 +1,13 @@
 TYPE: REFACTOR
-PACKAGE: add-scaffoldai-lifecycle-probe.sdc
+PACKAGE: minimal-copilot-conversation-runner.sdc
 
 STATUS
 
-PASS
+CANCELLED
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for add-scaffoldai-lifecycle-probe.sdc.
+Cancelled: mistaken or stale packet
 
 FILES CREATED
 
