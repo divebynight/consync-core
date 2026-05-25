@@ -93,8 +93,11 @@ function resolveExecutorContext(repoRoot) {
  *   ❌ Modify git state
  *
  * Equivalent shell invocation:
- *   copilot -C <repoRoot> --plan --silent --disable-builtin-mcps \
+ *   copilot -C <repoRoot> --plan --disable-builtin-mcps \
  *     --deny-tool=write --deny-tool='shell(*)' -p "<prompt>"
+ *
+ * Note: --silent is intentionally omitted. Under non-interactive spawn with piped stdio,
+ * --silent suppresses stdout/stderr output to the pipes, producing empty capture artifacts.
  *
  * @param {{ repoRoot: string, prompt: string }} params
  * @returns {{ executable: string, args: string[], spawnOptions: object }}
@@ -108,7 +111,6 @@ function buildPlanCommand({ repoRoot, prompt }) {
     args: [
       "-C", repoRoot,
       "--plan",
-      "--silent",
       "--disable-builtin-mcps",
       "--deny-tool=write",
       "--deny-tool=shell(*)",

@@ -499,6 +499,7 @@ function waitTick(ms = 20) {
   }));
   fs.writeFileSync(path.join(runningDir, "status.json"), JSON.stringify({
     job_id: "running-job", active_packet_id: "test", status: "running", completed_at: null,
+    started_at: recentDate,
   }));
 
   const result = cleanupJobs(fixture, { max_age_ms: 24 * 60 * 60 * 1000 }); // 24h threshold
@@ -506,7 +507,8 @@ function waitTick(ms = 20) {
   assert.strictEqual(result.removed, 1, "cleanup: should remove 1 old completed job");
   assert.ok(result.jobs.includes("old-completed-job"), "cleanup: should list removed job");
   assert.ok(!result.jobs.includes("recent-completed-job"), "cleanup: recent job should not be removed");
-  assert.ok(!result.jobs.includes("running-job"), "cleanup: running job must not be removed");
+  // Recent running job should not be cancelled (not stale yet)
+  assert.ok(!result.cancelled_jobs.includes("running-job"), "cleanup: recent running job must not be cancelled");
 
   // Verify dirs: recent and running still exist, old is gone
   assert.ok(!fs.existsSync(oldCompletedDir), "cleanup: old completed dir should be deleted");
@@ -589,6 +591,203 @@ function waitTick(ms = 20) {
   assert.strictEqual(truncated.length, MAX_OUTPUT_CHARS, "tail: truncated to MAX_OUTPUT_CHARS");
   assert.strictEqual(truncated, long.slice(-MAX_OUTPUT_CHARS), "tail: takes last chars");
   console.log("  PASS: tailText truncates long output to MAX_OUTPUT_CHARS tail");
+})
+
+// -----------------------------------------------------------------------
+// Test 24: Idempotency — duplicate close events do not re-finalize
+// -----------------------------------------------------------------------
+.then(async () => {
+  const fixture = makeTempFixture("idempotent-finalize");
+
+  let closeCount = 0;
+  const mockSpawn = (executable, args, opts) => {
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = () => {};
+
+    process.nextTick(() => {
+      proc.stdout.emit("data", "first output");
+      proc.emit("close", 0, null);
+      // Fire close a second time — should be ignored
+      process.nextTick(() => {
+        proc.emit("close", 0, null);
+        closeCount++;
+      });
+    });
+
+    return proc;
+  };
+
+  createAndStartJob(fixture, {}, {
+    spawn: mockSpawn,
+    randomUUID: () => "test-uuid-idempotent",
+    now: new Date("2026-05-25T00:00:00.000Z"),
+  });
+
+  await waitTick(80);
+
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-idempotent");
+  const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
+  assert.strictEqual(resultJson.status, "completed", "idempotent: result should be completed");
+  assert.strictEqual(resultJson.stdout, "first output", "idempotent: stdout should be first output only");
+  assert.strictEqual(closeCount, 1, "idempotent: second close fired but should be ignored");
+
+  console.log("  PASS: duplicate finalize events are idempotent");
+  fs.rmSync(fixture, { recursive: true, force: true });
+})
+
+// -----------------------------------------------------------------------
+// Test 25: Observability metadata present in result.json
+// -----------------------------------------------------------------------
+.then(async () => {
+  const fixture = makeTempFixture("observability");
+
+  createAndStartJob(fixture, {}, {
+    spawn: makeSuccessSpawn("obs output"),
+    randomUUID: () => "test-uuid-obs",
+    now: new Date("2026-05-25T00:00:00.000Z"),
+  });
+
+  await waitTick(50);
+
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-obs");
+  const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
+
+  assert.ok("finalize_reason" in resultJson, "obs: result.json should have finalize_reason");
+  assert.ok("terminal_event_source" in resultJson, "obs: result.json should have terminal_event_source");
+  assert.ok("stdout_bytes" in resultJson, "obs: result.json should have stdout_bytes");
+  assert.ok("stderr_bytes" in resultJson, "obs: result.json should have stderr_bytes");
+  assert.ok("timeout_fired" in resultJson, "obs: result.json should have timeout_fired");
+  assert.strictEqual(resultJson.timeout_fired, false, "obs: timeout_fired should be false for normal completion");
+  assert.strictEqual(typeof resultJson.stdout_bytes, "number", "obs: stdout_bytes should be a number");
+  assert.ok(resultJson.stdout_bytes > 0, "obs: stdout_bytes should reflect captured output");
+
+  console.log("  PASS: observability metadata present in result.json");
+  fs.rmSync(fixture, { recursive: true, force: true });
+})
+
+// -----------------------------------------------------------------------
+// Test 26: Partial logs written on data events
+// -----------------------------------------------------------------------
+.then(async () => {
+  const fixture = makeTempFixture("partial-logs");
+
+  let resolvePartialCheck;
+  const partialCheckPromise = new Promise((r) => { resolvePartialCheck = r; });
+
+  const mockSpawn = (executable, args, opts) => {
+    const proc = new EventEmitter();
+    proc.stdout = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = () => {};
+
+    process.nextTick(() => {
+      proc.stdout.emit("data", "partial stdout chunk");
+      proc.stderr.emit("data", "partial stderr chunk");
+      // Check partial logs before close
+      setImmediate(() => {
+        resolvePartialCheck();
+        proc.emit("close", 0, null);
+      });
+    });
+
+    return proc;
+  };
+
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-partial");
+  createAndStartJob(fixture, {}, {
+    spawn: mockSpawn,
+    randomUUID: () => "test-uuid-partial",
+    now: new Date("2026-05-25T00:00:00.000Z"),
+  });
+
+  await partialCheckPromise;
+
+  // Partial logs should be written before close
+  const stdoutPartial = fs.existsSync(path.join(jobDir, "stdout.partial.log"))
+    ? fs.readFileSync(path.join(jobDir, "stdout.partial.log"), "utf8")
+    : null;
+  const stderrPartial = fs.existsSync(path.join(jobDir, "stderr.partial.log"))
+    ? fs.readFileSync(path.join(jobDir, "stderr.partial.log"), "utf8")
+    : null;
+
+  assert.ok(stdoutPartial !== null, "partial: stdout.partial.log should exist after data event");
+  assert.ok(stderrPartial !== null, "partial: stderr.partial.log should exist after data event");
+  assert.ok(stdoutPartial.includes("partial stdout chunk"), "partial: stdout.partial.log should contain data");
+  assert.ok(stderrPartial.includes("partial stderr chunk"), "partial: stderr.partial.log should contain data");
+
+  await waitTick(30);
+  console.log("  PASS: partial logs written on data events");
+  fs.rmSync(fixture, { recursive: true, force: true });
+})
+
+// -----------------------------------------------------------------------
+// Test 27: cleanupJobs transitions stale running jobs to cancelled
+// -----------------------------------------------------------------------
+.then(() => {
+  const fixture = makeTempFixture("cleanup-stale-running");
+  const plansDir = path.join(fixture, PLANS_SUBPATH);
+  fs.mkdirSync(plansDir, { recursive: true });
+
+  const staleRunningDir = path.join(plansDir, "stale-running-job");
+  fs.mkdirSync(staleRunningDir);
+
+  const staleStartedAt = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(); // 48h ago
+  fs.writeFileSync(path.join(staleRunningDir, "status.json"), JSON.stringify({
+    job_id: "stale-running-job",
+    active_packet_id: "test",
+    status: "running",
+    started_at: staleStartedAt,
+    completed_at: null,
+  }));
+
+  const result = cleanupJobs(fixture, { max_age_ms: 24 * 60 * 60 * 1000 });
+
+  assert.strictEqual(result.cancelled, 1, "stale-cancel: should cancel 1 stale running job");
+  assert.ok(result.cancelled_jobs.includes("stale-running-job"), "stale-cancel: should list cancelled job");
+  assert.strictEqual(result.removed, 0, "stale-cancel: should not remove any jobs");
+
+  // Dir should still exist (artifacts preserved)
+  assert.ok(fs.existsSync(staleRunningDir), "stale-cancel: stale running dir should be preserved");
+
+  // status.json should now show cancelled
+  const updatedStatus = JSON.parse(fs.readFileSync(path.join(staleRunningDir, "status.json"), "utf8"));
+  assert.strictEqual(updatedStatus.status, "cancelled", "stale-cancel: status.json should be cancelled");
+  assert.ok(updatedStatus.completed_at, "stale-cancel: status.json should have completed_at");
+  assert.strictEqual(updatedStatus.cancel_reason, "stale_running", "stale-cancel: cancel_reason should be stale_running");
+
+  console.log("  PASS: cleanupJobs transitions stale running jobs to cancelled, preserves artifacts");
+  fs.rmSync(fixture, { recursive: true, force: true });
+})
+
+// -----------------------------------------------------------------------
+// Test 28: result-before-status invariant — result.json exists when status.json is terminal
+// -----------------------------------------------------------------------
+.then(async () => {
+  const fixture = makeTempFixture("result-before-status");
+
+  createAndStartJob(fixture, {}, {
+    spawn: makeSuccessSpawn("invariant check output"),
+    randomUUID: () => "test-uuid-invariant",
+    now: new Date("2026-05-25T00:00:00.000Z"),
+  });
+
+  await waitTick(50);
+
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-invariant");
+
+  const statusJson = JSON.parse(fs.readFileSync(path.join(jobDir, "status.json"), "utf8"));
+  assert.notStrictEqual(statusJson.status, "running", "invariant: status must be terminal");
+
+  // result.json must exist whenever status is terminal
+  assert.ok(fs.existsSync(path.join(jobDir, "result.json")), "invariant: result.json must exist when status is terminal");
+
+  const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
+  assert.strictEqual(resultJson.status, statusJson.status, "invariant: result.json and status.json statuses must match");
+
+  console.log("  PASS: result-before-status invariant — result.json present when status is terminal");
+  fs.rmSync(fixture, { recursive: true, force: true });
 })
 
 // -----------------------------------------------------------------------

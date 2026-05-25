@@ -40,7 +40,7 @@ function main() {
     assert.ok(result.args.includes("-C"), "plan: args should include -C flag");
     assert.ok(result.args.includes("/repo"), "plan: args should include repoRoot");
     assert.ok(result.args.includes("--plan"), "plan: args should include --plan");
-    assert.ok(result.args.includes("--silent"), "plan: args should include --silent");
+    assert.ok(!result.args.includes("--silent"), "plan: args should not include --silent");
     assert.ok(result.args.includes("--disable-builtin-mcps"), "plan: args should include --disable-builtin-mcps");
     assert.ok(result.args.includes("--deny-tool=write"), "plan: args should deny write tool");
     assert.ok(result.args.includes("--deny-tool=shell(*)"), "plan: args should deny shell(*) tool");

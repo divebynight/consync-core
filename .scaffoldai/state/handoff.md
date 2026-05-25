@@ -1,5 +1,5 @@
 TYPE: REFACTOR
-PACKAGE: test-async-executor-plan-flow.sdc
+PACKAGE: executor-plan-output-capture-and-terminal-state-reliability.sdc
 
 STATUS
 
@@ -7,7 +7,7 @@ PASS
 
 SUMMARY
 
-Lifecycle close-feature closeout after verify evidence for test-async-executor-plan-flow.sdc.
+Lifecycle close-feature closeout after verify evidence for executor-plan-output-capture-and-terminal-state-reliability.sdc.
 
 FILES CREATED
 

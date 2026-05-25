@@ -16,14 +16,17 @@ const {
 //
 // Artifact layout per job:
 //   .scaffoldai/runtime/executor-plans/<job-id>/
-//     request.json   — job identity, context, command boundary
-//     status.json    — current lifecycle state
-//     stdout.md      — captured planning output (written on completion)
-//     stderr.log     — captured stderr output (written on completion)
-//     result.json    — full result artifact (written on completion)
+//     request.json          — job identity, context, command boundary
+//     status.json           — current lifecycle state (written last)
+//     stdout.md             — final captured stdout (written on finalize)
+//     stderr.log            — final captured stderr (written on finalize)
+//     stdout.partial.log    — incremental stdout (updated on each data event)
+//     stderr.partial.log    — incremental stderr (updated on each data event)
+//     result.json           — full result artifact (written before status.json)
 //
 // Job lifecycle states:
 //   running → completed | failed | timed_out
+//   (stale running → cancelled, by cleanupJobs)
 //
 // Lifecycle separation guarantees (same as blocking tool):
 //   ✅ Read files and repository state
@@ -36,6 +39,12 @@ const {
 //   ❌ Cannot accept arbitrary prompt text
 //   ❌ Cannot accept arbitrary shell commands
 //   ❌ Cannot mutate Consync artifact directories
+//
+// Finalization guarantees:
+//   - All terminal events (close, error, timeout) converge through doFinalize
+//   - doFinalize is idempotent — subsequent calls after first are no-ops
+//   - result.json is always written before status.json (result-before-status invariant)
+//   - writeJsonAtomic uses write-to-tmp + rename for crash-safe writes
 // -----------------------------------------------------------------------
 
 const PLANS_SUBPATH = path.join(".scaffoldai", "runtime", "executor-plans");
@@ -75,8 +84,12 @@ function readJsonSafe(filePath) {
   }
 }
 
+// True atomic write: write to .tmp then rename into place.
+// Prevents partial-file reads on crash or concurrent access.
 function writeJsonAtomic(filePath, value) {
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
+  const tmp = filePath + ".tmp";
+  fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + "\n", "utf8");
+  fs.renameSync(tmp, filePath);
 }
 
 // -----------------------------------------------------------------------
@@ -92,7 +105,8 @@ function writeJsonAtomic(filePath, value) {
  *   3. Write request.json and initial status.json
  *   4. Spawn Copilot asynchronously (shell: false)
  *   5. Return immediately with { status: "running", job_id, active_packet_id, ... }
- *   6. On Copilot close: write stdout.md, stderr.log, result.json, update status.json
+ *   6. On any terminal event (close/error/timeout): converge through doFinalize,
+ *      write stdout.md, stderr.log, result.json, then update status.json
  *
  * @param {string} repoRoot
  * @param {object} args - { timeout_ms? }
@@ -130,7 +144,7 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
 
   const commandBoundary = {
     executable: command.executable,
-    planning_flags: ["--plan", "--silent", "--disable-builtin-mcps"],
+    planning_flags: ["--plan", "--disable-builtin-mcps"],
     deny_tools: ["write", "shell(*)"],
   };
 
@@ -176,6 +190,12 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
       stderr: errorMsg,
       command_boundary: commandBoundary,
       error_code: "SPAWN_EXCEPTION",
+      pid: null,
+      finalize_reason: "spawn_exception",
+      terminal_event_source: "spawn_exception",
+      stdout_bytes: 0,
+      stderr_bytes: Buffer.byteLength(errorMsg),
+      timeout_fired: false,
     });
     fs.writeFileSync(path.join(dir, "stdout.md"), "", "utf8");
     fs.writeFileSync(path.join(dir, "stderr.log"), errorMsg, "utf8");
@@ -200,35 +220,56 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
 
   let stdoutBuf = "";
   let stderrBuf = "";
+  let finalized = false;
+  let timeoutFired = false;
 
-  if (proc.stdout) proc.stdout.on("data", (chunk) => { stdoutBuf += chunk; });
-  if (proc.stderr) proc.stderr.on("data", (chunk) => { stderrBuf += chunk; });
+  if (proc.stdout) {
+    proc.stdout.on("data", (chunk) => {
+      stdoutBuf += chunk;
+      try {
+        fs.writeFileSync(path.join(dir, "stdout.partial.log"), tailText(stdoutBuf), "utf8");
+      } catch { /* non-fatal */ }
+    });
+  }
+
+  if (proc.stderr) {
+    proc.stderr.on("data", (chunk) => {
+      stderrBuf += chunk;
+      try {
+        fs.writeFileSync(path.join(dir, "stderr.partial.log"), tailText(stderrBuf), "utf8");
+      } catch { /* non-fatal */ }
+    });
+  }
 
   const timer = setTimeout(() => {
+    timeoutFired = true;
     try { proc.kill(); } catch { /* already exited */ }
   }, timeoutMs);
 
-  function finalizeJob(code, signal) {
+  // Single idempotent finalize path — all terminal events converge here.
+  function doFinalize(reason, { code, errMsg } = {}) {
+    if (finalized) return;
+    finalized = true;
     clearTimeout(timer);
 
     const completedAt = new Date().toISOString();
     const durationMs = Date.now() - startedAt;
-    const timedOut = signal === "SIGTERM" && typeof code !== "number";
+
+    const jobStatus =
+      reason === "timeout" || timeoutFired
+        ? "timed_out"
+        : reason === "error"
+        ? "failed"
+        : typeof code === "number" && code === 0
+        ? "completed"
+        : "failed";
+
+    const stdout = tailText(stdoutBuf);
+    const stderr = reason === "error" && errMsg ? tailText(errMsg) : tailText(stderrBuf);
 
     fs.mkdirSync(dir, { recursive: true });
 
-    const jobStatus = timedOut
-      ? "timed_out"
-      : typeof code === "number" && code === 0
-      ? "completed"
-      : "failed";
-
-    const stdout = tailText(stdoutBuf);
-    const stderr = tailText(stderrBuf);
-
-    fs.writeFileSync(path.join(dir, "stdout.md"), stdout, "utf8");
-    fs.writeFileSync(path.join(dir, "stderr.log"), stderr, "utf8");
-
+    // result.json written before status.json (result-before-status invariant)
     writeJsonAtomic(path.join(dir, "result.json"), {
       job_id: jobId,
       active_packet_id: context.activePacket,
@@ -240,7 +281,17 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
       stdout,
       stderr,
       command_boundary: commandBoundary,
+      pid: proc.pid || null,
+      finalize_reason: reason,
+      terminal_event_source: reason,
+      stdout_bytes: Buffer.byteLength(stdoutBuf),
+      stderr_bytes: Buffer.byteLength(stderrBuf),
+      timeout_fired: timeoutFired,
+      ...(reason === "error" ? { error_code: "RUNNER_EXCEPTION" } : {}),
     });
+
+    fs.writeFileSync(path.join(dir, "stdout.md"), stdout, "utf8");
+    fs.writeFileSync(path.join(dir, "stderr.log"), stderr, "utf8");
 
     writeJsonAtomic(path.join(dir, "status.json"), {
       job_id: jobId,
@@ -251,38 +302,13 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
     });
   }
 
-  proc.on("close", finalizeJob);
+  proc.on("close", (code, signal) => {
+    doFinalize("close", { code });
+  });
 
   proc.on("error", (err) => {
-    clearTimeout(timer);
-
-    const completedAt = new Date().toISOString();
     const errMsg = err && err.message ? err.message : String(err);
-
-    fs.writeFileSync(path.join(dir, "stdout.md"), "", "utf8");
-    fs.writeFileSync(path.join(dir, "stderr.log"), errMsg, "utf8");
-
-    writeJsonAtomic(path.join(dir, "result.json"), {
-      job_id: jobId,
-      active_packet_id: context.activePacket,
-      status: "failed",
-      exit_code: null,
-      duration_ms: Date.now() - startedAt,
-      started_at: now.toISOString(),
-      completed_at: completedAt,
-      stdout: "",
-      stderr: errMsg,
-      command_boundary: commandBoundary,
-      error_code: "RUNNER_EXCEPTION",
-    });
-
-    writeJsonAtomic(path.join(dir, "status.json"), {
-      job_id: jobId,
-      active_packet_id: context.activePacket,
-      status: "failed",
-      started_at: now.toISOString(),
-      completed_at: completedAt,
-    });
+    doFinalize("error", { errMsg });
   });
 
   return {
@@ -423,12 +449,15 @@ function getJobResult(repoRoot, jobId) {
 // -----------------------------------------------------------------------
 
 /**
- * Clean up old completed executor plan job directories.
- * Never removes running jobs. Never removes append-only logs.
+ * Clean up old executor plan job directories.
+ *
+ * Terminal-state jobs older than maxAgeMs are removed.
+ * Running jobs that have been running longer than maxAgeMs are transitioned
+ * to "cancelled" status with artifacts preserved (not deleted).
  *
  * @param {string} repoRoot
  * @param {object} opts - { max_age_ms? }
- * @returns {{ removed: number, jobs: string[] }}
+ * @returns {{ removed: number, cancelled: number, jobs: string[], cancelled_jobs: string[] }}
  */
 function cleanupJobs(repoRoot, opts = {}) {
   const dir = plansDir(repoRoot);
@@ -437,7 +466,9 @@ function cleanupJobs(repoRoot, opts = {}) {
     return {
       tool: "scaffoldai_executor_plan_cleanup",
       removed: 0,
+      cancelled: 0,
       jobs: [],
+      cancelled_jobs: [],
       next_safe_action: "No executor-plan runtime artifacts found.",
     };
   }
@@ -450,6 +481,7 @@ function cleanupJobs(repoRoot, opts = {}) {
   const now = Date.now();
   const entries = fs.readdirSync(dir);
   const removed = [];
+  const cancelled = [];
 
   for (const entry of entries) {
     const jobPath = path.join(dir, entry);
@@ -460,8 +492,25 @@ function cleanupJobs(repoRoot, opts = {}) {
     const status = readJsonSafe(statusPath);
     if (!status) continue;
 
-    // Never remove running jobs
-    if (status.status === "running") continue;
+    if (status.status === "running") {
+      // Transition stale running jobs to cancelled; preserve artifacts
+      const startedAt = status.started_at ? new Date(status.started_at).getTime() : 0;
+      if (now - startedAt >= maxAgeMs) {
+        try {
+          const cancelledAt = new Date().toISOString();
+          writeJsonAtomic(statusPath, {
+            ...status,
+            status: "cancelled",
+            completed_at: cancelledAt,
+            cancel_reason: "stale_running",
+          });
+          cancelled.push(entry);
+        } catch {
+          // skip non-writable entries
+        }
+      }
+      continue;
+    }
 
     const completedAt = status.completed_at ? new Date(status.completed_at).getTime() : 0;
     if (now - completedAt >= maxAgeMs) {
@@ -474,14 +523,17 @@ function cleanupJobs(repoRoot, opts = {}) {
     }
   }
 
+  const totalActions = removed.length + cancelled.length;
   return {
     tool: "scaffoldai_executor_plan_cleanup",
     removed: removed.length,
+    cancelled: cancelled.length,
     jobs: removed,
+    cancelled_jobs: cancelled,
     next_safe_action:
-      removed.length === 0
-        ? "No eligible completed jobs to clean up."
-        : `Removed ${removed.length} completed job artifact(s).`,
+      totalActions === 0
+        ? "No eligible jobs to clean up."
+        : `Removed ${removed.length} completed job(s). Cancelled ${cancelled.length} stale running job(s).`,
   };
 }
 
@@ -499,3 +551,4 @@ module.exports = {
   getJobResult,
   cleanupJobs,
 };
+

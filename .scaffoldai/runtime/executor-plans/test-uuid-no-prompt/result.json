@@ -1,23 +1,28 @@
 {
   "job_id": "test-uuid-no-prompt",
-  "active_packet_id": "convert-executor-plan-to-async-artifact-job.sdc",
+  "active_packet_id": "executor-plan-output-capture-and-terminal-state-reliability.sdc",
   "status": "completed",
   "exit_code": 0,
-  "duration_ms": 38,
+  "duration_ms": 36,
   "started_at": "2026-05-25T00:00:00.000Z",
-  "completed_at": "2026-05-25T18:49:34.456Z",
+  "completed_at": "2026-05-25T20:07:07.288Z",
   "stdout": "",
   "stderr": "",
   "command_boundary": {
     "executable": "copilot",
     "planning_flags": [
       "--plan",
-      "--silent",
       "--disable-builtin-mcps"
     ],
     "deny_tools": [
       "write",
       "shell(*)"
     ]
-  }
+  },
+  "pid": null,
+  "finalize_reason": "close",
+  "terminal_event_source": "close",
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "timeout_fired": false
 }

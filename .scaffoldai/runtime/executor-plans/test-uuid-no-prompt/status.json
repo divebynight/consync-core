@@ -1,7 +1,7 @@
 {
   "job_id": "test-uuid-no-prompt",
-  "active_packet_id": "convert-executor-plan-to-async-artifact-job.sdc",
+  "active_packet_id": "executor-plan-output-capture-and-terminal-state-reliability.sdc",
   "status": "completed",
   "started_at": "2026-05-25T00:00:00.000Z",
-  "completed_at": "2026-05-25T18:49:34.456Z"
+  "completed_at": "2026-05-25T20:07:07.288Z"
 }
