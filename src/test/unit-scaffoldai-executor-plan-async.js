@@ -196,7 +196,7 @@ function waitTick(ms = 20) {
 
 {
   const result = createAndStartJob("/does/not/exist/executor-plan-test-no-packet", {}, {
-    randomUUID: () => "test-uuid-no-packet",
+    randomUUID: () => "13ae8524-3c17-45b2-b9ce-79cd8db6cae5",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
@@ -213,6 +213,7 @@ function waitTick(ms = 20) {
 // -----------------------------------------------------------------------
 
 {
+  const fixture = makeTempFixture("no-prompt");
   const capturedArgs = { args: null };
   const mockSpawn = (executable, args, opts) => {
     capturedArgs.args = [...args];
@@ -224,13 +225,15 @@ function waitTick(ms = 20) {
     return proc;
   };
 
-  createAndStartJob(repoRoot, { prompt: "rm -rf /", command: "evil-cmd" }, {
+  createAndStartJob(fixture, { prompt: "rm -rf /", command: "evil-cmd" }, {
     spawn: mockSpawn,
-    randomUUID: () => "test-uuid-no-prompt",
+    randomUUID: () => "c6812ed4-b4e5-4264-8172-5dcd9a20968e",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
+  process.nextTick(() => fs.rmSync(fixture, { recursive: true, force: true }));
 
-  if (capturedArgs.args) {
+  assert.ok(capturedArgs.args, "no-prompt: mock executor must actually run");
+  {
     assert.ok(!capturedArgs.args.includes("rm -rf /"), "no-prompt: injected prompt must not appear in args");
     assert.ok(!capturedArgs.args.includes("evil-cmd"), "no-prompt: injected command must not appear in args");
     assert.ok(!capturedArgs.args.some((a) => a.includes("rm -rf")), "no-prompt: shell fragment must not appear in any arg");
@@ -243,6 +246,7 @@ function waitTick(ms = 20) {
 // -----------------------------------------------------------------------
 
 {
+  const fixture = makeTempFixture("shell-safety");
   const capturedOpts = {};
   const mockSpawn = (executable, args, opts) => {
     Object.assign(capturedOpts, opts);
@@ -254,11 +258,12 @@ function waitTick(ms = 20) {
     return proc;
   };
 
-  createAndStartJob(repoRoot, {}, {
+  createAndStartJob(fixture, {}, {
     spawn: mockSpawn,
-    randomUUID: () => "test-uuid-shell-safety",
+    randomUUID: () => "54facef7-f4c0-49f3-b04d-6d7f582cc81f",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
+  process.nextTick(() => fs.rmSync(fixture, { recursive: true, force: true }));
 
   assert.strictEqual(capturedOpts.shell, false, "shell-safety: spawn must be called with shell: false");
   console.log("  PASS: spawn is called with shell: false");
@@ -273,19 +278,19 @@ function waitTick(ms = 20) {
 
   const result = createAndStartJob(fixture, { timeout_ms: 30000 }, {
     spawn: makeSuccessSpawn("planning output"),
-    randomUUID: () => "test-uuid-creation",
+    randomUUID: () => "c3b9e96b-e172-4e3e-8d64-c549706a9931",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
   assert.strictEqual(result.status, "running", "creation: initial status should be running");
-  assert.strictEqual(result.job_id, "test-uuid-creation", "creation: job_id should match injected UUID");
+  assert.strictEqual(result.job_id, "c3b9e96b-e172-4e3e-8d64-c549706a9931", "creation: job_id should match injected UUID");
   assert.ok(result.active_packet_id, "creation: active_packet_id should be present");
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-creation");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "c3b9e96b-e172-4e3e-8d64-c549706a9931");
   assert.ok(fs.existsSync(jobDir), "creation: job dir should be created");
 
   const requestJson = JSON.parse(fs.readFileSync(path.join(jobDir, "request.json"), "utf8"));
-  assert.strictEqual(requestJson.job_id, "test-uuid-creation", "creation: request.json job_id");
+  assert.strictEqual(requestJson.job_id, "c3b9e96b-e172-4e3e-8d64-c549706a9931", "creation: request.json job_id");
   assert.ok(requestJson.active_packet_id, "creation: request.json active_packet_id");
   assert.strictEqual(requestJson.timeout_ms, 30000, "creation: request.json timeout_ms");
   assert.ok(requestJson.command_boundary, "creation: request.json command_boundary");
@@ -293,7 +298,7 @@ function waitTick(ms = 20) {
 
   const statusJson = JSON.parse(fs.readFileSync(path.join(jobDir, "status.json"), "utf8"));
   assert.strictEqual(statusJson.status, "running", "creation: initial status.json status");
-  assert.strictEqual(statusJson.job_id, "test-uuid-creation", "creation: status.json job_id");
+  assert.strictEqual(statusJson.job_id, "c3b9e96b-e172-4e3e-8d64-c549706a9931", "creation: status.json job_id");
   assert.ok(statusJson.active_packet_id, "creation: status.json active_packet_id");
 
   console.log("  PASS: job creation writes request.json and initial status.json");
@@ -314,7 +319,7 @@ function waitTick(ms = 20) {
   const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
   assert.strictEqual(resultJson.status, "completed", "completion: result.json status should be completed");
   assert.strictEqual(resultJson.exit_code, 0, "completion: result.json exit_code should be 0");
-  assert.strictEqual(resultJson.job_id, "test-uuid-creation", "completion: result.json job_id");
+  assert.strictEqual(resultJson.job_id, "c3b9e96b-e172-4e3e-8d64-c549706a9931", "completion: result.json job_id");
   assert.ok(resultJson.active_packet_id, "completion: result.json active_packet_id");
   assert.strictEqual(resultJson.stdout, "planning output", "completion: result.json stdout");
 
@@ -328,9 +333,9 @@ function waitTick(ms = 20) {
   // Test 10: getJobStatus reads status from disk
   // -----------------------------------------------------------------------
 
-  const status = getJobStatus(fixture, "test-uuid-creation");
+  const status = getJobStatus(fixture, "c3b9e96b-e172-4e3e-8d64-c549706a9931");
   assert.strictEqual(status.status, "completed", "getJobStatus: should return completed");
-  assert.strictEqual(status.job_id, "test-uuid-creation", "getJobStatus: should return correct job_id");
+  assert.strictEqual(status.job_id, "c3b9e96b-e172-4e3e-8d64-c549706a9931", "getJobStatus: should return correct job_id");
   assert.ok(status.active_packet_id, "getJobStatus: should include active_packet_id");
 
   console.log("  PASS: getJobStatus reads persisted status artifact");
@@ -339,7 +344,7 @@ function waitTick(ms = 20) {
   // Test 11: getJobResult reads result from disk
   // -----------------------------------------------------------------------
 
-  const jobResult = getJobResult(fixture, "test-uuid-creation");
+  const jobResult = getJobResult(fixture, "c3b9e96b-e172-4e3e-8d64-c549706a9931");
   assert.strictEqual(jobResult.status, "completed", "getJobResult: status should be completed");
   assert.strictEqual(jobResult.result_available, true, "getJobResult: result_available should be true");
   assert.strictEqual(jobResult.stdout, "planning output", "getJobResult: stdout should match");
@@ -360,13 +365,13 @@ function waitTick(ms = 20) {
 
   createAndStartJob(fixture, {}, {
     spawn: makeFailSpawn(1, "Copilot planning failed"),
-    randomUUID: () => "test-uuid-failure",
+    randomUUID: () => "ab01a12c-8d8c-4093-ac05-36e9719d315a",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
   await waitTick(50);
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-failure");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "ab01a12c-8d8c-4093-ac05-36e9719d315a");
   const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
   assert.strictEqual(resultJson.status, "failed", "failure: result.json status should be failed");
   assert.strictEqual(resultJson.exit_code, 1, "failure: exit_code should be 1");
@@ -385,14 +390,15 @@ function waitTick(ms = 20) {
 // -----------------------------------------------------------------------
 .then(async () => {
   const fixture = makeTempFixture("job-timeout");
+  let child;
 
   createAndStartJob(fixture, { timeout_ms: 10000 }, {
-    spawn: makeTimeoutSpawn(),
-    randomUUID: () => "test-uuid-timeout",
+    spawn: (...args) => { child = makeTimeoutSpawn()(...args); return child; },
+    randomUUID: () => "9bab10d0-a095-4661-8540-0ac7364806cf",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-timeout");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "9bab10d0-a095-4661-8540-0ac7364806cf");
 
   // Manually trigger kill to simulate timeout (avoids waiting 10s)
   const requestJson = JSON.parse(fs.readFileSync(path.join(jobDir, "request.json"), "utf8"));
@@ -403,6 +409,8 @@ function waitTick(ms = 20) {
   assert.strictEqual(runningStatus.status, "running", "timeout: status should be running before kill");
 
   console.log("  PASS: timeout job writes request.json and starts in running state");
+  child.kill("SIGTERM");
+  await waitTick();
   fs.rmSync(fixture, { recursive: true, force: true });
 })
 
@@ -410,9 +418,9 @@ function waitTick(ms = 20) {
 // Test 14: getJobStatus returns not_found for unknown job_id
 // -----------------------------------------------------------------------
 .then(() => {
-  const status = getJobStatus(repoRoot, "nonexistent-job-id-xyz");
+  const status = getJobStatus(repoRoot, "354b23e0-addc-4c47-a683-9992fa5c9972");
   assert.strictEqual(status.status, "not_found", "getJobStatus: should return not_found for unknown job");
-  assert.strictEqual(status.job_id, "nonexistent-job-id-xyz", "getJobStatus: should echo job_id");
+  assert.strictEqual(status.job_id, "354b23e0-addc-4c47-a683-9992fa5c9972", "getJobStatus: should echo job_id");
   console.log("  PASS: getJobStatus returns not_found for unknown job_id");
 })
 
@@ -429,7 +437,7 @@ function waitTick(ms = 20) {
 // Test 16: getJobResult returns not_found for unknown job_id
 // -----------------------------------------------------------------------
 .then(() => {
-  const result = getJobResult(repoRoot, "nonexistent-result-job-xyz");
+  const result = getJobResult(repoRoot, "a09e9554-c088-42c0-86d1-44604ab2ff94");
   assert.strictEqual(result.result_available, false, "getJobResult: result_available false for unknown job");
   console.log("  PASS: getJobResult returns result_available: false for unknown job_id");
 })
@@ -439,6 +447,7 @@ function waitTick(ms = 20) {
 // -----------------------------------------------------------------------
 .then(async () => {
   const fixture = makeTempFixture("job-result-pending");
+  let child;
 
   createAndStartJob(fixture, {}, {
     // Never completes — stdout hangs
@@ -447,18 +456,20 @@ function waitTick(ms = 20) {
       proc.stdout = new EventEmitter();
       proc.stderr = new EventEmitter();
       proc.kill = () => {};
+      child = proc;
       return proc;
     },
-    randomUUID: () => "test-uuid-pending",
+    randomUUID: () => "9a8b2d2b-9816-4cae-8b71-e5ca771190ef",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
-  const result = getJobResult(fixture, "test-uuid-pending");
+  const result = getJobResult(fixture, "9a8b2d2b-9816-4cae-8b71-e5ca771190ef");
   assert.strictEqual(result.status, "running", "pending: getJobResult status should be running");
   assert.strictEqual(result.result_available, false, "pending: result_available should be false");
   assert.ok(result.next_safe_action.includes("running"), "pending: next_safe_action should mention running");
 
   console.log("  PASS: getJobResult returns running state when result not yet available");
+  child.emit("close", 0);
   fs.rmSync(fixture, { recursive: true, force: true });
 })
 
@@ -480,9 +491,9 @@ function waitTick(ms = 20) {
   const plansDir = path.join(fixture, PLANS_SUBPATH);
   fs.mkdirSync(plansDir, { recursive: true });
 
-  const oldCompletedDir = path.join(plansDir, "old-completed-job");
-  const recentCompletedDir = path.join(plansDir, "recent-completed-job");
-  const runningDir = path.join(plansDir, "running-job");
+  const oldCompletedDir = path.join(plansDir, "6684544c-e45c-441f-8a83-6d013756b74c");
+  const recentCompletedDir = path.join(plansDir, "626c2cad-ab36-4c5d-b72b-6deafc2a0385");
+  const runningDir = path.join(plansDir, "f459e88c-b3e4-4af0-b6a9-57e8fc733612");
 
   fs.mkdirSync(oldCompletedDir);
   fs.mkdirSync(recentCompletedDir);
@@ -492,23 +503,26 @@ function waitTick(ms = 20) {
   const recentDate = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(); // 1h ago
 
   fs.writeFileSync(path.join(oldCompletedDir, "status.json"), JSON.stringify({
-    job_id: "old-completed-job", active_packet_id: "test", status: "completed", completed_at: oldDate,
+    job_id: "6684544c-e45c-441f-8a83-6d013756b74c", active_packet_id: "test", status: "completed", completed_at: oldDate,
   }));
   fs.writeFileSync(path.join(recentCompletedDir, "status.json"), JSON.stringify({
-    job_id: "recent-completed-job", active_packet_id: "test", status: "completed", completed_at: recentDate,
+    job_id: "626c2cad-ab36-4c5d-b72b-6deafc2a0385", active_packet_id: "test", status: "completed", completed_at: recentDate,
   }));
   fs.writeFileSync(path.join(runningDir, "status.json"), JSON.stringify({
-    job_id: "running-job", active_packet_id: "test", status: "running", completed_at: null,
+    job_id: "f459e88c-b3e4-4af0-b6a9-57e8fc733612", active_packet_id: "test", status: "running", completed_at: null,
     started_at: recentDate,
   }));
 
+  for (const dir of [oldCompletedDir, recentCompletedDir]) {
+    fs.copyFileSync(path.join(dir, "status.json"), path.join(dir, "result.json"));
+  }
   const result = cleanupJobs(fixture, { max_age_ms: 24 * 60 * 60 * 1000 }); // 24h threshold
 
   assert.strictEqual(result.removed, 1, "cleanup: should remove 1 old completed job");
-  assert.ok(result.jobs.includes("old-completed-job"), "cleanup: should list removed job");
-  assert.ok(!result.jobs.includes("recent-completed-job"), "cleanup: recent job should not be removed");
+  assert.ok(result.jobs.includes("6684544c-e45c-441f-8a83-6d013756b74c"), "cleanup: should list removed job");
+  assert.ok(!result.jobs.includes("626c2cad-ab36-4c5d-b72b-6deafc2a0385"), "cleanup: recent job should not be removed");
   // Recent running job should not be cancelled (not stale yet)
-  assert.ok(!result.cancelled_jobs.includes("running-job"), "cleanup: recent running job must not be cancelled");
+  assert.ok(!result.cancelled_jobs.includes("f459e88c-b3e4-4af0-b6a9-57e8fc733612"), "cleanup: recent running job must not be cancelled");
 
   // Verify dirs: recent and running still exist, old is gone
   assert.ok(!fs.existsSync(oldCompletedDir), "cleanup: old completed dir should be deleted");
@@ -527,7 +541,7 @@ function waitTick(ms = 20) {
 
   const startResult = createAndStartJob(fixture, {}, {
     spawn: makeSuccessSpawn("output with packet id"),
-    randomUUID: () => "test-uuid-packet-id",
+    randomUUID: () => "d216b04d-576f-4143-9902-42ca04598b48",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
@@ -535,7 +549,7 @@ function waitTick(ms = 20) {
 
   await waitTick(50);
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-packet-id");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "d216b04d-576f-4143-9902-42ca04598b48");
 
   const req = JSON.parse(fs.readFileSync(path.join(jobDir, "request.json"), "utf8"));
   assert.ok(req.active_packet_id, "packet-id: request.json should include active_packet_id");
@@ -621,13 +635,13 @@ function waitTick(ms = 20) {
 
   createAndStartJob(fixture, {}, {
     spawn: mockSpawn,
-    randomUUID: () => "test-uuid-idempotent",
+    randomUUID: () => "3a6e7bcd-c6de-439e-9653-2f7ac24c8e38",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
   await waitTick(80);
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-idempotent");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "3a6e7bcd-c6de-439e-9653-2f7ac24c8e38");
   const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
   assert.strictEqual(resultJson.status, "completed", "idempotent: result should be completed");
   assert.strictEqual(resultJson.stdout, "first output", "idempotent: stdout should be first output only");
@@ -645,13 +659,13 @@ function waitTick(ms = 20) {
 
   createAndStartJob(fixture, {}, {
     spawn: makeSuccessSpawn("obs output"),
-    randomUUID: () => "test-uuid-obs",
+    randomUUID: () => "6a5b8386-bc3a-4fac-83b9-2d92ec49df06",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
   await waitTick(50);
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-obs");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "6a5b8386-bc3a-4fac-83b9-2d92ec49df06");
   const resultJson = JSON.parse(fs.readFileSync(path.join(jobDir, "result.json"), "utf8"));
 
   assert.ok("finalize_reason" in resultJson, "obs: result.json should have finalize_reason");
@@ -695,10 +709,10 @@ function waitTick(ms = 20) {
     return proc;
   };
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-partial");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "b74824f4-7b61-4391-87d8-5599420622d7");
   createAndStartJob(fixture, {}, {
     spawn: mockSpawn,
-    randomUUID: () => "test-uuid-partial",
+    randomUUID: () => "b74824f4-7b61-4391-87d8-5599420622d7",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
@@ -723,19 +737,19 @@ function waitTick(ms = 20) {
 })
 
 // -----------------------------------------------------------------------
-// Test 27: cleanupJobs transitions stale running jobs to cancelled
+// Test 27: cleanupJobs preserves stale running jobs without inventing cancellation
 // -----------------------------------------------------------------------
 .then(() => {
   const fixture = makeTempFixture("cleanup-stale-running");
   const plansDir = path.join(fixture, PLANS_SUBPATH);
   fs.mkdirSync(plansDir, { recursive: true });
 
-  const staleRunningDir = path.join(plansDir, "stale-running-job");
+  const staleRunningDir = path.join(plansDir, "b7797d20-5e94-495e-9e8b-11fd86e8d1f4");
   fs.mkdirSync(staleRunningDir);
 
   const staleStartedAt = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(); // 48h ago
   fs.writeFileSync(path.join(staleRunningDir, "status.json"), JSON.stringify({
-    job_id: "stale-running-job",
+    job_id: "b7797d20-5e94-495e-9e8b-11fd86e8d1f4",
     active_packet_id: "test",
     status: "running",
     started_at: staleStartedAt,
@@ -744,20 +758,20 @@ function waitTick(ms = 20) {
 
   const result = cleanupJobs(fixture, { max_age_ms: 24 * 60 * 60 * 1000 });
 
-  assert.strictEqual(result.cancelled, 1, "stale-cancel: should cancel 1 stale running job");
-  assert.ok(result.cancelled_jobs.includes("stale-running-job"), "stale-cancel: should list cancelled job");
+  assert.strictEqual(result.cancelled, 0, "stale-cancel: must not claim a process was cancelled");
+  assert.deepStrictEqual(result.cancelled_jobs, [], "stale-cancel: must not list cancelled jobs");
   assert.strictEqual(result.removed, 0, "stale-cancel: should not remove any jobs");
 
   // Dir should still exist (artifacts preserved)
   assert.ok(fs.existsSync(staleRunningDir), "stale-cancel: stale running dir should be preserved");
 
-  // status.json should now show cancelled
+  // Elapsed time is not evidence that the process stopped.
   const updatedStatus = JSON.parse(fs.readFileSync(path.join(staleRunningDir, "status.json"), "utf8"));
-  assert.strictEqual(updatedStatus.status, "cancelled", "stale-cancel: status.json should be cancelled");
-  assert.ok(updatedStatus.completed_at, "stale-cancel: status.json should have completed_at");
-  assert.strictEqual(updatedStatus.cancel_reason, "stale_running", "stale-cancel: cancel_reason should be stale_running");
+  assert.strictEqual(updatedStatus.status, "running", "stale-cancel: status.json should remain running");
+  assert.strictEqual(updatedStatus.completed_at, null, "stale-cancel: must not invent completion");
+  assert.strictEqual(updatedStatus.cancel_reason, undefined, "stale-cancel: must not invent cancellation");
 
-  console.log("  PASS: cleanupJobs transitions stale running jobs to cancelled, preserves artifacts");
+  console.log("  PASS: cleanupJobs preserves stale running state and artifacts");
   fs.rmSync(fixture, { recursive: true, force: true });
 })
 
@@ -769,13 +783,13 @@ function waitTick(ms = 20) {
 
   createAndStartJob(fixture, {}, {
     spawn: makeSuccessSpawn("invariant check output"),
-    randomUUID: () => "test-uuid-invariant",
+    randomUUID: () => "a64a6397-07a8-4fa8-8063-0fa072eafaff",
     now: new Date("2026-05-25T00:00:00.000Z"),
   });
 
   await waitTick(50);
 
-  const jobDir = path.join(fixture, PLANS_SUBPATH, "test-uuid-invariant");
+  const jobDir = path.join(fixture, PLANS_SUBPATH, "a64a6397-07a8-4fa8-8063-0fa072eafaff");
 
   const statusJson = JSON.parse(fs.readFileSync(path.join(jobDir, "status.json"), "utf8"));
   assert.notStrictEqual(statusJson.status, "running", "invariant: status must be terminal");

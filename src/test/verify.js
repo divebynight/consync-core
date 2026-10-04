@@ -463,6 +463,12 @@ function main() {
   runNodeStep("[verify] ScaffoldAI MCP executor plan tool", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-executor-plan.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI async executor", [path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-plan-async.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI local security boundaries", ["--test",
+    path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-security.js"),
+    path.join(repoRoot, "src", "test", "mcp-operator-http-security.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 

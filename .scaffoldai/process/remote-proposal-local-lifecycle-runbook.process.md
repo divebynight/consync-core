@@ -23,9 +23,82 @@ It may expose inspection tools such as status, visibility, and pending-question 
 
 ### Operator HTTPS Surface
 
-The operator HTTPS MCP surface is submit-only plus readonly observer tools.
+The operator HTTPS MCP surface supports bounded candidate submission, readonly
+observation, and read-only executor planning.
 
-It may accept `scaffoldai_submit_sdc_candidate` as a bounded inbox write, but it must not intake, activate, claim, execute, verify-run, close out, cleanup, commit, or otherwise expand authority.
+It may accept `scaffoldai_submit_sdc_candidate` as a bounded inbox write and run
+the existing planning executor. It must not intake, activate, claim, perform
+writable execution, verify-run, close out, cleanup, commit, or mutate next-action.
+
+Caller authentication is still absent. Do not treat these local limits as
+front-door protection; keep the operator stopped when not actively needed.
+
+### Local hardening limits
+
+The operator entry point binds only to `127.0.0.1` (default port 3133). A
+non-loopback HOST override is rejected. Cloudflare routing/authentication is
+configured separately and was not changed by this hardening.
+
+| Resource | Bound |
+| --- | --- |
+| HTTP request body | 256 KiB; oversized body returns 413 |
+| Body collection deadline | 15 seconds; timeout returns 408 |
+| MCP sessions | 16; excess initialization returns 503 |
+| Session idle lifetime | 15 minutes; clients must reinitialize after expiry |
+| Concurrent MCP requests, including streams | 32; excess returns 503 |
+| Concurrent MCP SSE streams, including anonymous bootstrap | 8 |
+| SSE connection lifetime | 60 seconds; reconnect using the still-valid session |
+| HTTP sockets | 64; additional sockets are rejected |
+| Inbox entries | 100; further submissions refused, no automatic deletion |
+| Concurrent planning executors | One per repository, across existing entry points |
+| Retained executor artifact entries | 100; refuse new jobs rather than delete evidence |
+| Output capture | 8,000-character tail per stream; more than 1 MiB per stream triggers termination |
+| JSON artifact reads | 128 KiB; larger artifacts are refused |
+
+Use scaffoldai_executor_plan_start, then scaffoldai_executor_plan_status and
+scaffoldai_executor_plan_result with the returned UUIDv4. Historical non-UUID
+test labels are no longer accepted as job identifiers.
+
+The legacy scaffoldai_executor_plan HTTP tool still returns a planning result,
+but now awaits an artifact-backed async job without blocking other HTTP requests.
+It shares the same admission and retention limits.
+POST requests return JSON responses rather than opening additional SSE streams.
+GET SSE/bootstrap streams retain the stream-count and connection-lifetime limits.
+
+scaffoldai_executor_plan_cleanup is not exposed through HTTP. Trusted local
+cleanup remains explicit: it preserves running/uncertain jobs and never infers
+cancellation from elapsed time. Matching terminal status/result evidence is
+required for removal. No historical artifacts are automatically pruned.
+
+The admission lock is .scaffoldai/runtime/executor-plans/.executor.lock.
+After a crash or uncertain termination, stop and inspect local process/evidence
+state. Do not delete a lock simply because its timestamp is old, or retry by
+creating another operator. Local recovery needs human confirmation that the
+owned executor is no longer running; there is no remote unlock/cancel tool.
+
+Timeouts, excessive output, and orderly operator shutdown terminate the owned
+async executor, escalating after two seconds. POSIX execution uses a separate
+process group; Windows and the trusted-local legacy synchronous path have only
+child-level termination. Escaped groups and hostile local filesystem races are
+not sandboxed. If termination is not confirmed, status remains running with an
+explicit error and admission remains locked.
+
+HTTP responses omit executor PIDs/absolute repository-root fields, replace known
+repository-path prefixes, and avoid returning raw runner exceptions. Local
+diagnostics retain detail. Planning output and readonly project observations
+may still contain confidential material: this is not a comprehensive redactor.
+
+Regression commands:
+
+```sh
+npm run test:scaffoldai:security
+npm run test:executor:plan:async
+node src/test/unit-scaffoldai-mcp-executor-plan.js
+npm run test:mcp:operator:http
+```
+
+Security tests use isolated fixtures, mocked Copilot, and disposable loopback
+servers. The process-group test launches only harmless Node fixtures, not Copilot.
 
 ### Local Lifecycle Surface
 

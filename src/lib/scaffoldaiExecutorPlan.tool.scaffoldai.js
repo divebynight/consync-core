@@ -1,6 +1,7 @@
 "use strict";
 
 const { spawnSync } = require("child_process");
+const { acquirePlanSlot } = require("./scaffoldaiExecutorPlanGuard.lib.scaffoldai");
 const {
   resolveExecutorContext,
   buildPlanCommand,
@@ -70,9 +71,12 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
 
   // 1. Resolve executor context — fails closed if no active packet or next-action
   let context;
+  let slot;
   try {
     context = resolveExecutorContext(repoRoot);
+    slot = acquirePlanSlot(repoRoot);
   } catch (err) {
+    process.stderr.write(`[ScaffoldAI executor] ${err.code || "CONTEXT_ERROR"}: ${err.message}\n`);
     return {
       tool: "scaffoldai_executor_plan",
       execution_class: EXECUTION_CLASS,
@@ -87,6 +91,7 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
       duration_ms: 0,
       timestamp: now.toISOString(),
       refusal_reason: err.message,
+      error_code: err.code || "CONTEXT_ERROR",
       next_safe_action: "Mount an active packet before requesting executor planning output.",
     };
   }
@@ -99,7 +104,7 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
 
   const commandBoundary = {
     executable: command.executable,
-    planning_flags: ["--plan", "--silent", "--disable-builtin-mcps"],
+    planning_flags: ["--plan", "--disable-builtin-mcps"],
     deny_tools: ["write", "shell(*)"],
   };
 
@@ -114,6 +119,8 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
       timeout: timeoutMs,
       maxBuffer: 2 * 1024 * 1024,
       shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      killSignal: "SIGKILL",
     });
   } catch (error) {
     return {
@@ -134,6 +141,8 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
       error_message: error && error.message ? error.message : String(error),
       next_safe_action: "Review runner error. Check that Copilot CLI is installed and accessible.",
     };
+  } finally {
+    slot.release();
   }
 
   const exitCode = typeof result.status === "number" ? result.status : null;

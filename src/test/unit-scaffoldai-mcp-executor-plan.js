@@ -2,6 +2,8 @@
 
 const assert = require("assert");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 
 const {
   EXECUTION_CLASS,
@@ -14,6 +16,11 @@ const {
 
 const TEST_NAME = "unit-scaffoldai-mcp-executor-plan";
 const repoRoot = path.resolve(__dirname, "..", "..");
+const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "scaffoldai-plan-test-"));
+fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai/state"), { recursive: true });
+fs.writeFileSync(path.join(fixtureRoot, ".scaffoldai/state/next-action.md"),
+  "TYPE: REFACTOR\nPACKAGE: fixture.sdc\n\nRead-only planning fixture.\n");
+process.once("exit", () => fs.rmSync(fixtureRoot, { recursive: true, force: true }));
 
 console.log(`[${TEST_NAME}] Running`);
 
@@ -99,7 +106,7 @@ console.log(`[${TEST_NAME}] Running`);
   const mockExecute = () => ({ status: 0, stdout: "## Plan\n\nAnalysis complete.", stderr: "", error: null });
   const now = new Date("2026-05-25T12:00:00.000Z");
 
-  const result = runExecutorPlanTool(repoRoot, {}, { execute: mockExecute, now });
+  const result = runExecutorPlanTool(fixtureRoot, {}, { execute: mockExecute, now });
 
   assert.strictEqual(result.tool, "scaffoldai_executor_plan", "shape: tool name should be scaffoldai_executor_plan");
   assert.strictEqual(result.execution_class, EXECUTION_CLASS, "shape: execution_class should be LOCAL_EXECUTOR_PLAN");
@@ -137,7 +144,7 @@ console.log(`[${TEST_NAME}] Running`);
     return { status: 0, stdout: "plan output", stderr: "", error: null };
   };
 
-  runExecutorPlanTool(repoRoot, {}, { execute: mockExecute });
+  runExecutorPlanTool(fixtureRoot, {}, { execute: mockExecute });
 
   assert.strictEqual(capturedArgs.executable, "copilot", "boundary: executable should be copilot");
   assert.ok(capturedArgs.args.includes("--plan"), "boundary: args should include --plan");
@@ -164,7 +171,7 @@ console.log(`[${TEST_NAME}] Running`);
   };
 
   // Pass an attacker-controlled "command" — the tool must not use it
-  runExecutorPlanTool(repoRoot, { command: "rm -rf /", timeout_ms: 10000 }, { execute: mockExecute });
+  runExecutorPlanTool(fixtureRoot, { command: "rm -rf /", timeout_ms: 10000 }, { execute: mockExecute });
 
   assert.ok(!capturedArgs.args.includes("rm -rf /"), "no-shell: injected command string must not appear in args");
   assert.ok(!capturedArgs.args.some((arg) => arg.includes("rm -rf")), "no-shell: injected shell fragment must not appear in any arg");
@@ -179,7 +186,7 @@ console.log(`[${TEST_NAME}] Running`);
 {
   const mockExecute = () => ({ status: 1, stdout: "", stderr: "copilot error", error: null });
 
-  const result = runExecutorPlanTool(repoRoot, {}, { execute: mockExecute });
+  const result = runExecutorPlanTool(fixtureRoot, {}, { execute: mockExecute });
 
   assert.strictEqual(result.status, "failed", "failure: status should be failed for non-zero exit code");
   assert.strictEqual(result.exit_code, 1, "failure: exit_code should be 1");
@@ -199,7 +206,7 @@ console.log(`[${TEST_NAME}] Running`);
     error: { code: "ETIMEDOUT" },
   });
 
-  const result = runExecutorPlanTool(repoRoot, {}, { execute: mockExecute });
+  const result = runExecutorPlanTool(fixtureRoot, {}, { execute: mockExecute });
 
   assert.strictEqual(result.status, "timeout", "timeout: status should be timeout for ETIMEDOUT");
   assert.strictEqual(result.exit_code, null, "timeout: exit_code should be null for ETIMEDOUT");

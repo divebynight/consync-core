@@ -17,6 +17,7 @@ const {
   getJobStatus,
   getJobResult,
   cleanupJobs,
+  runPlanAndWait,
 } = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
@@ -229,28 +230,48 @@ function runExecutorPlanToolMcp(args = {}, deps = {}) {
   return runExecutorPlanTool(repoRoot, args, deps);
 }
 
+async function runExecutorPlanToolMcpAsync(args = {}, deps = {}) {
+  const result = await runPlanAndWait(deps.repoRoot || repoRoot, args, deps);
+  return {
+    tool: "scaffoldai_executor_plan",
+    execution_class: "LOCAL_EXECUTOR_PLAN",
+    status: result.status === "completed" ? "complete" : result.status === "timed_out" ? "timeout" : result.status,
+    job_id: result.job_id || null,
+    active_packet: result.active_packet_id || null,
+    planning_mode: "PLAN",
+    command_boundary: result.command_boundary || null,
+    stdout: result.stdout || "", stderr: result.stderr || "",
+    exit_code: result.exit_code ?? null, duration_ms: result.duration_ms || 0,
+    timestamp: result.started_at || new Date().toISOString(),
+    refusal_reason: result.refusal_reason || null,
+    ...(result.error_code ? { error_code: result.error_code } : {}),
+    next_safe_action: result.status === "completed"
+      ? "Planning complete. Review output before approving further work."
+      : "Inspect job status and local diagnostics before retrying.",
+  };
+}
 // -----------------------------------------------------------------------
 // scaffoldai_executor_plan_start
 // -----------------------------------------------------------------------
 
 function runExecutorPlanStartTool(args = {}, deps = {}) {
-  return createAndStartJob(repoRoot, args, deps);
+  return createAndStartJob(deps.repoRoot || repoRoot, args, deps);
 }
 
 // -----------------------------------------------------------------------
 // scaffoldai_executor_plan_status
 // -----------------------------------------------------------------------
 
-function runExecutorPlanStatusTool(args = {}) {
-  return getJobStatus(repoRoot, args.job_id);
+function runExecutorPlanStatusTool(args = {}, deps = {}) {
+  return getJobStatus(deps.repoRoot || repoRoot, args.job_id);
 }
 
 // -----------------------------------------------------------------------
 // scaffoldai_executor_plan_result
 // -----------------------------------------------------------------------
 
-function runExecutorPlanResultTool(args = {}) {
-  return getJobResult(repoRoot, args.job_id);
+function runExecutorPlanResultTool(args = {}, deps = {}) {
+  return getJobResult(deps.repoRoot || repoRoot, args.job_id);
 }
 
 // -----------------------------------------------------------------------
@@ -274,6 +295,7 @@ module.exports = {
   runCompletionStatusTool,
   runVerifyRunTool,
   runExecutorPlanToolMcp,
+  runExecutorPlanToolMcpAsync,
   runExecutorPlanStartTool,
   runExecutorPlanStatusTool,
   runExecutorPlanResultTool,

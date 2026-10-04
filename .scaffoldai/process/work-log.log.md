@@ -1049,3 +1049,24 @@ DECISION
 FOLLOW-UP
 - Inspector "Latest Bookmark" dedicated spec: seed session with a bookmark, assert Inspector shows Latest Bookmark heading, file name, note text.
 - Timeline view (Session Timeline panel) remains fully untested.
+
+## 2026-10-04 — scaffoldai-local-security-hardening
+
+SUMMARY
+- Hardened executor artifact IDs, containment, reads, writes, admission, output capture, and termination.
+- Bounded HTTP bodies, requests, sessions, streams, candidate inbox growth, and retained executor artifacts.
+- Removed executor cleanup from HTTP; retained guarded local cleanup without deleting uncertain evidence.
+- Routed legacy HTTP planning through the bounded asynchronous runner and reduced unnecessary response disclosure.
+- Preserved localhost binding and planning-only Copilot restrictions. Authentication remains unimplemented.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 28 tests passed.
+- Existing async planning, MCP planning, executor adapter, candidate submission, duplicate/pending guards, HTTP operator, and read-only MCP suites passed.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed.
+
+CHECKPOINT BOUNDARY
+- Preserved all 15 pre-existing deleted executor artifacts without staging or restoring them.
+- Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
+- No production operator restart, real Copilot job, Cloudflare changes, or authentication implementation.
+- Public front-door authentication remains a separate approval-gated task.

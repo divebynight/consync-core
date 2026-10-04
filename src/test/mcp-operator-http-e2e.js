@@ -23,10 +23,10 @@ const EXPECTED_TOOLS = [
   "scaffoldai_executor_plan_start",
   "scaffoldai_executor_plan_status",
   "scaffoldai_executor_plan_result",
-  "scaffoldai_executor_plan_cleanup",
 ];
 
 const FORBIDDEN_TOOLS = [
+  "scaffoldai_executor_plan_cleanup",
   "scaffoldai_preflight",
   "scaffoldai_question",
   "scaffoldai_verify_recommend",
