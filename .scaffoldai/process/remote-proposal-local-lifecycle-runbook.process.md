@@ -23,15 +23,57 @@ It may expose inspection tools such as status, visibility, and pending-question 
 
 ### Operator HTTPS Surface
 
-The operator HTTPS MCP surface supports bounded candidate submission, readonly
-observation, and read-only executor planning.
+The operator HTTPS MCP surface authenticates Cloudflare Access assertions and
+currently authorizes only the five metadata observation tools.
 
-It may accept `scaffoldai_submit_sdc_candidate` as a bounded inbox write and run
-the existing planning executor. It must not intake, activate, claim, perform
+Candidate submission and both planning aliases remain registered but denied,
+as do executor status/result retrieval. It must not intake, activate, claim, perform
 writable execution, verify-run, close out, cleanup, commit, or mutate next-action.
 
-Caller authentication is still absent. Do not treat these local limits as
-front-door protection; keep the operator stopped when not actively needed.
+Local JWT verification is implemented; production Cloudflare + ChatGPT integration
+is not yet configured or proven. Keep the production operator stopped until a
+separately approved configuration/test window. Do not expose the legacy observer
+HTTP implementation instead: it does not gain the operator's authentication.
+
+### Local authentication configuration
+
+Required startup environment values (placeholders only; do not store real values
+or credentials in Git):
+
+```text
+SCAFFOLDAI_ACCESS_ISSUER=https://<team-name>.cloudflareaccess.com
+SCAFFOLDAI_ACCESS_AUD=<dedicated lowercase 64-hex application AUD>
+SCAFFOLDAI_ACCESS_SUBJECTS=["<approved Access user sub>"]
+```
+
+The allowlist supports 1-16 unique subjects, each assigned only metadata:read.
+There is no configurable production grant for execution or other future
+capabilities. Invalid/missing configuration throws before the listener starts.
+Changing the allowlist requires an explicitly approved local reconfiguration.
+
+The configured team endpoint supplies cached JWKS. Verification pins RS256,
+issuer, audience, app-token type, approved human subject and token times.
+No unsigned identity header, cookie, session ID, candidate attribution, or
+caller-provided approval substitutes for the assertion.
+
+All /mcp requests and /health require authentication. Authenticated sessions bind
+to issuer + subject; another approved subject cannot reuse them. Credentials are
+not forwarded into SDK handler context. Capabilities are checked at invocation,
+including inherited read-only handlers; tool discovery is not authorization.
+
+Missing/invalid/expired assertions return 401. Unknown subjects and session
+mismatches return 403. Denied tools return a structured MCP error. Raw assertions
+and upstream verification errors are never returned or logged.
+
+Future remote job creation requires trusted owner metadata before spawning.
+Remote reads require matching ownership; ownerless historical artifacts stay
+local-only and are not adopted automatically. No production principal can start
+or read executor jobs in this rollout. Local stdio/CLI behavior remains separate.
+
+Cloudflare still must authenticate OAuth clients/users, enforce Access policy,
+map opaque OAuth tokens to signed assertions, and handle revocation. Offline JWT
+verification cannot immediately detect a revoked but unexpired assertion.
+No local OAuth server or discovery endpoint is implemented.
 
 ### Local hardening limits
 
@@ -45,23 +87,27 @@ configured separately and was not changed by this hardening.
 | Body collection deadline | 15 seconds; timeout returns 408 |
 | MCP sessions | 16; excess initialization returns 503 |
 | Session idle lifetime | 15 minutes; clients must reinitialize after expiry |
-| Concurrent MCP requests, including streams | 32; excess returns 503 |
-| Concurrent MCP SSE streams, including anonymous bootstrap | 8 |
-| SSE connection lifetime | 60 seconds; reconnect using the still-valid session |
+| Concurrent application requests, including authentication and health | 32; excess returns 503 |
+| Concurrent MCP SSE streams, including authenticated bootstrap | 8 |
+| SSE connection lifetime | Shorter of 60 seconds and assertion validity; reauthenticate on reconnect |
 | HTTP sockets | 64; additional sockets are rejected |
+| Access assertion | 8192 characters maximum; RS256 verification required |
+| JWKS retrieval | 3 seconds, 64 KiB, no redirects |
+| JWKS refresh/cache | Coalesced refresh; 30-second cooldown including failures; 10-minute key cache |
 | Inbox entries | 100; further submissions refused, no automatic deletion |
 | Concurrent planning executors | One per repository, across existing entry points |
 | Retained executor artifact entries | 100; refuse new jobs rather than delete evidence |
 | Output capture | 8,000-character tail per stream; more than 1 MiB per stream triggers termination |
 | JSON artifact reads | 128 KiB; larger artifacts are refused |
 
-Use scaffoldai_executor_plan_start, then scaffoldai_executor_plan_status and
-scaffoldai_executor_plan_result with the returned UUIDv4. Historical non-UUID
-test labels are no longer accepted as job identifiers.
+The retained local executor flow uses scaffoldai_executor_plan_start, then
+scaffoldai_executor_plan_status and scaffoldai_executor_plan_result with the
+returned UUIDv4. These tools are denied over HTTP in the initial rollout.
+Historical non-UUID test labels are no longer accepted as job identifiers.
 
-The legacy scaffoldai_executor_plan HTTP tool still returns a planning result,
-but now awaits an artifact-backed async job without blocking other HTTP requests.
-It shares the same admission and retention limits.
+The legacy scaffoldai_executor_plan adapter retains its artifact-backed async
+implementation and admission/retention limits, behind the invocation guard.
+It cannot execute under the initial remote policy.
 POST requests return JSON responses rather than opening additional SSE streams.
 GET SSE/bootstrap streams retain the stream-count and connection-lifetime limits.
 
@@ -97,8 +143,10 @@ node src/test/unit-scaffoldai-mcp-executor-plan.js
 npm run test:mcp:operator:http
 ```
 
-Security tests use isolated fixtures, mocked Copilot, and disposable loopback
-servers. The process-group test launches only harmless Node fixtures, not Copilot.
+Security tests use generated local signing keys, the real JOSE verifier with
+mocked JWKS retrieval, isolated artifacts, and disposable loopback servers on
+ephemeral ports. No production entry point, real token, or Cloudflare request is
+needed. The process-group test launches only harmless Node fixtures, not Copilot.
 
 ### Local Lifecycle Surface
 
@@ -107,6 +155,9 @@ Local/manual lifecycle commands own the full lifecycle after a candidate exists 
 Only local commands may perform intake, activation, claim, verification, close-feature, cleanup, and idle recovery.
 
 ## Remote Proposal / Local Lifecycle Flow
+
+Historical flow below is retained for context. Step 1 is disabled by the current
+metadata-only HTTP policy; authentication does not re-enable it.
 
 1. A remote operator submits a canonical SDC candidate through the HTTPS operator submit-only surface.
 2. The candidate lands only in `.scaffoldai/inbox/` and does not mutate runtime or lifecycle state.
@@ -163,17 +214,19 @@ If a packet needs both process and product work, it should be explicit about tha
 
 ## HTTPS SDC Submit Coverage Checklist
 
-Status: covered by existing tests; no new coverage gap was identified.
+Submission mechanics remain covered locally. HTTP tests now prove authenticated
+submission denial rather than successful remote submission.
 
 | Checklist item | Coverage evidence | Status |
 |---|---|---|
-| Valid candidate submit | `src/test/unit-scaffoldai-mcp-submit-sdc-candidate.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
+| Valid local candidate submit | `src/test/unit-scaffoldai-mcp-submit-sdc-candidate.js` | Covered |
 | Invalid SDC rejection | `src/test/unit-scaffoldai-mcp-submit-sdc-candidate.js` | Covered |
 | Autonomous wording rejection | `src/test/unit-scaffoldai-packet-intake.js` and the shared intake validator used by submit | Covered |
-| Duplicate / pending / collision rejection | `src/test/validate-remote-submit-duplicate-and-pending-guards.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
+| Duplicate / pending / collision rejection | `src/test/validate-remote-submit-duplicate-and-pending-guards.js` | Covered |
 | Submit path does not mutate active runtime | `src/test/unit-scaffoldai-mcp-submit-sdc-candidate.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
 | Submit path does not mutate next-action state | `src/test/unit-scaffoldai-mcp-submit-sdc-candidate.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
-| Submit path does not mutate lifecycle state | `src/test/validate-remote-submit-duplicate-and-pending-guards.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
+| Submit path does not mutate lifecycle state | `src/test/validate-remote-submit-duplicate-and-pending-guards.js` | Covered |
+| Authenticated remote submission and planning are denied | `src/test/mcp-operator-auth-security.js`, `src/test/mcp-operator-http-e2e.js` | Covered |
 | Submit path does not mutate git | Existing submit tests assert bounded inbox-only writes and no archive mutation | Covered |
 | Observer surface cannot submit | `src/test/mcp-readonly-chatgpt-compatibility.js`, `src/test/mcp-readonly-http-e2e.js`, `src/test/mcp-readonly-stdio-e2e.js` | Covered |
 | Operator surface cannot lifecycle-mutate | `src/test/mcp-operator-http-e2e.js` | Covered |

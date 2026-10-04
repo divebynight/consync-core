@@ -226,12 +226,18 @@ function runVerifyRunTool(args = {}, deps = {}) {
 //   scaffoldai_executor_plan_start → _status → _result → _cleanup
 // -----------------------------------------------------------------------
 
+function executorDeps(deps) {
+  if (deps.remote !== true) return deps;
+  const { getPrincipal } = require("../authorization");
+  return { ...deps, principal: getPrincipal() };
+}
+
 function runExecutorPlanToolMcp(args = {}, deps = {}) {
   return runExecutorPlanTool(repoRoot, args, deps);
 }
 
 async function runExecutorPlanToolMcpAsync(args = {}, deps = {}) {
-  const result = await runPlanAndWait(deps.repoRoot || repoRoot, args, deps);
+  const result = await runPlanAndWait(deps.repoRoot || repoRoot, args, executorDeps(deps));
   return {
     tool: "scaffoldai_executor_plan",
     execution_class: "LOCAL_EXECUTOR_PLAN",
@@ -255,7 +261,7 @@ async function runExecutorPlanToolMcpAsync(args = {}, deps = {}) {
 // -----------------------------------------------------------------------
 
 function runExecutorPlanStartTool(args = {}, deps = {}) {
-  return createAndStartJob(deps.repoRoot || repoRoot, args, deps);
+  return createAndStartJob(deps.repoRoot || repoRoot, args, executorDeps(deps));
 }
 
 // -----------------------------------------------------------------------
@@ -263,7 +269,7 @@ function runExecutorPlanStartTool(args = {}, deps = {}) {
 // -----------------------------------------------------------------------
 
 function runExecutorPlanStatusTool(args = {}, deps = {}) {
-  return getJobStatus(deps.repoRoot || repoRoot, args.job_id);
+  return getJobStatus(deps.repoRoot || repoRoot, args.job_id, executorDeps(deps));
 }
 
 // -----------------------------------------------------------------------
@@ -271,7 +277,7 @@ function runExecutorPlanStatusTool(args = {}, deps = {}) {
 // -----------------------------------------------------------------------
 
 function runExecutorPlanResultTool(args = {}, deps = {}) {
-  return getJobResult(deps.repoRoot || repoRoot, args.job_id);
+  return getJobResult(deps.repoRoot || repoRoot, args.job_id, executorDeps(deps));
 }
 
 // -----------------------------------------------------------------------

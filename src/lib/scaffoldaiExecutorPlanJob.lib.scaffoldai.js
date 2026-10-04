@@ -103,6 +103,11 @@ function logError(error) {
  * @param {object} deps - Injectable: { spawn, randomUUID, now }
  */
 function createAndStartJob(repoRoot, args = {}, deps = {}) {
+  const owner = principalOwner(deps.principal);
+  if (deps.remote === true && !owner) {
+    return { tool: "scaffoldai_executor_plan_start", status: "refused", job_id: null,
+      error_code: "OWNER_REQUIRED", refusal_reason: "Verified remote ownership is required." };
+  }
   const now = deps.now instanceof Date ? deps.now : new Date();
   const spawnFn = typeof deps.spawn === "function" ? deps.spawn : defaultSpawn;
   const uuidFn = typeof deps.randomUUID === "function" ? deps.randomUUID : randomUUID;
@@ -157,6 +162,7 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
   try {
     writeJson("request.json", {
       job_id: jobId,
+      ...(deps.remote === true ? { owner } : {}),
       active_packet_id: context.activePacket,
       started_at: now.toISOString(),
       timeout_ms: timeoutMs,
@@ -428,7 +434,34 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
  * @param {string} jobId
  * @returns {object}
  */
-function getJobStatus(repoRoot, jobId) {
+function principalOwner(principal) {
+  if (!principal || typeof principal.issuer !== "string" || !principal.issuer ||
+      typeof principal.subject !== "string" || !principal.subject) return null;
+  return { issuer: principal.issuer, subject: principal.subject };
+}
+
+function ownsJob(repoRoot, jobId, principal) {
+  const owner = principalOwner(principal);
+  if (!owner || !validJobId(jobId)) return false;
+  try {
+    const request = readArtifact(repoRoot, jobId, "request.json");
+    return request?.job_id === jobId && request.owner?.issuer === owner.issuer &&
+      request.owner?.subject === owner.subject;
+  } catch (error) {
+    if (error.code !== "ENOENT") process.stderr.write("[Executor ownership] Artifact is inaccessible.\n");
+    return false;
+  }
+}
+
+function inaccessibleJob(jobId, tool) {
+  return { tool, job_id: validJobId(jobId) ? jobId : null, active_packet_id: null,
+    status: "not_found", result_available: false, error: "Job is not accessible." };
+}
+
+function getJobStatus(repoRoot, jobId, deps = {}) {
+  if (deps.remote === true && !ownsJob(repoRoot, jobId, deps.principal)) {
+    return inaccessibleJob(jobId, "scaffoldai_executor_plan_status");
+  }
   if (!validJobId(jobId)) {
     return {
       tool: "scaffoldai_executor_plan_status",
@@ -469,7 +502,10 @@ function readJob(repoRoot, jobId, name, tool) {
  * @param {string} jobId
  * @returns {object}
  */
-function getJobResult(repoRoot, jobId) {
+function getJobResult(repoRoot, jobId, deps = {}) {
+  if (deps.remote === true && !ownsJob(repoRoot, jobId, deps.principal)) {
+    return inaccessibleJob(jobId, "scaffoldai_executor_plan_result");
+  }
   if (!validJobId(jobId)) {
     return {
       tool: "scaffoldai_executor_plan_result",
@@ -483,7 +519,7 @@ function getJobResult(repoRoot, jobId) {
 
   const data = readJob(repoRoot, jobId, "result.json", "scaffoldai_executor_plan_result");
   if (data.status === "not_found") {
-    const statusData = getJobStatus(repoRoot, jobId);
+    const statusData = getJobStatus(repoRoot, jobId, deps);
     return {
       tool: "scaffoldai_executor_plan_result",
       job_id: jobId,

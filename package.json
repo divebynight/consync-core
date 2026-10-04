@@ -61,7 +61,7 @@
     "test:mcp:readonly:chatgpt": "node src/test/mcp-readonly-chatgpt-compatibility.js",
     "test:mcp:operator:http": "node src/test/mcp-operator-http-e2e.js",
     "test:executor:plan:async": "node src/test/unit-scaffoldai-executor-plan-async.js",
-    "test:scaffoldai:security": "node --test src/test/unit-scaffoldai-executor-security.js src/test/mcp-operator-http-security.js",
+    "test:scaffoldai:security": "node --test src/test/unit-scaffoldai-executor-security.js src/test/mcp-operator-http-security.js src/test/mcp-operator-auth-security.js",
     "test:mcp:readonly": "npm run test:mcp:readonly:unit && npm run test:mcp:readonly:security && npm run test:mcp:readonly:stdio && npm run test:mcp:readonly:http && npm run test:mcp:readonly:chatgpt",
     "test": "npm run test:unit && npm run test:integration",
     "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"
@@ -83,6 +83,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "jose": "^6.2.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^4.4.3"

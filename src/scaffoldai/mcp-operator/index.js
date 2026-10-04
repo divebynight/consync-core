@@ -12,6 +12,7 @@ const {
   runExecutorPlanCleanupTool,
 } = require("../mcp/tools");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
+const { authorizeTool } = require("../authorization");
 
 function publicResult(value, repoRoot) {
   if (typeof value === "string") return value.split(repoRoot).join("<repository>");
@@ -53,7 +54,8 @@ function createOperatorMcpServer(deps = {}) {
         })
         .passthrough(),
     },
-    (args) => invoke(() => runSubmitSdcCandidateTool(args || {}, deps))
+    authorizeTool("scaffoldai_submit_sdc_candidate",
+      (args) => invoke(() => runSubmitSdcCandidateTool(args || {}, deps)), deps)
   );
 
   server.registerTool(
@@ -66,7 +68,8 @@ function createOperatorMcpServer(deps = {}) {
         timeout_ms: z.number().int().min(10000).max(600000).optional().describe("Optional timeout in milliseconds (10000-600000, default 120000)."),
       }).strict(),
     },
-    (args) => invoke(() => (remote ? runExecutorPlanToolMcpAsync : runExecutorPlanToolMcp)(args || {}, deps))
+    authorizeTool("scaffoldai_executor_plan",
+      (args) => invoke(() => (remote ? runExecutorPlanToolMcpAsync : runExecutorPlanToolMcp)(args || {}, deps)), deps)
   );
 
   server.registerTool(
@@ -78,7 +81,8 @@ function createOperatorMcpServer(deps = {}) {
         timeout_ms: z.number().int().min(10000).max(600000).optional().describe("Optional timeout in milliseconds (10000-600000, default 120000)."),
       }).strict(),
     },
-    (args) => invoke(() => runExecutorPlanStartTool(args || {}, deps))
+    authorizeTool("scaffoldai_executor_plan_start",
+      (args) => invoke(() => runExecutorPlanStartTool(args || {}, deps)), deps)
   );
 
   server.registerTool(
@@ -90,7 +94,8 @@ function createOperatorMcpServer(deps = {}) {
         job_id: z.string().describe("Job ID returned by scaffoldai_executor_plan_start."),
       }).strict(),
     },
-    (args) => invoke(() => runExecutorPlanStatusTool(args || {}, deps))
+    authorizeTool("scaffoldai_executor_plan_status",
+      (args) => invoke(() => runExecutorPlanStatusTool(args || {}, deps)), deps)
   );
 
   server.registerTool(
@@ -102,7 +107,8 @@ function createOperatorMcpServer(deps = {}) {
         job_id: z.string().describe("Job ID returned by scaffoldai_executor_plan_start."),
       }).strict(),
     },
-    (args) => invoke(() => runExecutorPlanResultTool(args || {}, deps))
+    authorizeTool("scaffoldai_executor_plan_result",
+      (args) => invoke(() => runExecutorPlanResultTool(args || {}, deps)), deps)
   );
 
   if (!remote) server.registerTool(

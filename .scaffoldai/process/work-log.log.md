@@ -1070,3 +1070,25 @@ CHECKPOINT BOUNDARY
 - Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
 - No production operator restart, real Copilot job, Cloudflare changes, or authentication implementation.
 - Public front-door authentication remains a separate approval-gated task.
+
+## 2026-10-04 - scaffoldai-local-authentication-authorization
+
+SUMMARY
+- Added fail-closed local Cloudflare Access assertion verification with pinned JWT claims, approved human subjects, and bounded JWKS retrieval.
+- Bound HTTP sessions to request-scoped verified principals and enforced metadata-only capabilities at every tool invocation, including inherited handlers.
+- Added future executor ownership persistence and owner-checked result access; historical ownerless jobs remain local-only.
+- Kept candidate submission, planning, executor reads, cleanup, and lifecycle mutation remotely denied.
+- Preserved existing hardening controls and localhost binding; documented required local configuration and unverified production integration.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 62 tests passed using generated signing keys, mocked JWKS, disposable loopback servers, and no real Copilot jobs.
+- npm run test:executor:plan:async, npm run test:mcp:operator:http, npm run test:mcp:readonly:unit, and npm run test:mcp:readonly:security passed.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed; focused implementation review reported no blocking findings.
+
+CHECKPOINT BOUNDARY
+- Commit scope is the 17 authentication task files plus this append-only work-log entry.
+- Preserved all 15 pre-existing executor-artifact deletions as unstaged deletions; no restoration or cleanup.
+- Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
+- No production operator start, real credentials, real Copilot jobs, public requests, Cloudflare configuration, or push.
+- Local verification does not establish public endpoint security. Cloudflare and ChatGPT integration remains a separately approved configuration/test window.

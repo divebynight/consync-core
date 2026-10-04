@@ -1,73 +1,18 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const path = require("node:path");
-const { spawn } = require("node:child_process");
-const { once } = require("node:events");
 const { test } = require("node:test");
 const http = require("node:http");
+const { startAuthServer } = require("./helpers/scaffoldai-auth-fixture");
 
 async function startServer(t, limits = {}) {
-  const entry = path.resolve(__dirname, "../scaffoldai/mcp-operator/http.js");
-  const bootstrap = `
-    const http = require("http");
-    const listen = http.Server.prototype.listen;
-    http.Server.prototype.listen = function (...args) {
-      this.once("listening", () => console.log(JSON.stringify({ port: this.address().port })));
-      return listen.apply(this, args);
-    };
-    const mod = require(process.argv[1]);
-    if (mod.createOperatorHttpServer) {
-      mod.createOperatorHttpServer({ limits: JSON.parse(process.argv[2]) }).listen(0, "127.0.0.1");
-    }
-  `;
-  const child = spawn(process.execPath, ["-e", bootstrap, entry, JSON.stringify(limits)], {
-    env: { ...process.env, HOST: "127.0.0.1", PORT: "0" },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  const exited = once(child, "exit");
-  let stderr = "";
-  child.stderr.on("data", (chunk) => { stderr += chunk; });
-  t.after(async () => {
-    child.kill("SIGTERM");
-    const timer = setTimeout(() => child.kill("SIGKILL"), 2000);
-    await exited;
-    clearTimeout(timer);
-  });
-  const port = await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`test server startup failed: ${stderr}`)), 5000);
-    child.stdout.once("data", (chunk) => {
-      clearTimeout(timer);
-      resolve(JSON.parse(String(chunk).trim()).port);
-    });
-    child.once("error", (error) => { clearTimeout(timer); reject(error); });
-  });
-  const base = `http://127.0.0.1:${port}`;
-  async function post(body, session) {
-    const response = await fetch(`${base}/mcp`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json", accept: "application/json, text/event-stream",
-        ...(session ? { "mcp-session-id": session } : {}),
-      },
-      body: typeof body === "string" ? body : JSON.stringify(body),
-    });
-    const text = await response.text();
-    const line = text.split("\n").find((value) => value.startsWith("data: "));
-    return { response, data: text ? JSON.parse(line ? line.slice(6) : text) : null };
-  }
-  async function initialize() {
-    return post({ jsonrpc: "2.0", id: 1, method: "initialize", params: {
-      protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "security-test", version: "1" },
-    } });
-  }
-  return { base, post, initialize };
+  return startAuthServer(t, { limits });
 }
 
 test("HTTP rejects oversized bodies and remains responsive", async (t) => {
   const s = await startServer(t);
   assert.equal((await s.post(" ".repeat(256 * 1024 + 1))).response.status, 413);
-  assert.equal((await fetch(`${s.base}/health`)).status, 200);
+  assert.equal((await fetch(`${s.base}/health`, { headers: s.headers() })).status, 200);
   assert.equal((await s.initialize()).response.status, 200);
 });
 
@@ -102,7 +47,7 @@ test("session cap refuses initialization until a session is closed", async (t) =
   assert.equal((await s.initialize()).response.status, 200);
   assert.equal((await s.initialize()).response.status, 503);
   await fetch(`${s.base}/mcp`, { method: "DELETE",
-    headers: { "mcp-session-id": first.response.headers.get("mcp-session-id") } });
+    headers: { ...s.headers(), "mcp-session-id": first.response.headers.get("mcp-session-id") } });
   assert.equal((await s.initialize()).response.status, 200);
 });
 
@@ -115,29 +60,29 @@ test("idle sessions expire without becoming new anonymous sessions", async (t) =
   assert.equal(result.response.status, 400);
 });
 
-test("anonymous SSE streams are bounded", async (t) => {
+test("authenticated SSE streams are bounded", async (t) => {
   const s = await startServer(t, { maxStreams: 2 });
   const controllers = [new AbortController(), new AbortController(), new AbortController()];
   t.after(() => controllers.forEach((controller) => controller.abort()));
   for (let i = 0; i < 2; i++) {
     const response = await fetch(`${s.base}/mcp`, {
-      headers: { accept: "text/event-stream" }, signal: controllers[i].signal,
+      headers: { ...s.headers(), accept: "text/event-stream" }, signal: controllers[i].signal,
     });
     assert.equal(response.status, 200);
   }
   const refused = await fetch(`${s.base}/mcp`, {
-    headers: { accept: "text/event-stream" }, signal: controllers[2].signal,
+    headers: { ...s.headers(), accept: "text/event-stream" }, signal: controllers[2].signal,
   });
   assert.equal(refused.status, 503);
 });
 
-test("request capacity includes streams without blocking health", async (t) => {
+test("request capacity bounds authenticated streams and health together", async (t) => {
   const s = await startServer(t, { maxRequests: 1 });
   const controller = new AbortController();
   t.after(() => controller.abort());
-  await fetch(`${s.base}/mcp`, { headers: { accept: "text/event-stream" }, signal: controller.signal });
+  await fetch(`${s.base}/mcp`, { headers: { ...s.headers(), accept: "text/event-stream" }, signal: controller.signal });
   assert.equal((await s.initialize()).response.status, 503);
-  assert.equal((await fetch(`${s.base}/health`)).status, 200);
+  assert.equal((await fetch(`${s.base}/health`, { headers: s.headers() })).status, 503);
 });
 
 test("slow bodies time out and exactly-sized bodies are not rejected as oversized", async (t) => {
@@ -145,7 +90,7 @@ test("slow bodies time out and exactly-sized bodies are not rejected as oversize
   assert.notEqual((await s.post(" ".repeat(256 * 1024))).response.status, 413);
   const status = await new Promise((resolve, reject) => {
     const request = http.request(`${s.base}/mcp`, { method: "POST",
-      headers: { "content-type": "application/json" } }, (response) => {
+      headers: { ...s.headers(), "content-type": "application/json" } }, (response) => {
       response.resume();
       resolve(response.statusCode);
     });
@@ -155,11 +100,10 @@ test("slow bodies time out and exactly-sized bodies are not rejected as oversize
   assert.equal(status, 408);
 });
 
-test("entry point refuses non-loopback HOST without opening a listener", async () => {
-  const entry = path.resolve(__dirname, "../scaffoldai/mcp-operator/http.js");
-  const child = spawn(process.execPath, [entry], {
-    env: { ...process.env, HOST: "0.0.0.0", PORT: "0" }, stdio: "ignore",
-  });
-  const [code] = await once(child, "exit");
-  assert.notEqual(code, 0);
+test("production address validation refuses non-loopback HOST without a listener", () => {
+  const { operatorAddress } = require("../scaffoldai/mcp-operator/http");
+  assert.equal(typeof operatorAddress, "function");
+  assert.throws(() => operatorAddress({ HOST: "0.0.0.0" }), /127.0.0.1/);
+  assert.throws(() => operatorAddress({ PORT: "-1" }), /port/i);
+  assert.deepEqual(operatorAddress({}), { host: "127.0.0.1", port: 3133 });
 });

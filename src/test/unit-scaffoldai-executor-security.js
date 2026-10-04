@@ -71,6 +71,26 @@ test("valid generated IDs retain status and result retrieval", (t) => {
   assert.equal(jobs.getJobResult(f.root, ID2).status, "not_found");
 });
 
+test("future remote starts persist only owner identity before spawning and refuse missing owners", (t) => {
+  const f = fixture(t);
+  const principal = { issuer: "https://fixture.cloudflareaccess.com", subject: "fixture-owner",
+    token: "never-persist-this-fixture-token", capabilities: ["executor:plan:start"] };
+  assert.equal(jobs.createAndStartJob(f.root, {}, { remote: true, spawn: f.spawn }).status, "refused");
+  assert.equal(f.children.length, 0);
+  const result = jobs.createAndStartJob(f.root, {}, {
+    remote: true, principal, randomUUID: () => ID,
+    spawn: (...args) => {
+      const raw = fs.readFileSync(path.join(f.artifactRoot, ID, "request.json"), "utf8");
+      assert.deepEqual(JSON.parse(raw).owner, { issuer: principal.issuer, subject: principal.subject });
+      assert.ok(!raw.includes(principal.token));
+      return f.spawn(...args);
+    },
+  });
+  assert.equal(result.status, "running");
+  f.children[0].emit("close", 0);
+  assert.ok(!JSON.stringify(jobs.getJobResult(f.root, ID)).includes(principal.token));
+});
+
 test("rejects symlinked job directories and artifact files without reading targets", (t) => {
   const f = fixture(t);
   const outside = path.join(f.root, "outside");
@@ -263,46 +283,24 @@ test("candidate quota rejects further submissions without deleting evidence", (t
   assert.equal(fs.readdirSync(inbox).length, 100);
 });
 
-test("legacy HTTP planning awaits bounded execution while health remains responsive", async (t) => {
+test("legacy HTTP planning is denied before execution while authenticated health remains responsive", async (t) => {
   const f = fixture(t);
-  const { createOperatorHttpServer } = require("../scaffoldai/mcp-operator/http");
+  const { startAuthServer } = require("./helpers/scaffoldai-auth-fixture");
   const { createOperatorMcpServer } = require("../scaffoldai/mcp-operator");
-  const server = createOperatorHttpServer({
+  const s = await startAuthServer(t, {
     createMcpServer: () => createOperatorMcpServer({ remote: true, repoRoot: f.root, spawn: f.spawn }),
   });
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  t.after(() => { server.closeAllConnections(); server.close(); });
-  const base = `http://127.0.0.1:${server.address().port}`;
-  const headers = { "content-type": "application/json", accept: "application/json, text/event-stream" };
-  const init = await fetch(`${base}/mcp`, { method: "POST", headers, body: JSON.stringify({
-    jsonrpc: "2.0", id: 1, method: "initialize", params: {
-      protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "1" },
-    },
-  }) });
-  headers["mcp-session-id"] = init.headers.get("mcp-session-id");
-  await init.text();
-  const pending = fetch(`${base}/mcp`, { method: "POST", headers, body: JSON.stringify({
+  const init = await s.initialize();
+  const response = await s.post({
     jsonrpc: "2.0", id: 2, method: "tools/call",
     params: { name: "scaffoldai_executor_plan", arguments: {} },
-  }) });
-  for (let i = 0; i < 100 && f.children.length === 0; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-  assert.equal(f.children.length, 1);
-  assert.equal((await fetch(`${base}/health`)).status, 200);
-  f.children[0].stdout.emit("data", `Safe result from ${f.root}`);
-  f.children[0].emit("close", 0);
-  const response = await pending;
-  const raw = await response.text();
-  assert.ok(!raw.includes(f.root));
-  assert.match(response.headers.get("content-type"), /^application\/json/);
-  const data = JSON.parse(raw);
-  const result = JSON.parse(data.result.content[0].text);
-  assert.equal(result.status, "complete");
-  assert.equal(result.repo_root, undefined);
-  assert.equal(result.pid, undefined);
-  assert.ok(result.stdout.includes("<repository>"));
+  }, init.response.headers.get("mcp-session-id"));
+  assert.equal(response.data.result.isError, true);
+  assert.equal(JSON.parse(response.data.result.content[0].text).error_code, "FORBIDDEN");
+  assert.equal(f.children.length, 0);
+  assert.deepEqual(fs.readdirSync(f.artifactRoot), []);
+  assert.equal((await fetch(`${s.base}/health`, { headers: s.headers() })).status, 200);
+  assert.ok(!response.text.includes(f.root));
 });
 
 test("POSIX deadline kills an owned process group whose members ignore SIGTERM",

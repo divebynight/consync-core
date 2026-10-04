@@ -7,6 +7,7 @@ const { createStatusTool } = require("./tools/status");
 const { createPacketVisibilityTool } = require("./tools/packet-visibility");
 const { createPendingQuestionsTool } = require("./tools/pending-questions");
 const { createCompletionStatusTool } = require("./tools/completion-status");
+const { authorizeTool } = require("../authorization");
 
 function createReadonlyMcpServer(deps = {}) {
   const server = new McpServer({
@@ -20,7 +21,7 @@ function createReadonlyMcpServer(deps = {}) {
       description: "Expose canonical ScaffoldAI identity and authority boundaries.",
       inputSchema: z.object({}).strict(),
     },
-    createIdentityTool(deps)
+    authorizeTool("scaffoldai_identity", createIdentityTool(deps), deps)
   );
 
   server.registerTool(
@@ -29,7 +30,7 @@ function createReadonlyMcpServer(deps = {}) {
       description: "Expose canonical ScaffoldAI status observation without command execution.",
       inputSchema: z.object({}).strict(),
     },
-    createStatusTool(deps)
+    authorizeTool("scaffoldai_status", createStatusTool(deps), deps)
   );
 
   server.registerTool(
@@ -43,7 +44,7 @@ function createReadonlyMcpServer(deps = {}) {
         includeSummary: z.boolean().optional().describe("Include extracted GOAL summary when available (default true)."),
       }).strict(),
     },
-    createPacketVisibilityTool(deps)
+    authorizeTool("scaffoldai_packet_visibility", createPacketVisibilityTool(deps), deps)
   );
 
   server.registerTool(
@@ -56,7 +57,7 @@ function createReadonlyMcpServer(deps = {}) {
         unresolvedOnly: z.boolean().optional().describe("Return unresolved-only when true (default true)."),
       }).strict(),
     },
-    createPendingQuestionsTool(deps)
+    authorizeTool("scaffoldai_pending_questions", createPendingQuestionsTool(deps), deps)
   );
 
   server.registerTool(
@@ -71,7 +72,7 @@ function createReadonlyMcpServer(deps = {}) {
         limit: z.number().int().min(1).max(25).optional().describe("Max completion records to return (1-25)."),
       }).strict(),
     },
-    createCompletionStatusTool(deps)
+    authorizeTool("scaffoldai_completion_status", createCompletionStatusTool(deps), deps)
   );
 
   return server;

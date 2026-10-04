@@ -466,7 +466,8 @@ function main() {
   runNodeStep("[verify] ScaffoldAI async executor", [path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-plan-async.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   runNodeStep("[verify] ScaffoldAI local security boundaries", ["--test",
     path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-security.js"),
-    path.join(repoRoot, "src", "test", "mcp-operator-http-security.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+    path.join(repoRoot, "src", "test", "mcp-operator-http-security.js"),
+    path.join(repoRoot, "src", "test", "mcp-operator-auth-security.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
@@ -535,7 +536,7 @@ function main() {
   runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] ScaffoldAI MCP operator HTTPS submit-only surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI MCP operator authenticated metadata surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] Consync product/runtime surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.CONSYNC);

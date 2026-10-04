@@ -6,6 +6,8 @@ const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/ser
 const { isInitializeRequest } = require("@modelcontextprotocol/sdk/types.js");
 const { createOperatorMcpServer } = require("./index");
 const { stopOwnedPlanJobs } = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
+const { loadAuthConfig, createAccessVerifier, stripCredentials } = require("./auth");
+const { withPrincipal } = require("../authorization");
 
 const DEFAULT_LIMITS = Object.freeze({
   maxBodyBytes: 256 * 1024,
@@ -65,6 +67,8 @@ function collectBody(request, limits) {
 }
 
 function createOperatorHttpServer(options = {}) {
+  const verifyAssertion = options.verifyAssertion || createAccessVerifier(loadAuthConfig(options.authEnvironment));
+  if (typeof verifyAssertion !== "function") throw new Error("Invalid authentication configuration.");
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   for (const [name, value] of Object.entries(limits)) {
     if (!(name in DEFAULT_LIMITS) || !Number.isInteger(value) || value <= 0 || value > DEFAULT_LIMITS[name]) {
@@ -87,8 +91,8 @@ function createOperatorHttpServer(options = {}) {
   const sweep = setInterval(expireSessions, Math.min(60000, limits.sessionIdleMs));
   sweep.unref();
 
-  async function newSession() {
-    const session = { lastUsed: Date.now(), inFlight: 0 };
+  async function newSession(principal) {
+    const session = { lastUsed: Date.now(), inFlight: 0, issuer: principal.issuer, subject: principal.subject };
     session.transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: randomUUID,
       enableJsonResponse: true,
@@ -101,9 +105,8 @@ function createOperatorHttpServer(options = {}) {
     return session;
   }
 
-  async function handleMcp(request, response) {
-    // Future authentication must precede admission/session creation here.
-    // MCP session IDs are transport state, NOT authenticated principals.
+  async function handleMcp(request, response, health = false) {
+    // Admission includes authentication work; sessions require verified identity.
     expireSessions();
     const isStream = request.method === "GET" && String(request.headers.accept || "").includes("text/event-stream");
     if (activeRequests >= limits.maxRequests || (isStream && streams >= limits.maxStreams)) {
@@ -114,15 +117,25 @@ function createOperatorHttpServer(options = {}) {
     if (isStream) streams++;
     let session;
     let finished = false;
+    let authenticating = true;
+    let released = false;
     let heartbeat;
     let streamTimer;
+    let authenticationTimer;
+    const release = () => {
+      // Disconnecting cannot free admission while verification still consumes resources.
+      if (released || !finished || authenticating) return;
+      released = true;
+      activeRequests--;
+      if (isStream) streams--;
+    };
     const finish = () => {
       if (finished) return;
       finished = true;
-      activeRequests--;
-      if (isStream) streams--;
+      release();
       clearInterval(heartbeat);
       clearTimeout(streamTimer);
+      clearTimeout(authenticationTimer);
       if (session) {
         session.inFlight--;
         session.lastUsed = Date.now();
@@ -130,12 +143,39 @@ function createOperatorHttpServer(options = {}) {
     };
     response.once("finish", finish);
     response.once("close", finish);
-    if (isStream) streamTimer = setTimeout(() => response.end(), limits.streamLifetimeMs);
+    let principal;
+    try {
+      principal = await verifyAssertion(request);
+    } catch (error) {
+      const status = error.status === 403 ? 403 : 401;
+      sendJson(response, status, status === 403 ? "Principal is not approved." : "Invalid authentication.");
+      return;
+    } finally {
+      authenticating = false;
+      release();
+    }
+    if (finished) return;
+    if (!principal || !principal.issuer || !principal.subject ||
+        !Number.isFinite(principal.expiresAt) || principal.expiresAt * 1000 <= Date.now()) {
+      sendJson(response, 401, "Invalid authentication.");
+      return;
+    }
+    stripCredentials(request);
+    const remaining = principal.expiresAt * 1000 - Date.now();
+    authenticationTimer = setTimeout(() => {
+      if (!response.headersSent) sendJson(response, 401, "Authentication expired.");
+      else response.end();
+    }, Math.min(remaining, 2147483647));
+    if (health) {
+      sendJson(response, 200, { status: "healthy", server: "scaffoldai-operator" });
+      return;
+    }
+    if (isStream) streamTimer = setTimeout(() => response.end(), Math.min(limits.streamLifetimeMs, remaining));
 
     if (isStream && !request.headers["mcp-session-id"]) {
       response.writeHead(200, {
         "content-type": "text/event-stream", "cache-control": "no-cache",
-        connection: "keep-alive", "x-mcp-session-id": "anonymous-bootstrap",
+        connection: "keep-alive", "x-mcp-session-id": "authenticated-bootstrap",
       });
       response.write(": MCP operator SSE bootstrap ready\n\n");
       heartbeat = setInterval(() => response.write(": MCP operator SSE keepalive\n\n"), 15000);
@@ -161,7 +201,7 @@ function createOperatorHttpServer(options = {}) {
       }
       pendingSessions++;
       reserved = true;
-      try { session = await newSession(); } catch (error) {
+      try { session = await newSession(principal); } catch (error) {
         pendingSessions--;
         throw error;
       }
@@ -175,10 +215,15 @@ function createOperatorHttpServer(options = {}) {
       sendJson(response, 400, "Bad Request: No valid session ID provided");
       return;
     }
+    if (session.issuer !== principal.issuer || session.subject !== principal.subject) {
+      session = undefined;
+      sendJson(response, 403, "Session is not accessible.");
+      return;
+    }
     session.inFlight++;
     session.lastUsed = Date.now();
     try {
-      await session.transport.handleRequest(request, response, body);
+      await withPrincipal(principal, () => session.transport.handleRequest(request, response, body));
     } finally {
       if (reserved) {
         pendingSessions--;
@@ -193,10 +238,8 @@ function createOperatorHttpServer(options = {}) {
       sendJson(response, 400, "Invalid request URL.");
       return;
     }
-    if (request.method === "GET" && url.pathname === "/health") {
-      sendJson(response, 200, { status: "healthy", server: "scaffoldai-operator" });
-    } else if (url.pathname === "/mcp") {
-      handleMcp(request, response).catch((error) => {
+    if (url.pathname === "/mcp" || (request.method === "GET" && url.pathname === "/health")) {
+      handleMcp(request, response, url.pathname === "/health").catch((error) => {
         log(error.message);
         sendJson(response, 500, "Internal error. Inspect local diagnostics.");
         if (response.headersSent && !response.writableEnded) response.end();
@@ -214,16 +257,22 @@ function createOperatorHttpServer(options = {}) {
   return server;
 }
 
-if (require.main === module) {
-  if (process.env.HOST && process.env.HOST !== "127.0.0.1") {
+function operatorAddress(env = process.env) {
+  if (env.HOST && env.HOST !== "127.0.0.1") {
     throw new Error("ScaffoldAI HTTP operator must bind to 127.0.0.1.");
   }
-  const port = Number(process.env.PORT || 3133);
+  const port = Number(env.PORT || 3133);
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("Invalid operator port.");
+  return { host: "127.0.0.1", port };
+}
+
+if (require.main === module) {
+  const { host, port } = operatorAddress();
   const server = createOperatorHttpServer();
-  server.listen(port, "127.0.0.1", () => {
+  server.listen(port, host, () => {
     log(`server listening on 127.0.0.1:${server.address().port}`);
-    log("WARNING: caller authentication is not implemented. This is not a secure public endpoint.");
+    log("Access assertion verification enabled; remote policy is metadata:read only.");
+    log("Cloudflare and ChatGPT integration must be verified separately.");
   });
   let shuttingDown = false;
   const shutdown = () => {
@@ -241,4 +290,4 @@ if (require.main === module) {
   process.on("SIGINT", shutdown);
 }
 
-module.exports = { createOperatorHttpServer, DEFAULT_LIMITS };
+module.exports = { createOperatorHttpServer, operatorAddress, DEFAULT_LIMITS };
