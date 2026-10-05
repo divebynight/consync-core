@@ -1114,3 +1114,25 @@ CHECKPOINT BOUNDARY
 - No production MCP tool invocation, real Copilot job, public request, Cloudflare/auth/tunnel configuration change or push.
 - Controlled operator restart is separately approved within this task after this commit. Only Mark may perform the next ChatGPT discovery retry.
 - Real OAuth completion was reported by the user; local assertion acceptance and the action-discovery failure cause remain unproven pending that retry.
+
+## 2026-10-05 - scaffoldai-one-shot-identity-binding
+
+SUMMARY
+- Added one temporary two-boolean identity observation per verifier lifetime, only after all existing cryptographic/application/human-token checks pass.
+- Compared the verified email through the approved pinned SHA-256 fingerprint without normalization; reused that same payload's subject in the unchanged allowlist decision.
+- Kept claim values out of diagnostics and retained generic client errors. Matching email does not approve a rejected subject.
+- Documented the one-shot budget, synthetic-test fingerprint seam and attribution limits; no configuration override or automatic enrollment.
+
+VERIFICATION
+- Four new synthetic regressions failed before implementation and passed afterward.
+- npm run test:scaffoldai:security: 74 tests passed.
+- npm run test:mcp:operator:http passed.
+- Pinned fingerprint checked against the exact approved identity without displaying plaintext; synthetic tests cover positive/negative comparisons, invalid tokens, concurrent one-shot bounds and HTTP 403 preservation.
+- Focused leakage/diff review and git diff --check passed.
+- State preflight/postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+
+CHECKPOINT BOUNDARY
+- Scope: auth.js, focused auth tests, directly related runbook documentation and this append-only entry.
+- No auth-file, Cloudflare, tunnel, capability, workspace or historical-artifact changes.
+- Production identity binding remains unproven until Mark's separately controlled Safari navigation after the approved restart.
+- No real Copilot jobs, production MCP tool calls, public authenticated requests or allowlist update.

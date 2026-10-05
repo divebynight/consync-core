@@ -360,6 +360,8 @@ function captureDiagnostics(t) {
     output: () => output,
     events: () => output.split("\n").filter((line) => line.startsWith("[MCP diagnostic] "))
       .map((line) => JSON.parse(line.slice("[MCP diagnostic] ".length))),
+    identities: () => output.split("\n").filter((line) => line.startsWith("[MCP identity] "))
+      .map((line) => JSON.parse(line.slice("[MCP identity] ".length))),
   };
 }
 
@@ -562,4 +564,93 @@ test("diagnostics never trust subject-match or reason fields from arbitrary upst
   assert.equal(auth?.reason, "other_auth_failure");
   assert.equal(Object.hasOwn(auth, "subject_match"), false);
   assert.ok(!logs.output().includes("private-exception"));
+});
+
+test("identity diagnostic compares exact validated email without disclosing identity or approving subject", async (t) => {
+  const { createHash } = require("node:crypto");
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const expected = "identity-fixture@example.invalid";
+  const intendedEmailSha256 = createHash("sha256").update(expected).digest("hex");
+  for (const [email, match] of [[expected, true], ["Identity-fixture@example.invalid", false],
+    [` ${expected}`, false], [undefined, false], [null, false], [[expected], false]]) {
+    const token = await f.sign({ email, sub: "identity-private-subject", private_claim: "private-claim-value" });
+    await assert.rejects(f.verifier({ intendedEmailSha256 })(request(token)), (error) => {
+      assert.equal(error.status, 403);
+      assert.equal(error.message, "Principal is not approved.");
+      return true;
+    });
+    assert.deepEqual(logs.identities().at(-1), {
+      intended_email_match: match, same_assertion_subject: true,
+    });
+    assert.ok(!logs.output().includes(token));
+  }
+  assert.equal(logs.identities().length, 6);
+  for (const value of [expected, intendedEmailSha256, "identity-private-subject", "private-claim-value",
+    ISSUER, AUDIENCE]) assert.ok(!logs.output().includes(value));
+});
+
+test("identity diagnostic runs only after signature and all application/human-token checks pass", async (t) => {
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const verify = f.verifier();
+  const rejected = [
+    await f.sign({}, {}, f.otherKey.privateKey),
+    await f.sign({ iss: "https://other.cloudflareaccess.com" }),
+    await f.sign({ aud: "b".repeat(64) }),
+    await f.sign({ exp: 1 }),
+    await f.sign({ nbf: 4102444800 }),
+    await f.sign({ iat: 4102444800 }),
+    await f.sign({ type: "org" }),
+    await f.sign({ common_name: "private-service" }),
+    await f.sign({ service_token_id: "private-service" }),
+    await f.sign({ sub: "" }),
+  ];
+  for (const token of rejected) await assert.rejects(verify(request(token)));
+  assert.deepEqual(logs.identities(), []);
+  await assert.rejects(verify(request(await f.sign({ sub: "private-unapproved" }))));
+  assert.deepEqual(logs.identities(), [{ intended_email_match: false, same_assertion_subject: true }]);
+  for (const token of rejected) assert.ok(!logs.output().includes(token));
+});
+
+test("identity diagnostic is one-shot even concurrently and preserves each payload's subject decision", async (t) => {
+  const { createHash } = require("node:crypto");
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const intendedEmailSha256 = createHash("sha256").update("fixture@example.invalid").digest("hex");
+  const verify = f.verifier({ intendedEmailSha256 });
+  const rejected = await f.sign({ sub: "private-unapproved" });
+  const results = await Promise.allSettled(Array.from({ length: 20 },
+    (_, i) => verify(request(i % 2 ? rejected : f.token))));
+  for (let i = 0; i < results.length; i++) {
+    if (i % 2) {
+      assert.equal(results[i].status, "rejected");
+      assert.equal(results[i].reason.status, 403);
+    } else {
+      assert.equal(results[i].status, "fulfilled");
+      assert.equal(results[i].value.subject, "fixture-alice");
+      assert.deepEqual(results[i].value.capabilities, ["metadata:read"]);
+    }
+  }
+  assert.deepEqual(logs.identities(), [{ intended_email_match: true, same_assertion_subject: true }]);
+  assert.ok(!logs.output().includes("fixture-alice") && !logs.output().includes("private-unapproved"));
+});
+
+test("identity diagnostic stays local while HTTP still denies matching-email unapproved subjects", async (t) => {
+  const { createHash } = require("node:crypto");
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const intendedEmailSha256 = createHash("sha256").update("fixture@example.invalid").digest("hex");
+  const s = await startAuthServer(t, { fixture: f, verifyAssertion: f.verifier({ intendedEmailSha256 }) });
+  const token = await f.sign({ sub: "private-unapproved" });
+  const response = await fetch(`${s.base}/mcp`, { headers: s.headers(token) });
+  const text = await response.text();
+  assert.equal(response.status, 403);
+  assert.equal(JSON.parse(text).error.message, "Principal is not approved.");
+  assert.deepEqual(logs.identities(), [{ intended_email_match: true, same_assertion_subject: true }]);
+  assert.equal(logs.events().find((event) => event.event === "authentication").reason, "unapproved_subject");
+  assert.ok(!text.includes("intended_email_match") && !text.includes("same_assertion_subject"));
+  for (const secret of [token, "fixture@example.invalid", "private-unapproved", ISSUER, AUDIENCE]) {
+    assert.ok(!logs.output().includes(secret) && !text.includes(secret));
+  }
 });

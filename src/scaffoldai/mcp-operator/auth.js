@@ -1,5 +1,7 @@
 "use strict";
 
+const { createHash } = require("node:crypto");
+
 const TEAM_ISSUER = /^https:\/\/[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.cloudflareaccess\.com$/;
 const validSubject = (value) => typeof value === "string" && value.length > 0 &&
   value.length <= 256 && value.trim() === value;
@@ -43,6 +45,9 @@ function createAccessVerifier(configuration, deps = {}) {
   const config = validateConfig(configuration);
   const fetchKeys = deps.fetch || globalThis.fetch;
   const now = deps.now || Date.now;
+  const intendedEmailSha256 = deps.intendedEmailSha256 ||
+    "38463600949d4a8bd14856544d9d4f3e7d10ff33f01e8691009322019e31eda8";
+  let identityDiagnosticRecorded = false;
   const jwksUrl = `${config.issuer}/cdn-cgi/access/certs`;
   let nextFetchAt = -Infinity;
 
@@ -135,8 +140,18 @@ function createAccessVerifier(configuration, deps = {}) {
       }
       throw authError(401, reason);
     }
-    if (!config.subjects.includes(payload.sub)) throw authError(403, "unapproved_subject");
-    return Object.freeze({ issuer: config.issuer, subject: payload.sub, expiresAt: payload.exp,
+    const subject = payload.sub;
+    // One-shot observation only; both values originate in this verified payload.
+    if (!identityDiagnosticRecorded) {
+      identityDiagnosticRecorded = true;
+      process.stderr.write(`[MCP identity] ${JSON.stringify({
+        intended_email_match: typeof payload.email === "string" &&
+          createHash("sha256").update(payload.email, "utf8").digest("hex") === intendedEmailSha256,
+        same_assertion_subject: subject === payload.sub,
+      })}\n`);
+    }
+    if (!config.subjects.includes(subject)) throw authError(403, "unapproved_subject");
+    return Object.freeze({ issuer: config.issuer, subject, expiresAt: payload.exp,
       capabilities: Object.freeze(["metadata:read"]) });
   };
 }

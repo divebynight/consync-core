@@ -113,6 +113,27 @@ particular edge failure, especially if the 128-request budget was exhausted.
 Removal of this temporary instrumentation is a separate approved code change.
 Diagnostics do not grant tools, relax authentication, or modify workspace state.
 
+For the separately approved identity-binding test, `auth.js` also emits one
+`[MCP identity]` record per verifier lifetime, after all cryptographic,
+application-token and human-token checks pass and before subject approval.
+It contains only `intended_email_match` and `same_assertion_subject` booleans.
+The first compares the exact validated email's UTF-8 SHA-256 fingerprint with
+the pinned intended-identity fingerprint, without case folding or trimming.
+The second confirms the subject used by the unchanged allowlist check comes
+from that same verified payload. A matching email never approves a subject.
+The fingerprint override exists only in the verifier's synthetic-test dependency
+seam; production has no environment/configuration override. The fingerprint
+avoids plaintext identity in source; it is not encryption or anonymization.
+
+This one-shot record is additional to the 640-record HTTP diagnostic budget.
+Invalid tokens do not consume it; the first fully verified application assertion
+does, even if its email does not match. Missing output is not a false comparison.
+Use one approved Safari navigation and correlate the existing request/auth/HTTP
+records with this observation; unrelated concurrent traffic makes attribution
+uncertain. The record retains no email, subject or assertion for later approval.
+Both booleans must be true before claiming identity binding, and changing the
+allowlist still requires a separate approval.
+
 ### Local hardening limits
 
 The operator entry point binds only to `127.0.0.1` (default port 3133). A
