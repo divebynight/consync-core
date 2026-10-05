@@ -352,3 +352,214 @@ test("remote ownership rejects mismatches and historical jobs without affecting 
       () => read({ job_id: ID, principal }, deps)).status, "not_found");
   }
 });
+
+function captureDiagnostics(t) {
+  let output = "";
+  t.mock.method(process.stderr, "write", (chunk) => { output += String(chunk); return true; });
+  return {
+    output: () => output,
+    events: () => output.split("\n").filter((line) => line.startsWith("[MCP diagnostic] "))
+      .map((line) => JSON.parse(line.slice("[MCP diagnostic] ".length))),
+  };
+}
+
+test("diagnostics classify auth failures without exposing claims or checking unverified subjects", async (t) => {
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const s = await startAuthServer(t, { fixture: f });
+  const cases = [
+    [null, "missing_assertion"],
+    ["not-a-jwt", "other_auth_failure"],
+    [await f.sign({ iss: "https://other.cloudflareaccess.com" }), "issuer_mismatch"],
+    [await f.sign({ aud: ["b".repeat(64)] }), "audience_mismatch"],
+    [await f.sign({ exp: 1 }), "expired"],
+    [await f.sign({ nbf: 4102444800 }), "not_yet_valid"],
+    [await f.sign({ iat: 4102444800 }), "not_yet_valid"],
+    [await f.sign({ type: "org" }), "invalid_token_type"],
+    [await f.sign({ sub: "private-unapproved-subject" }), "unapproved_subject"],
+    [await f.sign({ sub: "private-unapproved-subject" }, {}, f.otherKey.privateKey), "signature_failure"],
+    [await f.sign({}, { kid: "private-unknown-key" }), "jwks_failure"],
+  ];
+  for (let i = 0; i < cases.length; i++) {
+    const [token, reason] = cases[i];
+    const result = await s.initialize(token);
+    assert.equal(result.response.status, reason === "unapproved_subject" ? 403 : 401);
+    const auth = logs.events().find((event) => event.request === i + 1 && event.event === "authentication");
+    assert.ok(auth, "authentication stage must be observable");
+    assert.equal(auth.success, false);
+    assert.equal(auth.reason, reason);
+    if (reason === "unapproved_subject") assert.equal(auth.subject_match, false);
+    else assert.equal(Object.hasOwn(auth, "subject_match"), false);
+    if (token) assert.ok(!logs.output().includes(token));
+  }
+  for (const secret of [ISSUER, AUDIENCE, "fixture-alice", "fixture@example.invalid",
+    "private-unapproved-subject", "private-unknown-key"]) assert.ok(!logs.output().includes(secret));
+});
+
+test("diagnostics isolate JWKS exceptions from client and local output", async (t) => {
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  const s = await startAuthServer(t, { fixture: f, verifyAssertion: f.verifier({
+    fetch: async () => { throw new Error(`private-upstream ${f.token}`); },
+  }) });
+  const result = await s.initialize();
+  assert.equal(result.response.status, 401);
+  assert.equal(logs.events().find((event) => event.event === "authentication")?.reason, "jwks_failure");
+  assert.ok(!logs.output().includes("private-upstream") && !logs.output().includes(f.token));
+  assert.ok(!result.text.includes("private-upstream") && !result.text.includes(f.token));
+});
+
+test("diagnostics trace discovery and session ownership using only a bounded field schema", async (t) => {
+  const logs = captureDiagnostics(t);
+  const s = await startAuthServer(t);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  assert.equal(init.response.status, 200);
+  assert.equal((await s.post({ jsonrpc: "2.0", method: "notifications/initialized" }, session)).response.status, 202);
+  assert.equal((await s.post({ jsonrpc: "2.0", id: 2, method: "tools/list" }, session)).response.status, 200);
+  assert.equal((await s.post({ jsonrpc: "2.0", id: 3, method: "tools/list" },
+    session, await s.fixture.sign({ sub: "fixture-bob" }))).response.status, 403);
+  assert.equal((await s.post({ jsonrpc: "2.0", id: 4, method: "private-method",
+    params: { private_argument: "private-payload" } }, "private-session")).response.status, 400);
+  const unknown = await fetch(`${s.base}/private-path?private-query`, {
+    headers: { authorization: "Bearer private-bearer", cookie: "private-cookie" },
+  });
+  await unknown.text();
+  assert.equal(unknown.status, 404);
+  const events = logs.events();
+  assert.ok(events.length > 0, "request stages must be observable");
+  for (const [number, method, status] of [
+    [1, "initialize", 200], [2, "notifications/initialized", 202], [3, "tools/list", 200],
+    [4, "tools/list", 403], [5, "other", 400],
+  ]) {
+    const trace = events.filter((event) => event.request === number);
+    assert.equal(trace.find((event) => event.event === "request").assertion_present, true);
+    assert.equal(trace.find((event) => event.event === "authentication").subject_match, true);
+    assert.equal(trace.find((event) => event.event === "protocol").method, method);
+    const response = trace.find((event) => event.event === "response");
+    assert.equal(response.status, status);
+    assert.equal(response.completion, "completion");
+  }
+  const owner = events.find((event) => event.request === 4 && event.event === "session");
+  assert.equal(owner.session_header_present, true);
+  assert.equal(owner.session_found, true);
+  assert.equal(owner.owner_match, false);
+  const missing = events.find((event) => event.request === 5 && event.event === "session");
+  assert.equal(missing.session_found, false);
+  assert.equal(Object.hasOwn(missing, "owner_match"), false);
+  assert.equal(events.find((event) => event.request === 6 && event.event === "request").route, "other");
+  const allowed = new Set(["timestamp", "request", "event", "http_method", "route", "assertion_present",
+    "success", "reason", "subject_match", "method", "session_header_present", "session_found",
+    "owner_match", "status", "completion", "protocol_error"]);
+  for (const event of events) {
+    assert.ok(Object.keys(event).every((key) => allowed.has(key)));
+    assert.ok(Number.isInteger(event.request));
+    assert.ok(Number.isFinite(Date.parse(event.timestamp)));
+    assert.ok(JSON.stringify(event).length < 512);
+  }
+  for (const secret of [session, s.fixture.token, ISSUER, AUDIENCE, "fixture-alice", "fixture-bob",
+    "private-method", "private_argument", "private-payload", "private-session", "private-path",
+    "private-query", "private-bearer", "private-cookie"]) assert.ok(!logs.output().includes(secret));
+});
+
+test("diagnostics report body, transport and internal failures without upstream text", async (t) => {
+  const logs = captureDiagnostics(t);
+  const s = await startAuthServer(t);
+  assert.equal((await s.post('{"private-body"')).response.status, 400);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  const unsupported = await fetch(`${s.base}/mcp`, {
+    method: "POST", headers: { ...s.headers(), "mcp-session-id": session,
+      "content-type": "text/plain", accept: "application/json, text/event-stream" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" }),
+  });
+  await unsupported.text();
+  assert.equal(unsupported.status, 415);
+  const broken = await startAuthServer(t, { createMcpServer: () => {
+    throw new Error("private-transport-error");
+  } });
+  assert.equal((await broken.initialize()).response.status, 500);
+  const categories = logs.events().filter((event) => event.event === "response")
+    .map((event) => event.protocol_error);
+  assert.ok(categories.includes("invalid_json"));
+  assert.ok(categories.includes("http_rejected"));
+  assert.ok(categories.includes("internal_error"));
+  assert.ok(!logs.output().includes("private-body") && !logs.output().includes("private-transport-error"));
+});
+
+test("diagnostics distinguish disconnect from HTTP completion without releasing auth admission", async (t) => {
+  const logs = captureDiagnostics(t);
+  const f = await authFixture();
+  let release;
+  let started;
+  const pending = new Promise((resolve) => { started = resolve; });
+  const s = await startAuthServer(t, { fixture: f, limits: { maxRequests: 1 },
+    verifyAssertion: f.verifier({ fetch: () => {
+      started();
+      return new Promise((resolve) => { release = resolve; });
+    } }),
+  });
+  const req = http.request(`${s.base}/health`, { headers: s.headers() });
+  req.on("error", () => {});
+  req.end();
+  await pending;
+  req.destroy();
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal((await fetch(`${s.base}/health`, { headers: s.headers() })).status, 503);
+    const ended = logs.events().find((event) => event.request === 1 && event.event === "response");
+    assert.equal(ended?.completion, "disconnect");
+    assert.equal(Object.hasOwn(ended, "status"), false, "no invented HTTP 200 before headers");
+  } finally {
+    release(Response.json({ keys: [f.jwk] }));
+  }
+  await new Promise((resolve) => setTimeout(resolve, 50));
+});
+
+test("diagnostics stop after their request budget without stopping authenticated service", async (t) => {
+  const logs = captureDiagnostics(t);
+  const s = await startAuthServer(t);
+  for (let i = 0; i < 128; i++) {
+    const response = await fetch(`${s.base}/health`, { headers: s.headers() });
+    assert.equal(response.status, 200);
+    await response.text();
+  }
+  const count = logs.events().length;
+  assert.ok(count > 0 && count <= 640);
+  assert.equal(Math.max(...logs.events().map((event) => event.request)), 128);
+  for (let i = 0; i < 3; i++) {
+    const response = await fetch(`${s.base}/health`, { headers: s.headers() });
+    assert.equal(response.status, 200);
+    await response.text();
+  }
+  assert.equal(logs.events().length, count);
+});
+
+test("diagnostics report empty session headers as present without accepting them", async (t) => {
+  const logs = captureDiagnostics(t);
+  const s = await startAuthServer(t);
+  const response = await fetch(`${s.base}/mcp`, { method: "POST",
+    headers: { ...s.headers(), "content-type": "application/json",
+      accept: "application/json, text/event-stream", "mcp-session-id": "" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+  });
+  await response.text();
+  assert.equal(response.status, 400);
+  const session = logs.events().find((event) => event.event === "session");
+  assert.equal(session?.session_header_present, true);
+  assert.equal(session.session_found, false);
+});
+
+test("diagnostics never trust subject-match or reason fields from arbitrary upstream errors", async (t) => {
+  const logs = captureDiagnostics(t);
+  const s = await startAuthServer(t, { verifyAssertion: async () => {
+    throw Object.assign(new Error("private-exception"), {
+      reason: "unapproved_subject", subject_match: false, status: 401,
+    });
+  } });
+  assert.equal((await s.initialize()).response.status, 401);
+  const auth = logs.events().find((event) => event.event === "authentication");
+  assert.equal(auth?.reason, "other_auth_failure");
+  assert.equal(Object.hasOwn(auth, "subject_match"), false);
+  assert.ok(!logs.output().includes("private-exception"));
+});

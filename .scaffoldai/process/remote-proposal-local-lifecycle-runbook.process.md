@@ -30,8 +30,8 @@ Candidate submission and both planning aliases remain registered but denied,
 as do executor status/result retrieval. It must not intake, activate, claim, perform
 writable execution, verify-run, close out, cleanup, commit, or mutate next-action.
 
-Local JWT verification is implemented; production Cloudflare + ChatGPT integration
-is not yet configured or proven. Keep the production operator stopped until a
+Local JWT verification is implemented; this alone does not prove production
+Cloudflare + ChatGPT integration. Start the production operator only in a
 separately approved configuration/test window. Do not expose the legacy observer
 HTTP implementation instead: it does not gain the operator's authentication.
 
@@ -74,6 +74,44 @@ Cloudflare still must authenticate OAuth clients/users, enforce Access policy,
 map opaque OAuth tokens to signed assertions, and handle revocation. Offline JWT
 verification cannot immediately detect a revoked but unexpired assertion.
 No local OAuth server or discovery endpoint is implemented.
+
+### Temporary action-discovery diagnostics
+
+The HTTP operator temporarily emits `[MCP diagnostic]` JSON records to stderr
+for the first 128 HTTP requests per server instance, at most five records per
+request (640 total). The counter saturates; later requests continue normally
+without diagnostic records. No disk log, credentials, or configuration switch
+is added. Startup and fixed maintenance messages remain separate.
+
+Records contain only server-generated timestamps/request numbers, allowlisted
+HTTP methods/routes, assertion presence, authentication outcome/fixed reason,
+allowlisted MCP method class, session presence/found/owner booleans, and HTTP
+status/completion/fixed protocol-error category. Unknown routes and method names
+become `other`; query strings, bodies, tool arguments, identifiers, claim values,
+credentials and upstream exception text are never emitted. Subject match is
+reported only after cryptographic verification and a local allowlist comparison;
+its absence does not mean a mismatch.
+
+Authentication failures retain generic client errors. Local reason codes are
+`missing_assertion`, `issuer_mismatch`, `audience_mismatch`, `signature_failure`,
+`jwks_failure`, `expired`, `not_yet_valid`, `invalid_token_type`,
+`unapproved_subject`, or `other_auth_failure`. Key resolution failures, including
+an unknown key ID, are `jwks_failure`; no key ID is logged.
+
+Protocol classification happens after authentication and JSON parsing, before
+SDK dispatch: `initialize`, `notifications/initialized`, `tools/list`, or `other`.
+Session lookup describes an existing session before any new initialization.
+Response completion means Node finished writing, not proof that ChatGPT accepted
+the response. A disconnect before headers has no status field. HTTP errors
+without a more specific local category are `http_rejected`; JSON-RPC response
+bodies are not inspected, so HTTP 200 alone does not prove semantic success.
+Authentication may settle after a disconnect and keeps the same request number.
+
+Use one manually approved ChatGPT discovery retry, then inspect local records.
+No records means only that no request was captured: it does not establish a
+particular edge failure, especially if the 128-request budget was exhausted.
+Removal of this temporary instrumentation is a separate approved code change.
+Diagnostics do not grant tools, relax authentication, or modify workspace state.
 
 ### Local hardening limits
 

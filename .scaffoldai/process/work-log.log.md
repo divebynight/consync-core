@@ -1092,3 +1092,25 @@ CHECKPOINT BOUNDARY
 - Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
 - No production operator start, real credentials, real Copilot jobs, public requests, Cloudflare configuration, or push.
 - Local verification does not establish public endpoint security. Cloudflare and ChatGPT integration remains a separately approved configuration/test window.
+
+## 2026-10-05 - scaffoldai-bounded-discovery-diagnostics
+
+SUMMARY
+- Added temporary HTTP request/authentication/protocol/session/response diagnostics for the first 128 requests per operator instance, at most 640 fixed-schema records.
+- Classified authentication failures without exposing credentials, claims, subjects, session IDs, payloads, or upstream exception text; retained generic client errors.
+- Replaced raw HTTP exception logging with fixed categories/messages and documented diagnostic limits and interpretation.
+- Preserved authentication, capability grants, MCP tool behavior, resource admission and localhost binding.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 70 tests passed; eight diagnostic regressions cover reason codes, redaction, discovery, ownership, disconnects, bounds, empty headers and untrusted error fields.
+- npm run test:mcp:operator:http passed using disposable loopback fixtures.
+- Production entry point rejected missing/invalid authentication configuration before listening; protected configuration-only validation accepted exactly one subject without displaying values.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed; focused diff/security review found no blocking issues.
+
+CHECKPOINT BOUNDARY
+- Commit scope is auth.js, http.js, focused authentication tests, the directly related runbook section and this append-only entry.
+- Preserved all 15 original unstaged executor-artifact deletions and existing live smoke state.
+- No production MCP tool invocation, real Copilot job, public request, Cloudflare/auth/tunnel configuration change or push.
+- Controlled operator restart is separately approved within this task after this commit. Only Mark may perform the next ChatGPT discovery retry.
+- Real OAuth completion was reported by the user; local assertion acceptance and the action-discovery failure cause remain unproven pending that retry.

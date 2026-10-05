@@ -6,7 +6,7 @@ const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/ser
 const { isInitializeRequest } = require("@modelcontextprotocol/sdk/types.js");
 const { createOperatorMcpServer } = require("./index");
 const { stopOwnedPlanJobs } = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
-const { loadAuthConfig, createAccessVerifier, stripCredentials } = require("./auth");
+const { loadAuthConfig, createAccessVerifier, stripCredentials, getAuthFailure } = require("./auth");
 const { withPrincipal } = require("../authorization");
 
 const DEFAULT_LIMITS = Object.freeze({
@@ -79,12 +79,44 @@ function createOperatorHttpServer(options = {}) {
   let pendingSessions = 0;
   let activeRequests = 0;
   let streams = 0;
+  let diagnosticRequests = 0;
+
+  function requestDiagnostic(request, response, route) {
+    // Temporary capture: at most five fixed-schema events for each of 128 requests.
+    const number = diagnosticRequests < 128 ? ++diagnosticRequests : 0;
+    const emit = (event, fields) => {
+      if (number) process.stderr.write(`[MCP diagnostic] ${JSON.stringify({
+        timestamp: new Date().toISOString(), request: number, event, ...fields,
+      })}\n`);
+    };
+    let protocolError;
+    let ended = false;
+    const finish = (completion) => {
+      if (ended) return;
+      ended = true;
+      emit("response", {
+        ...(response.headersSent ? { status: response.statusCode } : {}),
+        completion,
+        ...(protocolError ? { protocol_error: protocolError } :
+          response.headersSent && response.statusCode >= 400 ? { protocol_error: "http_rejected" } : {}),
+      });
+    };
+    response.once("finish", () => finish("completion"));
+    response.once("close", () => finish("disconnect"));
+    emit("request", {
+      http_method: ["GET", "POST", "DELETE", "HEAD", "OPTIONS", "PUT", "PATCH"].includes(request.method)
+        ? request.method : "other",
+      route,
+      assertion_present: Object.hasOwn(request.headers, "cf-access-jwt-assertion"),
+    });
+    return { emit, error: (category) => { protocolError ||= category; } };
+  }
 
   function expireSessions() {
     for (const [id, session] of sessions) {
       if (session.inFlight === 0 && Date.now() - session.lastUsed >= limits.sessionIdleMs) {
         sessions.delete(id);
-        session.server.close().catch((error) => log(error.message));
+        session.server.close().catch(() => log("Session close failed."));
       }
     }
   }
@@ -105,11 +137,12 @@ function createOperatorHttpServer(options = {}) {
     return session;
   }
 
-  async function handleMcp(request, response, health = false) {
+  async function handleMcp(request, response, diagnostic, health = false) {
     // Admission includes authentication work; sessions require verified identity.
     expireSessions();
     const isStream = request.method === "GET" && String(request.headers.accept || "").includes("text/event-stream");
     if (activeRequests >= limits.maxRequests || (isStream && streams >= limits.maxStreams)) {
+      diagnostic.error("capacity");
       sendJson(response, 503, "MCP capacity reached. Retry later.");
       return;
     }
@@ -147,6 +180,7 @@ function createOperatorHttpServer(options = {}) {
     try {
       principal = await verifyAssertion(request);
     } catch (error) {
+      diagnostic.emit("authentication", { success: false, ...getAuthFailure(error) });
       const status = error.status === 403 ? 403 : 401;
       sendJson(response, status, status === 403 ? "Principal is not approved." : "Invalid authentication.");
       return;
@@ -154,12 +188,14 @@ function createOperatorHttpServer(options = {}) {
       authenticating = false;
       release();
     }
-    if (finished) return;
     if (!principal || !principal.issuer || !principal.subject ||
         !Number.isFinite(principal.expiresAt) || principal.expiresAt * 1000 <= Date.now()) {
+      diagnostic.emit("authentication", { success: false, reason: "other_auth_failure" });
       sendJson(response, 401, "Invalid authentication.");
       return;
     }
+    diagnostic.emit("authentication", { success: true, subject_match: true });
+    if (finished) return;
     stripCredentials(request);
     const remaining = principal.expiresAt * 1000 - Date.now();
     authenticationTimer = setTimeout(() => {
@@ -173,6 +209,9 @@ function createOperatorHttpServer(options = {}) {
     if (isStream) streamTimer = setTimeout(() => response.end(), Math.min(limits.streamLifetimeMs, remaining));
 
     if (isStream && !request.headers["mcp-session-id"]) {
+      diagnostic.emit("session", {
+        session_header_present: Object.hasOwn(request.headers, "mcp-session-id"), session_found: false,
+      });
       response.writeHead(200, {
         "content-type": "text/event-stream", "cache-control": "no-cache",
         connection: "keep-alive", "x-mcp-session-id": "authenticated-bootstrap",
@@ -185,17 +224,26 @@ function createOperatorHttpServer(options = {}) {
     let body;
     if (request.method === "POST") {
       try { body = await collectBody(request, limits); } catch (error) {
+        diagnostic.error(error.status === 413 ? "body_too_large" :
+          error.status === 408 ? "body_timeout" :
+            error.message === "Parse error." ? "invalid_json" : "body_read_failure");
         response.setHeader("connection", "close");
         sendJson(response, error.status || 400, error.status ? error.message : "Invalid request.");
         return;
       }
       if (finished) return;
+      diagnostic.emit("protocol", { method:
+        ["initialize", "notifications/initialized", "tools/list"].includes(body?.method) ? body.method : "other" });
     }
     const id = request.headers["mcp-session-id"];
     session = id ? sessions.get(id) : undefined;
+    diagnostic.emit("session", {
+      session_header_present: Object.hasOwn(request.headers, "mcp-session-id"), session_found: Boolean(session),
+      ...(session ? { owner_match: session.issuer === principal.issuer && session.subject === principal.subject } : {}) });
     let reserved = false;
     if (!id && request.method === "POST" && isInitializeRequest(body)) {
       if (sessions.size + pendingSessions >= limits.maxSessions) {
+        diagnostic.error("session_capacity");
         sendJson(response, 503, "MCP session capacity reached. Retry later.");
         return;
       }
@@ -212,10 +260,12 @@ function createOperatorHttpServer(options = {}) {
       }
     }
     if (!session) {
+      diagnostic.error("missing_session");
       sendJson(response, 400, "Bad Request: No valid session ID provided");
       return;
     }
     if (session.issuer !== principal.issuer || session.subject !== principal.subject) {
+      diagnostic.error("session_owner_mismatch");
       session = undefined;
       sendJson(response, 403, "Session is not accessible.");
       return;
@@ -224,6 +274,9 @@ function createOperatorHttpServer(options = {}) {
     session.lastUsed = Date.now();
     try {
       await withPrincipal(principal, () => session.transport.handleRequest(request, response, body));
+    } catch (error) {
+      diagnostic.error("transport_error");
+      throw error;
     } finally {
       if (reserved) {
         pendingSessions--;
@@ -235,12 +288,16 @@ function createOperatorHttpServer(options = {}) {
   const server = http.createServer((request, response) => {
     let url;
     try { url = new URL(request.url || "/", "http://localhost"); } catch {
+      const diagnostic = requestDiagnostic(request, response, "other");
+      diagnostic.error("invalid_url");
       sendJson(response, 400, "Invalid request URL.");
       return;
     }
+    const diagnostic = requestDiagnostic(request, response,
+      url.pathname === "/mcp" ? "/mcp" : url.pathname === "/health" ? "/health" : "other");
     if (url.pathname === "/mcp" || (request.method === "GET" && url.pathname === "/health")) {
-      handleMcp(request, response, url.pathname === "/health").catch((error) => {
-        log(error.message);
+      handleMcp(request, response, diagnostic, url.pathname === "/health").catch(() => {
+        diagnostic.error("internal_error");
         sendJson(response, 500, "Internal error. Inspect local diagnostics.");
         if (response.headersSent && !response.writableEnded) response.end();
       });
@@ -251,7 +308,7 @@ function createOperatorHttpServer(options = {}) {
   server.requestTimeout = 30000;
   server.on("close", () => {
     clearInterval(sweep);
-    for (const session of sessions.values()) session.server.close().catch((error) => log(error.message));
+    for (const session of sessions.values()) session.server.close().catch(() => log("Session close failed."));
     sessions.clear();
   });
   return server;
