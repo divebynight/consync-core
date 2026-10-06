@@ -134,6 +134,27 @@ uncertain. The record retains no email, subject or assertion for later approval.
 Both booleans must be true before claiming identity binding, and changing the
 allowlist still requires a separate approval.
 
+### One-shot subject capture
+
+To learn the verified Access `sub` for an explicitly approved allowlist change,
+the operator may be armed for a single launch with
+`SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE=1` in the process environment only. Never add
+it to the auth configuration file. Unset or empty leaves behavior unchanged; any
+other value refuses startup. When armed, startup emits
+`[MCP subject-capture] {"armed":true}`.
+
+Capture shares the `[MCP identity]` one-shot: it is evaluated only for the first
+assertion that passes every cryptographic, application-token and human-token
+check. If `intended_email_match` is true it emits
+`[MCP subject-capture] {"captured":true,"sub":"<verified sub>"}`; otherwise
+`{"captured":false}` and nothing further is revealed for that operator lifetime.
+Invalid assertions do not consume it. Email never approves a subject.
+
+Capture does not enroll the subject, write any file, change the allowlist,
+capabilities or HTTP responses. An unlisted subject still receives 403. Stop the
+operator after capture, update `SCAFFOLDAI_ACCESS_SUBJECTS` only with explicit
+approval, validate configuration, and restart without the arming variable.
+
 ### Local hardening limits
 
 The operator entry point binds only to `127.0.0.1` (default port 3133). A

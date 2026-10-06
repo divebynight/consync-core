@@ -26,6 +26,14 @@ function loadAuthConfig(env = process.env) {
     audience: env.SCAFFOLDAI_ACCESS_AUD, subjects });
 }
 
+// Operator-armed for one launch; never stored in the auth configuration file.
+function loadSubjectCapture(env = process.env) {
+  const value = env.SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE;
+  if (value === undefined || value === "") return false;
+  if (value === "1") return true;
+  throw new Error("Invalid ScaffoldAI subject capture setting.");
+}
+
 const authDiagnostics = new WeakMap();
 const unknownFailure = Object.freeze({ reason: "other_auth_failure" });
 
@@ -48,6 +56,8 @@ function createAccessVerifier(configuration, deps = {}) {
   const intendedEmailSha256 = deps.intendedEmailSha256 ||
     "38463600949d4a8bd14856544d9d4f3e7d10ff33f01e8691009322019e31eda8";
   let identityDiagnosticRecorded = false;
+  const subjectCapture = deps.subjectCapture === true;
+  if (subjectCapture) process.stderr.write(`[MCP subject-capture] ${JSON.stringify({ armed: true })}\n`);
   const jwksUrl = `${config.issuer}/cdn-cgi/access/certs`;
   let nextFetchAt = -Infinity;
 
@@ -144,11 +154,15 @@ function createAccessVerifier(configuration, deps = {}) {
     // One-shot observation only; both values originate in this verified payload.
     if (!identityDiagnosticRecorded) {
       identityDiagnosticRecorded = true;
+      const intendedEmailMatch = typeof payload.email === "string" &&
+        createHash("sha256").update(payload.email, "utf8").digest("hex") === intendedEmailSha256;
       process.stderr.write(`[MCP identity] ${JSON.stringify({
-        intended_email_match: typeof payload.email === "string" &&
-          createHash("sha256").update(payload.email, "utf8").digest("hex") === intendedEmailSha256,
+        intended_email_match: intendedEmailMatch,
         same_assertion_subject: subject === payload.sub,
       })}\n`);
+      // Shares the identity one-shot: reveal only this verified sub, never approve it.
+      if (subjectCapture) process.stderr.write(`[MCP subject-capture] ${JSON.stringify(
+        intendedEmailMatch ? { captured: true, sub: subject } : { captured: false })}\n`);
     }
     if (!config.subjects.includes(subject)) throw authError(403, "unapproved_subject");
     return Object.freeze({ issuer: config.issuer, subject, expiresAt: payload.exp,
@@ -163,4 +177,4 @@ function stripCredentials(request) {
     !sensitive.has(headers[index - index % 2].toLowerCase()));
 }
 
-module.exports = { loadAuthConfig, createAccessVerifier, stripCredentials, getAuthFailure };
+module.exports = { loadAuthConfig, loadSubjectCapture, createAccessVerifier, stripCredentials, getAuthFailure };

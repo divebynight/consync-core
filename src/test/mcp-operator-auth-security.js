@@ -654,3 +654,113 @@ test("identity diagnostic stays local while HTTP still denies matching-email una
     assert.ok(!logs.output().includes(secret) && !text.includes(secret));
   }
 });
+
+const captures = (logs) => logs.output().split("\n").filter((line) => line.startsWith("[MCP subject-capture] "))
+  .map((line) => JSON.parse(line.slice("[MCP subject-capture] ".length)));
+
+async function intendedCaptureFixture(email = "fixture@example.invalid") {
+  const { createHash } = require("node:crypto");
+  const f = await authFixture();
+  const intendedEmailSha256 = createHash("sha256").update(email).digest("hex");
+  return { f, intendedEmailSha256, armed: () => f.verifier({ intendedEmailSha256, subjectCapture: true }) };
+}
+
+test("subject capture requires the exact explicit arming value and is off by default", async (t) => {
+  const { loadSubjectCapture } = require("../scaffoldai/mcp-operator/auth");
+  assert.equal(loadSubjectCapture({}), false);
+  assert.equal(loadSubjectCapture({ SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE: "" }), false);
+  assert.equal(loadSubjectCapture({ SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE: "1" }), true);
+  for (const value of ["true", "yes", "0", " 1", "1 "]) {
+    assert.throws(() => loadSubjectCapture({ SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE: value }),
+      /subject capture setting/i);
+  }
+  const env = { SCAFFOLDAI_ACCESS_ISSUER: ISSUER, SCAFFOLDAI_ACCESS_AUD: AUDIENCE,
+    SCAFFOLDAI_ACCESS_SUBJECTS: '["fixture-alice"]', SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE: "true" };
+  assert.throws(() => createOperatorHttpServer({ authEnvironment: env }), /subject capture setting/i);
+
+  const logs = captureDiagnostics(t);
+  const { f, intendedEmailSha256 } = await intendedCaptureFixture();
+  for (const deps of [{ intendedEmailSha256 }, { intendedEmailSha256, subjectCapture: "1" }]) {
+    await assert.rejects(f.verifier(deps)(request(await f.sign({ sub: "capture-private-subject" }))),
+      (error) => error.status === 403);
+  }
+  assert.deepEqual(captures(logs), []);
+  assert.ok(!logs.output().includes("capture-private-subject"));
+  assert.deepEqual(logs.identities(), [{ intended_email_match: true, same_assertion_subject: true },
+    { intended_email_match: true, same_assertion_subject: true }]);
+});
+
+test("armed subject capture ignores invalid assertions and stays available for a verified one", async (t) => {
+  const logs = captureDiagnostics(t);
+  const { f, armed } = await intendedCaptureFixture();
+  const verify = armed();
+  const rejected = [
+    await f.sign({ sub: "capture-forged" }, {}, f.otherKey.privateKey),
+    await f.sign({ sub: "capture-forged", iss: "https://other.cloudflareaccess.com" }),
+    await f.sign({ sub: "capture-forged", aud: "b".repeat(64) }),
+    await f.sign({ sub: "capture-forged", exp: 1 }),
+    await f.sign({ sub: "capture-forged", nbf: 4102444800 }),
+    await f.sign({ sub: "capture-forged", type: "org" }),
+    await f.sign({ sub: "capture-forged", common_name: "private-service" }),
+    await f.sign({ sub: "capture-forged", service_token_id: "private-service" }),
+    await f.sign({ sub: "" }),
+    "not-a-jwt",
+  ];
+  for (const token of rejected) await assert.rejects(verify(request(token)), (error) => error.status === 401);
+  assert.deepEqual(captures(logs), [{ armed: true }]);
+  assert.ok(!logs.output().includes("capture-forged"));
+  await assert.rejects(verify(request(await f.sign({ sub: "capture-private-subject" }))),
+    (error) => error.status === 403);
+  assert.deepEqual(captures(logs), [{ armed: true }, { captured: true, sub: "capture-private-subject" }]);
+});
+
+test("armed subject capture fails closed on intended-email mismatch and stays consumed", async (t) => {
+  const logs = captureDiagnostics(t);
+  const { f, armed } = await intendedCaptureFixture();
+  const verify = armed();
+  for (const email of ["Fixture@example.invalid", undefined]) {
+    await assert.rejects(verify(request(await f.sign({ email, sub: "capture-mismatch-subject" }))),
+      (error) => error.status === 403);
+  }
+  await assert.rejects(verify(request(await f.sign({ sub: "capture-later-subject" }))),
+    (error) => error.status === 403);
+  assert.deepEqual(captures(logs), [{ armed: true }, { captured: false }]);
+  assert.ok(!logs.output().includes("capture-mismatch-subject") && !logs.output().includes("capture-later-subject"));
+});
+
+test("armed subject capture reveals only the verified sub once, even concurrently", async (t) => {
+  const logs = captureDiagnostics(t);
+  const { f, armed } = await intendedCaptureFixture();
+  const verify = armed();
+  const token = await f.sign({ sub: "capture-private-subject", private_claim: "private-claim-value" });
+  const results = await Promise.allSettled(Array.from({ length: 20 }, () => verify(request(token, {
+    cookie: "CF_Authorization=private-cookie", authorization: "Bearer private-bearer" }))));
+  assert.ok(results.every((result) => result.status === "rejected" && result.reason.status === 403));
+  const recorded = captures(logs);
+  assert.deepEqual(recorded, [{ armed: true }, { captured: true, sub: "capture-private-subject" }]);
+  assert.deepEqual(Object.keys(recorded[1]), ["captured", "sub"]);
+  for (const secret of [token, ...token.split("."), "fixture@example.invalid", "private-claim-value",
+    "private-cookie", "private-bearer", ISSUER, AUDIENCE]) assert.ok(!logs.output().includes(secret));
+});
+
+test("armed subject capture leaves allowlist authorization and HTTP denial unchanged", async (t) => {
+  const logs = captureDiagnostics(t);
+  const { f, armed } = await intendedCaptureFixture();
+  const verify = armed();
+  const principal = await verify(request(f.token));
+  assert.equal(principal.subject, "fixture-alice");
+  assert.deepEqual(principal.capabilities, ["metadata:read"]);
+  await assert.rejects(verify(request(await f.sign({ sub: "capture-private-subject" }))),
+    (error) => error.status === 403 && error.code === "PRINCIPAL_DENIED");
+  assert.deepEqual(captures(logs), [{ armed: true }, { captured: true, sub: "fixture-alice" }]);
+
+  const s = await startAuthServer(t, { fixture: f, verifyAssertion: armed() });
+  const token = await f.sign({ sub: "capture-private-subject" });
+  const response = await fetch(`${s.base}/mcp`, { headers: s.headers(token) });
+  const text = await response.text();
+  assert.equal(response.status, 403);
+  assert.equal(JSON.parse(text).error.message, "Principal is not approved.");
+  assert.ok(!text.includes("capture-private-subject") && !text.includes("captured"));
+  assert.equal(logs.events().find((event) => event.event === "authentication").reason, "unapproved_subject");
+  assert.ok(!logs.output().includes(token));
+});

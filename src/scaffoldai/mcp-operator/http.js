@@ -6,7 +6,7 @@ const { StreamableHTTPServerTransport } = require("@modelcontextprotocol/sdk/ser
 const { isInitializeRequest } = require("@modelcontextprotocol/sdk/types.js");
 const { createOperatorMcpServer } = require("./index");
 const { stopOwnedPlanJobs } = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
-const { loadAuthConfig, createAccessVerifier, stripCredentials, getAuthFailure } = require("./auth");
+const { loadAuthConfig, loadSubjectCapture, createAccessVerifier, stripCredentials, getAuthFailure } = require("./auth");
 const { withPrincipal } = require("../authorization");
 
 const DEFAULT_LIMITS = Object.freeze({
@@ -67,7 +67,8 @@ function collectBody(request, limits) {
 }
 
 function createOperatorHttpServer(options = {}) {
-  const verifyAssertion = options.verifyAssertion || createAccessVerifier(loadAuthConfig(options.authEnvironment));
+  const verifyAssertion = options.verifyAssertion || createAccessVerifier(loadAuthConfig(options.authEnvironment),
+    { subjectCapture: loadSubjectCapture(options.authEnvironment) });
   if (typeof verifyAssertion !== "function") throw new Error("Invalid authentication configuration.");
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   for (const [name, value] of Object.entries(limits)) {

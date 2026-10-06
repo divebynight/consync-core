@@ -1136,3 +1136,22 @@ CHECKPOINT BOUNDARY
 - No auth-file, Cloudflare, tunnel, capability, workspace or historical-artifact changes.
 - Production identity binding remains unproven until Mark's separately controlled Safari navigation after the approved restart.
 - No real Copilot jobs, production MCP tool calls, public authenticated requests or allowlist update.
+
+## 2026-10-06 - scaffoldai-one-shot-subject-capture
+
+SUMMARY
+- Added an operator-armed one-shot subject capture gate, enabled only by SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE=1 in the process environment; any other non-empty value refuses startup.
+- Capture shares the existing identity one-shot after full verification and reveals only the verified sub when intended_email_match is true; a mismatch records captured:false and consumes the gate.
+- No enrollment, file writes, allowlist, capability, HTTP response or binding changes. Unarmed behavior is unchanged.
+
+VERIFICATION
+- Five new synthetic regressions failed before implementation and passed afterward.
+- npm run test:scaffoldai:security: 79 tests passed.
+- npm run test:mcp:operator:http passed.
+- git diff --check passed.
+
+CHECKPOINT BOUNDARY
+- Scope: auth.js, http.js, focused auth tests, directly related runbook section and this append-only entry.
+- Preserved all 15 original unstaged executor-artifact deletions; temporary diagnostics retained.
+- No operator start, Cloudflare/auth-file/allowlist change, live ChatGPT request, commit, push or branch change.
+- Live capture and any allowlist update require separate explicit approval.
