@@ -155,6 +155,70 @@ capabilities or HTTP responses. An unlisted subject still receives 403. Stop the
 operator after capture, update `SCAFFOLDAI_ACCESS_SUBJECTS` only with explicit
 approval, validate configuration, and restart without the arming variable.
 
+### Known-good ChatGPT OAuth integration (2026-10-06)
+
+First proven round trip: ChatGPT conversation → `ScaffoldAI MCP OAuth Test`
+plugin → OAuth → Cloudflare Access → Cloudflare tunnel → local operator →
+`scaffoldai_status` (`execution_class: READ_ONLY`) → response in ChatGPT.
+The run used capture mode OFF and the unchanged `metadata:read` remote policy.
+
+**ChatGPT plugins (do not confuse):** two configurations share the same MCP URL.
+
+- `ScaffoldAI MCP` — older; Authorization supported/used: None. It did not
+  prove the authenticated path.
+- `ScaffoldAI MCP OAuth Test` — Authorization supported/used: OAuth. This is
+  the known-good configuration.
+
+**Identity:** the verified Access `sub` was obtained once via one-shot subject
+capture from a real ChatGPT assertion (`intended_email_match`,
+`same_assertion_subject` and `captured` all true), then explicitly approved as
+the only entry in `SCAFFOLDAI_ACCESS_SUBJECTS`. The value lives only in
+`~/.config/scaffoldai/operator-auth.env` (owner-only), never in Git.
+
+**Tunnel (remotely managed):** cloudflared runs as a root launchd daemon
+(`/Library/LaunchDaemons/com.cloudflare.cloudflared.plist`) with
+`tunnel run --token <redacted>`. Ingress is configured in the Cloudflare
+dashboard, not on disk: `<mcp-hostname>` → `http://localhost:3133`, else
+`http_status:404`. Logs: `/Library/Logs/com.cloudflare.cloudflared.err.log`.
+The origin says `localhost` while the operator binds only `127.0.0.1`;
+cloudflared may try `[::1]:3133` first and fall back. This works today and is
+recorded, not changed.
+
+**Normal startup** (from the repository root; no capture variable):
+
+```sh
+umask 077
+set -a; . ~/.config/scaffoldai/operator-auth.env; set +a
+unset HOST PORT SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE
+node src/scaffoldai/mcp-operator/http.js >> ~/.config/scaffoldai/<run>.log 2>&1
+```
+
+`npm run scaffoldai:mcp:operator:http` runs the same entry point; the proven run
+invoked `node` directly. Expect `server listening on 127.0.0.1:3133` and no
+`[MCP subject-capture]` line. Verify with
+`lsof -nP -iTCP:3133 -sTCP:LISTEN` (one `node` on `127.0.0.1:3133`).
+
+**Restart procedure:**
+
+1. Confirm cloudflared is running (`pgrep -fl cloudflared`) and its error log
+   shows no recent disconnects.
+2. Start the operator as above with the existing auth env.
+3. Confirm `127.0.0.1:3133` is listening.
+4. Use the `ScaffoldAI MCP OAuth Test` plugin in ChatGPT.
+5. Reconnect OAuth only if ChatGPT says reconnection is required.
+6. Verify with one read-only `scaffoldai_status` call.
+
+**Troubleshooting:**
+
+- `Authentication succeeded, action discovery failed`, and nothing listens on
+  3133: start or check the local operator.
+- Operator logs `unapproved_subject`: check the configured subject. Never
+  broaden authorization.
+- No operator `[MCP diagnostic]` records and no new cloudflared log lines: check
+  the ChatGPT plugin connection and OAuth state before changing ScaffoldAI.
+- Confirm the plugin in use is `ScaffoldAI MCP OAuth Test`, not `ScaffoldAI MCP`.
+- Repeat subject capture only when evidence shows the verified subject changed.
+
 ### Local hardening limits
 
 The operator entry point binds only to `127.0.0.1` (default port 3133). A

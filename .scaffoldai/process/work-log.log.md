@@ -1155,3 +1155,21 @@ CHECKPOINT BOUNDARY
 - Preserved all 15 original unstaged executor-artifact deletions; temporary diagnostics retained.
 - No operator start, Cloudflare/auth-file/allowlist change, live ChatGPT request, commit, push or branch change.
 - Live capture and any allowlist update require separate explicit approval.
+
+## 2026-10-06 - scaffoldai-chatgpt-oauth-milestone
+
+SUMMARY
+- OAuth identity binding resolved: one-shot capture from a real ChatGPT assertion reported intended_email_match, same_assertion_subject and captured all true.
+- The verified subject was explicitly approved as the only SCAFFOLDAI_ACCESS_SUBJECTS entry in the owner-only local auth file; the issuer and AUD were preserved and the value is not stored in Git.
+- With capture OFF, the `ScaffoldAI MCP OAuth Test` ChatGPT plugin discovered actions and called `scaffoldai_status` end to end (READ_ONLY, ON_TRACK).
+- First proven ChatGPT -> OAuth -> Cloudflare Access -> tunnel -> local ScaffoldAI MCP round trip.
+
+VERIFICATION
+- Operator log, 2026-10-06T16:36:51Z-16:38:44Z: 11 authentication successes with subject_match true, 0 failures, sessions owner_match true, initialize/tools/list plus three further MCP calls answered 200.
+- Two transient 400 missing_session responses were observed and not investigated.
+- The known-good startup, tunnel facts, restart procedure and troubleshooting are recorded in the remote-proposal local lifecycle runbook.
+
+CHECKPOINT BOUNDARY
+- Documentation only. No authentication code, capability, Cloudflare, allowlist or diagnostics change.
+- Preserved the 15 executor-artifact deletions and the capture logs; the old `ScaffoldAI MCP` plugin is not the authenticated path.
+- No commit or push without separate approval.
