@@ -20,7 +20,8 @@ async function main() {
     const listed = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/list" }, session);
     assert.equal(listed.response.status, 200);
     const names = listed.data.result.tools.map((tool) => tool.name);
-    assert.equal(names.length, 10);
+    assert.equal(names.length, 12);
+    for (const name of ["scaffoldai_report_list", "scaffoldai_report_read"]) assert.ok(names.includes(name), name);
     for (const name of ["scaffoldai_executor_plan_cleanup", "scaffoldai_packet_activate",
       "scaffoldai_packet_claim", "scaffoldai_signal", "scaffoldai_memory_write"]) {
       assert.ok(!names.includes(name));
@@ -28,6 +29,10 @@ async function main() {
     const read = await s.post({ jsonrpc: "2.0", id: 3, method: "tools/call",
       params: { name: "scaffoldai_identity", arguments: {} } }, session);
     assert.ok(!read.data.error && !read.data.result.isError);
+    const reports = await s.post({ jsonrpc: "2.0", id: 5, method: "tools/call",
+      params: { name: "scaffoldai_report_list", arguments: {} } }, session);
+    assert.ok(!reports.data.error && !reports.data.result.isError);
+    assert.deepEqual(JSON.parse(reports.data.result.content[0].text).reports, []);
     for (const name of ["scaffoldai_submit_sdc_candidate", "scaffoldai_executor_plan",
       "scaffoldai_executor_plan_start", "scaffoldai_executor_plan_status", "scaffoldai_executor_plan_result"]) {
       const denied = await s.post({ jsonrpc: "2.0", id: 4, method: "tools/call",

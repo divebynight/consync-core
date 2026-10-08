@@ -24,7 +24,8 @@ It may expose inspection tools such as status, visibility, and pending-question 
 ### Operator HTTPS Surface
 
 The operator HTTPS MCP surface authenticates Cloudflare Access assertions and
-currently authorizes only the five metadata observation tools.
+currently authorizes only the five metadata observation tools (`metadata:read`)
+and the two shared-report tools (`report:read`).
 
 Candidate submission and both planning aliases remain registered but denied,
 as do executor status/result retrieval. It must not intake, activate, claim, perform
@@ -218,6 +219,39 @@ invoked `node` directly. Expect `server listening on 127.0.0.1:3133` and no
   the ChatGPT plugin connection and OAuth state before changing ScaffoldAI.
 - Confirm the plugin in use is `ScaffoldAI MCP OAuth Test`, not `ScaffoldAI MCP`.
 - Repeat subject capture only when evidence shows the verified subject changed.
+
+### Shared report handoff (2026-10-07)
+
+First proven report handoff: ChatGPT → `ScaffoldAI MCP OAuth Test` →
+`scaffoldai_report_list` → `scaffoldai_report_read` returned the full
+`scaffoldai-bridge-audit` report, replacing a manual copy/paste of agent output.
+
+**Tools and authority:** `scaffoldai_report_list` (metadata only, no content)
+and `scaffoldai_report_read` (one report by id), both gated by `report:read`.
+Approved remote principals now receive `["metadata:read", "report:read"]`;
+the startup log reads `remote policy is metadata:read and report:read only.`
+Report access grants no file, write, shell, submit, or executor authority.
+
+**Publishing a report** (local, manual):
+
+- Write `.scaffoldai/runtime/reports/<report_id>.md` (gitignored runtime area).
+- Frontmatter: `report_id` (must equal the filename, `^[a-z0-9][a-z0-9-]{0,79}$`),
+  `title` (max 120 chars), `share: chatgpt`, optional `packet` and `created_at`.
+- Only `share: chatgpt` reports are listed or readable; anything else returns
+  `REPORT_UNAVAILABLE`, indistinguishable from a missing report.
+- Limits: 64 KiB, UTF-8, no control or bidi-override characters, no symlinks.
+  Credential-shaped content returns `REPORT_BLOCKED`. These checks are
+  defense in depth; the `share: chatgpt` opt-in is the primary boundary.
+- Do not include credentials, private configuration, tokens, or raw session logs.
+  Treat report content as untrusted on the ChatGPT side.
+
+**Refreshing ChatGPT's tool list:** the ChatGPT development plugin caches the
+tool schema. After adding or changing operator tools, OAuth reauthorization,
+browser refresh, and new conversations still show the old list. In ChatGPT use
+the plugin's **Manage app → Refresh tools**. Evidence that a refresh is needed:
+ChatGPT calls tools successfully but the operator log contains no
+`"method":"tools/list"` record since startup. Do not recreate the app; that
+discards the known-good OAuth configuration.
 
 ### Local hardening limits
 

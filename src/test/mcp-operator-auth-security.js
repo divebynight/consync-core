@@ -32,12 +32,12 @@ test("credential-free HTTP cannot initialize, discover, invoke or read health", 
   assert.equal((await fetch(`${s.base}/health`)).status, 401);
 });
 
-test("real verifier derives immutable approved human principal with metadata only", async () => {
+test("real verifier derives immutable approved human principal with metadata and report reads only", async () => {
   const f = await authFixture();
   const principal = await f.verifier()(request(f.token));
   assert.equal(principal.issuer, ISSUER);
   assert.equal(principal.subject, "fixture-alice");
-  assert.deepEqual(principal.capabilities, ["metadata:read"]);
+  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read"]);
   assert.ok(Object.isFrozen(principal));
   assert.ok(Object.isFrozen(principal.capabilities));
   assert.ok(!JSON.stringify(principal).includes(f.token));
@@ -224,6 +224,89 @@ test("inherited read-only handlers check capabilities at invocation, not merely 
     assert.equal(call.data.result.isError, true, name);
     assert.equal(JSON.parse(call.data.result.content[0].text).error_code, "FORBIDDEN");
   }
+});
+
+function writeSharedReport(repoRoot, id, body) {
+  const dir = path.join(repoRoot, ".scaffoldai/runtime/reports");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, `${id}.md`), `---\nreport_id: ${id}\ntitle: Fixture report\nshare: chatgpt\n---\n${body}`);
+}
+
+test("authenticated principals list and read shared reports without local paths", async (t) => {
+  const s = await startAuthServer(t);
+  writeSharedReport(s.repoRoot, "fixture-report", `# Findings\n\nRoot: ${s.repoRoot}/src\n`);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  const list = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call",
+    params: { name: "scaffoldai_report_list", arguments: {} } }, session);
+  assert.ok(!list.data.error && !list.data.result.isError);
+  const listed = JSON.parse(list.data.result.content[0].text);
+  assert.deepEqual(listed.reports.map((r) => r.report_id), ["fixture-report"]);
+  assert.ok(!("content" in listed.reports[0]));
+  const read = await s.post({ jsonrpc: "2.0", id: 3, method: "tools/call",
+    params: { name: "scaffoldai_report_read", arguments: { report_id: "fixture-report" } } }, session);
+  assert.ok(!read.data.error && !read.data.result.isError);
+  const report = JSON.parse(read.data.result.content[0].text);
+  assert.equal(report.content, "# Findings\n\nRoot: <repository>/src\n");
+  assert.ok(!read.text.includes(s.repoRoot));
+});
+
+test("report read errors are structured and reveal neither paths nor content", async (t) => {
+  const s = await startAuthServer(t);
+  writeSharedReport(s.repoRoot, "leaky", `token ghp_${"A".repeat(36)}\n`);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  for (const [args, code] of [[{ report_id: "../../etc/passwd" }, "INVALID_REPORT_ID"],
+    [{ report_id: "missing" }, "REPORT_UNAVAILABLE"], [{ report_id: "leaky" }, "REPORT_BLOCKED"]]) {
+    const call = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call",
+      params: { name: "scaffoldai_report_read", arguments: args } }, session);
+    assert.equal(call.data.result.isError, true, code);
+    assert.equal(JSON.parse(call.data.result.content[0].text).error_code, code);
+    assert.ok(!call.text.includes(s.repoRoot) && !call.text.includes("ghp_"), code);
+  }
+  for (const args of [{ path: "/etc/passwd" }, { report_id: "leaky", path: "x" }, {}]) {
+    const call = await s.post({ jsonrpc: "2.0", id: 3, method: "tools/call",
+      params: { name: "scaffoldai_report_read", arguments: args } }, session);
+    assert.ok(call.data.error || call.data.result.isError, JSON.stringify(args));
+    assert.ok(!call.text.includes("ghp_"));
+  }
+});
+
+test("report tools require report:read and metadata-only principals are denied", async (t) => {
+  const f = await authFixture();
+  const verify = f.verifier();
+  const s = await startAuthServer(t, { fixture: f,
+    verifyAssertion: async (req) => ({ ...await verify(req), capabilities: ["metadata:read"] }) });
+  writeSharedReport(s.repoRoot, "fixture-report", "secret findings\n");
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  for (const [name, args] of [["scaffoldai_report_list", {}], ["scaffoldai_report_read", { report_id: "fixture-report" }]]) {
+    const call = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name, arguments: args } }, session);
+    assert.equal(call.data.result.isError, true, name);
+    assert.equal(JSON.parse(call.data.result.content[0].text).error_code, "FORBIDDEN");
+    assert.ok(!call.text.includes("secret findings"));
+  }
+  const status = await s.post({ jsonrpc: "2.0", id: 3, method: "tools/call",
+    params: { name: "scaffoldai_status", arguments: {} } }, session);
+  assert.ok(!status.data.result.isError);
+});
+
+test("report:read grants no execution or submission authority", async (t) => {
+  const f = await authFixture();
+  const verify = f.verifier();
+  const s = await startAuthServer(t, { fixture: f,
+    verifyAssertion: async (req) => ({ ...await verify(req), capabilities: ["report:read"] }) });
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  for (const name of ["scaffoldai_submit_sdc_candidate", "scaffoldai_executor_plan", "scaffoldai_executor_plan_start",
+    "scaffoldai_executor_plan_status", "scaffoldai_executor_plan_result", "scaffoldai_status"]) {
+    const jobArgs = /^scaffoldai_executor_plan_(status|result)$/.test(name) ? { job_id: ID } : {};
+    const call = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call",
+      params: { name, arguments: jobArgs } }, session);
+    assert.equal(JSON.parse(call.data.result.content[0].text).error_code, "FORBIDDEN", name);
+  }
+  assert.equal(fs.existsSync(path.join(s.repoRoot, jobs.PLANS_SUBPATH)), false);
+  assert.equal(fs.existsSync(path.join(s.repoRoot, ".scaffoldai/inbox")), false);
 });
 
 test("request principals remain isolated concurrently and credentials do not reach handlers", async (t) => {
@@ -629,7 +712,7 @@ test("identity diagnostic is one-shot even concurrently and preserves each paylo
     } else {
       assert.equal(results[i].status, "fulfilled");
       assert.equal(results[i].value.subject, "fixture-alice");
-      assert.deepEqual(results[i].value.capabilities, ["metadata:read"]);
+      assert.deepEqual(results[i].value.capabilities, ["metadata:read", "report:read"]);
     }
   }
   assert.deepEqual(logs.identities(), [{ intended_email_match: true, same_assertion_subject: true }]);
@@ -749,7 +832,7 @@ test("armed subject capture leaves allowlist authorization and HTTP denial uncha
   const verify = armed();
   const principal = await verify(request(f.token));
   assert.equal(principal.subject, "fixture-alice");
-  assert.deepEqual(principal.capabilities, ["metadata:read"]);
+  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read"]);
   await assert.rejects(verify(request(await f.sign({ sub: "capture-private-subject" }))),
     (error) => error.status === 403 && error.code === "PRINCIPAL_DENIED");
   assert.deepEqual(captures(logs), [{ armed: true }, { captured: true, sub: "fixture-alice" }]);

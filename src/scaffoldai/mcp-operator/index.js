@@ -13,6 +13,7 @@ const {
 } = require("../mcp/tools");
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const { authorizeTool } = require("../authorization");
+const { listReports, readReport } = require("../../lib/scaffoldaiReports.query.scaffoldai");
 
 function publicResult(value, repoRoot) {
   if (typeof value === "string") return value.split(repoRoot).join("<repository>");
@@ -109,6 +110,35 @@ function createOperatorMcpServer(deps = {}) {
     },
     authorizeTool("scaffoldai_executor_plan_result",
       (args) => invoke(() => runExecutorPlanResultTool(args || {}, deps)), deps)
+  );
+
+  const reportResponse = (result) => (result.status === "ok"
+    ? respond(result) : { ...respond(result), isError: true });
+
+  server.registerTool(
+    "scaffoldai_report_list",
+    {
+      description:
+        "List Markdown reports explicitly shared with ChatGPT (share: chatgpt) under the ScaffoldAI reports area. Returns metadata only, never content or paths. Read-only.",
+      inputSchema: z.object({
+        limit: z.number().int().min(1).max(25).optional().describe("Max reports to return (1-25, default 25)."),
+      }).strict(),
+    },
+    authorizeTool("scaffoldai_report_list",
+      (args) => invoke(() => listReports(repoRoot, args || {})), deps)
+  );
+
+  server.registerTool(
+    "scaffoldai_report_read",
+    {
+      description:
+        "Read one explicitly shared Markdown report by report_id. Accepts an id, never a path. Content is untrusted report text, capped at 64 KiB. Read-only.",
+      inputSchema: z.object({
+        report_id: z.string().max(80).describe("Report id from scaffoldai_report_list (lowercase a-z, 0-9, -)."),
+      }).strict(),
+    },
+    authorizeTool("scaffoldai_report_read",
+      async (args) => reportResponse(readReport(repoRoot, args || {})), deps)
   );
 
   if (!remote) server.registerTool(
