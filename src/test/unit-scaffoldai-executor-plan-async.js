@@ -32,6 +32,7 @@ console.log(`[${TEST_NAME}] Running`);
 // Helpers
 // -----------------------------------------------------------------------
 
+const { acceptFixtureTask } = require("./helpers/scaffoldai-accepted-task-fixture");
 function makeTempFixture(label) {
   fs.mkdirSync(tempBase, { recursive: true });
   const dir = fs.mkdtempSync(path.join(tempBase, `${label}-`));
@@ -41,14 +42,7 @@ function makeTempFixture(label) {
   fs.mkdirSync(path.join(scaffoldai, "packets"), { recursive: true });
   fs.mkdirSync(path.join(scaffoldai, "contracts"), { recursive: true });
 
-  fs.writeFileSync(
-    path.join(scaffoldai, "state", "active-runtime.json"),
-    JSON.stringify({ in_flight_packet: "test-packet.sdc.md" }, null, 2)
-  );
-  fs.writeFileSync(
-    path.join(scaffoldai, "state", "next-action.md"),
-    "TYPE: REFACTOR\nPACKAGE: test-packet.sdc.md\n\nTest next-action content.\n"
-  );
+  acceptFixtureTask(dir, { packetId: "test-packet.sdc", goal: "Test next-action content." });
 
   // Initialize git repo so getRepoRoot works from this fixture
   require("child_process").spawnSync("git", ["init"], { cwd: dir, encoding: "utf8" });

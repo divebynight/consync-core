@@ -189,7 +189,9 @@ flowchart TB
 | Gatekeeper mount writes | src/lib/gatekeeperMount.auth.scaffoldai.js (executeMountWrites) | helper/library (called by CLI) | next-action.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Gatekeeper close writes | src/lib/gatekeeperClose.auth.scaffoldai.js (executeCloseWritesA/B) | helper/library (called by CLI) | handoff.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
 | Gatekeeper switch writes | src/lib/gatekeeperSwitch.auth.scaffoldai.js (executeSwitchWrites) | helper/library (called by CLI) | active-stream.md, snapshot.md, streams/*/stream.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Uses scaffoldaiState write and append APIs. |
-| Packet activation writes | src/lib/scaffoldaiPacketActivation.auth.scaffoldai.js (activatePacket, clearActivePacket) | helper/library (called by CLI) | active-contract.json, next-action.md, snapshot.md, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Packet files are read-only inputs; pointer state is the authority. |
+| Packet activation writes | src/lib/scaffoldaiPacketActivation.auth.scaffoldai.js (activatePacket, clearActivePacket) | helper/library (called by CLI) | active-runtime.json, next-action.md, snapshot.md, accepted-task.json, state/history.jsonl | AUTHORITATIVE_WRITE + APPEND_ONLY | Packet files are read-only inputs. Activation rebuilds next-action.md from the accepted packet and writes accepted-task.json last; on failure it restores the prior files. All writes go through scaffoldaiState. |
+| Task acceptance record | src/lib/scaffoldaiTaskAcceptance.auth.scaffoldai.js | helper/library (called by activation, executor adapter) | accepted-task.json (via scaffoldaiState: atomic write, remove) | AUTHORITATIVE_WRITE (activation only) + READ_ONLY (prompt builders) | Prompt builders refuse missing, mismatched or stale records. |
+| Housekeeping runtime reset | src/lib/scaffoldaiHousekeeping.auth.scaffoldai.js (resetRuntimeState) | helper/library (called by CLI) | accepted-task.json (removed first), active-runtime.json, next-action.md, snapshot.md; runtime logs when requested | AUTHORITATIVE_WRITE + DESTRUCTIVE_WRITE | State writes use scaffoldaiState. The optional runtime-log reset still unlinks logs (including state/history.jsonl) directly; this is a known, pre-existing exemption in invariant H. |
 | Packet intake writes | src/lib/scaffoldaiPacketIntake.auth.scaffoldai.js (intakePacket) | helper/library (called by CLI) | .scaffoldai/packets/*.sdc.md, .scaffoldai/runtime/packet-intake/latest-intake.json | AUTHORITATIVE_WRITE + AUTHORITATIVE_WRITE (runtime-derived metadata) | Valid accepted packet content is normalized into durable packet storage; latest intake metadata is runtime-derived. |
 | Gatekeeper command entry | src/scaffoldai/commands/gatekeeper.cmd.scaffoldai.js | CLI | Indirect: delegates to gatekeeper auth modules above | AUTHORITATIVE_WRITE + APPEND_ONLY | Primary stream and closeout mutation entrypoint. |
 | ScaffoldAI packet command entry | src/scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai.js | CLI | Indirect: delegates to packet activation auth module | AUTHORITATIVE_WRITE + APPEND_ONLY | Human-approved activation surface for in-flight packet pointer. |
@@ -224,6 +226,18 @@ flowchart TB
 - The HTTP MCP operator exposes metadata and report reads plus the append-only `scaffoldai_message_send` (`message:write`, writes `.scaffoldai/runtime/mcp/shared-memory.jsonl` only). It exposes no lifecycle or `.scaffoldai/state` write tools.
 - Intake runtime path mutates .scaffoldai/packets by writing normalized accepted packets via scaffoldai packet intake.
 - Packet activation/clear and MCP runtime surfaces do not mutate packet files; they mutate pointer/state surfaces.
+
+## Task Acceptance Record
+
+`.scaffoldai/state/accepted-task.json` (gitignored) records the task a human accepted through `scaffoldai packet activate`:
+
+- `packet_id`, `packet_file`, `packet_sha256`, `next_action_sha256`, `accepted_at`, `accepted_via`.
+- Only packet activation creates it. It is written atomically through `scaffoldaiState.writeAcceptedTaskRaw` and removed through `scaffoldaiState.removeAcceptedTask`.
+- `scaffoldai packet clear` and `housekeeping reset-runtime-state` remove it before rewriting next-action.md.
+- Plan and work prompt builders (and the executor MCP tools that use them) refuse with `ACCEPTANCE_MISSING`, `ACCEPTANCE_PACKET_MISMATCH`, `ACCEPTANCE_CONTENT_MISMATCH` or `ACCEPTANCE_STALE` unless the next-action text they embed matches the record, the packet file is unchanged and inside `.scaffoldai/packets/`, and the task is still open.
+- A hash is not approval: the record's authority comes from the human running activation. It is not a signature; a local process with write access to `.scaffoldai/state/` could forge it.
+
+Invariant H (`src/test/scaffoldai-invariants.test.js`) now also flags indirect state writes: any file that references a `.scaffoldai/state` location and calls a filesystem mutation, outside `scaffoldaiState.state.scaffoldai.js` and three named exemptions (lifecycle probe temp root, verify-evidence state module, housekeeping runtime-log reset).
 
 ## Authority Mismatches And Risk Notes
 

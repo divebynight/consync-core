@@ -115,8 +115,10 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
 
   // 1. Resolve executor context — fails closed if no active packet
   let context;
+  let prompt;
   try {
     context = resolveExecutorContext(repoRoot);
+    prompt = buildPlanPrompt(context);
   } catch (err) {
     return {
       tool: "scaffoldai_executor_plan_start",
@@ -149,7 +151,6 @@ function createAndStartJob(repoRoot, args = {}, deps = {}) {
   const writeJson = (name, value) => writeArtifact(repoRoot, jobId, name, JSON.stringify(value, null, 2) + "\n");
 
   // 3. Build bounded command (no arbitrary prompt accepted from caller)
-  const prompt = buildPlanPrompt(context);
   const command = buildPlanCommand({ repoRoot, prompt });
 
   const commandBoundary = {

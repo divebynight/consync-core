@@ -14,12 +14,12 @@ const {
   runExecutorPlanTool,
 } = require("../lib/scaffoldaiExecutorPlan.tool.scaffoldai");
 
+const { acceptFixtureTask } = require("./helpers/scaffoldai-accepted-task-fixture");
 const TEST_NAME = "unit-scaffoldai-mcp-executor-plan";
 const repoRoot = path.resolve(__dirname, "..", "..");
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), "scaffoldai-plan-test-"));
 fs.mkdirSync(path.join(fixtureRoot, ".scaffoldai/state"), { recursive: true });
-fs.writeFileSync(path.join(fixtureRoot, ".scaffoldai/state/next-action.md"),
-  "TYPE: REFACTOR\nPACKAGE: fixture.sdc\n\nRead-only planning fixture.\n");
+acceptFixtureTask(fixtureRoot, { packetId: "fixture.sdc", goal: "Read-only planning fixture." });
 process.once("exit", () => fs.rmSync(fixtureRoot, { recursive: true, force: true }));
 
 console.log(`[${TEST_NAME}] Running`);

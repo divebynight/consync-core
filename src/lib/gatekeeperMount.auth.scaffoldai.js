@@ -4,6 +4,7 @@ const readline = require("readline");
 
 const { parseActiveStream, parseNextAction, parseHandoff } = require("./stateIntegrityCheck.check.scaffoldai");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
+const { deriveTaskStatus } = require("./scaffoldaiTaskState.query.scaffoldai");
 
 const STREAMS_ROOT = path.join(".scaffoldai", "streams");
 const STATE_ROOT = path.join(".scaffoldai", "state");
@@ -51,22 +52,6 @@ function readGatekeeperState(rootPath) {
 // Derived facts
 // ---------------------------------------------------------------------------
 
-function derivePackageStatus(nextAction, handoff) {
-  if (!nextAction || !nextAction.type || !nextAction.packageName) {
-    return "absent";
-  }
-
-  if (
-    handoff &&
-    handoff.packageName &&
-    handoff.packageName === nextAction.packageName &&
-    (handoff.status === "PASS" || handoff.status === "FAIL")
-  ) {
-    return "closed";
-  }
-
-  return "open";
-}
 
 function extractStreamStatus(streamDocText) {
   if (!streamDocText) {
@@ -262,7 +247,7 @@ function evaluateReadiness(state, requestText) {
     };
   }
 
-  const packageStatus = derivePackageStatus(nextAction, handoff);
+  const packageStatus = deriveTaskStatus(nextAction, handoff);
 
   if (packageStatus === "open") {
     return {

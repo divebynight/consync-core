@@ -342,6 +342,39 @@ message text never appeared in the session.
 
 Stop the trial if it needs watchers, launchers, or lifecycle changes.
 
+### Task acceptance (accepted-task.json)
+
+Executor prompts (`scaffoldai plan`, `scaffoldai work`, and the executor MCP
+planning tools) are built only from a task a human accepted with
+`scaffoldai packet activate <packet>`.
+
+- Activation rebuilds `.scaffoldai/state/next-action.md` from the accepted
+  packet (header plus the packet text verbatim) and records
+  `.scaffoldai/state/accepted-task.json` with the packet id and sha256 hashes
+  of the packet file and of next-action.md. Nothing from a previous task
+  survives.
+- Prompt builders refuse with `ACCEPTANCE_MISSING`,
+  `ACCEPTANCE_PACKET_MISMATCH`, `ACCEPTANCE_CONTENT_MISMATCH` or
+  `ACCEPTANCE_STALE` when the record is missing, names another packet, the
+  next-action text changed, the packet file changed or left
+  `.scaffoldai/packets/`, or the handoff records the task as closed.
+- `scaffoldai packet clear` and `housekeeping reset-runtime-state` remove the
+  record before rewriting next-action.md.
+- **Re-acceptance:** an open task without a valid record needs an explicit
+  `scaffoldai packet activate <packet>`; that rebuilds next-action.md from the
+  packet file. Re-activating a task the handoff records as closed is refused
+  (`packet_already_closed`); create a new packet instead.
+- This is task-integrity enforcement: it controls which instructions reach a
+  worker, not what the worker does with them. The record is not a signature.
+
+**Current state (2026-10-09):** the live next-action.md was hand-written for
+the smoke-test task `test-async-executor-plan-flow.sdc` and has no acceptance
+record, so executor prompts refuse with `ACCEPTANCE_MISSING`. This is
+intentional. Re-accepting it with
+`scaffoldai packet activate test-async-executor-plan-flow.sdc` would replace
+the hand-written instructions with that packet file's text; do so only
+deliberately.
+
 ### Local hardening limits
 
 The operator entry point binds only to `127.0.0.1` (default port 3133). A

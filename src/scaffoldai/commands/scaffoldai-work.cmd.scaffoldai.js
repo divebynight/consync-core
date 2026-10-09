@@ -3,6 +3,7 @@ const {
   resolveExecutorContext,
   buildWorkCommand,
 } = require("../../lib/executorAdapter.lib.scaffoldai");
+const { acceptedPromptInput } = require("../../lib/scaffoldaiTaskAcceptance.auth.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 
@@ -33,14 +34,15 @@ const repoRoot = getRepoRoot(__dirname);
  * @returns {string}
  */
 function buildWorkPrompt(context) {
+  const accepted = acceptedPromptInput(context);
   return [
     "You are in ScaffoldAI work mode (BOUNDED WRITES).",
     "",
-    `Active packet: ${context.activePacket}`,
+    `Active packet: ${accepted.activePacket}`,
     "",
     "Next-action:",
     "---",
-    context.nextActionContent.trim(),
+    accepted.nextActionContent.trim(),
     "---",
     "",
     "Execute the approved next-action above.",

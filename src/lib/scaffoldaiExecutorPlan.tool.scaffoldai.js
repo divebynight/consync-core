@@ -71,9 +71,11 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
 
   // 1. Resolve executor context — fails closed if no active packet or next-action
   let context;
+  let prompt;
   let slot;
   try {
     context = resolveExecutorContext(repoRoot);
+    prompt = buildPlanPrompt(context);
     slot = acquirePlanSlot(repoRoot);
   } catch (err) {
     process.stderr.write(`[ScaffoldAI executor] ${err.code || "CONTEXT_ERROR"}: ${err.message}\n`);
@@ -96,8 +98,7 @@ function runExecutorPlanTool(repoRoot, args = {}, deps = {}) {
     };
   }
 
-  // 2. Build planning prompt from context
-  const prompt = buildPlanPrompt(context);
+  // 2. Planning prompt was built from the accepted context above.
 
   // 3. Build bounded command descriptor
   const command = buildPlanCommand({ repoRoot, prompt });

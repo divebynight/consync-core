@@ -367,6 +367,70 @@ function appendHistory(rootPath, record) {
 }
 
 // ---------------------------------------------------------------------------
+// Task acceptance record and activation rollback
+// ---------------------------------------------------------------------------
+
+const ACCEPTED_TASK_RELATIVE = path.join(STATE_ROOT, "accepted-task.json");
+
+// State files packet activation may snapshot and restore on failure.
+const RESTORABLE_STATE_FILES = new Set(["next-action.md", "active-runtime.json", "snapshot.md"]);
+
+function restorableStatePath(fileName) {
+  if (!RESTORABLE_STATE_FILES.has(fileName)) {
+    throw new Error(`state file is not restorable: ${fileName}`);
+  }
+  return path.join(STATE_ROOT, fileName);
+}
+
+/**
+ * Read .scaffoldai/state/accepted-task.json raw text, or null.
+ */
+function readAcceptedTaskRaw(rootPath) {
+  return readFile(rootPath, ACCEPTED_TASK_RELATIVE);
+}
+
+/**
+ * Atomically write .scaffoldai/state/accepted-task.json (temp file + rename),
+ * so a torn write never leaves a parseable partial record.
+ */
+function writeAcceptedTaskRaw(rootPath, content) {
+  const absolutePath = path.join(rootPath, ACCEPTED_TASK_RELATIVE);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  const tempPath = `${absolutePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tempPath, content, "utf8");
+  fs.renameSync(tempPath, absolutePath);
+}
+
+/**
+ * Remove .scaffoldai/state/accepted-task.json. Returns true if it existed.
+ */
+function removeAcceptedTask(rootPath) {
+  const absolutePath = path.join(rootPath, ACCEPTED_TASK_RELATIVE);
+  const existed = fs.existsSync(absolutePath);
+  fs.rmSync(absolutePath, { force: true });
+  return existed;
+}
+
+/**
+ * Read a restorable state file's raw text, or null when absent.
+ */
+function readStateFileRaw(rootPath, fileName) {
+  return readFile(rootPath, restorableStatePath(fileName));
+}
+
+/**
+ * Restore a restorable state file to saved content; null removes it.
+ */
+function restoreStateFileRaw(rootPath, fileName, content) {
+  const relativePath = restorableStatePath(fileName);
+  if (content === null) {
+    fs.rmSync(path.join(rootPath, relativePath), { force: true });
+    return;
+  }
+  writeFile(rootPath, relativePath, content);
+}
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -391,6 +455,13 @@ module.exports = {
   clearActiveRuntimeClaim,
   writeActiveContract,
   writeStreamDoc,
+  // Task acceptance and activation rollback
+  ACCEPTED_TASK_RELATIVE,
+  readAcceptedTaskRaw,
+  writeAcceptedTaskRaw,
+  removeAcceptedTask,
+  readStateFileRaw,
+  restoreStateFileRaw,
   // History operation
   appendHistory,
 };

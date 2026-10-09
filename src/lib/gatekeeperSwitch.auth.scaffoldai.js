@@ -3,6 +3,7 @@ const path = require("path");
 const readline = require("readline");
 
 const { readGatekeeperState, updateStreamSummary } = require("./gatekeeperMount.auth.scaffoldai");
+const { deriveTaskStatus } = require("./scaffoldaiTaskState.query.scaffoldai");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 
@@ -15,19 +16,6 @@ const FIXED_STREAMS = ["process", "electron_ui"];
 // Derived facts
 // ---------------------------------------------------------------------------
 
-function derivePackageStatus(nextAction, handoff) {
-  if (!nextAction || !nextAction.packageName) {
-    return "absent";
-  }
-  if (
-    handoff &&
-    handoff.packageName === nextAction.packageName &&
-    (handoff.status === "PASS" || handoff.status === "FAIL")
-  ) {
-    return "closed";
-  }
-  return "open";
-}
 
 function extractStreamStatus(streamDocText) {
   if (!streamDocText) return null;
@@ -90,7 +78,7 @@ function evaluateSwitch(state, targetStream) {
     };
   }
 
-  const packageStatus = derivePackageStatus(nextAction, handoff);
+  const packageStatus = deriveTaskStatus(nextAction, handoff);
 
   if (packageStatus === "open") {
     return {

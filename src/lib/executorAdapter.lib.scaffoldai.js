@@ -1,13 +1,17 @@
 const fs = require("fs");
 const path = require("path");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
+const { assertAcceptedTask, acceptedPromptInput } = require("./scaffoldaiTaskAcceptance.auth.scaffoldai");
 
 // -----------------------------------------------------------------------
 // Executor Adapter — Copilot CLI (CLI-first, MCP-ready boundary)
 // -----------------------------------------------------------------------
 //
 // Design rules:
-//   1. resolveExecutorContext reads disk state and validates preconditions.
+//   1. resolveExecutorContext reads disk state and validates preconditions,
+//      including the task acceptance record (task-integrity enforcement).
+//      Prompt builders re-verify that record for the exact next-action text
+//      they embed, so they read disk and are not pure.
 //   2. buildPlanCommand and buildWorkCommand are PURE — they receive
 //      { repoRoot, prompt } and return a command descriptor.
 //      They never call resolveExecutorContext internally.
@@ -70,13 +74,15 @@ function resolveExecutorContext(repoRoot) {
     );
   }
 
-  return {
+  const context = {
     repoRoot,
     activePacket,
     packageName,
     nextActionContent,
     nextActionPath,
   };
+  assertAcceptedTask(repoRoot, context);
+  return context;
 }
 
 /**
@@ -164,22 +170,23 @@ function buildWorkCommand({ repoRoot, prompt }) {
 /**
  * Build the standard planning-mode prompt from resolved executor context.
  *
- * PURE — receives context fields and returns a prompt string.
- * Defined here so both the CLI command and MCP tool can reuse without
+ * Refuses (throws with error.code) unless context.nextActionContent is the
+ * accepted task content for context.activePacket. Defined here so both the CLI command and MCP tool can reuse without
  * lib → commands import inversion.
  *
  * @param {{ activePacket: string, nextActionContent: string }} context
  * @returns {string}
  */
 function buildPlanPrompt(context) {
+  const accepted = acceptedPromptInput(context);
   return [
     "You are in ScaffoldAI planning mode (READ-ONLY).",
     "",
-    `Active packet: ${context.activePacket}`,
+    `Active packet: ${accepted.activePacket}`,
     "",
     "Next-action:",
     "---",
-    context.nextActionContent.trim(),
+    accepted.nextActionContent.trim(),
     "---",
     "",
     "Analyze the repository and create a detailed implementation plan for the next-action above.",

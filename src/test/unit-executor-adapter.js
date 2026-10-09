@@ -9,6 +9,7 @@ const {
   buildWorkCommand,
 } = require("../lib/executorAdapter.lib.scaffoldai");
 
+const { acceptFixtureTask } = require("./helpers/scaffoldai-accepted-task-fixture");
 const TEST_NAME = "unit-executor-adapter";
 const repoRoot = path.resolve(__dirname, "..", "..");
 const cliPath = path.join(repoRoot, "src", "scaffoldai.js");
@@ -209,8 +210,8 @@ function main() {
     const testPackageName = "test-packet.sdc";
     
     try {
-      writeMockNextAction(testRepo.stateDir, testPackageName);
-      
+      acceptFixtureTask(testRepo.root, { packetId: testPackageName, goal: "Mock next-action content for testing." });
+
       let context;
       try {
         context = resolveExecutorContext(testRepo.root);

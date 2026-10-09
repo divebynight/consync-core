@@ -12,14 +12,14 @@ const { spawn: realSpawn, execFileSync } = require("node:child_process");
 const { once } = require("node:events");
 
 const ID = "11111111-1111-4111-8111-111111111111";
+const { acceptFixtureTask } = require("./helpers/scaffoldai-accepted-task-fixture");
 const ID2 = "22222222-2222-4222-8222-222222222222";
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "scaffoldai-security-"));
   const children = [];
   fs.mkdirSync(path.join(root, ".scaffoldai/state"), { recursive: true });
-  fs.writeFileSync(path.join(root, ".scaffoldai/state/next-action.md"),
-    "TYPE: REFACTOR\nPACKAGE: security-test.sdc\n\nRead package.json only.\n");
+  acceptFixtureTask(root, { packetId: "security-test.sdc", goal: "Read package.json only." });
   const artifactRoot = path.join(root, jobs.PLANS_SUBPATH);
   fs.mkdirSync(artifactRoot, { recursive: true });
   t.after(() => {
