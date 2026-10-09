@@ -474,6 +474,8 @@ function main() {
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI housekeeping command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-housekeeping.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI housekeeping bounded deletions", ["--test",
+    path.join(repoRoot, "src", "test", "unit-scaffoldai-housekeeping-deletions.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI preflight command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-preflight.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);

@@ -9,6 +9,7 @@ const {
   readLatestIntakeResult,
   LATEST_INTAKE_RESULT_RELATIVE,
 } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
+const { removeRuntimeFile } = require("./scaffoldaiRuntimeFiles.auth.scaffoldai");
 const { getGitStatus } = require("./gitStatus.util.shared");
 const { getClaimStatus } = require("./packetClaim.auth.scaffoldai");
 
@@ -72,6 +73,23 @@ const RUNTIME_LOG_FILES = new Set(
 );
 
 const INBOX_RELATIVE = path.join(".scaffoldai", "inbox");
+
+const HISTORY_LOG_PATH = normalizePath(path.join(STATE_ROOT, "history.jsonl"));
+
+// Skip reasons for deletion outcomes other than "removed".
+const DELETION_SKIP_REASONS = Object.freeze({
+  missing: "not present",
+  refused_symlink: "refused: symlink (not followed or deleted)",
+  refused_not_file: "refused: not a regular file",
+});
+
+// All housekeeping deletions go through bounded helpers: history through the
+// state authority module, runtime and inbox files through removeRuntimeFile.
+function removeHousekeepingFile(repoRoot, relativePath) {
+  return relativePath === HISTORY_LOG_PATH
+    ? scaffoldaiState.removeHistoryLog(repoRoot)
+    : removeRuntimeFile(repoRoot, relativePath);
+}
 
 function normalizePath(value) {
   return value.split(path.sep).join("/");
@@ -286,17 +304,15 @@ function resetRuntimeState(repoRoot, options = {}) {
       continue;
     }
 
-    const absolutePath = assertScaffoldaiBoundary(repoRoot, logPath);
-    if (!fs.existsSync(absolutePath)) {
+    const outcome = removeHousekeepingFile(repoRoot, logPath);
+    if (outcome === "removed") {
+      touched.push(logPath);
+    } else {
       skipped.push({
         path: logPath,
-        reason: "not present",
+        reason: DELETION_SKIP_REASONS[outcome],
       });
-      continue;
     }
-
-    fs.unlinkSync(absolutePath);
-    touched.push(logPath);
   }
 
   const packetsRoot = assertScaffoldaiBoundary(repoRoot, path.join(".scaffoldai", "packets"));
@@ -354,7 +370,6 @@ function cleanIntakeArtifacts(repoRoot) {
   const validationErrors = [];
   const guardErrors = [];
 
-  const latestIntakePath = resolveWithinScaffoldAi(repoRoot, LATEST_INTAKE_RESULT_RELATIVE);
   const latestIntake = readLatestIntakeResult(repoRoot);
   const handoffText = scaffoldaiState.readHandoff(repoRoot);
   const handoff = handoffText ? parseHandoff(handoffText) : null;
@@ -427,23 +442,34 @@ function cleanIntakeArtifacts(repoRoot) {
         reason: "accepted packet surface is durable and never cleaned here",
       });
       skippedPaths.push(sourceRelativePath);
-    } else if (!fs.existsSync(sourcePath)) {
-      skipped.push({
-        path: sourceRelativePath,
-        reason: "originating inbox candidate missing",
-      });
-      skippedPaths.push(sourceRelativePath);
-      warnings.push("originating inbox candidate is missing; cleanup is idempotent and preserved this state");
     } else {
-      fs.unlinkSync(sourcePath);
-      touched.push(sourceRelativePath);
-      removedPaths.push(sourceRelativePath);
-      cleanupPerformed = true;
-      inboxCandidateRemoved = true;
+      const outcome = removeHousekeepingFile(repoRoot, path.relative(repoRoot, sourcePath));
+      if (outcome === "missing") {
+        skipped.push({
+          path: sourceRelativePath,
+          reason: "originating inbox candidate missing",
+        });
+        skippedPaths.push(sourceRelativePath);
+        warnings.push("originating inbox candidate is missing; cleanup is idempotent and preserved this state");
+      } else if (outcome !== "removed") {
+        skipped.push({
+          path: sourceRelativePath,
+          reason: DELETION_SKIP_REASONS[outcome],
+        });
+        skippedPaths.push(sourceRelativePath);
+        warnings.push(`originating inbox candidate was not deleted (${DELETION_SKIP_REASONS[outcome]})`);
+      } else {
+        touched.push(sourceRelativePath);
+        removedPaths.push(sourceRelativePath);
+        cleanupPerformed = true;
+        inboxCandidateRemoved = true;
 
-      if (fs.existsSync(latestIntakePath)) {
-        fs.unlinkSync(latestIntakePath);
-        removedPaths.push(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE));
+        const latestOutcome = removeHousekeepingFile(repoRoot, LATEST_INTAKE_RESULT_RELATIVE);
+        if (latestOutcome === "removed") {
+          removedPaths.push(normalizeRelativePath(LATEST_INTAKE_RESULT_RELATIVE));
+        } else if (latestOutcome !== "missing") {
+          warnings.push(`latest intake result was not deleted (${DELETION_SKIP_REASONS[latestOutcome]})`);
+        }
       }
     }
   }

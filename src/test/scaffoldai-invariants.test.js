@@ -1,4 +1,5 @@
 const assert = require("assert");
+const { findIndirectStateWriteViolations } = require("./helpers/state-write-scan");
 const fs = require("fs");
 const path = require("path");
 
@@ -623,36 +624,16 @@ function checkScaffoldaiStateWriteBoundary() {
   // is built from variables (for example path.join(".scaffoldai", "state", ...)
   // or a bare state file name). Flag any non-exempt file that both references a
   // state location and calls a filesystem mutation.
-  const stateLocationPatterns = [
-    /\.scaffoldai[\/\\]state/,
-    /["']\.scaffoldai["']\s*,\s*["']state["']/,
-    /["'](next-action\.md|active-runtime\.json|snapshot\.md|handoff\.md|accepted-task\.json|active-stream\.md|history\.jsonl|verify-evidence\.json|active-contract\.json)["']/,
-  ];
-  const fsMutationPattern = /\b(writeFileSync|writeFile|appendFileSync|appendFile|renameSync|rmSync|unlinkSync|copyFileSync|truncateSync)\s*\(/;
   const indirectExemptions = new Map([
     // Writes seed state only inside its own temporary probe root, never live state.
     ["src/lib/scaffoldaiLifecycleProbe.lib.scaffoldai.js", "temporary probe fixture root"],
     // Dedicated state-role module for verify evidence.
     ["src/lib/scaffoldaiVerifyEvidence.state.scaffoldai.js", "state-role module"],
-    // Pre-existing: unlinks runtime logs (including state/history.jsonl) when
-    // runtime log reset is requested. Tracked as a follow-up.
-    ["src/lib/scaffoldaiHousekeeping.auth.scaffoldai.js", "pre-existing runtime log reset"],
   ]);
-
-  for (const srcDir of srcDirs) {
-    const dirPath = path.join(repoRoot, srcDir);
-    if (!fs.existsSync(dirPath)) continue;
-    for (const fileName of fs.readdirSync(dirPath).filter((f) => f.endsWith(".js"))) {
-      const filePath = path.join(dirPath, fileName);
-      const relPath = path.relative(repoRoot, filePath).split(path.sep).join("/");
-      if (isExempt(filePath) || indirectExemptions.has(relPath)) continue;
-      const content = fs.readFileSync(filePath, "utf8");
-      if (stateLocationPatterns.some((pattern) => pattern.test(content)) && fsMutationPattern.test(content)) {
-        violations.push(
-          `  ${relPath}: references .scaffoldai/state/* and mutates the filesystem directly (should use scaffoldaiState module)`
-        );
-      }
-    }
+  for (const relPath of findIndirectStateWriteViolations({ repoRoot, srcDirs, isExempt, exemptions: indirectExemptions })) {
+    violations.push(
+      `  ${relPath}: references .scaffoldai/state/* and mutates the filesystem directly (should use scaffoldaiState module)`
+    );
   }
 
   assert.ok(

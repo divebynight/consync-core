@@ -431,6 +431,48 @@ function restoreStateFileRaw(rootPath, fileName, content) {
 }
 
 // ---------------------------------------------------------------------------
+// History log removal (housekeeping runtime-log reset)
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove .scaffoldai/state/history.jsonl.
+ *
+ * The state directory's real path must be exactly <real .scaffoldai>/state, so
+ * a symlinked state root is refused even if it points inside .scaffoldai. A
+ * symlinked history file is never followed or deleted. Returns "removed" |
+ * "missing" | "refused_symlink" | "refused_not_file"; throws if the state
+ * directory resolves anywhere else.
+ */
+function removeHistoryLog(rootPath) {
+  let realScaffoldai;
+  let realState;
+  try {
+    realScaffoldai = fs.realpathSync(path.resolve(rootPath, ".scaffoldai"));
+    realState = fs.realpathSync(path.resolve(rootPath, STATE_ROOT));
+  } catch (error) {
+    if (error.code === "ENOENT") return "missing";
+    throw error;
+  }
+  if (realState !== path.join(realScaffoldai, "state")) {
+    throw new Error("state directory resolves outside .scaffoldai/state");
+  }
+
+  const historyPath = path.join(realState, "history.jsonl");
+  let stat;
+  try {
+    stat = fs.lstatSync(historyPath);
+  } catch (error) {
+    if (error.code === "ENOENT") return "missing";
+    throw error;
+  }
+  if (stat.isSymbolicLink()) return "refused_symlink";
+  if (!stat.isFile()) return "refused_not_file";
+
+  fs.unlinkSync(historyPath);
+  return "removed";
+}
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -462,6 +504,7 @@ module.exports = {
   removeAcceptedTask,
   readStateFileRaw,
   restoreStateFileRaw,
-  // History operation
+  // History operations
   appendHistory,
+  removeHistoryLog,
 };
