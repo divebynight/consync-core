@@ -9,6 +9,7 @@ const {
   intakePacket,
   CANONICAL_SECTION_ORDER,
 } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
+const { reviewedIntake, reviewedActivate, latestCandidateReviewHash, fileReviewHash } = require("./helpers/scaffoldai-review-hash");
 const { runScaffoldaiPacketCommand } = require("../scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 const { gatherStatus } = require("../lib/scaffoldaiStatus.query.scaffoldai");
@@ -147,7 +148,7 @@ function main() {
     // 1. valid SDC accepted
     {
       const sourcePath = writeIncomingPacket(fixture, "valid.md", validPacketContent());
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, true);
       assert.strictEqual(result.status, "ACCEPTED");
@@ -169,7 +170,7 @@ function main() {
         "bad-title.md",
         validPacketContent().replace("# SDC — Add Strict Intake Validation", "# Wrong Heading")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.validation_errors.some((entry) => entry.includes("title must match")));
@@ -183,7 +184,7 @@ function main() {
         "missing-sections.md",
         validPacketContent().replace(/OUTPUT:[\s\S]*?CONSTRAINTS:/m, "CONSTRAINTS:")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.missing_sections.includes("OUTPUT"));
@@ -198,7 +199,7 @@ function main() {
         "utf8"
       );
       const sourcePath = writeInboxPacket(fixture, "canonical-template.sdc.md", canonicalTemplate);
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, true);
       assert.strictEqual(result.source_in_inbox, true);
@@ -212,7 +213,7 @@ function main() {
         "invalid-mode.md",
         validPacketContent().replace("MODE: PROCESS_REFACTOR", "MODE: PRODUCT_REFACTOR")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.validation_errors.some((entry) => entry.includes("blocked or unknown MODE")));
@@ -226,7 +227,7 @@ function main() {
         "bad-approval.md",
         validPacketContent().replace("  execute: PENDING", "execute: PENDING")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.validation_errors.some((entry) => entry.includes("missing APPROVAL.execute") || entry.includes("malformed APPROVAL")));
@@ -244,7 +245,7 @@ function main() {
           "- HTTP MCP write authority required",
         ])
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.blocked_policy_reasons.includes("requests autonomous execution"));
@@ -286,7 +287,7 @@ function main() {
           "",
         ].join("\n")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(result.section_order_issues.some((entry) => entry.includes("section out of canonical order")));
@@ -297,7 +298,7 @@ function main() {
     // 7. accepted packet normalized correctly and content preserved
     {
       const sourcePath = writeIncomingPacket(fixture, "normalized.md", validPacketContent());
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
       const stored = fs.readFileSync(path.join(fixture, ".scaffoldai", "packets", result.file_name), "utf8");
 
       assert.strictEqual(stored, validPacketContent());
@@ -316,7 +317,7 @@ function main() {
       fs.writeFileSync(path.join(fixture, "dirty-marker.txt"), "dirty\n", "utf8");
 
       process.exitCode = 0;
-      runScaffoldaiPacketCommand(["intake", sourcePath, "--activate"], { repoRoot: fixture });
+      runScaffoldaiPacketCommand(["intake", sourcePath, "--activate", "--sha256", fileReviewHash(sourcePath)], { repoRoot: fixture });
       const activationExitCode = process.exitCode || 0;
       process.exitCode = 0;
 
@@ -342,7 +343,7 @@ function main() {
           .replace("Add Strict Intake Validation", "Rejected Intake Packet")
           .replace("MODE: PROCESS_REFACTOR", "MODE: UNKNOWN_MODE")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, false);
       assert.ok(!fs.existsSync(path.join(fixture, ".scaffoldai", "packets", "rejected-intake-packet.sdc.md")));
@@ -356,7 +357,7 @@ function main() {
         "latest-intake.md",
         validPacketContent().replace("Add Strict Intake Validation", "Visible Intake Packet")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       const status = gatherStatus(fixture, { includeGit: false });
       const visibility = gatherPacketVisibility(fixture, { scope: "all" });
@@ -375,7 +376,7 @@ function main() {
         "inbox-intake.sdc.md",
         validPacketContent().replace("Add Strict Intake Validation", "Inbox Intake Packet")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, true);
       assert.strictEqual(result.source_in_inbox, true);
@@ -390,7 +391,7 @@ function main() {
         "external-warning.md",
         validPacketContent().replace("Add Strict Intake Validation", "External Warning Packet")
       );
-      const result = intakePacket(fixture, sourcePath);
+      const result = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(result.accepted, true);
       assert.strictEqual(result.source_in_inbox, false);
@@ -405,8 +406,8 @@ function main() {
         "repeat-identical.md",
         validPacketContent().replace("Add Strict Intake Validation", "Repeat Identity Packet")
       );
-      const first = intakePacket(fixture, sourcePath);
-      const second = intakePacket(fixture, sourcePath);
+      const first = reviewedIntake(fixture, sourcePath);
+      const second = reviewedIntake(fixture, sourcePath);
 
       assert.strictEqual(first.accepted, true);
       assert.strictEqual(second.accepted, true);
@@ -432,8 +433,8 @@ function main() {
           .replace("Accept only formally structured SDC packets.", "Accept only canonical packet identity surfaces.")
       );
 
-      const first = intakePacket(fixture, firstPath);
-      const second = intakePacket(fixture, secondPath);
+      const first = reviewedIntake(fixture, firstPath);
+      const second = reviewedIntake(fixture, secondPath);
 
       assert.strictEqual(first.accepted, true);
       assert.strictEqual(second.accepted, false);

@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { activatePacket } = require("../../lib/scaffoldaiPacketActivation.auth.scaffoldai");
+const { reviewHash } = require("../../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 
 // Accepts a fixture task through the real acceptance path (packet activation),
 // so executor tests run against a genuine acceptance record instead of a
@@ -25,7 +26,8 @@ function acceptFixtureTask(root, { packetId = "fixture-task.sdc", goal = "Read p
     goal,
     "",
   ].join("\n"));
-  const result = activatePacket(root, `${packetId}.md`);
+  const result = activatePacket(root, `${packetId}.md`,
+    { expectedPacketSha256: reviewHash(fs.readFileSync(packetPath, "utf8")) });
   if (result.status !== "PASS") {
     throw new Error(`fixture task acceptance failed: ${result.reason || result.status}`);
   }

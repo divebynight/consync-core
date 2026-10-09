@@ -6,6 +6,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+const { reviewedIntake, reviewedActivate, latestCandidateReviewHash, fileReviewHash } = require("./helpers/scaffoldai-review-hash");
 const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { activatePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { checkWorkspaceCleanliness } = require("../lib/workspaceCleanlinessCheck.auth.scaffoldai");
@@ -201,8 +202,9 @@ function writeInboxPacket(fixtureRoot, fileName, packetTitle) {
       "MODE: PROCESS_REFACTOR",
       "EXECUTION SURFACE: ScaffoldAI lifecycle simulation",
       "",
+      // Proposal A: proposals must arrive PENDING; packet text never grants approval.
       "APPROVAL:",
-      "  execute: APPROVED",
+      "  execute: PENDING",
       "  commit: PENDING",
       "",
       "GOAL:",
@@ -241,7 +243,7 @@ function safeActivatePacket(fixtureRoot, packetInput, summary) {
     };
   }
 
-  const activated = activatePacket(fixtureRoot, packetInput);
+  const activated = reviewedActivate(fixtureRoot, packetInput);
   
   // Check if the underlying activation was blocked (e.g., dirty workspace)
   if (activated.status === "BLOCKED") {
@@ -408,7 +410,7 @@ function main() {
       "Lifecycle Simulation Packet"
     );
 
-    const intake = intakePacket(fixtureRoot, packetInboxPath);
+    const intake = reviewedIntake(fixtureRoot, packetInboxPath);
     assert.strictEqual(intake.accepted, true, "intake should accept valid packet");
     summary.lifecyclePhases.push("packet_intake");
 
@@ -419,7 +421,7 @@ function main() {
       "dirty workspace should explicitly report lifecycle-owned artifacts"
     );
 
-    const activationWithDirtyIntake = activatePacket(fixtureRoot, intake.file_name);
+    const activationWithDirtyIntake = reviewedActivate(fixtureRoot, intake.file_name);
     assert.strictEqual(
       activationWithDirtyIntake.status,
       "PASS",
@@ -437,7 +439,7 @@ function main() {
       "lifecycle-simulation-secondary.sdc.md",
       "Lifecycle Simulation Secondary"
     );
-    const secondIntake = intakePacket(fixtureRoot, secondInboxPath);
+    const secondIntake = reviewedIntake(fixtureRoot, secondInboxPath);
     assert.strictEqual(secondIntake.accepted, true, "secondary intake should accept");
     stageFixtureFiles(fixtureRoot);  // Keep fixture workspace clean
 

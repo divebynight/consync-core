@@ -21,9 +21,9 @@ help:
 	@echo ""
 	@echo "ScaffoldAI lifecycle:"
 	@echo "  make scaffold-status    Show ScaffoldAI status"
-	@echo "  make scaffold-intake    Intake latest valid inbox candidate"
-	@echo "  make scaffold-activate  Activate latest accepted packet"
-	@echo "  make scaffold-start     Intake + activate latest candidate"
+	@echo "  make scaffold-intake    Intake latest valid inbox candidate (SHA256=<review hash>)"
+	@echo "  make scaffold-activate  Activate latest accepted packet (SHA256=<review hash>)"
+	@echo "  make scaffold-start     Intake + activate latest candidate (SHA256=<review hash>)"
 	@echo "  make scaffold-close     Closeout + cleanup when safe"
 	@echo "  make scaffold-cancel    Cancel stale/mistaken active work without marking PASS"
 	@echo ""
@@ -75,13 +75,13 @@ scaffold-status:
 	@npm run scaffoldai:status
 
 scaffold-intake:
-	@npm run scaffoldai:intake-latest
+	@npm run scaffoldai:intake-latest $(if $(SHA256),-- --sha256 $(SHA256))
 
 scaffold-activate:
-	@npm run scaffoldai:activate-latest
+	@npm run scaffoldai:activate-latest $(if $(SHA256),-- --sha256 $(SHA256))
 
 scaffold-start:
-	@npm run scaffoldai:start-latest
+	@npm run scaffoldai:start-latest $(if $(SHA256),-- --sha256 $(SHA256))
 
 scaffold-close:
 	@npm run scaffoldai:close-feature

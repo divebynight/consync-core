@@ -9,6 +9,16 @@ const { detectCategory, extractTitle } = require("./scaffoldaiPacketVisibility.q
 const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 const { readTaskState } = require("./scaffoldaiTaskState.query.scaffoldai");
 const acceptance = require("./scaffoldaiTaskAcceptance.auth.scaffoldai");
+const {
+  INGRESS_APPROVAL_VALUE,
+  REQUIRED_APPROVAL_KEYS,
+  REVIEW_HASH_GUIDANCE,
+  checkReviewHash,
+  hasApprovalLikeLine,
+  parseApprovalBlock,
+} = require("./scaffoldaiPacketIntake.auth.scaffoldai");
+
+const LEGACY_APPROVAL_COMPATIBILITY = "legacy_missing_approval_block_treated_as_pending";
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 
@@ -139,6 +149,22 @@ function readPacketMetadata(packetPath, fileName) {
   };
 }
 
+// Packet APPROVAL text grants nothing, but a packet whose text claims approval
+// cannot be newly activated. Only packets with no approval-like header at all
+// keep the documented legacy PENDING default (approval-authority-v1 section
+// 7.1); any approval text must be the exact strict block with PENDING values,
+// checked by the same parser as ingress. New proposals cannot use the legacy
+// exception because strict ingress requires the block.
+function evaluatePacketApproval(content) {
+  if (!hasApprovalLikeLine(content)) {
+    return { ok: true, legacy: true, values: null, errors: [] };
+  }
+  const { values, errors } = parseApprovalBlock(content);
+  const pending = errors.length === 0 &&
+    REQUIRED_APPROVAL_KEYS.every((key) => values && values[key] === INGRESS_APPROVAL_VALUE);
+  return { ok: pending, legacy: false, values, errors };
+}
+
 function replaceSnapshotPointer(snapshotText, packetIdOrNull, packetCategoryOrNull) {
   if (!snapshotText) return null;
 
@@ -233,7 +259,7 @@ function appendPointerHistory(rootPath, packetIdOrNull, action) {
   });
 }
 
-function activatePacket(rootPath, packetInput) {
+function activatePacket(rootPath, packetInput, options = {}) {
   // Check workspace cleanliness before activation (warning only, not blocking).
   const cleanliness = checkWorkspaceCleanliness(rootPath);
   let workspaceWarning = null;
@@ -253,11 +279,50 @@ function activatePacket(rootPath, packetInput) {
   }
 
   const resolved = resolvePacketPath(rootPath, packetInput);
-  const metadata = readPacketMetadata(resolved.absolutePath, resolved.fileName);
+  const packetFile = path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/");
+
+  // Read the packet once. The review-hash and approval checks, the metadata,
+  // the rebuilt next-action and the acceptance record all use these bytes.
+  // Both checks run before any write, including the idempotent return below.
+  const packetContent = acceptance.readContainedPacket(rootPath, resolved.absolutePath);
+  const hashError = checkReviewHash(packetContent, options.expectedPacketSha256);
+  if (hashError) {
+    return {
+      action: "activate",
+      status: "BLOCKED",
+      reason: hashError,
+      packet_id: resolved.packetId,
+      packet_file: packetFile,
+      message: hashError === "review_hash_required"
+        ? "Activation requires the review hash of the packet you reviewed."
+        : "Packet content does not match the reviewed hash.",
+      next_safe_action: REVIEW_HASH_GUIDANCE,
+    };
+  }
+
+  const approval = evaluatePacketApproval(packetContent);
+  if (!approval.ok) {
+    return {
+      action: "activate",
+      status: "BLOCKED",
+      reason: "packet_approval_not_pending",
+      packet_id: resolved.packetId,
+      packet_file: packetFile,
+      approval: approval.values,
+      message: "Packet APPROVAL text is not PENDING. Packet text cannot grant approval, so this packet cannot be newly activated.",
+      next_safe_action:
+        "Leave this packet unchanged. To reuse its content, submit a new proposal with a new title and APPROVAL execute/commit PENDING, then preview, intake and activate it with --sha256.",
+    };
+  }
+  const compatibility = approval.legacy ? { approval_compatibility: LEGACY_APPROVAL_COMPATIBILITY } : {};
+
+  const metadata = {
+    title: extractTitle(packetContent),
+    category: detectCategory(resolved.fileName, packetContent),
+  };
 
   const taskState = readTaskState(rootPath);
   const currentRuntime = scaffoldaiState.readActiveRuntime(rootPath) || {};
-  const packetFile = path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/");
 
   if (taskState.status === "open" && taskState.task_id !== resolved.packetId) {
     const claimedBy = currentRuntime.claimed_by || null;
@@ -316,6 +381,7 @@ function activatePacket(rootPath, packetInput) {
         category: metadata.category,
         next_safe_action: "Packet already active and accepted. Proceed with the current packet or clear it explicitly before switching.",
         workspace_warning: workspaceWarning,
+        ...compatibility,
       };
     } catch {
       // Same packet is open but its acceptance is missing, stale, or does not
@@ -324,7 +390,6 @@ function activatePacket(rootPath, packetInput) {
     }
   }
 
-  const packetContent = acceptance.readContainedPacket(rootPath, resolved.absolutePath);
   const nextActionContent = acceptance.buildAcceptedNextAction({
     packetId: resolved.packetId,
     category: metadata.category,
@@ -360,6 +425,7 @@ function activatePacket(rootPath, packetInput) {
     title: metadata.title,
     category: metadata.category,
     ...(reaccepted ? { reaccepted: true } : {}),
+    ...compatibility,
     next_safe_action: "Run scaffoldai status or scaffoldai packet status to confirm active packet context.",
     workspace_warning: workspaceWarning,
   };

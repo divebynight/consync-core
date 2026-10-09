@@ -346,7 +346,7 @@ Stop the trial if it needs watchers, launchers, or lifecycle changes.
 
 Executor prompts (`scaffoldai plan`, `scaffoldai work`, and the executor MCP
 planning tools) are built only from a task a human accepted with
-`scaffoldai packet activate <packet>`.
+`scaffoldai packet activate <packet> --sha256 <review hash>`.
 
 - Activation rebuilds `.scaffoldai/state/next-action.md` from the accepted
   packet (header plus the packet text verbatim) and records
@@ -361,7 +361,7 @@ planning tools) are built only from a task a human accepted with
 - `scaffoldai packet clear` and `housekeeping reset-runtime-state` remove the
   record before rewriting next-action.md.
 - **Re-acceptance:** an open task without a valid record needs an explicit
-  `scaffoldai packet activate <packet>`; that rebuilds next-action.md from the
+  `scaffoldai packet activate <packet> --sha256 <review hash>`; that rebuilds next-action.md from the
   packet file. Re-activating a task the handoff records as closed is refused
   (`packet_already_closed`); create a new packet instead.
 - This is task-integrity enforcement: it controls which instructions reach a
@@ -371,9 +371,48 @@ planning tools) are built only from a task a human accepted with
 the smoke-test task `test-async-executor-plan-flow.sdc` and has no acceptance
 record, so executor prompts refuse with `ACCEPTANCE_MISSING`. This is
 intentional. Re-accepting it with
-`scaffoldai packet activate test-async-executor-plan-flow.sdc` would replace
-the hand-written instructions with that packet file's text; do so only
-deliberately.
+`scaffoldai packet activate test-async-executor-plan-flow.sdc --sha256 <review hash>`
+would replace the hand-written instructions with that packet file's text; do so
+only deliberately.
+
+### Review binding (preview and --sha256)
+
+Validation PASS only makes a proposal eligible for review. Acceptance binds the
+exact text the human reviewed:
+
+1. `scaffoldai packet preview <path>` (read-only) prints the validation result,
+   the APPROVAL values, task-state conflicts, the packet text with hidden
+   control and bidi characters escaped, and the **review hash**: the sha256 of
+   the normalized text (trailing newline ensured).
+2. `scaffoldai packet intake <path> --sha256 <hash> [--activate]` hashes the
+   bytes it actually read and refuses (`review_hash_required`,
+   `review_hash_mismatch`) before writing anything. One hash covers
+   `--activate` too.
+3. `scaffoldai packet activate <packet> --sha256 <hash>` checks the packet
+   bytes it will accept, before any write and before the idempotent return.
+   A refusal leaves an existing acceptance record untouched.
+4. `scaffoldai lifecycle intake-latest|activate-latest|start-latest` require
+   `--sha256` and refuse without it, because they pick a candidate by recency.
+   npm: `npm run scaffoldai:activate-latest -- --sha256 <hash>`.
+   make: `make scaffold-activate SHA256=<hash>`.
+
+The accepted record's `packet_sha256` equals the previewed review hash for any
+packet that entered through intake.
+
+**Approval text.** Proposals must arrive with exactly one APPROVAL block
+containing only `execute: PENDING` and `commit: PENDING`. Other values,
+unknown or duplicate keys, duplicate blocks and malformed approval headers are
+rejected at submission and intake. Activation applies the same parser, so
+historical packets with any other approval text cannot be newly activated
+(`packet_approval_not_pending`). Only legacy packets with no approval-like
+header at all activate under the documented PENDING default. Prompts state
+that packet APPROVAL text grants no authority. Acceptance selects the
+reviewed instructions; execution, commit and push each need explicit human
+authorization (work-authorization enforcement is pending Proposal B).
+
+**Limits.** The hash proves the accepted bytes equal the reviewed bytes. It
+does not prove a human ran the command: any process running as the same user
+can compute a hash. Work authorization is not part of this step.
 
 ### Local hardening limits
 
@@ -461,7 +500,7 @@ metadata-only HTTP policy; authentication does not re-enable it.
 
 1. A remote operator submits a canonical SDC candidate through the HTTPS operator submit-only surface.
 2. The candidate lands only in `.scaffoldai/inbox/` and does not mutate runtime or lifecycle state.
-3. A human operator runs local intake and activation when the candidate is ready.
+3. A human operator previews the candidate (`scaffoldai packet preview`) and runs local intake and activation with the review hash (`--sha256`) when the candidate is ready.
 4. Local verification runs against the active packet and persists canonical verification evidence.
 5. Close-feature reads packet-bound verification evidence and fails closed when evidence is missing, stale, failed, or bound to a different packet.
 6. Cleanup runs only after successful closeout and remains narrow and idempotent.
@@ -494,6 +533,10 @@ Support targets that remain useful when working manually:
 
 - `make scaffold-intake` — intake the latest intake-compatible candidate
 - `make scaffold-activate` — activate the latest accepted packet
+
+`scaffold-intake`, `scaffold-activate` and `scaffold-start` require the review
+hash from `scaffoldai packet preview`: pass `SHA256=<hash>`. Without it they
+refuse with guidance.
 
 These targets are wrappers only. They do not add authority, weaken gates, or replace the underlying lifecycle primitives.
 

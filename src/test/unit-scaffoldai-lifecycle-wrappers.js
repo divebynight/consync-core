@@ -12,6 +12,7 @@ const {
   PROCESS_DOMAIN,
   PRODUCT_DOMAIN,
 } = require("../lib/scaffoldaiLifecycleResolution.query.scaffoldai");
+const { reviewedIntake, reviewedActivate, latestCandidateReviewHash, fileReviewHash } = require("./helpers/scaffoldai-review-hash");
 const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { activatePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
@@ -108,8 +109,9 @@ function packetContent(title) {
     "MODE: PROCESS_REFACTOR",
     "EXECUTION SURFACE: lifecycle wrapper test",
     "",
+    // Proposal A: proposals must arrive PENDING; packet text never grants approval.
     "APPROVAL:",
-    "  execute: APPROVED",
+    "  execute: PENDING",
     "  commit: PENDING",
     "",
     "GOAL:",
@@ -231,14 +233,14 @@ async function main() {
 
     // 3) wrapper ordering enforcement and fail-closed when active packet exists
     {
-      const intake = intakePacket(fixture, b);
+      const intake = reviewedIntake(fixture, b);
       assert.strictEqual(intake.accepted, true);
       commitFixture(fixture, "fixture: intake packet for activation");
-      const activated = activatePacket(fixture, intake.file_name);
+      const activated = reviewedActivate(fixture, intake.file_name);
       assert.strictEqual(activated.status, "PASS");
       commitFixture(fixture, "fixture: activate packet");
 
-      const blockedStart = await runLifecycle(fixture, ["start-latest"]);
+      const blockedStart = await runLifecycle(fixture, ["start-latest", "--sha256", latestCandidateReviewHash(fixture)]);
       assert.strictEqual(blockedStart, 1, "start-latest should block while packet is active");
       console.log("  PASS: wrapper ordering enforcement blocks start-latest with active packet");
     }
@@ -295,11 +297,11 @@ async function main() {
       writeFile(newPacket, packetContent("Test Failed Verify"));
       commitFixture(fixture, "fixture: add test-failed-verify candidate");
       
-      const intake = intakePacket(fixture, newPacket);
+      const intake = reviewedIntake(fixture, newPacket);
       assert.strictEqual(intake.accepted, true);
       commitFixture(fixture, "fixture: intake test-failed-verify");
       
-      const activated = activatePacket(fixture, intake.file_name);
+      const activated = reviewedActivate(fixture, intake.file_name);
       assert.strictEqual(activated.status, "PASS");
       commitFixture(fixture, "fixture: activate test-failed-verify");
       
@@ -384,13 +386,13 @@ async function main() {
         writeFile(inbox, packetContent("Phase 1 Intake"));
         commitFixture(phaseFixture, "fixture: phase1 intake candidate");
 
-        const intake = intakePacket(phaseFixture, inbox);
+        const intake = reviewedIntake(phaseFixture, inbox);
         assert.strictEqual(intake.accepted, true, "phase1 intake should be accepted");
 
         const dirtyAfterIntake = readGitDirtyFiles(phaseFixture);
         assert.ok(dirtyAfterIntake.length > 0, "intake should dirty workspace before activation");
 
-        const activationWithDirtyWorkspace = activatePacket(phaseFixture, intake.file_name);
+        const activationWithDirtyWorkspace = reviewedActivate(phaseFixture, intake.file_name);
         assert.strictEqual(activationWithDirtyWorkspace.status, "PASS", "activation should succeed with warnings on uncommitted intake artifacts");
         assert.ok(activationWithDirtyWorkspace.workspace_warning, "activation should include workspace warning for dirty workspace");
 
@@ -401,7 +403,7 @@ async function main() {
         fs.writeFileSync(clearPath, "TYPE: REFACTOR\nPACKAGE: NONE\n", "utf8");
         commitFixture(phaseFixture, "fixture: clear packet");
         
-        const reactivated = activatePacket(phaseFixture, intake.file_name);
+        const reactivated = reviewedActivate(phaseFixture, intake.file_name);
         assert.strictEqual(reactivated.status, "PASS", "activation should succeed after committing intake artifacts");
         // Workspace may still have changes from reactivation itself, so we just check status is PASS
       } finally {
@@ -418,11 +420,11 @@ async function main() {
         writeFile(inbox, packetContent("Phase 1 Close"));
         commitFixture(phaseFixture, "fixture: phase1 close candidate");
 
-        const intake = intakePacket(phaseFixture, inbox);
+        const intake = reviewedIntake(phaseFixture, inbox);
         assert.strictEqual(intake.accepted, true);
         commitFixture(phaseFixture, "fixture: phase1 close intake committed");
 
-        const activated = activatePacket(phaseFixture, intake.file_name);
+        const activated = reviewedActivate(phaseFixture, intake.file_name);
         assert.strictEqual(activated.status, "PASS");
         commitFixture(phaseFixture, "fixture: phase1 close activation committed");
 
@@ -454,11 +456,11 @@ async function main() {
         writeFile(inboxA, packetContent("Cycle A"));
         commitFixture(phaseFixture, "fixture: cycle A candidate");
 
-        const intakeA = intakePacket(phaseFixture, inboxA);
+        const intakeA = reviewedIntake(phaseFixture, inboxA);
         assert.strictEqual(intakeA.accepted, true);
         commitFixture(phaseFixture, "fixture: cycle A intake");
 
-        const activateA = activatePacket(phaseFixture, intakeA.file_name);
+        const activateA = reviewedActivate(phaseFixture, intakeA.file_name);
         assert.strictEqual(activateA.status, "PASS");
         commitFixture(phaseFixture, "fixture: cycle A activate");
 
@@ -472,11 +474,11 @@ async function main() {
         writeFile(inboxB, packetContent("Cycle B"));
         commitFixture(phaseFixture, "fixture: cycle B candidate");
 
-        const intakeB = intakePacket(phaseFixture, inboxB);
+        const intakeB = reviewedIntake(phaseFixture, inboxB);
         assert.strictEqual(intakeB.accepted, true);
         commitFixture(phaseFixture, "fixture: cycle B intake");
 
-        const activateB = activatePacket(phaseFixture, intakeB.file_name);
+        const activateB = reviewedActivate(phaseFixture, intakeB.file_name);
         assert.strictEqual(activateB.status, "PASS");
         commitFixture(phaseFixture, "fixture: cycle B activate");
 

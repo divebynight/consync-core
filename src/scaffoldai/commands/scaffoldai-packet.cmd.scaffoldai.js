@@ -6,6 +6,7 @@ const {
   clearActivePacket,
 } = require("../../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { intakePacket } = require("../../lib/scaffoldaiPacketIntake.auth.scaffoldai");
+const { previewPacket } = require("../../lib/scaffoldaiPacketPreview.query.scaffoldai");
 const {
   claimPacket,
   releasePacket,
@@ -17,12 +18,13 @@ const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const repoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai packet <activate|status|clear|intake|claim|release|claim-status|force-release> [options]");
+  console.log("Usage: scaffoldai packet <preview|activate|status|clear|intake|claim|release|claim-status|force-release> [options]");
   console.log("");
-  console.log("  activate <packet>          Activate a packet by path or filename");
-  console.log("  status                     Show current active packet status");
-  console.log("  clear                      Clear the active packet pointer");
-  console.log("  intake <path> [--activate] Validate and intake a strict SDC packet");
+  console.log("  preview <path>                             Show a packet for review and its review hash (read-only)");
+  console.log("  activate <packet> --sha256 <hash>          Accept a reviewed packet by path or filename");
+  console.log("  status                                     Show current active packet status");
+  console.log("  clear                                      Clear the active packet pointer");
+  console.log("  intake <path> --sha256 <hash> [--activate] Validate and intake a reviewed strict SDC packet");
   console.log("  claim --client <id>        Claim the active packet for a client");
   console.log("  release --client <id>      Release a claim (owning client only)");
   console.log("  claim-status               Show current claim state");
@@ -65,6 +67,9 @@ function printActivate(result) {
   console.log(`PACKET TITLE:     ${result.title || "(none)"}`);
   console.log(`PACKET CATEGORY:  ${result.category || "(none)"}`);
   if (result.idempotent) console.log("NOTE:             Idempotent - packet already active");
+  if (result.approval_compatibility) {
+    console.log("NOTE:             Legacy packet without APPROVAL block; treated as PENDING (no approval granted)");
+  }
   console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
   console.log("");
   console.log("STATUS: PASS");
@@ -126,6 +131,31 @@ function printClaimStatus(result) {
   console.log(`STATUS: ${result.has_claim ? "CLAIMED" : "IDLE"}`);
 }
 
+function printPreview(result) {
+  console.log("[scaffoldai packet preview]");
+  console.log("");
+  console.log(`SOURCE PATH:      ${result.source_path}`);
+  console.log(`PACKET ID:        ${result.packet_id || "(none)"}`);
+  console.log(`PACKET TITLE:     ${result.packet_title || "(none)"}`);
+  console.log(`MODE:             ${result.mode || "(none)"}`);
+  console.log(`APPROVAL:         ${result.approval ? JSON.stringify(result.approval) : "(none)"}`);
+  console.log(`VALID:            ${result.valid ? "yes" : "no"}`);
+  for (const error of result.errors) console.log(`  - ${error}`);
+  console.log(`TASK STATE:       ${result.task.status}${result.task.task_id ? ` (${result.task.task_id})` : ""}`);
+  if (result.conflicts.length > 0) {
+    console.log("CONFLICTS:");
+    for (const conflict of result.conflicts) console.log(`  - ${conflict}`);
+  }
+  console.log(`HIDDEN CHARACTERS: ${result.hidden_character_count}${result.hidden_character_count ? " (shown escaped below)" : ""}`);
+  console.log("");
+  console.log("----- BEGIN PACKET (review this text) -----");
+  console.log(result.escaped_content.replace(/\n$/, ""));
+  console.log("----- END PACKET -----");
+  console.log("");
+  console.log(`REVIEW SHA256:    ${result.review_sha256}`);
+  console.log("NEXT SAFE ACTION: If this is the text you accept, rerun intake/activate with --sha256 <review hash>. Preview grants nothing.");
+}
+
 function printIntakeResult(result) {
   console.log("[scaffoldai packet intake]");
   console.log("");
@@ -184,6 +214,16 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
       return;
     }
 
+    if (action === "preview") {
+      if (!argv[1]) {
+        console.error("Usage: scaffoldai packet preview <path>");
+        process.exitCode = 1;
+        return;
+      }
+      printPreview(previewPacket(commandRepoRoot, argv[1]));
+      return;
+    }
+
     if (action === "status") {
       printStatus(getPacketStatus(commandRepoRoot));
       return;
@@ -196,7 +236,8 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
         process.exitCode = 1;
         return;
       }
-      const result = activatePacket(commandRepoRoot, packetInput);
+      const result = activatePacket(commandRepoRoot, packetInput,
+        { expectedPacketSha256: parseFlag(argv.slice(2), "--sha256") });
       printActivate(result);
       if (result.status === "BLOCKED") process.exitCode = 1;
       return;
@@ -210,13 +251,16 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
     if (action === "intake") {
       const packetInput = argv[1];
       if (!packetInput) {
-        console.error("Usage: scaffoldai packet intake <path> [--activate]");
+        console.error("Usage: scaffoldai packet intake <path> --sha256 <hash> [--activate]");
         process.exitCode = 1;
         return;
       }
 
       const shouldActivate = argv.includes("--activate");
-      const intakeResult = intakePacket(commandRepoRoot, packetInput);
+      // One review hash covers both steps: intake stores the normalized bytes
+      // that activation then hashes.
+      const reviewSha256 = parseFlag(argv.slice(2), "--sha256");
+      const intakeResult = intakePacket(commandRepoRoot, packetInput, { expectedSha256: reviewSha256 });
       printIntakeResult(intakeResult);
 
       if (!intakeResult.accepted) {
@@ -226,7 +270,8 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
 
       if (shouldActivate) {
         console.log("");
-        const activationResult = activatePacket(commandRepoRoot, intakeResult.file_name);
+        const activationResult = activatePacket(commandRepoRoot, intakeResult.file_name,
+          { expectedPacketSha256: reviewSha256 });
         printActivate(activationResult);
         if (activationResult.status === "BLOCKED") process.exitCode = 1;
       }

@@ -1,5 +1,6 @@
 "use strict";
 
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -21,6 +22,18 @@ const REQUIRED_SECTION_KEYS = [
 
 const REQUIRED_APPROVAL_KEYS = ["execute", "commit"];
 const ALLOWED_APPROVAL_VALUES = new Set(["PENDING", "APPROVED", "DENIED"]);
+// Proposal text never grants approval: new proposals must arrive PENDING.
+// Execution and commit authority come from local human commands, not packets.
+const INGRESS_APPROVAL_VALUE = "PENDING";
+const REVIEW_HASH_PATTERN = /^[0-9a-f]{64}$/;
+// The only accepted APPROVAL form is one exact "APPROVAL:" header line followed
+// by indented execute/commit entries. Any other line that looks like an
+// approval header (inline, lowercase, indented) is malformed approval text.
+const APPROVAL_HEADER_PATTERN = /^APPROVAL:\s*$/;
+const APPROVAL_LIKE_LINE_PATTERN = /^\s*approval\s*:/i;
+const REVIEW_HASH_GUIDANCE =
+  "Run scaffoldai packet preview <path>, review the content, then rerun with --sha256 <review hash> " +
+  "(npm: -- --sha256 <hash>; make: SHA256=<hash>).";
 const ALLOWED_MODES = new Set([
   "PROCESS_REFACTOR",
   "PROCESS_VALIDATION",
@@ -38,6 +51,21 @@ function cleanString(value) {
 
 function ensureTrailingNewline(content) {
   return content.endsWith("\n") ? content : `${content}\n`;
+}
+
+// Review hash: sha256 of the normalized packet text (trailing newline ensured).
+// scaffoldai packet preview prints it; intake and activation require it, so the
+// bytes that are accepted are the bytes the human reviewed.
+function reviewHash(content) {
+  return crypto.createHash("sha256").update(ensureTrailingNewline(content), "utf8").digest("hex");
+}
+
+// Returns null when expected matches content; otherwise the refusal code.
+function checkReviewHash(content, expected) {
+  if (typeof expected !== "string" || !expected.trim()) return "review_hash_required";
+  const normalized = expected.trim().toLowerCase();
+  if (!REVIEW_HASH_PATTERN.test(normalized) || normalized !== reviewHash(content)) return "review_hash_mismatch";
+  return null;
 }
 
 function normalizeSlug(value) {
@@ -173,16 +201,35 @@ function parseMode(content) {
   return { value: mode, error: null };
 }
 
+// True when any line looks like an approval header, in any form.
+function hasApprovalLikeLine(content) {
+  return content.split(/\r?\n/).some((line) => APPROVAL_LIKE_LINE_PATTERN.test(line));
+}
+
 function parseApprovalBlock(content) {
   const lines = content.split(/\r?\n/);
-  const startIndex = lines.findIndex((line) => /^APPROVAL:\s*$/.test(line.trimEnd()));
+  const headerIndexes = [];
+  const headerErrors = [];
+  lines.forEach((line, index) => {
+    if (!APPROVAL_LIKE_LINE_PATTERN.test(line)) return;
+    if (APPROVAL_HEADER_PATTERN.test(line.trimEnd())) {
+      headerIndexes.push(index);
+    } else {
+      headerErrors.push(`malformed APPROVAL header: ${line.trim()}`);
+    }
+  });
 
-  if (startIndex === -1) {
+  if (headerIndexes.length === 0) {
     return {
       values: null,
-      errors: ["missing APPROVAL block"],
+      errors: ["missing APPROVAL block", ...headerErrors],
     };
   }
+
+  if (headerIndexes.length > 1) {
+    headerErrors.push("duplicate APPROVAL block: exactly one APPROVAL block is allowed");
+  }
+  const startIndex = headerIndexes[0];
 
   const parsed = {};
   const malformed = [];
@@ -204,10 +251,20 @@ function parseApprovalBlock(content) {
       continue;
     }
 
-    parsed[match[1]] = match[2];
+    const key = match[1];
+    if (!REQUIRED_APPROVAL_KEYS.includes(key)) {
+      malformed.push(`unknown APPROVAL key: ${key} (only execute and commit are supported)`);
+      continue;
+    }
+    if (Object.prototype.hasOwnProperty.call(parsed, key)) {
+      malformed.push(`duplicate APPROVAL.${key}`);
+      continue;
+    }
+
+    parsed[key] = match[2];
   }
 
-  const errors = [...malformed];
+  const errors = [...headerErrors, ...malformed];
   for (const key of REQUIRED_APPROVAL_KEYS) {
     if (!parsed[key]) {
       errors.push(`missing APPROVAL.${key}`);
@@ -216,6 +273,13 @@ function parseApprovalBlock(content) {
 
     if (!ALLOWED_APPROVAL_VALUES.has(parsed[key])) {
       errors.push(`invalid APPROVAL.${key}: ${parsed[key]}`);
+      continue;
+    }
+
+    if (parsed[key] !== INGRESS_APPROVAL_VALUE) {
+      errors.push(
+        `APPROVAL.${key} must be PENDING at proposal ingress; approval is granted locally, not by packet text (found ${parsed[key]})`
+      );
     }
   }
 
@@ -380,9 +444,33 @@ function readLatestIntakeResult(repoRoot) {
   }
 }
 
-function intakePacket(repoRoot, inputPath) {
+function intakePacket(repoRoot, inputPath, options = {}) {
   const source = readSourceMarkdown(repoRoot, inputPath);
   const sourceFileName = path.basename(source.source_path);
+
+  // Refuse before any write unless the content is exactly what was reviewed.
+  const hashError = checkReviewHash(source.content, options.expectedSha256);
+  if (hashError) {
+    const message = hashError === "review_hash_required"
+      ? "a review hash is required to intake a packet"
+      : "packet content does not match the reviewed hash";
+    return {
+      status: "REJECTED",
+      accepted: false,
+      source_path: source.source_path,
+      packet_id: null,
+      file_name: null,
+      packet_title: null,
+      mode: null,
+      review_hash_error: hashError,
+      validation_errors: [message],
+      missing_sections: [],
+      blocked_policy_reasons: [],
+      warnings: [],
+      next_safe_action: REVIEW_HASH_GUIDANCE,
+      recorded_at: new Date().toISOString(),
+    };
+  }
   const sourceInInbox = isSourceInsideInbox(repoRoot, source.source_path);
   const warnings = sourceInInbox
     ? []
@@ -501,6 +589,11 @@ function intakePacket(repoRoot, inputPath) {
 module.exports = {
   ALLOWED_APPROVAL_VALUES,
   ALLOWED_MODES,
+  INGRESS_APPROVAL_VALUE,
+  REVIEW_HASH_GUIDANCE,
+  checkReviewHash,
+  hasApprovalLikeLine,
+  reviewHash,
   REQUIRED_APPROVAL_KEYS,
   REQUIRED_SECTION_KEYS,
   LATEST_INTAKE_RESULT_RELATIVE,

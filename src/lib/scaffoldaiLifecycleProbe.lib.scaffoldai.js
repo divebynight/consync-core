@@ -5,7 +5,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 const { randomUUID } = require("crypto");
 
-const { intakePacket } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
+const { intakePacket, reviewHash } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
 const { activatePacket } = require("./scaffoldaiPacketActivation.auth.scaffoldai");
 const { claimPacket, releasePacket } = require("./packetClaim.auth.scaffoldai");
 const { gatherCloseoutReadiness } = require("./scaffoldaiCloseout.auth.scaffoldai");
@@ -119,7 +119,7 @@ function writeProbePacket(probeRoot, probeId) {
       "EXECUTION SURFACE: ScaffoldAI lifecycle probe",
       "",
       "APPROVAL:",
-      "  execute: APPROVED",
+      "  execute: PENDING",
       "  commit: PENDING",
       "",
       "GOAL:",
@@ -189,7 +189,10 @@ function runLifecycleProbe(repoRoot, options = {}) {
     report.runtime_artifact_paths.push(path.relative(probeRoot, inboxPath));
 
     // 2. Intake
-    const intake = intakePacket(probeRoot, inboxPath);
+    // The probe reviews its own fixture: the hash covers the exact file it wrote
+    // in its temporary root.
+    const probeReviewHash = reviewHash(fs.readFileSync(inboxPath, "utf8"));
+    const intake = intakePacket(probeRoot, inboxPath, { expectedSha256: probeReviewHash });
     if (!intake.accepted) {
       report.errors.push({ phase: "intake", reason: intake.reason || "intake_rejected" });
       report.terminal_states_observed.push("intake_rejected");
@@ -202,7 +205,7 @@ function runLifecycleProbe(repoRoot, options = {}) {
     stageAll(probeRoot);
 
     // 3. Activation
-    const activated = activatePacket(probeRoot, intake.file_name);
+    const activated = activatePacket(probeRoot, intake.file_name, { expectedPacketSha256: probeReviewHash });
     if (activated.status !== "PASS") {
       report.errors.push({ phase: "activation", reason: activated.reason || "activation_failed" });
       report.blocked_transitions.push({ transition: "activation", reason: activated.reason });

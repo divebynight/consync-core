@@ -94,9 +94,10 @@ function writeValidPacket(fixture, fileName, packetName) {
       "MODE: PROCESS_REFACTOR",
       "EXECUTION SURFACE: Simulation testing",
       "",
+      // Proposal A: proposals must arrive PENDING; packet text never grants approval.
       "APPROVAL:",
-      "  execute: APPROVED",
-      "  commit: APPROVED",
+      "  execute: PENDING",
+      "  commit: PENDING",
       "",
       "GOAL:",
       "Test repeated packet cycles.",

@@ -13,6 +13,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+const { reviewedIntake, reviewedActivate, latestCandidateReviewHash, fileReviewHash } = require("./helpers/scaffoldai-review-hash");
 const { intakePacket } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { activatePacket, clearActivePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { gatherCloseoutReadiness } = require("../lib/scaffoldaiCloseout.auth.scaffoldai");
@@ -79,9 +80,10 @@ function writeValidPacket(fixture, fileName, mode = "PROCESS_REFACTOR") {
       `MODE: ${mode}`,
       "EXECUTION SURFACE: Edge case testing",
       "",
+      // Proposal A: proposals must arrive PENDING; packet text never grants approval.
       "APPROVAL:",
-      "  execute: APPROVED",
-      "  commit: APPROVED",
+      "  execute: PENDING",
+      "  commit: PENDING",
       "",
       "GOAL:",
       "Test edge case handling.",
@@ -123,14 +125,14 @@ async function main() {
       const inboxPath = writeValidPacket(fixture, "test-packet-1.sdc.md");
       commitFixtureFiles(fixture, "fixture: add packet");
 
-      const intakeResult = intakePacket(fixture, inboxPath);
+      const intakeResult = reviewedIntake(fixture, inboxPath);
       assert.ok(intakeResult.accepted, "packet should be accepted");
 
       // Dirty the workspace
       writeFile(path.join(fixture, "DIRTY.txt"), "This makes git dirty");
 
       // Try to activate
-      const activateResult = activatePacket(fixture, intakeResult.packet_id);
+      const activateResult = reviewedActivate(fixture, intakeResult.packet_id);
       assert.ok(activateResult.status !== "ACTIVE", "activation should be blocked when dirty");
       assert.ok(activateResult.message && activateResult.message.includes("clean"), "error should mention clean workspace");
 
@@ -153,10 +155,10 @@ async function main() {
       const inboxPath = writeValidPacket(fixture, "test-packet-2.sdc.md");
       commitFixtureFiles(fixture, "fixture: add packet");
 
-      const intakeResult = intakePacket(fixture, inboxPath);
+      const intakeResult = reviewedIntake(fixture, inboxPath);
       assert.ok(intakeResult.accepted, "packet should be accepted");
       
-      const activateResult = activatePacket(fixture, intakeResult.packet_id);
+      const activateResult = reviewedActivate(fixture, intakeResult.packet_id);
       // Activation might be blocked due to git state, just proceed if not active
       if (activateResult.status === "ACTIVE" || activateResult.status === "PASS") {
         commitFixtureFiles(fixture, "fixture: after activation");
@@ -194,7 +196,7 @@ async function main() {
 
       // Try to activate non-existent packet
       try {
-        const activateResult = activatePacket(fixture, "non-existent.sdc");
+        const activateResult = reviewedActivate(fixture, "non-existent.sdc");
         assert.strictEqual(activateResult.status, "BLOCKED", "activation should be blocked");
         assert.ok(activateResult.message, "should have error message");
       } catch (e) {
@@ -222,7 +224,7 @@ async function main() {
       const inboxPath1 = writeValidPacket(fixture, "reused-packet.sdc.md");
       commitFixtureFiles(fixture, "fixture: add packet v1");
 
-      const intakeResult1 = intakePacket(fixture, inboxPath1);
+      const intakeResult1 = reviewedIntake(fixture, inboxPath1);
       assert.ok(intakeResult1.accepted, "first intake should succeed");
       const firstPacketId = intakeResult1.packet_id;
 
@@ -252,8 +254,8 @@ async function main() {
       const inboxPath = writeValidPacket(fixture, "test-packet-5.sdc.md");
       commitFixtureFiles(fixture, "fixture: add packet");
 
-      const intakeResult = intakePacket(fixture, inboxPath);
-      const activateResult = activatePacket(fixture, intakeResult.packet_id);
+      const intakeResult = reviewedIntake(fixture, inboxPath);
+      const activateResult = reviewedActivate(fixture, intakeResult.packet_id);
       commitFixtureFiles(fixture, "fixture: after activation");
 
       // Make .scaffoldai/ changes (should suggest process: prefix)
@@ -282,8 +284,8 @@ async function main() {
       const inboxPath = writeValidPacket(fixture, "test-packet-6.sdc.md");
       commitFixtureFiles(fixture, "fixture: add packet");
 
-      const intakeResult = intakePacket(fixture, inboxPath);
-      const activateResult = activatePacket(fixture, intakeResult.packet_id);
+      const intakeResult = reviewedIntake(fixture, inboxPath);
+      const activateResult = reviewedActivate(fixture, intakeResult.packet_id);
       commitFixtureFiles(fixture, "fixture: after activation");
 
       // Run cleanup

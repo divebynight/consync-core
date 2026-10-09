@@ -7,6 +7,7 @@ const { spawnSync } = require("child_process");
 
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
 const { intakePacket: intakePacketOrig } = require("../lib/scaffoldaiPacketIntake.auth.scaffoldai");
+const { reviewedIntake, reviewedActivate } = require("./helpers/scaffoldai-review-hash");
 const { activatePacket: activatePacketOrig, clearActivePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const {
   claimPacket: claimPacketOrig,
@@ -236,7 +237,9 @@ function cleanWorkspaceWithCommit(fixture) {
 // Create wrapper functions that auto-commit after operations
 const intakePacket = function(fixture, inboxPath) {
   try {
-    const result = intakePacketOrig(fixture, inboxPath);
+    // Matrix transitions are not about review binding: act as a reviewer who
+    // previewed this exact file (see unit-scaffoldai-review-binding.js).
+    const result = reviewedIntake(fixture, inboxPath);
     // Only commit if operation succeeded
     if (result && result.status !== "BLOCKED") {
       commitFixtureFiles(fixture, "fixture: after intake");
@@ -250,7 +253,7 @@ const intakePacket = function(fixture, inboxPath) {
 
 const activatePacket = function(fixture, packetInput) {
   try {
-    const result = activatePacketOrig(fixture, packetInput);
+    const result = reviewedActivate(fixture, packetInput);
     // Only commit if operation succeeded
     if (result && result.status !== "BLOCKED") {
       commitFixtureFiles(fixture, "fixture: after activation");
@@ -328,8 +331,9 @@ function writeInboxPacket(fixtureRoot, fileName, packetTitle) {
       "MODE: PROCESS_REFACTOR",
       "EXECUTION SURFACE: ScaffoldAI lifecycle matrix test",
       "",
+      // Proposal A: proposals must arrive PENDING; packet text never grants approval.
       "APPROVAL:",
-      "  execute: APPROVED",
+      "  execute: PENDING",
       "  commit: PENDING",
       "",
       "GOAL:",

@@ -6,6 +6,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const { getRepoRoot } = require("../lib/repoRoot.util.shared");
+const { reviewedIntake, reviewedActivate, latestCandidateReviewHash, fileReviewHash } = require("./helpers/scaffoldai-review-hash");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
 const { getInFlightPacket } = require("../lib/getInFlightPacket.query.scaffoldai");
 const { claimPacket, releasePacket } = require("../lib/packetClaim.auth.scaffoldai");
@@ -85,8 +86,9 @@ function writeInboxPacket(fixtureRoot, fileName, title) {
       "MODE: PROCESS_REFACTOR",
       "EXECUTION SURFACE: deterministic operator workflow test",
       "",
+      // Proposal A: proposals must arrive PENDING; packet text never grants approval.
       "APPROVAL:",
-      "  execute: APPROVED",
+      "  execute: PENDING",
       "  commit: PENDING",
       "",
       "GOAL:",
@@ -155,7 +157,7 @@ async function runCycle(fixtureRoot, cycleLabel) {
   const packetPath = writeInboxPacket(fixtureRoot, `${cycleLabel}.sdc.md`, `Operator ${cycleLabel}`);
   commitFixtureFiles(fixtureRoot, `fixture: add ${cycleLabel} candidate`);
 
-  const intakeResult = await runLifecycle(fixtureRoot, ["intake-latest"]);
+  const intakeResult = await runLifecycle(fixtureRoot, ["intake-latest", "--sha256", latestCandidateReviewHash(fixtureRoot)]);
   assert.strictEqual(intakeResult, 0, `${cycleLabel}: intake-latest should pass`);
 
   const dirtyAfterIntake = checkWorkspaceCleanliness(fixtureRoot);
@@ -165,7 +167,7 @@ async function runCycle(fixtureRoot, cycleLabel) {
     `${cycleLabel}: dirty intake should report lifecycle-owned artifacts`
   );
 
-  const activationWithDirty = await runLifecycle(fixtureRoot, ["activate-latest"]);
+  const activationWithDirty = await runLifecycle(fixtureRoot, ["activate-latest", "--sha256", latestCandidateReviewHash(fixtureRoot)]);
   assert.strictEqual(activationWithDirty, 0, `${cycleLabel}: activation should succeed with warnings when intake artifacts uncommitted`);
 
   commitFixtureFiles(fixtureRoot, `fixture: commit ${cycleLabel} intake artifacts`);
@@ -207,7 +209,7 @@ async function main() {
 
     const firstCycle = await runCycle(fixture, "cycle-one");
 
-    const blockedStartSecond = await runLifecycle(fixture, ["activate-latest"]);
+    const blockedStartSecond = await runLifecycle(fixture, ["activate-latest", "--sha256", latestCandidateReviewHash(fixture)]);
     assert.strictEqual(
       blockedStartSecond,
       1,
@@ -219,11 +221,11 @@ async function main() {
     const secondPacketPath = writeInboxPacket(fixture, "cycle-two.sdc.md", "Operator cycle-two");
     commitFixtureFiles(fixture, "fixture: add cycle-two candidate");
 
-    const intakeTwo = await runLifecycle(fixture, ["intake-latest"]);
+    const intakeTwo = await runLifecycle(fixture, ["intake-latest", "--sha256", latestCandidateReviewHash(fixture)]);
     assert.strictEqual(intakeTwo, 0, "cycle-two intake should pass");
     commitFixtureFiles(fixture, "fixture: commit cycle-two intake artifacts");
 
-    const activateTwo = await runLifecycle(fixture, ["activate-latest"]);
+    const activateTwo = await runLifecycle(fixture, ["activate-latest", "--sha256", latestCandidateReviewHash(fixture)]);
     assert.strictEqual(activateTwo, 0, "cycle-two activation should pass");
 
     const packetTwo = getInFlightPacket(fixture);

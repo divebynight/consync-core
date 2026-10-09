@@ -4,6 +4,7 @@ const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const {
   intakePacket,
   readLatestIntakeResult,
+  REVIEW_HASH_GUIDANCE,
 } = require("../../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const {
   activatePacket,
@@ -36,6 +37,35 @@ const defaultRepoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
   console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature|cancel-packet>");
+  console.log("  intake-latest, activate-latest and start-latest require --sha256 <review hash> from scaffoldai packet preview.");
+}
+
+// The -latest wrappers pick a candidate by recency, so they must be told which
+// reviewed content they may accept. Returns the hash, or null after refusing.
+function requireReviewHash(action, argv) {
+  let value = null;
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index] === "--sha256" && argv[index + 1] !== undefined) {
+      value = argv[index + 1];
+      index += 1;
+      continue;
+    }
+    printRefusal(action, {
+      status: "BLOCKED",
+      reason: "invalid_arguments",
+      next_safe_action: `Unknown argument: ${argv[index]}. ${REVIEW_HASH_GUIDANCE}`,
+    });
+    return null;
+  }
+  if (!value) {
+    printRefusal(action, {
+      status: "BLOCKED",
+      reason: "review_hash_required",
+      next_safe_action: REVIEW_HASH_GUIDANCE,
+    });
+    return null;
+  }
+  return value;
 }
 
 function printWarnings(warnings) {
@@ -152,7 +182,7 @@ function printWrapperResult(action, details) {
   console.log(`STATUS: ${details.status || "PASS"}`);
 }
 
-function runIntakeLatest(commandRepoRoot) {
+function runIntakeLatest(commandRepoRoot, reviewSha256) {
   const domain = enforceSingleDomainContext(commandRepoRoot, PROCESS_DOMAIN);
   if (!domain.ok) {
     printRefusal("intake-latest", domain.diagnostic);
@@ -179,11 +209,11 @@ function runIntakeLatest(commandRepoRoot) {
     return;
   }
 
-  const intake = intakePacket(commandRepoRoot, resolution.value.source_path);
+  const intake = intakePacket(commandRepoRoot, resolution.value.source_path, { expectedSha256: reviewSha256 });
   if (!intake.accepted) {
     printRefusal("intake-latest", {
       status: "BLOCKED",
-      reason: "intake_rejected",
+      reason: intake.review_hash_error || "intake_rejected",
       next_safe_action: intake.next_safe_action,
       data: {
         resolved_identity: intake.packet_id || null,
@@ -203,7 +233,7 @@ function runIntakeLatest(commandRepoRoot) {
   });
 }
 
-function runActivateLatest(commandRepoRoot) {
+function runActivateLatest(commandRepoRoot, reviewSha256, action = "activate-latest") {
   const domain = enforceSingleDomainContext(commandRepoRoot, PROCESS_DOMAIN);
   if (!domain.ok) {
     printRefusal("activate-latest", domain.diagnostic);
@@ -244,11 +274,11 @@ function runActivateLatest(commandRepoRoot) {
     activationInput = latestIntake.file_name;
     resolvedIdentity = latestIntake.packet_id;
   } else {
-    const intake = intakePacket(commandRepoRoot, resolution.value.source_path);
+    const intake = intakePacket(commandRepoRoot, resolution.value.source_path, { expectedSha256: reviewSha256 });
     if (!intake.accepted) {
-      printRefusal("activate-latest", {
+      printRefusal(action, {
         status: "BLOCKED",
-        reason: "intake_rejected",
+        reason: intake.review_hash_error || "intake_rejected",
         next_safe_action: intake.next_safe_action,
         data: {
           resolved_identity: intake.packet_id || null,
@@ -262,7 +292,7 @@ function runActivateLatest(commandRepoRoot) {
     resolvedIdentity = intake.packet_id;
   }
 
-  const activated = activatePacket(commandRepoRoot, activationInput);
+  const activated = activatePacket(commandRepoRoot, activationInput, { expectedPacketSha256: reviewSha256 });
   if (activated.status === "BLOCKED") {
     printRefusal("activate-latest", {
       status: "BLOCKED",
@@ -298,7 +328,7 @@ function runActivateLatest(commandRepoRoot) {
   });
 }
 
-function runStartLatest(commandRepoRoot) {
+function runStartLatest(commandRepoRoot, reviewSha256) {
   const domain = enforceSingleDomainContext(commandRepoRoot, PROCESS_DOMAIN);
   if (!domain.ok) {
     printRefusal("start-latest", domain.diagnostic);
@@ -325,7 +355,7 @@ function runStartLatest(commandRepoRoot) {
     return;
   }
 
-  runActivateLatest(commandRepoRoot);
+  runActivateLatest(commandRepoRoot, reviewSha256, "start-latest");
 }
 
 function parseCloseFeatureArgs(argv) {
@@ -676,18 +706,12 @@ async function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
     return;
   }
 
-  if (action === "intake-latest") {
-    runIntakeLatest(commandRepoRoot);
-    return;
-  }
-
-  if (action === "activate-latest") {
-    runActivateLatest(commandRepoRoot);
-    return;
-  }
-
-  if (action === "start-latest") {
-    runStartLatest(commandRepoRoot);
+  if (action === "intake-latest" || action === "activate-latest" || action === "start-latest") {
+    const reviewSha256 = requireReviewHash(action, argv.slice(1));
+    if (!reviewSha256) return;
+    if (action === "intake-latest") runIntakeLatest(commandRepoRoot, reviewSha256);
+    else if (action === "activate-latest") runActivateLatest(commandRepoRoot, reviewSha256);
+    else runStartLatest(commandRepoRoot, reviewSha256);
     return;
   }
 

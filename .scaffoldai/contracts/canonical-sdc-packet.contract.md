@@ -29,8 +29,9 @@ Formatting rules:
 - section headers must end with `:` exactly
 - section headers must appear in canonical order
 - `APPROVAL:` entries must be indented by at least two spaces
-- `APPROVAL:` must include both `execute` and `commit`
-- approval values must be one of `PENDING`, `APPROVED`, `DENIED`
+- `APPROVAL:` must include both `execute` and `commit`, each exactly once, and no other keys
+- exactly one `APPROVAL:` block is allowed; any other approval-like header (inline, lowercase, indented) is rejected
+- approval values must be `PENDING` at proposal ingress. Packet text never grants approval, so strict validation (candidate submission and intake) rejects `APPROVED` and `DENIED`. Execution and commit approval are granted locally by the human, not by the packet.
 - `MODE:` must be one of:
   - `PROCESS_REFACTOR`
   - `PROCESS_VALIDATION`
