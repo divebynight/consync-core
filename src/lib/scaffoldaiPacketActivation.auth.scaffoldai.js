@@ -7,6 +7,8 @@ const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { getInFlightPacket } = require("./getInFlightPacket.query.scaffoldai");
 const { detectCategory, extractTitle } = require("./scaffoldaiPacketVisibility.query.scaffoldai");
 const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
+const { readTaskState } = require("./scaffoldaiTaskState.query.scaffoldai");
+const acceptance = require("./scaffoldaiTaskAcceptance.auth.scaffoldai");
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 
@@ -137,38 +139,6 @@ function readPacketMetadata(packetPath, fileName) {
   };
 }
 
-function replacePacketPointer(nextActionText, packetIdOrNull) {
-  const value = packetIdOrNull || "NONE";
-
-  if (!nextActionText) {
-    return [
-      "TYPE: REFACTOR",
-      `PACKAGE: ${value}`,
-      "",
-      "Managed by scaffoldai packet command.",
-      "",
-    ].join("\n");
-  }
-
-  if (/^PACKET_ID:\s*.+$/m.test(nextActionText)) {
-    return nextActionText.replace(/^PACKET_ID:\s*.+$/m, `PACKET_ID: ${value}`);
-  }
-
-  if (/^PACKAGE:\s*.+$/m.test(nextActionText)) {
-    return nextActionText.replace(/^PACKAGE:\s*.+$/m, `PACKAGE: ${value}`);
-  }
-
-  const lines = nextActionText.split(/\r?\n/);
-  const typeIndex = lines.findIndex((line) => /^TYPE:\s*/.test(line.trim()));
-
-  if (typeIndex !== -1) {
-    lines.splice(typeIndex + 1, 0, `PACKAGE: ${value}`);
-    return lines.join("\n");
-  }
-
-  return `PACKAGE: ${value}\n\n${nextActionText}`;
-}
-
 function replaceSnapshotPointer(snapshotText, packetIdOrNull, packetCategoryOrNull) {
   if (!snapshotText) return null;
 
@@ -200,9 +170,11 @@ function setActiveRuntimeInFlight(rootPath, packetIdOrNull) {
   });
 }
 
-function writePacketPointerState(rootPath, packetIdOrNull, packetCategoryOrNull) {
-  const nextAction = scaffoldaiState.readNextAction(rootPath);
-  scaffoldaiState.writeNextAction(rootPath, replacePacketPointer(nextAction, packetIdOrNull));
+// Replaces next-action.md wholesale. Any acceptance record is removed first,
+// so no intermediate state is ever runnable.
+function writePacketPointerState(rootPath, packetIdOrNull, packetCategoryOrNull, nextActionContent) {
+  acceptance.clearAcceptanceRecord(rootPath);
+  scaffoldaiState.writeNextAction(rootPath, nextActionContent);
 
   setActiveRuntimeInFlight(rootPath, packetIdOrNull);
 
@@ -211,6 +183,29 @@ function writePacketPointerState(rootPath, packetIdOrNull, packetCategoryOrNull)
   if (updatedSnapshot !== null) {
     scaffoldaiState.writeSnapshot(rootPath, updatedSnapshot);
   }
+}
+
+const ROLLBACK_STATE_FILES = ["next-action.md", "active-runtime.json", "snapshot.md"];
+
+function saveTaskFiles(rootPath) {
+  return {
+    files: ROLLBACK_STATE_FILES.map((fileName) => ({
+      fileName,
+      content: scaffoldaiState.readStateFileRaw(rootPath, fileName),
+    })),
+    acceptance: acceptance.readAcceptanceRaw(rootPath),
+  };
+}
+
+// Restore task files through the state authority module, then the acceptance
+// record last, so a failed restore leaves the task unrunnable rather than
+// runnable with mismatched content.
+function restoreTaskFiles(rootPath, saved) {
+  acceptance.clearAcceptanceRecord(rootPath);
+  for (const { fileName, content } of saved.files) {
+    scaffoldaiState.restoreStateFileRaw(rootPath, fileName, content);
+  }
+  acceptance.writeAcceptanceRaw(rootPath, saved.acceptance);
 }
 
 function appendPointerHistory(rootPath, packetIdOrNull, action) {
@@ -239,18 +234,13 @@ function appendPointerHistory(rootPath, packetIdOrNull, action) {
 }
 
 function activatePacket(rootPath, packetInput) {
-  // Enforce clean workspace before allowing activation.
+  // Check workspace cleanliness before activation (warning only, not blocking).
   const cleanliness = checkWorkspaceCleanliness(rootPath);
+  let workspaceWarning = null;
+  
   if (!cleanliness.clean) {
-    return {
-      action: "activate",
-      status: "BLOCKED",
+    workspaceWarning = {
       reason: cleanliness.reason,
-      packet_id: null,
-      packet_file: null,
-      exists: false,
-      title: null,
-      category: null,
       message: cleanliness.message,
       dirty_files_count: cleanliness.count,
       dirty_files: cleanliness.files,
@@ -258,26 +248,28 @@ function activatePacket(rootPath, packetInput) {
       operator_owned_files_count: cleanliness.operator_owned_files_count || 0,
       lifecycle_owned_files: cleanliness.lifecycle_owned_files || [],
       operator_owned_files: cleanliness.operator_owned_files || [],
-      next_safe_action: cleanliness.next_safe_action,
+      advisory: cleanliness.next_safe_action,
     };
   }
 
   const resolved = resolvePacketPath(rootPath, packetInput);
   const metadata = readPacketMetadata(resolved.absolutePath, resolved.fileName);
 
-  const currentActivePacket = getInFlightPacket(rootPath);
+  const taskState = readTaskState(rootPath);
   const currentRuntime = scaffoldaiState.readActiveRuntime(rootPath) || {};
+  const packetFile = path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/");
 
-  if (currentActivePacket && currentActivePacket !== resolved.packetId) {
+  if (taskState.status === "open" && taskState.task_id !== resolved.packetId) {
     const claimedBy = currentRuntime.claimed_by || null;
     const claimStatus = currentRuntime.claim_status || null;
+    const currentActivePacket = taskState.package_name;
 
     return {
       action: "activate",
       status: "BLOCKED",
       reason: "active_packet_exists",
       packet_id: resolved.packetId,
-      packet_file: path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/"),
+      packet_file: packetFile,
       exists: true,
       title: metadata.title,
       category: metadata.category,
@@ -291,21 +283,72 @@ function activatePacket(rootPath, packetInput) {
     };
   }
 
-  if (currentActivePacket === resolved.packetId) {
+  if (taskState.status === "closed" && taskState.task_id === resolved.packetId) {
     return {
       action: "activate",
-      status: "PASS",
-      idempotent: true,
+      status: "BLOCKED",
+      reason: "packet_already_closed",
       packet_id: resolved.packetId,
-      packet_file: path.join(PACKETS_DIR_RELATIVE, resolved.fileName).split(path.sep).join("/"),
+      packet_file: packetFile,
       exists: true,
       title: metadata.title,
       category: metadata.category,
-      next_safe_action: "Packet already active. Proceed with the current packet or clear it explicitly before switching.",
+      message: `Handoff records \"${resolved.packetId}\" as ${taskState.handoff_status}. A closed task cannot be re-accepted.`,
+      next_safe_action: "Create and accept a new packet for any further work.",
     };
   }
 
-  writePacketPointerState(rootPath, resolved.packetId, metadata.category);
+  let reaccepted = false;
+  if (taskState.status === "open") {
+    try {
+      acceptance.assertAcceptedTask(rootPath, {
+        activePacket: resolved.packetId,
+        nextActionContent: scaffoldaiState.readNextAction(rootPath),
+      });
+      return {
+        action: "activate",
+        status: "PASS",
+        idempotent: true,
+        packet_id: resolved.packetId,
+        packet_file: packetFile,
+        exists: true,
+        title: metadata.title,
+        category: metadata.category,
+        next_safe_action: "Packet already active and accepted. Proceed with the current packet or clear it explicitly before switching.",
+        workspace_warning: workspaceWarning,
+      };
+    } catch {
+      // Same packet is open but its acceptance is missing, stale, or does not
+      // match: this activation is the explicit re-acceptance.
+      reaccepted = true;
+    }
+  }
+
+  const packetContent = acceptance.readContainedPacket(rootPath, resolved.absolutePath);
+  const nextActionContent = acceptance.buildAcceptedNextAction({
+    packetId: resolved.packetId,
+    category: metadata.category,
+    packetContent,
+  });
+  const saved = saveTaskFiles(rootPath);
+
+  try {
+    writePacketPointerState(rootPath, resolved.packetId, metadata.category, nextActionContent);
+    acceptance.writeAcceptanceRecord(rootPath, acceptance.buildAcceptanceRecord({
+      packetId: resolved.packetId,
+      packetFile,
+      packetContent,
+      nextActionContent,
+    }));
+  } catch (error) {
+    try {
+      restoreTaskFiles(rootPath, saved);
+    } catch {
+      acceptance.clearAcceptanceRecord(rootPath);
+    }
+    throw error;
+  }
+
   appendPointerHistory(rootPath, resolved.packetId, "activate");
 
   return {
@@ -316,7 +359,9 @@ function activatePacket(rootPath, packetInput) {
     exists: true,
     title: metadata.title,
     category: metadata.category,
+    ...(reaccepted ? { reaccepted: true } : {}),
     next_safe_action: "Run scaffoldai status or scaffoldai packet status to confirm active packet context.",
+    workspace_warning: workspaceWarning,
   };
 }
 
@@ -379,7 +424,7 @@ function getPacketStatus(rootPath) {
 function clearActivePacket(rootPath) {
   const previousPacket = getInFlightPacket(rootPath);
 
-  writePacketPointerState(rootPath, null, null);
+  writePacketPointerState(rootPath, null, null, acceptance.NO_TASK_NEXT_ACTION);
   appendPointerHistory(rootPath, previousPacket, "clear");
 
   return {

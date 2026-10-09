@@ -38,6 +38,11 @@
     "scaffoldai:activate-latest": "node src/scaffoldai.js scaffoldai lifecycle activate-latest",
     "scaffoldai:start-latest": "node src/scaffoldai.js scaffoldai lifecycle start-latest",
     "scaffoldai:close-feature": "node src/scaffoldai.js scaffoldai lifecycle close-feature",
+    "scaffoldai:cancel-packet": "node src/scaffoldai.js scaffoldai lifecycle cancel-packet",
+    "scaffoldai:discuss": "node src/scaffoldai.js scaffoldai discuss",
+    "scaffoldai:plan": "node src/scaffoldai.js scaffoldai plan",
+    "scaffoldai:work": "node src/scaffoldai.js scaffoldai work",
+    "scaffoldai:probe": "node src/scaffoldai.js scaffoldai probe",
     "scaffoldai:mcp": "node src/scaffoldai/mcp/server.js",
     "scaffoldai:mcp:snapshot": "node src/scaffoldai/mcp/snapshot.js",
     "scaffoldai:mcp:readonly:stdio": "node src/scaffoldai/mcp-readonly/stdio.js",
@@ -55,6 +60,8 @@
     "test:mcp:readonly:http": "node src/test/mcp-readonly-http-e2e.js",
     "test:mcp:readonly:chatgpt": "node src/test/mcp-readonly-chatgpt-compatibility.js",
     "test:mcp:operator:http": "node src/test/mcp-operator-http-e2e.js",
+    "test:executor:plan:async": "node src/test/unit-scaffoldai-executor-plan-async.js",
+    "test:scaffoldai:security": "node --test src/test/unit-scaffoldai-executor-security.js src/test/unit-scaffoldai-reports.js src/test/unit-scaffoldai-messages.js src/test/mcp-operator-http-security.js src/test/mcp-operator-auth-security.js",
     "test:mcp:readonly": "npm run test:mcp:readonly:unit && npm run test:mcp:readonly:security && npm run test:mcp:readonly:stdio && npm run test:mcp:readonly:http && npm run test:mcp:readonly:chatgpt",
     "test": "npm run test:unit && npm run test:integration",
     "verify:full": "npm run check:state-preflight && npm test && npm run build:preload && npm run test:e2e && npm run check:state-postflight"
@@ -76,6 +83,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "jose": "^6.2.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^4.4.3"

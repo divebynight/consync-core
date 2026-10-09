@@ -14,6 +14,12 @@ function runStateIntegrityCheckCommand(options) {
   console.log(`- stream-local state: ${result.streamLocalStatus}`);
   console.log(`- next safe action: ${result.nextSafeAction}`);
 
+  if (result.warnings && result.warnings.length > 0) {
+    for (const warning of result.warnings) {
+      console.log(`- warning: ${warning}`);
+    }
+  }
+
   if (!result.ok) {
     for (const failure of result.failures) {
       console.log(`- ${failure}`);

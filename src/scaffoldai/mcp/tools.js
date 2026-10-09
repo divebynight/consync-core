@@ -11,6 +11,14 @@ const { resolveProfile } = require("../../lib/profileResolver.process.scaffoldai
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const { gatherCompletionStatus } = require("../../lib/scaffoldaiCompletionStatus.query.scaffoldai");
 const { runVerifyTool } = require("../../lib/scaffoldaiVerifyRun.auth.scaffoldai");
+const { runExecutorPlanTool } = require("../../lib/scaffoldaiExecutorPlan.tool.scaffoldai");
+const {
+  createAndStartJob,
+  getJobStatus,
+  getJobResult,
+  cleanupJobs,
+  runPlanAndWait,
+} = require("../../lib/scaffoldaiExecutorPlanJob.lib.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 const EXECUTION_CLASS = "READ_ONLY";
@@ -211,6 +219,76 @@ function runVerifyRunTool(args = {}, deps = {}) {
 }
 
 // -----------------------------------------------------------------------
+// scaffoldai_executor_plan  [TRANSITIONAL — blocking synchronous path]
+//
+// Kept for backwards compatibility. New coordinators should use the
+// async artifact-backed flow:
+//   scaffoldai_executor_plan_start → _status → _result → _cleanup
+// -----------------------------------------------------------------------
+
+function executorDeps(deps) {
+  if (deps.remote !== true) return deps;
+  const { getPrincipal } = require("../authorization");
+  return { ...deps, principal: getPrincipal() };
+}
+
+function runExecutorPlanToolMcp(args = {}, deps = {}) {
+  return runExecutorPlanTool(repoRoot, args, deps);
+}
+
+async function runExecutorPlanToolMcpAsync(args = {}, deps = {}) {
+  const result = await runPlanAndWait(deps.repoRoot || repoRoot, args, executorDeps(deps));
+  return {
+    tool: "scaffoldai_executor_plan",
+    execution_class: "LOCAL_EXECUTOR_PLAN",
+    status: result.status === "completed" ? "complete" : result.status === "timed_out" ? "timeout" : result.status,
+    job_id: result.job_id || null,
+    active_packet: result.active_packet_id || null,
+    planning_mode: "PLAN",
+    command_boundary: result.command_boundary || null,
+    stdout: result.stdout || "", stderr: result.stderr || "",
+    exit_code: result.exit_code ?? null, duration_ms: result.duration_ms || 0,
+    timestamp: result.started_at || new Date().toISOString(),
+    refusal_reason: result.refusal_reason || null,
+    ...(result.error_code ? { error_code: result.error_code } : {}),
+    next_safe_action: result.status === "completed"
+      ? "Planning complete. Review output before approving further work."
+      : "Inspect job status and local diagnostics before retrying.",
+  };
+}
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_start
+// -----------------------------------------------------------------------
+
+function runExecutorPlanStartTool(args = {}, deps = {}) {
+  return createAndStartJob(deps.repoRoot || repoRoot, args, executorDeps(deps));
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_status
+// -----------------------------------------------------------------------
+
+function runExecutorPlanStatusTool(args = {}, deps = {}) {
+  return getJobStatus(deps.repoRoot || repoRoot, args.job_id, executorDeps(deps));
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_result
+// -----------------------------------------------------------------------
+
+function runExecutorPlanResultTool(args = {}, deps = {}) {
+  return getJobResult(deps.repoRoot || repoRoot, args.job_id, executorDeps(deps));
+}
+
+// -----------------------------------------------------------------------
+// scaffoldai_executor_plan_cleanup
+// -----------------------------------------------------------------------
+
+function runExecutorPlanCleanupTool(args = {}) {
+  return cleanupJobs(repoRoot, args);
+}
+
+// -----------------------------------------------------------------------
 // Exports
 // -----------------------------------------------------------------------
 
@@ -222,4 +300,10 @@ module.exports = {
   runCloseoutReadinessTool,
   runCompletionStatusTool,
   runVerifyRunTool,
+  runExecutorPlanToolMcp,
+  runExecutorPlanToolMcpAsync,
+  runExecutorPlanStartTool,
+  runExecutorPlanStatusTool,
+  runExecutorPlanResultTool,
+  runExecutorPlanCleanupTool,
 };

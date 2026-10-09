@@ -595,15 +595,40 @@ for (const [name, fn] of toolFns) {
     "scaffoldai_submit_sdc_candidate",
     "scaffoldai_memory_write",
     "scaffoldai_memory_read",
+    "scaffoldai_executor_plan",
+    "scaffoldai_executor_plan_start",
+    "scaffoldai_executor_plan_status",
+    "scaffoldai_executor_plan_result",
+    "scaffoldai_executor_plan_cleanup",
+  ];
+
+  // Tools that must never appear on the read-only surface (security boundary)
+  const forbiddenTools = [
+    "scaffoldai_file_write",
+    "scaffoldai_state_write",
+    "scaffoldai_git_commit",
+    "scaffoldai_git_push",
   ];
 
   try {
     const source = fs.readFileSync(serverPath, "utf8");
     const matches = [...source.matchAll(/server\.(?:tool|registerTool)\(\s*"([^"]+)"/g)].map((entry) => entry[1]);
-    check(matches.length === expectedTools.length, `server tool registration count matches expected (${expectedTools.length})`);
 
+    // Assert all expected tools are present
     for (const toolName of expectedTools) {
       check(matches.includes(toolName), `server registers ${toolName}`);
+    }
+
+    // Assert no unexpected tools slipped in (catches unreviewed additions)
+    const unexpectedTools = matches.filter((t) => !expectedTools.includes(t));
+    check(
+      unexpectedTools.length === 0,
+      `server has no unexpected tool registrations (unexpected: ${unexpectedTools.join(", ") || "none"})`
+    );
+
+    // Assert forbidden mutation/work tools are not present
+    for (const toolName of forbiddenTools) {
+      check(!matches.includes(toolName), `server does not register forbidden tool ${toolName}`);
     }
   } catch {
     fail("Could not read server.js for MCP tool inventory check");

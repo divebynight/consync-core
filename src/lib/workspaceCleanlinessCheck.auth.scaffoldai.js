@@ -106,7 +106,7 @@ function checkWorkspaceCleanliness(repoRoot) {
       clean: false,
       count: gitStatus.count,
       files: gitStatus.files,
-      status: "BLOCKED",
+      status: "WARNING",
       reason: "workspace_not_clean",
       message,
       next_safe_action: nextSafeAction,

@@ -457,6 +457,19 @@ function main() {
   runNodeStep("[verify] Repo root resolver", [path.join(repoRoot, "src", "test", "unit-repo-root.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] Executor adapter (plan/work command builder)", [path.join(repoRoot, "src", "test", "unit-executor-adapter.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI MCP executor plan tool", [path.join(repoRoot, "src", "test", "unit-scaffoldai-mcp-executor-plan.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI async executor", [path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-plan-async.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI local security boundaries", ["--test",
+    path.join(repoRoot, "src", "test", "unit-scaffoldai-executor-security.js"),
+    path.join(repoRoot, "src", "test", "mcp-operator-http-security.js"),
+    path.join(repoRoot, "src", "test", "mcp-operator-auth-security.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI status command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-status.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
@@ -496,7 +509,14 @@ function main() {
   runNodeStep("[verify] ScaffoldAI packet activation flow", [path.join(repoRoot, "src", "test", "unit-scaffoldai-packet-activation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
+  runNodeStep("[verify] ScaffoldAI task integrity (accepted task reaches prompts)", ["--test",
+    path.join(repoRoot, "src", "test", "unit-scaffoldai-task-integrity.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
   runNodeStep("[verify] ScaffoldAI end-to-end lifecycle simulation", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-simulation.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  console.log("");
+
+  runNodeStep("[verify] ScaffoldAI lifecycle probe", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-probe.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI lifecycle transition matrix tests", [path.join(repoRoot, "src", "test", "unit-scaffoldai-lifecycle-matrix.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
@@ -520,7 +540,7 @@ function main() {
   runCommandStep("[verify] ScaffoldAI MCP read-only Phase 1 surface", npmCommand, ["run", "test:mcp:readonly"], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
-  runNodeStep("[verify] ScaffoldAI MCP operator HTTPS submit-only surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI MCP operator authenticated metadata surface", [path.join(repoRoot, "src", "test", "mcp-operator-http-e2e.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] Consync product/runtime surface", [path.join(repoRoot, "src", "consync.js"), "system-check"], GROUPS.SYSTEM, SURFACES.CONSYNC);

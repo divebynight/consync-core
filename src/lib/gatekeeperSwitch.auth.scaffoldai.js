@@ -3,6 +3,7 @@ const path = require("path");
 const readline = require("readline");
 
 const { readGatekeeperState, updateStreamSummary } = require("./gatekeeperMount.auth.scaffoldai");
+const { deriveTaskStatus } = require("./scaffoldaiTaskState.query.scaffoldai");
 const scaffoldaiState = require("./scaffoldaiState.state.scaffoldai");
 const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 
@@ -15,19 +16,6 @@ const FIXED_STREAMS = ["process", "electron_ui"];
 // Derived facts
 // ---------------------------------------------------------------------------
 
-function derivePackageStatus(nextAction, handoff) {
-  if (!nextAction || !nextAction.packageName) {
-    return "absent";
-  }
-  if (
-    handoff &&
-    handoff.packageName === nextAction.packageName &&
-    (handoff.status === "PASS" || handoff.status === "FAIL")
-  ) {
-    return "closed";
-  }
-  return "open";
-}
 
 function extractStreamStatus(streamDocText) {
   if (!streamDocText) return null;
@@ -46,17 +34,17 @@ function hasPauseCheckpoint(streamDocText) {
 function evaluateSwitch(state, targetStream) {
   const { activeStreamName, activeStreamText, nextAction, handoff, rootPath } = state;
 
-  // Enforce clean workspace before allowing stream switch.
+  // Check workspace cleanliness before stream switch (warning only).
+  let workspaceWarning = null;
   if (rootPath) {
     const cleanliness = checkWorkspaceCleanliness(rootPath);
     if (!cleanliness.clean) {
-      return {
-        decision: "REFUSE",
+      workspaceWarning = {
         reason: "workspace_not_clean",
         message: cleanliness.message,
         dirty_files_count: cleanliness.count,
         dirty_files: cleanliness.files,
-        next_safe_action: cleanliness.next_safe_action,
+        advisory: cleanliness.next_safe_action,
       };
     }
   }
@@ -90,7 +78,7 @@ function evaluateSwitch(state, targetStream) {
     };
   }
 
-  const packageStatus = derivePackageStatus(nextAction, handoff);
+  const packageStatus = deriveTaskStatus(nextAction, handoff);
 
   if (packageStatus === "open") {
     return {
@@ -128,12 +116,17 @@ function evaluateSwitch(state, targetStream) {
     );
   }
 
+  if (workspaceWarning) {
+    warnings.push(`Workspace not clean: ${workspaceWarning.message}`);
+  }
+
   return {
     decision: "READY_TO_SWITCH",
     fromStream: activeStreamName,
     toStream: targetStream,
     targetHasPauseCheckpoint: hasPauseCheckpoint(targetStreamDocText),
     warnings,
+    workspace_warning: workspaceWarning,
   };
 }
 

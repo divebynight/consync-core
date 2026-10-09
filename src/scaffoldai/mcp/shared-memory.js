@@ -20,23 +20,26 @@ const ERROR_CATEGORY = {
   SCHEMA_INPUT_MISMATCH: "schema_input_mismatch",
   GUARD_FAILURE: "guard_failure",
   FILESYSTEM_WRITE_ERROR: "filesystem_write_error",
+  STORAGE_CAP_REACHED: "storage_cap_reached",
 };
 
 const MAX_FROM_TO_TOPIC_LENGTH = 80;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_LIMIT = 25;
 const DEFAULT_LIMIT = 10;
+const MAX_STORAGE_BYTES = 1024 * 1024;
 
 // ---------------------------------------------------------------------------
 // helpers
 // ---------------------------------------------------------------------------
 
-function ensureStorageFile() {
-  if (!fs.existsSync(STORAGE_DIR)) {
-    fs.mkdirSync(STORAGE_DIR, { recursive: true });
+function ensureStorageFile(storageFile = STORAGE_FILE) {
+  const storageDir = storageFile === STORAGE_FILE ? STORAGE_DIR : path.dirname(storageFile);
+  if (!fs.existsSync(storageDir)) {
+    fs.mkdirSync(storageDir, { recursive: true });
   }
-  if (!fs.existsSync(STORAGE_FILE)) {
-    fs.writeFileSync(STORAGE_FILE, "", "utf8");
+  if (!fs.existsSync(storageFile)) {
+    fs.writeFileSync(storageFile, "", "utf8");
   }
 }
 
@@ -87,8 +90,8 @@ function hasOnlyAllowedFields(args, allowedFields) {
   return Object.keys(args).every((key) => allowedFields.has(key));
 }
 
-function ensureStorageBoundary() {
-  const resolved = STORAGE_FILE;
+function ensureStorageBoundary(storageFile = STORAGE_FILE) {
+  const resolved = storageFile;
   if (!resolved.endsWith(STORAGE_BOUNDARY_SUFFIX)) {
     throw new Error("shared memory path boundary violation");
   }
@@ -98,7 +101,10 @@ function ensureStorageBoundary() {
 // scaffoldai_memory_write
 // ---------------------------------------------------------------------------
 
-function runMemoryWriteTool(args) {
+// options.storageFile lets callers (the remote operator and tests) target the
+// shared-memory file under a specific repository root.
+function runMemoryWriteTool(args, options = {}) {
+  const storageFile = options.storageFile || STORAGE_FILE;
   if (!isPlainObject(args)) {
     return rejectWrite("input must be an object", {
       guard_errors: ["input payload must be a JSON object"],
@@ -143,8 +149,8 @@ function runMemoryWriteTool(args) {
   }
 
   try {
-    ensureStorageBoundary();
-    ensureStorageFile();
+    ensureStorageBoundary(storageFile);
+    ensureStorageFile(storageFile);
   } catch (error) {
     return rejectWrite("shared-memory storage path boundary check failed", {
       error_category: ERROR_CATEGORY.GUARD_FAILURE,
@@ -163,8 +169,16 @@ function runMemoryWriteTool(args) {
     message,
   };
 
+  const line = JSON.stringify(record) + "\n";
+  if (fs.statSync(storageFile).size + Buffer.byteLength(line) > MAX_STORAGE_BYTES) {
+    return rejectWrite("shared memory storage cap reached", {
+      error_category: ERROR_CATEGORY.STORAGE_CAP_REACHED,
+      next_safe_action: "Archive or rotate the shared-memory log locally before writing more.",
+    });
+  }
+
   try {
-    fs.appendFileSync(STORAGE_FILE, JSON.stringify(record) + "\n", "utf8");
+    fs.appendFileSync(storageFile, line, "utf8");
   } catch (error) {
     return rejectWrite("failed to append shared memory record", {
       error_category: ERROR_CATEGORY.FILESYSTEM_WRITE_ERROR,
@@ -270,4 +284,4 @@ function runMemoryReadTool(args) {
   };
 }
 
-module.exports = { runMemoryWriteTool, runMemoryReadTool };
+module.exports = { runMemoryWriteTool, runMemoryReadTool, MAX_STORAGE_BYTES };

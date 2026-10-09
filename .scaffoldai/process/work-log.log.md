@@ -1049,3 +1049,127 @@ DECISION
 FOLLOW-UP
 - Inspector "Latest Bookmark" dedicated spec: seed session with a bookmark, assert Inspector shows Latest Bookmark heading, file name, note text.
 - Timeline view (Session Timeline panel) remains fully untested.
+
+## 2026-10-04 — scaffoldai-local-security-hardening
+
+SUMMARY
+- Hardened executor artifact IDs, containment, reads, writes, admission, output capture, and termination.
+- Bounded HTTP bodies, requests, sessions, streams, candidate inbox growth, and retained executor artifacts.
+- Removed executor cleanup from HTTP; retained guarded local cleanup without deleting uncertain evidence.
+- Routed legacy HTTP planning through the bounded asynchronous runner and reduced unnecessary response disclosure.
+- Preserved localhost binding and planning-only Copilot restrictions. Authentication remains unimplemented.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 28 tests passed.
+- Existing async planning, MCP planning, executor adapter, candidate submission, duplicate/pending guards, HTTP operator, and read-only MCP suites passed.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed.
+
+CHECKPOINT BOUNDARY
+- Preserved all 15 pre-existing deleted executor artifacts without staging or restoring them.
+- Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
+- No production operator restart, real Copilot job, Cloudflare changes, or authentication implementation.
+- Public front-door authentication remains a separate approval-gated task.
+
+## 2026-10-04 - scaffoldai-local-authentication-authorization
+
+SUMMARY
+- Added fail-closed local Cloudflare Access assertion verification with pinned JWT claims, approved human subjects, and bounded JWKS retrieval.
+- Bound HTTP sessions to request-scoped verified principals and enforced metadata-only capabilities at every tool invocation, including inherited handlers.
+- Added future executor ownership persistence and owner-checked result access; historical ownerless jobs remain local-only.
+- Kept candidate submission, planning, executor reads, cleanup, and lifecycle mutation remotely denied.
+- Preserved existing hardening controls and localhost binding; documented required local configuration and unverified production integration.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 62 tests passed using generated signing keys, mocked JWKS, disposable loopback servers, and no real Copilot jobs.
+- npm run test:executor:plan:async, npm run test:mcp:operator:http, npm run test:mcp:readonly:unit, and npm run test:mcp:readonly:security passed.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed; focused implementation review reported no blocking findings.
+
+CHECKPOINT BOUNDARY
+- Commit scope is the 17 authentication task files plus this append-only work-log entry.
+- Preserved all 15 pre-existing executor-artifact deletions as unstaged deletions; no restoration or cleanup.
+- Preserved live smoke-test context and runtime state; no packet lifecycle closeout performed.
+- No production operator start, real credentials, real Copilot jobs, public requests, Cloudflare configuration, or push.
+- Local verification does not establish public endpoint security. Cloudflare and ChatGPT integration remains a separately approved configuration/test window.
+
+## 2026-10-05 - scaffoldai-bounded-discovery-diagnostics
+
+SUMMARY
+- Added temporary HTTP request/authentication/protocol/session/response diagnostics for the first 128 requests per operator instance, at most 640 fixed-schema records.
+- Classified authentication failures without exposing credentials, claims, subjects, session IDs, payloads, or upstream exception text; retained generic client errors.
+- Replaced raw HTTP exception logging with fixed categories/messages and documented diagnostic limits and interpretation.
+- Preserved authentication, capability grants, MCP tool behavior, resource admission and localhost binding.
+
+VERIFICATION
+- npm run test:scaffoldai:security: 70 tests passed; eight diagnostic regressions cover reason codes, redaction, discovery, ownership, disconnects, bounds, empty headers and untrusted error fields.
+- npm run test:mcp:operator:http passed using disposable loopback fixtures.
+- Production entry point rejected missing/invalid authentication configuration before listening; protected configuration-only validation accepted exactly one subject without displaying values.
+- npm run check:state-preflight and npm run check:state-postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+- git diff --check passed; focused diff/security review found no blocking issues.
+
+CHECKPOINT BOUNDARY
+- Commit scope is auth.js, http.js, focused authentication tests, the directly related runbook section and this append-only entry.
+- Preserved all 15 original unstaged executor-artifact deletions and existing live smoke state.
+- No production MCP tool invocation, real Copilot job, public request, Cloudflare/auth/tunnel configuration change or push.
+- Controlled operator restart is separately approved within this task after this commit. Only Mark may perform the next ChatGPT discovery retry.
+- Real OAuth completion was reported by the user; local assertion acceptance and the action-discovery failure cause remain unproven pending that retry.
+
+## 2026-10-05 - scaffoldai-one-shot-identity-binding
+
+SUMMARY
+- Added one temporary two-boolean identity observation per verifier lifetime, only after all existing cryptographic/application/human-token checks pass.
+- Compared the verified email through the approved pinned SHA-256 fingerprint without normalization; reused that same payload's subject in the unchanged allowlist decision.
+- Kept claim values out of diagnostics and retained generic client errors. Matching email does not approve a rejected subject.
+- Documented the one-shot budget, synthetic-test fingerprint seam and attribution limits; no configuration override or automatic enrollment.
+
+VERIFICATION
+- Four new synthetic regressions failed before implementation and passed afterward.
+- npm run test:scaffoldai:security: 74 tests passed.
+- npm run test:mcp:operator:http passed.
+- Pinned fingerprint checked against the exact approved identity without displaying plaintext; synthetic tests cover positive/negative comparisons, invalid tokens, concurrent one-shot bounds and HTTP 403 preservation.
+- Focused leakage/diff review and git diff --check passed.
+- State preflight/postflight exited successfully with existing missing active-stream.md and snapshot.md warnings.
+
+CHECKPOINT BOUNDARY
+- Scope: auth.js, focused auth tests, directly related runbook documentation and this append-only entry.
+- No auth-file, Cloudflare, tunnel, capability, workspace or historical-artifact changes.
+- Production identity binding remains unproven until Mark's separately controlled Safari navigation after the approved restart.
+- No real Copilot jobs, production MCP tool calls, public authenticated requests or allowlist update.
+
+## 2026-10-06 - scaffoldai-one-shot-subject-capture
+
+SUMMARY
+- Added an operator-armed one-shot subject capture gate, enabled only by SCAFFOLDAI_ACCESS_SUBJECT_CAPTURE=1 in the process environment; any other non-empty value refuses startup.
+- Capture shares the existing identity one-shot after full verification and reveals only the verified sub when intended_email_match is true; a mismatch records captured:false and consumes the gate.
+- No enrollment, file writes, allowlist, capability, HTTP response or binding changes. Unarmed behavior is unchanged.
+
+VERIFICATION
+- Five new synthetic regressions failed before implementation and passed afterward.
+- npm run test:scaffoldai:security: 79 tests passed.
+- npm run test:mcp:operator:http passed.
+- git diff --check passed.
+
+CHECKPOINT BOUNDARY
+- Scope: auth.js, http.js, focused auth tests, directly related runbook section and this append-only entry.
+- Preserved all 15 original unstaged executor-artifact deletions; temporary diagnostics retained.
+- No operator start, Cloudflare/auth-file/allowlist change, live ChatGPT request, commit, push or branch change.
+- Live capture and any allowlist update require separate explicit approval.
+
+## 2026-10-06 - scaffoldai-chatgpt-oauth-milestone
+
+SUMMARY
+- OAuth identity binding resolved: one-shot capture from a real ChatGPT assertion reported intended_email_match, same_assertion_subject and captured all true.
+- The verified subject was explicitly approved as the only SCAFFOLDAI_ACCESS_SUBJECTS entry in the owner-only local auth file; the issuer and AUD were preserved and the value is not stored in Git.
+- With capture OFF, the `ScaffoldAI MCP OAuth Test` ChatGPT plugin discovered actions and called `scaffoldai_status` end to end (READ_ONLY, ON_TRACK).
+- First proven ChatGPT -> OAuth -> Cloudflare Access -> tunnel -> local ScaffoldAI MCP round trip.
+
+VERIFICATION
+- Operator log, 2026-10-06T16:36:51Z-16:38:44Z: 11 authentication successes with subject_match true, 0 failures, sessions owner_match true, initialize/tools/list plus three further MCP calls answered 200.
+- Two transient 400 missing_session responses were observed and not investigated.
+- The known-good startup, tunnel facts, restart procedure and troubleshooting are recorded in the remote-proposal local lifecycle runbook.
+
+CHECKPOINT BOUNDARY
+- Documentation only. No authentication code, capability, Cloudflare, allowlist or diagnostics change.
+- Preserved the 15 executor-artifact deletions and the capture logs; the old `ScaffoldAI MCP` plugin is not the authenticated path.
+- No commit or push without separate approval.

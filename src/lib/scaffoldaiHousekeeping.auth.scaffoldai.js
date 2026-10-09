@@ -257,6 +257,11 @@ function resetRuntimeState(repoRoot, options = {}) {
     };
   }
 
+  // Invalidate task acceptance first, so no reset step leaves a runnable task.
+  if (scaffoldaiState.removeAcceptedTask(repoRoot)) {
+    touched.push(".scaffoldai/state/accepted-task.json");
+  }
+
   scaffoldaiState.writeActiveRuntime(repoRoot, { in_flight_packet: null });
   touched.push(".scaffoldai/state/active-runtime.json");
 

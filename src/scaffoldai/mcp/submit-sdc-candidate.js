@@ -279,6 +279,15 @@ function runSubmitSdcCandidateTool(input = {}, options = {}) {
     });
   }
 
+  if (fs.readdirSync(inboxRoot).length >= 100) {
+    return reject({
+      error_category: "inbox_capacity",
+      reason: "Inbox capacity reached (100 entries).",
+      guard_errors: ["inbox capacity reached"],
+      next_safe_action: "Review retained candidates locally before submitting more. Nothing was deleted.",
+    });
+  }
+
   const collision = findPendingCandidateCollision(
     inboxRoot,
     nameResolution.fileName,
@@ -305,9 +314,10 @@ function runSubmitSdcCandidateTool(input = {}, options = {}) {
   try {
     fs.writeFileSync(candidatePath, content.endsWith("\n") ? content : `${content}\n`, "utf8");
   } catch (error) {
+    process.stderr.write(`[ScaffoldAI candidate] ${error.code || "WRITE_ERROR"}: ${error.message}\n`);
     return reject({
       error_category: ERROR_CATEGORY.FILESYSTEM_WRITE_ERROR,
-      reason: `failed to write candidate file: ${error.message}`,
+      reason: "Failed to write candidate file; inspect local diagnostics.",
       guard_errors: ["filesystem write failed"],
       next_safe_action: "Check inbox permissions and available disk, then retry submission.",
     });

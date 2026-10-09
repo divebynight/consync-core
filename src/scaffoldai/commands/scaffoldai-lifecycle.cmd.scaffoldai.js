@@ -35,7 +35,21 @@ const scaffoldaiVerifyEvidence = require("../../lib/scaffoldaiVerifyEvidence.sta
 const defaultRepoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature>");
+  console.log("Usage: scaffoldai lifecycle <intake-latest|activate-latest|start-latest|close-feature|cancel-packet>");
+}
+
+function printWarnings(warnings) {
+  if (!warnings || warnings.length === 0) return;
+  
+  console.log("");
+  console.log("WARNINGS:");
+  for (const warning of warnings) {
+    console.log(`  ⚠ ${warning.reason || "unknown"}: ${warning.message || warning.advisory || "no details"}`);
+    if (warning.dirty_files_count) {
+      console.log(`     ${warning.dirty_files_count} file(s) uncommitted`);
+    }
+  }
+  console.log("");
 }
 
 function printRefusal(action, diagnostic) {
@@ -269,6 +283,11 @@ function runActivateLatest(commandRepoRoot) {
     return;
   }
 
+  // Display workspace warnings if present
+  if (activated.workspace_warning) {
+    printWarnings([activated.workspace_warning]);
+  }
+
   printWrapperResult("activate-latest", {
     active_packet: activated.packet_id,
     resolved_candidate: resolution.value.source_relative_path,
@@ -428,6 +447,16 @@ async function runCloseFeature(commandRepoRoot, argv) {
   );
 
   const verificationReady = verifyEvidence.valid;
+  const verificationWarnings = [];
+  
+  // Collect verification warnings (expired/stale evidence)
+  if (!verificationReady && verifyEvidence.diagnostic && verifyEvidence.diagnostic.status === "WARNING") {
+    verificationWarnings.push({
+      reason: verifyEvidence.diagnostic.reason,
+      message: verifyEvidence.diagnostic.next_safe_action,
+      data: verifyEvidence.diagnostic.data,
+    });
+  }
 
   const closeout = gatherCloseoutReadiness(commandRepoRoot, {
     verifyPassed: true,
@@ -463,7 +492,8 @@ async function runCloseFeature(commandRepoRoot, argv) {
     return;
   }
 
-  if (!verificationReady) {
+  // Only block on true verification failures (not warnings)
+  if (!verificationReady && verifyEvidence.diagnostic && verifyEvidence.diagnostic.status === "BLOCKED") {
     printRefusal("close-feature", verifyEvidence.diagnostic);
     return;
   }
@@ -554,6 +584,18 @@ async function runCloseFeature(commandRepoRoot, argv) {
     ? "Workspace is clean. Activate the next packet intentionally."
     : "Workspace intentionally remains dirty after close-feature. Review and commit operator-owned and lifecycle-owned artifacts, then activate the next packet.";
 
+  // Display verification warnings if present
+  if (verificationWarnings.length > 0) {
+    printWarnings(verificationWarnings);
+  }
+  
+  // Display closeout warnings if present (expired/stale evidence)
+  if (closeout.warnings && closeout.warnings.length > 0) {
+    for (const warning of closeout.warnings) {
+      console.log(`⚠ ${warning}`);
+    }
+  }
+
   printWrapperResult("close-feature", {
     active_packet: "(none)",
     resolved_identity: active.value.packet_id,
@@ -565,6 +607,62 @@ async function runCloseFeature(commandRepoRoot, argv) {
     operator_owned_files_count: finalOperatorOwnedCount,
     next_safe_action: nextSafeAction,
     status: "PASS",
+  });
+}
+
+async function runCancelPacket(commandRepoRoot, argv) {
+  const reason = argv[0] || "mistaken or stale packet";
+  
+  const domain = enforceSingleDomainContext(commandRepoRoot, PROCESS_DOMAIN);
+  if (!domain.ok) {
+    printRefusal("cancel-packet", domain.diagnostic);
+    return;
+  }
+
+  const active = resolveActivePacketIdentity(commandRepoRoot);
+  if (!active.ok) {
+    printRefusal("cancel-packet", {
+      status: "BLOCKED",
+      reason: "no_active_packet",
+      next_safe_action: "No active packet to cancel. Run scaffoldai status to inspect state.",
+      data: {
+        active_packet: null,
+        resolved_identity: null,
+      },
+    });
+    return;
+  }
+
+  const cancelSummary = `Cancelled: ${reason}`;
+  const closeResult = await runGatekeeperClose(commandRepoRoot, {
+    nonInteractive: true,
+    status: "CANCELLED",
+    summary: cancelSummary,
+    confirm: true,
+  });
+
+  if (!closeResult || closeResult.packet_closed !== true) {
+    printRefusal("cancel-packet", {
+      status: "BLOCKED",
+      reason: "cancel_failed",
+      next_safe_action: "Resolve blockers and retry cancel-packet.",
+      data: {
+        active_packet: active.value.packet_id,
+        resolved_identity: active.value.packet_id,
+      },
+    });
+    return;
+  }
+
+  const cleanup = cleanWorkspace(commandRepoRoot, { includeRuntimeLogs: false });
+  
+  printWrapperResult("cancel-packet", {
+    active_packet: "(none)",
+    resolved_identity: active.value.packet_id,
+    lifecycle_phase: "packet_cancelled",
+    reason: reason,
+    next_safe_action: "Review abandoned work if needed, commit any keeper artifacts, then activate the next packet.",
+    status: "CANCELLED",
   });
 }
 
@@ -595,6 +693,11 @@ async function runScaffoldaiLifecycleCommand(argv = [], options = {}) {
 
   if (action === "close-feature") {
     await runCloseFeature(commandRepoRoot, argv.slice(1));
+    return;
+  }
+
+  if (action === "cancel-packet") {
+    await runCancelPacket(commandRepoRoot, argv.slice(1));
     return;
   }
 
