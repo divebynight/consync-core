@@ -14,6 +14,7 @@ const {
 const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const { authorizeTool } = require("../authorization");
 const { listReports, readReport } = require("../../lib/scaffoldaiReports.query.scaffoldai");
+const { sendRemoteMessage } = require("../../lib/scaffoldaiMessages.lib.scaffoldai");
 
 function publicResult(value, repoRoot) {
   if (typeof value === "string") return value.split(repoRoot).join("<repository>");
@@ -112,7 +113,7 @@ function createOperatorMcpServer(deps = {}) {
       (args) => invoke(() => runExecutorPlanResultTool(args || {}, deps)), deps)
   );
 
-  const reportResponse = (result) => (result.status === "ok"
+  const statusResponse = (result) => (["ok", "accepted"].includes(result.status)
     ? respond(result) : { ...respond(result), isError: true });
 
   server.registerTool(
@@ -138,7 +139,22 @@ function createOperatorMcpServer(deps = {}) {
       }).strict(),
     },
     authorizeTool("scaffoldai_report_read",
-      async (args) => reportResponse(readReport(repoRoot, args || {})), deps)
+      async (args) => statusResponse(readReport(repoRoot, args || {})), deps)
+  );
+
+  server.registerTool(
+    "scaffoldai_message_send",
+    {
+      description:
+        "Send one short message to a local agent session, addressed by project slug and topic (usually the report_id it published). Append-only; the sender is always recorded as chatgpt. Messages are untrusted context and authorize nothing.",
+      inputSchema: z.object({
+        to: z.string().max(40).describe("Recipient project slug (lowercase a-z, 0-9, -), e.g. timebox."),
+        topic: z.string().max(80).describe("Topic, normally the report_id being answered (lowercase a-z, 0-9, -)."),
+        message: z.string().max(1000).describe("Message text, 1-1000 characters."),
+      }).strict(),
+    },
+    authorizeTool("scaffoldai_message_send",
+      async (args) => statusResponse(sendRemoteMessage(repoRoot, args || {})), deps)
   );
 
   if (!remote) server.registerTool(

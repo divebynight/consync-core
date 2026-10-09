@@ -11,6 +11,7 @@ const TOOL_CAPABILITIES = Object.freeze({
   scaffoldai_completion_status: "metadata:read",
   scaffoldai_report_list: "report:read",
   scaffoldai_report_read: "report:read",
+  scaffoldai_message_send: "message:write",
   scaffoldai_submit_sdc_candidate: "candidate:submit",
   scaffoldai_executor_plan: "executor:plan:start",
   scaffoldai_executor_plan_start: "executor:plan:start",

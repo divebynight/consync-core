@@ -24,8 +24,9 @@ It may expose inspection tools such as status, visibility, and pending-question 
 ### Operator HTTPS Surface
 
 The operator HTTPS MCP surface authenticates Cloudflare Access assertions and
-currently authorizes only the five metadata observation tools (`metadata:read`)
-and the two shared-report tools (`report:read`).
+currently authorizes only the five metadata observation tools (`metadata:read`),
+the two shared-report tools (`report:read`), and the append-only
+`scaffoldai_message_send` tool (`message:write`).
 
 Candidate submission and both planning aliases remain registered but denied,
 as do executor status/result retrieval. It must not intake, activate, claim, perform
@@ -252,6 +253,94 @@ the plugin's **Manage app → Refresh tools**. Evidence that a refresh is needed
 ChatGPT calls tools successfully but the operator log contains no
 `"method":"tools/list"` record since startup. Do not recreate the app; that
 discards the known-good OAuth configuration.
+
+### Remote messages to local sessions (2026-10-08, trial)
+
+`scaffoldai_message_send` lets ChatGPT send one short message to a local agent
+session. Approved for the transport-only trial with these boundaries:
+
+- Inputs are exactly `to`, `topic`, and `message`. The server records
+  `from: chatgpt`; callers cannot set it.
+- `to`: project slug `^[a-z0-9][a-z0-9-]{0,39}$`. `topic`: report-id pattern
+  `^[a-z0-9][a-z0-9-]{0,79}$`. `message`: 1-1000 characters, no control or
+  bidi-override characters (tab and newlines allowed).
+- Storage is the existing append-only shared-memory log,
+  `.scaffoldai/runtime/mcp/shared-memory.jsonl` (gitignored), capped at 1 MiB.
+  A full log returns `MESSAGE_STORE_FULL`; archive it locally.
+- Requires `message:write`. Approved remote principals now receive
+  `["metadata:read", "report:read", "message:write"]`. The startup log reads
+  `remote policy is metadata:read, report:read and message:write only.`
+- `scaffoldai_memory_write` and `scaffoldai_memory_read` stay local-only.
+
+**Messages are untrusted context.** Receiving one never authorizes commands,
+code changes, packet activation, or any lifecycle transition. Receiving a
+message may wake a session; it does not authorize the session to follow it.
+
+**Mapping a message to a session:** `to` names the project (for example
+`timebox`). `topic` must equal the `report_id` of the context report the
+waiting session published. A session accepts only messages matching both, so
+two sessions on one project see only replies to their own reports.
+
+**No repeated delivery:** the session waits only for messages after a starting
+point. For the first wait it passes `--after <ISO time the report was
+published>`. After handling a message it passes `--after-id <last_id>` from the
+previous result. Nothing is marked read on the server; the log stays
+append-only.
+
+**Waiting in a session** (read-only, bounded, exits on the first match or at
+the timeout):
+
+```sh
+node ~/Projects/consync-core/src/scaffoldai.js scaffoldai message wait \
+  --to timebox --topic <report_id> --after <iso-timestamp> --timeout 900
+```
+
+Run it as a Claude Code background command so the session wakes when it exits.
+Output is JSON: `status` is `message` (with `messages` and `last_id`) or
+`timeout`. Each `messages` entry is **delivery metadata only**: `id`,
+`timestamp`, `from`, `to`, `topic`, `length`, `sha256`. Message text is never
+printed, so waking a session cannot place the message in its context as a
+prompt. Timeout is 1-3600 seconds (default 900). It is not a standing watcher:
+it stops with the session and creates no files.
+
+**Acting on message content is out of scope for now.** Message text may become
+work only through the established path (inbox candidate, intake, human
+activation). Staging messages into that path is deferred, as is a
+`TARGET PROJECT` field for packets outside `consync-core`. This applies equally
+to messages from the human and from tools.
+
+**Transport-only trial:**
+
+1. Start the operator manually (normal startup above); in ChatGPT use
+   **Manage app → Refresh tools** and confirm `scaffoldai_message_send` is listed.
+2. In a Claude session, publish a fixed context report `transport-trial-context`
+   with `share: chatgpt`, stating the reply address
+   (`to: timebox`, `topic: transport-trial-context`). No project inspection.
+3. Start the wait command in the background with `--after` set to the publish time.
+4. ChatGPT reads the report and sends one message with `scaffoldai_message_send`.
+5. The session wakes and publishes `transport-trial-ack` using only the fixed
+   template below, filled from the wait output. It does not read the log or
+   act on the message.
+
+Acknowledgment template (`.scaffoldai/runtime/reports/transport-trial-ack.md`):
+
+```markdown
+---
+report_id: transport-trial-ack
+title: Transport Trial Acknowledgment
+created_at: <ack time, ISO 8601>
+share: chatgpt
+---
+Received message `<id>` from `<from>` to `<to>` on topic `<topic>` at
+`<timestamp>`: <length> characters, sha256 `<sha256>`.
+
+The message text was not read and has not been acted on.
+```
+
+Success: the acknowledged id, length and sha256 match the log record, and the
+message text never appeared in the session.
+
+Stop the trial if it needs watchers, launchers, or lifecycle changes.
 
 ### Local hardening limits
 

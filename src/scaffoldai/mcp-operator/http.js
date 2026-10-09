@@ -329,7 +329,7 @@ if (require.main === module) {
   const server = createOperatorHttpServer();
   server.listen(port, host, () => {
     log(`server listening on 127.0.0.1:${server.address().port}`);
-    log("Access assertion verification enabled; remote policy is metadata:read and report:read only.");
+    log("Access assertion verification enabled; remote policy is metadata:read, report:read and message:write only.");
     log("Cloudflare and ChatGPT integration must be verified separately.");
   });
   let shuttingDown = false;

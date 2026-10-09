@@ -221,7 +221,7 @@ flowchart TB
 - Stdio MCP operational tools are read-only except:
   - scaffoldai_memory_write appends to .scaffoldai/runtime/mcp/shared-memory.jsonl
   - scaffoldai_signal appends/rotates .scaffoldai/runtime/mcp/signals.jsonl
-- HTTP MCP surface is read-only and does not expose write tools.
+- The HTTP MCP operator exposes metadata and report reads plus the append-only `scaffoldai_message_send` (`message:write`, writes `.scaffoldai/runtime/mcp/shared-memory.jsonl` only). It exposes no lifecycle or `.scaffoldai/state` write tools.
 - Intake runtime path mutates .scaffoldai/packets by writing normalized accepted packets via scaffoldai packet intake.
 - Packet activation/clear and MCP runtime surfaces do not mutate packet files; they mutate pointer/state surfaces.
 

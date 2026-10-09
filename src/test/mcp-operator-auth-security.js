@@ -32,12 +32,12 @@ test("credential-free HTTP cannot initialize, discover, invoke or read health", 
   assert.equal((await fetch(`${s.base}/health`)).status, 401);
 });
 
-test("real verifier derives immutable approved human principal with metadata and report reads only", async () => {
+test("real verifier derives immutable approved human principal with metadata, report and message capabilities only", async () => {
   const f = await authFixture();
   const principal = await f.verifier()(request(f.token));
   assert.equal(principal.issuer, ISSUER);
   assert.equal(principal.subject, "fixture-alice");
-  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read"]);
+  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read", "message:write"]);
   assert.ok(Object.isFrozen(principal));
   assert.ok(Object.isFrozen(principal.capabilities));
   assert.ok(!JSON.stringify(principal).includes(f.token));
@@ -307,6 +307,70 @@ test("report:read grants no execution or submission authority", async (t) => {
   }
   assert.equal(fs.existsSync(path.join(s.repoRoot, jobs.PLANS_SUBPATH)), false);
   assert.equal(fs.existsSync(path.join(s.repoRoot, ".scaffoldai/inbox")), false);
+});
+
+function readMessageLog(repoRoot) {
+  const file = path.join(repoRoot, ".scaffoldai/runtime/mcp/shared-memory.jsonl");
+  return fs.existsSync(file)
+    ? fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map((line) => JSON.parse(line)) : [];
+}
+
+test("authenticated principals send messages with a server-set sender into the fixture log", async (t) => {
+  const s = await startAuthServer(t);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  const call = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "scaffoldai_message_send",
+    arguments: { to: "timebox", topic: "timebox-midi-out-context", message: "Is J3 final?" } } }, session);
+  assert.ok(!call.data.error && !call.data.result.isError);
+  const result = JSON.parse(call.data.result.content[0].text);
+  assert.equal(result.status, "accepted");
+  assert.ok(!call.text.includes(s.repoRoot));
+  const [record] = readMessageLog(s.repoRoot);
+  assert.equal(record.from, "chatgpt");
+  assert.equal(record.to, "timebox");
+  assert.equal(record.message, "Is J3 final?");
+});
+
+test("message send rejects sender spoofing, extra fields and invalid input", async (t) => {
+  const s = await startAuthServer(t);
+  const init = await s.initialize();
+  const session = init.response.headers.get("mcp-session-id");
+  const base = { to: "timebox", topic: "timebox-midi-out-context", message: "hello" };
+  for (const args of [{ ...base, from: "human" }, { ...base, path: "/etc/passwd" }, { ...base, to: "../x" },
+    { ...base, message: "x".repeat(1001) }, { ...base, message: "a\u0000b" }, { to: "timebox" }]) {
+    const call = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/call",
+      params: { name: "scaffoldai_message_send", arguments: args } }, session);
+    assert.ok(call.data.error || call.data.result.isError, JSON.stringify(args));
+    assert.ok(!call.text.includes(s.repoRoot));
+  }
+  assert.deepEqual(readMessageLog(s.repoRoot), []);
+});
+
+test("message send requires message:write and grants nothing else", async (t) => {
+  const f = await authFixture();
+  const verify = f.verifier();
+  const readOnly = await startAuthServer(t, { fixture: f,
+    verifyAssertion: async (req) => ({ ...await verify(req), capabilities: ["metadata:read", "report:read"] }) });
+  let init = await readOnly.initialize();
+  let session = init.response.headers.get("mcp-session-id");
+  const denied = await readOnly.post({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "scaffoldai_message_send",
+    arguments: { to: "timebox", topic: "t", message: "hello" } } }, session);
+  assert.equal(JSON.parse(denied.data.result.content[0].text).error_code, "FORBIDDEN");
+  assert.deepEqual(readMessageLog(readOnly.repoRoot), []);
+
+  const writer = await startAuthServer(t, { fixture: f,
+    verifyAssertion: async (req) => ({ ...await verify(req), capabilities: ["message:write"] }) });
+  init = await writer.initialize();
+  session = init.response.headers.get("mcp-session-id");
+  for (const name of ["scaffoldai_submit_sdc_candidate", "scaffoldai_executor_plan", "scaffoldai_executor_plan_start",
+    "scaffoldai_executor_plan_status", "scaffoldai_executor_plan_result", "scaffoldai_status", "scaffoldai_report_list"]) {
+    const jobArgs = /^scaffoldai_executor_plan_(status|result)$/.test(name) ? { job_id: ID } : {};
+    const call = await writer.post({ jsonrpc: "2.0", id: 3, method: "tools/call",
+      params: { name, arguments: jobArgs } }, session);
+    assert.equal(JSON.parse(call.data.result.content[0].text).error_code, "FORBIDDEN", name);
+  }
+  assert.equal(fs.existsSync(path.join(writer.repoRoot, jobs.PLANS_SUBPATH)), false);
+  assert.equal(fs.existsSync(path.join(writer.repoRoot, ".scaffoldai/inbox")), false);
 });
 
 test("request principals remain isolated concurrently and credentials do not reach handlers", async (t) => {
@@ -712,7 +776,7 @@ test("identity diagnostic is one-shot even concurrently and preserves each paylo
     } else {
       assert.equal(results[i].status, "fulfilled");
       assert.equal(results[i].value.subject, "fixture-alice");
-      assert.deepEqual(results[i].value.capabilities, ["metadata:read", "report:read"]);
+      assert.deepEqual(results[i].value.capabilities, ["metadata:read", "report:read", "message:write"]);
     }
   }
   assert.deepEqual(logs.identities(), [{ intended_email_match: true, same_assertion_subject: true }]);
@@ -832,7 +896,7 @@ test("armed subject capture leaves allowlist authorization and HTTP denial uncha
   const verify = armed();
   const principal = await verify(request(f.token));
   assert.equal(principal.subject, "fixture-alice");
-  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read"]);
+  assert.deepEqual(principal.capabilities, ["metadata:read", "report:read", "message:write"]);
   await assert.rejects(verify(request(await f.sign({ sub: "capture-private-subject" }))),
     (error) => error.status === 403 && error.code === "PRINCIPAL_DENIED");
   assert.deepEqual(captures(logs), [{ armed: true }, { captured: true, sub: "fixture-alice" }]);

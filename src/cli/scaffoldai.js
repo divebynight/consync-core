@@ -207,6 +207,11 @@ async function main() {
       runScaffoldWorkCommand(process.argv.slice(4));
       return;
     }
+    if (subcommand === "message") {
+      const { runScaffoldaiMessageCommand } = require("../scaffoldai/commands/scaffoldai-message.cmd.scaffoldai");
+      process.exitCode = await runScaffoldaiMessageCommand(process.argv.slice(4));
+      return;
+    }
     if (subcommand === "probe") {
       const { runScaffoldaiProbeCommand } = require("../scaffoldai/commands/scaffoldai-probe.cmd.scaffoldai");
       runScaffoldaiProbeCommand(process.argv.slice(4));

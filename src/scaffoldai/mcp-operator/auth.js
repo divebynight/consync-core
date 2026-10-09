@@ -166,7 +166,7 @@ function createAccessVerifier(configuration, deps = {}) {
     }
     if (!config.subjects.includes(subject)) throw authError(403, "unapproved_subject");
     return Object.freeze({ issuer: config.issuer, subject, expiresAt: payload.exp,
-      capabilities: Object.freeze(["metadata:read", "report:read"]) });
+      capabilities: Object.freeze(["metadata:read", "report:read", "message:write"]) });
   };
 }
 

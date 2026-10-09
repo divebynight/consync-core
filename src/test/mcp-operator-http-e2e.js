@@ -20,8 +20,10 @@ async function main() {
     const listed = await s.post({ jsonrpc: "2.0", id: 2, method: "tools/list" }, session);
     assert.equal(listed.response.status, 200);
     const names = listed.data.result.tools.map((tool) => tool.name);
-    assert.equal(names.length, 12);
-    for (const name of ["scaffoldai_report_list", "scaffoldai_report_read"]) assert.ok(names.includes(name), name);
+    assert.equal(names.length, 13);
+    for (const name of ["scaffoldai_report_list", "scaffoldai_report_read", "scaffoldai_message_send"]) {
+      assert.ok(names.includes(name), name);
+    }
     for (const name of ["scaffoldai_executor_plan_cleanup", "scaffoldai_packet_activate",
       "scaffoldai_packet_claim", "scaffoldai_signal", "scaffoldai_memory_write"]) {
       assert.ok(!names.includes(name));
