@@ -586,12 +586,33 @@ function intakePacket(repoRoot, inputPath, options = {}) {
   return accepted;
 }
 
+const LEGACY_APPROVAL_COMPATIBILITY = "legacy_missing_approval_block_treated_as_pending";
+
+// Packet APPROVAL text grants nothing, but a packet whose text claims approval
+// cannot be newly activated or authorized for work. Only packets with no
+// approval-like header at all keep the documented legacy PENDING default
+// (approval-authority-v1 section 7.1); any approval text must be the exact
+// strict block with PENDING values, checked by the same parser as ingress. New
+// proposals cannot use the legacy exception because strict ingress requires
+// the block.
+function evaluatePacketApproval(content) {
+  if (!hasApprovalLikeLine(content)) {
+    return { ok: true, legacy: true, values: null, errors: [] };
+  }
+  const { values, errors } = parseApprovalBlock(content);
+  const pending = errors.length === 0 &&
+    REQUIRED_APPROVAL_KEYS.every((key) => values && values[key] === INGRESS_APPROVAL_VALUE);
+  return { ok: pending, legacy: false, values, errors };
+}
+
 module.exports = {
   ALLOWED_APPROVAL_VALUES,
   ALLOWED_MODES,
   INGRESS_APPROVAL_VALUE,
   REVIEW_HASH_GUIDANCE,
+  LEGACY_APPROVAL_COMPATIBILITY,
   checkReviewHash,
+  evaluatePacketApproval,
   hasApprovalLikeLine,
   reviewHash,
   REQUIRED_APPROVAL_KEYS,

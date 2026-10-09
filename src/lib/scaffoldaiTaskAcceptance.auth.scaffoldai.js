@@ -195,4 +195,5 @@ module.exports = {
   assertAcceptedTask,
   acceptedPromptInput,
   readContainedPacket,
+  readPacketFile,
 };

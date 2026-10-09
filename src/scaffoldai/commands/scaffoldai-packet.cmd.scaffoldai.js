@@ -7,6 +7,7 @@ const {
 } = require("../../lib/scaffoldaiPacketActivation.auth.scaffoldai");
 const { intakePacket } = require("../../lib/scaffoldaiPacketIntake.auth.scaffoldai");
 const { previewPacket } = require("../../lib/scaffoldaiPacketPreview.query.scaffoldai");
+const { authorizeWork } = require("../../lib/scaffoldaiWorkAuthorization.auth.scaffoldai");
 const {
   claimPacket,
   releasePacket,
@@ -18,10 +19,12 @@ const { getRepoRoot } = require("../../lib/repoRoot.util.shared");
 const repoRoot = getRepoRoot(__dirname);
 
 function printUsage() {
-  console.log("Usage: scaffoldai packet <preview|activate|status|clear|intake|claim|release|claim-status|force-release> [options]");
+  console.log("Usage: scaffoldai packet <preview|activate|authorize-work|status|clear|intake|claim|release|claim-status|force-release> [options]");
   console.log("");
   console.log("  preview <path>                             Show a packet for review and its review hash (read-only)");
-  console.log("  activate <packet> --sha256 <hash>          Accept a reviewed packet by path or filename");
+  console.log("  activate <packet> --sha256 <hash> [--authorize-work]");
+  console.log("                                             Accept a reviewed packet; --authorize-work also authorizes work");
+  console.log("  authorize-work <packet> --sha256 <hash>    Authorize work for the accepted, open task");
   console.log("  status                                     Show current active packet status");
   console.log("  clear                                      Clear the active packet pointer");
   console.log("  intake <path> --sha256 <hash> [--activate] Validate and intake a reviewed strict SDC packet");
@@ -67,9 +70,35 @@ function printActivate(result) {
   console.log(`PACKET TITLE:     ${result.title || "(none)"}`);
   console.log(`PACKET CATEGORY:  ${result.category || "(none)"}`);
   if (result.idempotent) console.log("NOTE:             Idempotent - packet already active");
+  if (result.work_authorization_cleared) console.log("NOTE:             Re-activation ended the previous work authorization");
   if (result.approval_compatibility) {
     console.log("NOTE:             Legacy packet without APPROVAL block; treated as PENDING (no approval granted)");
   }
+  console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
+  console.log("");
+  console.log("STATUS: PASS");
+}
+
+function printAuthorizeWork(result) {
+  console.log("[scaffoldai packet authorize-work]");
+  console.log("");
+  console.log(`PACKET:           ${result.packet_id || "(none)"}`);
+  if (result.status === "BLOCKED") {
+    console.log(`REASON:           ${result.reason}`);
+    console.log(`MESSAGE:          ${result.message}`);
+    console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
+    console.log("");
+    console.log("STATUS: FAIL");
+    return;
+  }
+  console.log(`PACKET FILE:      ${result.packet_file}`);
+  console.log(`ACCEPTED AT:      ${result.accepted_at}`);
+  console.log(`AUTHORIZED AT:    ${result.authorized_at}`);
+  console.log(`MODE:             ${result.mode}`);
+  if (result.approval_compatibility) {
+    console.log("NOTE:             Legacy packet without APPROVAL block; treated as PENDING (no approval granted)");
+  }
+  console.log("NOTE:             File scope in the instructions is not enforced; a printed command cannot be revoked");
   console.log(`NEXT SAFE ACTION: ${result.next_safe_action}`);
   console.log("");
   console.log("STATUS: PASS");
@@ -236,9 +265,38 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
         process.exitCode = 1;
         return;
       }
-      const result = activatePacket(commandRepoRoot, packetInput,
-        { expectedPacketSha256: parseFlag(argv.slice(2), "--sha256") });
+      const reviewSha256 = parseFlag(argv.slice(2), "--sha256");
+      const result = activatePacket(commandRepoRoot, packetInput, { expectedPacketSha256: reviewSha256 });
       printActivate(result);
+      if (result.status === "BLOCKED") {
+        process.exitCode = 1;
+        return;
+      }
+      // Combined command: authorize work for the acceptance just made, with
+      // the same review hash. A refusal here leaves the acceptance in place
+      // and work unauthorized.
+      if (argv.slice(2).includes("--authorize-work")) {
+        console.log("");
+        const authorization = authorizeWork(commandRepoRoot, result.packet_id, {
+          expectedPacketSha256: reviewSha256,
+          via: "scaffoldai packet activate --authorize-work",
+        });
+        printAuthorizeWork(authorization);
+        if (authorization.status === "BLOCKED") process.exitCode = 1;
+      }
+      return;
+    }
+
+    if (action === "authorize-work") {
+      const packetInput = argv[1];
+      if (!packetInput || packetInput.startsWith("--")) {
+        console.error("Usage: scaffoldai packet authorize-work <packet> --sha256 <hash>");
+        process.exitCode = 1;
+        return;
+      }
+      const result = authorizeWork(commandRepoRoot, packetInput,
+        { expectedPacketSha256: parseFlag(argv.slice(2), "--sha256") });
+      printAuthorizeWork(result);
       if (result.status === "BLOCKED") process.exitCode = 1;
       return;
     }
@@ -252,6 +310,12 @@ function runScaffoldaiPacketCommand(argv = [], options = {}) {
       const packetInput = argv[1];
       if (!packetInput) {
         console.error("Usage: scaffoldai packet intake <path> --sha256 <hash> [--activate]");
+        process.exitCode = 1;
+        return;
+      }
+
+      if (argv.includes("--authorize-work")) {
+        console.error("packet intake does not authorize work. Intake, then run: scaffoldai packet activate <packet> --sha256 <hash> --authorize-work");
         process.exitCode = 1;
         return;
       }

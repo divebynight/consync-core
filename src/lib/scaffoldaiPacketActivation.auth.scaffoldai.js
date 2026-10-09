@@ -9,16 +9,13 @@ const { detectCategory, extractTitle } = require("./scaffoldaiPacketVisibility.q
 const { checkWorkspaceCleanliness } = require("./workspaceCleanlinessCheck.auth.scaffoldai");
 const { readTaskState } = require("./scaffoldaiTaskState.query.scaffoldai");
 const acceptance = require("./scaffoldaiTaskAcceptance.auth.scaffoldai");
+const { clearWorkAuthorization } = require("./scaffoldaiWorkAuthorization.auth.scaffoldai");
 const {
-  INGRESS_APPROVAL_VALUE,
-  REQUIRED_APPROVAL_KEYS,
+  LEGACY_APPROVAL_COMPATIBILITY,
   REVIEW_HASH_GUIDANCE,
   checkReviewHash,
-  hasApprovalLikeLine,
-  parseApprovalBlock,
+  evaluatePacketApproval,
 } = require("./scaffoldaiPacketIntake.auth.scaffoldai");
-
-const LEGACY_APPROVAL_COMPATIBILITY = "legacy_missing_approval_block_treated_as_pending";
 
 const PACKETS_DIR_RELATIVE = path.join(".scaffoldai", "packets");
 
@@ -149,22 +146,6 @@ function readPacketMetadata(packetPath, fileName) {
   };
 }
 
-// Packet APPROVAL text grants nothing, but a packet whose text claims approval
-// cannot be newly activated. Only packets with no approval-like header at all
-// keep the documented legacy PENDING default (approval-authority-v1 section
-// 7.1); any approval text must be the exact strict block with PENDING values,
-// checked by the same parser as ingress. New proposals cannot use the legacy
-// exception because strict ingress requires the block.
-function evaluatePacketApproval(content) {
-  if (!hasApprovalLikeLine(content)) {
-    return { ok: true, legacy: true, values: null, errors: [] };
-  }
-  const { values, errors } = parseApprovalBlock(content);
-  const pending = errors.length === 0 &&
-    REQUIRED_APPROVAL_KEYS.every((key) => values && values[key] === INGRESS_APPROVAL_VALUE);
-  return { ok: pending, legacy: false, values, errors };
-}
-
 function replaceSnapshotPointer(snapshotText, packetIdOrNull, packetCategoryOrNull) {
   if (!snapshotText) return null;
 
@@ -196,9 +177,10 @@ function setActiveRuntimeInFlight(rootPath, packetIdOrNull) {
   });
 }
 
-// Replaces next-action.md wholesale. Any acceptance record is removed first,
-// so no intermediate state is ever runnable.
+// Replaces next-action.md wholesale. Any work authorization and acceptance
+// record are removed first, so no intermediate state is ever runnable.
 function writePacketPointerState(rootPath, packetIdOrNull, packetCategoryOrNull, nextActionContent) {
+  clearWorkAuthorization(rootPath);
   acceptance.clearAcceptanceRecord(rootPath);
   scaffoldaiState.writeNextAction(rootPath, nextActionContent);
 
@@ -225,7 +207,8 @@ function saveTaskFiles(rootPath) {
 
 // Restore task files through the state authority module, then the acceptance
 // record last, so a failed restore leaves the task unrunnable rather than
-// runnable with mismatched content.
+// runnable with mismatched content. A removed work authorization is never
+// restored: a failed activation leaves work unauthorized.
 function restoreTaskFiles(rootPath, saved) {
   acceptance.clearAcceptanceRecord(rootPath);
   for (const { fileName, content } of saved.files) {
@@ -370,6 +353,9 @@ function activatePacket(rootPath, packetInput, options = {}) {
         activePacket: resolved.packetId,
         nextActionContent: scaffoldaiState.readNextAction(rootPath),
       });
+      // Re-activating the accepted packet is a fresh acceptance decision, so
+      // it ends any work authorization even though the record is unchanged.
+      const authorizationCleared = clearWorkAuthorization(rootPath);
       return {
         action: "activate",
         status: "PASS",
@@ -381,6 +367,7 @@ function activatePacket(rootPath, packetInput, options = {}) {
         category: metadata.category,
         next_safe_action: "Packet already active and accepted. Proceed with the current packet or clear it explicitly before switching.",
         workspace_warning: workspaceWarning,
+        ...(authorizationCleared ? { work_authorization_cleared: true } : {}),
         ...compatibility,
       };
     } catch {

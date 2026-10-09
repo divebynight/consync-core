@@ -359,7 +359,7 @@ planning tools) are built only from a task a human accepted with
   next-action text changed, the packet file changed or left
   `.scaffoldai/packets/`, or the handoff records the task as closed.
 - `scaffoldai packet clear` and `housekeeping reset-runtime-state` remove the
-  record before rewriting next-action.md.
+  record (and any work authorization) before rewriting next-action.md.
 - **Re-acceptance:** an open task without a valid record needs an explicit
   `scaffoldai packet activate <packet> --sha256 <review hash>`; that rebuilds next-action.md from the
   packet file. Re-activating a task the handoff records as closed is refused
@@ -408,11 +408,54 @@ historical packets with any other approval text cannot be newly activated
 header at all activate under the documented PENDING default. Prompts state
 that packet APPROVAL text grants no authority. Acceptance selects the
 reviewed instructions; execution, commit and push each need explicit human
-authorization (work-authorization enforcement is pending Proposal B).
+authorization. Work authorization is recorded and checked as described in
+"Work authorization (authorize-work)" below.
 
 **Limits.** The hash proves the accepted bytes equal the reviewed bytes. It
 does not prove a human ran the command: any process running as the same user
 can compute a hash. Work authorization is not part of this step.
+
+### Work authorization (authorize-work)
+
+Acceptance selects the instructions; it does not authorize work. `scaffoldai
+work` prints a work prompt and command only for a task the human has also
+authorized for work:
+
+- `scaffoldai packet authorize-work <packet> --sha256 <review hash>` writes
+  `.scaffoldai/state/work-authorization.json` (gitignored) through
+  `scaffoldaiState`. The record binds `packet_id`, `packet_file`,
+  `packet_sha256`, `next_action_sha256` and `accepted_at` of the current
+  acceptance, with `mode: work`. It refuses, writing nothing, without a
+  matching acceptance record (`acceptance_missing`,
+  `acceptance_packet_mismatch`, `acceptance_invalid`), for a task that is not
+  open (`task_not_open`), without or with a wrong review hash, or when the
+  accepted packet's approval text is not PENDING
+  (`packet_approval_not_pending`). Legacy packets with no approval-like header
+  keep the PENDING default and record `approval_compatibility`.
+- `scaffoldai packet activate <packet> --sha256 <hash> --authorize-work` does
+  both in one explicit command, with one hash. If activation is refused,
+  authorization is not attempted. If authorization is refused after a
+  successful activation, the acceptance stays and work stays unauthorized
+  (exit code 1). Plain `activate` never authorizes, and `packet intake`
+  refuses `--authorize-work`.
+- **Invalidation.** Every activation that is not refused removes the record,
+  including re-activating the already accepted packet. `packet clear` and
+  `housekeeping reset-runtime-state` remove it. A closed, replaced or
+  re-accepted task makes any remaining record unusable, because every bound
+  field must equal the current acceptance and the task must be open. Refused
+  activations change nothing. A failed activation leaves work unauthorized.
+- **Enforcement.** `buildWorkPrompt` and `scaffoldai work` refuse with
+  `EXECUTION_NOT_AUTHORIZED` (with `acceptance_code` when acceptance itself
+  failed) before printing any prompt or command. Planning (`scaffoldai plan`
+  and the local executor planning tools) needs acceptance and an explicit
+  request, not work authorization. Activation and authorization launch
+  nothing.
+- **Limits.** File and surface scope in the instructions remain instructional;
+  Copilot `--allow-tool=write` is repo-wide. The record does not prove a human
+  created it; any process running as the same user can forge it. The check
+  runs when the prompt and command are generated; a command already printed
+  cannot be revoked by it, and interactive Claude or Copilot sessions follow
+  it by convention only.
 
 ### Local hardening limits
 

@@ -394,21 +394,56 @@ function readAcceptedTaskRaw(rootPath) {
  * so a torn write never leaves a parseable partial record.
  */
 function writeAcceptedTaskRaw(rootPath, content) {
-  const absolutePath = path.join(rootPath, ACCEPTED_TASK_RELATIVE);
-  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-  const tempPath = `${absolutePath}.${process.pid}.${Date.now()}.tmp`;
-  fs.writeFileSync(tempPath, content, "utf8");
-  fs.renameSync(tempPath, absolutePath);
+  writeRecordAtomic(rootPath, ACCEPTED_TASK_RELATIVE, content);
 }
 
 /**
  * Remove .scaffoldai/state/accepted-task.json. Returns true if it existed.
  */
 function removeAcceptedTask(rootPath) {
-  const absolutePath = path.join(rootPath, ACCEPTED_TASK_RELATIVE);
+  return removeRecord(rootPath, ACCEPTED_TASK_RELATIVE);
+}
+
+function writeRecordAtomic(rootPath, relativePath, content) {
+  const absolutePath = path.join(rootPath, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  const tempPath = `${absolutePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tempPath, content, "utf8");
+  fs.renameSync(tempPath, absolutePath);
+}
+
+function removeRecord(rootPath, relativePath) {
+  const absolutePath = path.join(rootPath, relativePath);
   const existed = fs.existsSync(absolutePath);
   fs.rmSync(absolutePath, { force: true });
   return existed;
+}
+
+// ---------------------------------------------------------------------------
+// Work authorization record (Proposal B)
+// ---------------------------------------------------------------------------
+
+const WORK_AUTHORIZATION_RELATIVE = path.join(STATE_ROOT, "work-authorization.json");
+
+/**
+ * Read .scaffoldai/state/work-authorization.json raw text, or null.
+ */
+function readWorkAuthorizationRaw(rootPath) {
+  return readFile(rootPath, WORK_AUTHORIZATION_RELATIVE);
+}
+
+/**
+ * Atomically write .scaffoldai/state/work-authorization.json (temp file + rename).
+ */
+function writeWorkAuthorizationRaw(rootPath, content) {
+  writeRecordAtomic(rootPath, WORK_AUTHORIZATION_RELATIVE, content);
+}
+
+/**
+ * Remove .scaffoldai/state/work-authorization.json. Returns true if it existed.
+ */
+function removeWorkAuthorization(rootPath) {
+  return removeRecord(rootPath, WORK_AUTHORIZATION_RELATIVE);
 }
 
 /**
@@ -502,6 +537,11 @@ module.exports = {
   readAcceptedTaskRaw,
   writeAcceptedTaskRaw,
   removeAcceptedTask,
+  // Work authorization
+  WORK_AUTHORIZATION_RELATIVE,
+  readWorkAuthorizationRaw,
+  writeWorkAuthorizationRaw,
+  removeWorkAuthorization,
   readStateFileRaw,
   restoreStateFileRaw,
   // History operations

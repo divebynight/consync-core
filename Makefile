@@ -30,7 +30,7 @@ help:
 	@echo "ScaffoldAI runners:"
 	@echo "  make scaffold-plan      Read-only planning/analysis mode (no file writes)"
 	@echo "  make scaffold-discuss   Alias for scaffold-plan (backward compat)"
-	@echo "  make scaffold-work      Execute approved next-action (bounded write access)"
+	@echo "  make scaffold-work      Print work prompt for the accepted, work-authorized task"
 	@echo ""
 	@echo "ScaffoldAI probe:"
 	@echo "  make scaffold-probe-e2e   Run deterministic lifecycle probe (isolated fixture)"

@@ -912,6 +912,7 @@ function checkStateSchemaInvariant() {
   const APPROVED_STATE_FILES = new Set([
     "active-contract.json", // legacy compatibility artifact (optional)
     "active-contract.md",
+    "accepted-task.json", // Task acceptance record (gitignored, may be absent)
     "active-runtime.json",
     "active-stream.md",
     "next-action.md",
@@ -921,6 +922,7 @@ function checkStateSchemaInvariant() {
     "history.md",
     "history.jsonl", // Created on first append — may not exist initially
     "verify-evidence.json", // Canonical verification evidence for active packet
+    "work-authorization.json", // Task-bound work authorization (gitignored, may be absent)
   ]);
 
   // Approved subdirectories (per state-schema.contract.md)

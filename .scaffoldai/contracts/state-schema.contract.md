@@ -28,6 +28,8 @@ These files represent the current operational runtime state of ScaffoldAI:
 - `snapshot.md` — Current operational snapshot
 - `cleanup-complete-checkpoint.md` — Cleanup completion marker
 - `verify-evidence.json` — Current canonical verification evidence for active packet (timestamp, status, command)
+- `accepted-task.json` — Task acceptance record for the current task (gitignored; written only by `scaffoldai packet activate --sha256`)
+- `work-authorization.json` — Task-bound work authorization for the current acceptance (gitignored; absent unless a human ran `scaffoldai packet authorize-work` or `packet activate --authorize-work`)
 
 Runtime state projections (`active-runtime.json`, `active-stream.md`, `next-action.md`, `snapshot.md`) are approved schema members but may be absent on clean clones because they are intentionally untracked runtime surfaces.
 

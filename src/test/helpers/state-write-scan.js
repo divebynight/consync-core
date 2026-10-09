@@ -10,7 +10,7 @@ const path = require("node:path");
 const STATE_LOCATION_PATTERNS = [
   /\.scaffoldai[\/\\]state/,
   /["']\.scaffoldai["']\s*,\s*["']state["']/,
-  /["'](next-action\.md|active-runtime\.json|snapshot\.md|handoff\.md|accepted-task\.json|active-stream\.md|history\.jsonl|verify-evidence\.json|active-contract\.json)["']/,
+  /["'](next-action\.md|active-runtime\.json|snapshot\.md|handoff\.md|accepted-task\.json|work-authorization\.json|active-stream\.md|history\.jsonl|verify-evidence\.json|active-contract\.json)["']/,
 ];
 const FS_MUTATION_PATTERN = /\b(writeFileSync|writeFile|appendFileSync|appendFile|renameSync|rmSync|unlinkSync|copyFileSync|truncateSync)\s*\(/;
 

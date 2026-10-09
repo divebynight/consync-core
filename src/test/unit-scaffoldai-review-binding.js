@@ -16,6 +16,7 @@ const { activatePacket } = require("../lib/scaffoldaiPacketActivation.auth.scaff
 const { previewPacket } = require("../lib/scaffoldaiPacketPreview.query.scaffoldai");
 const { resolveExecutorContext, buildPlanPrompt } = require("../lib/executorAdapter.lib.scaffoldai");
 const { buildWorkPrompt } = require("../scaffoldai/commands/scaffoldai-work.cmd.scaffoldai");
+const { authorizeWork } = require("../lib/scaffoldaiWorkAuthorization.auth.scaffoldai");
 const { runScaffoldaiPacketCommand } = require("../scaffoldai/commands/scaffoldai-packet.cmd.scaffoldai");
 const { runScaffoldaiLifecycleCommand } = require("../scaffoldai/commands/scaffoldai-lifecycle.cmd.scaffoldai");
 const { runSubmitSdcCandidateTool } = require("../scaffoldai/mcp/submit-sdc-candidate");
@@ -115,6 +116,7 @@ test("plan and work prompts say accepted and disclaim packet APPROVAL text", (t)
   f.write(".scaffoldai/packets/wording.sdc.md", packetText("Wording"));
   const hash = reviewHash(f.read(".scaffoldai/packets/wording.sdc.md"));
   assert.equal(activatePacket(f.root, "wording.sdc.md", { expectedPacketSha256: hash }).status, "PASS");
+  assert.equal(authorizeWork(f.root, "wording.sdc.md", { expectedPacketSha256: hash }).status, "PASS");
   const context = resolveExecutorContext(f.root);
   for (const prompt of [buildPlanPrompt(context), buildWorkPrompt(context)]) {
     assert.ok(prompt.includes(DISCLAIMER), "disclaimer present");

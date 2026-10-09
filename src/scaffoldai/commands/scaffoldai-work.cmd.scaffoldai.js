@@ -3,7 +3,7 @@ const {
   resolveExecutorContext,
   buildWorkCommand,
 } = require("../../lib/executorAdapter.lib.scaffoldai");
-const { acceptedPromptInput } = require("../../lib/scaffoldaiTaskAcceptance.auth.scaffoldai");
+const { authorizedWorkInput } = require("../../lib/scaffoldaiWorkAuthorization.auth.scaffoldai");
 
 const repoRoot = getRepoRoot(__dirname);
 
@@ -19,9 +19,10 @@ const repoRoot = getRepoRoot(__dirname);
 //   ❌ Cannot activate or close packets (human operator only)
 //
 // Prerequisites:
-//   - Active packet must be mounted (run 'make scaffold-activate')
-//   - next-action.md must specify a valid package
-//   - Human operator approval required before invocation
+//   - Active packet must be accepted (scaffoldai packet activate --sha256)
+//   - Work must be authorized for that acceptance
+//     (scaffoldai packet authorize-work, or activate --authorize-work)
+//   - Without both, nothing is printed: no prompt and no command
 //
 // This is a runner capability boundary enforced by Copilot CLI flags,
 // not by prompt wording.
@@ -34,7 +35,7 @@ const repoRoot = getRepoRoot(__dirname);
  * @returns {string}
  */
 function buildWorkPrompt(context) {
-  const accepted = acceptedPromptInput(context);
+  const accepted = authorizedWorkInput(context);
   return [
     "You are in ScaffoldAI work mode (BOUNDED WRITES).",
     "",
@@ -58,19 +59,29 @@ function buildWorkPrompt(context) {
  *
  * Sequence (coordinator-reviewed separation):
  *   1. Command layer resolves context with resolveExecutorContext(repoRoot)
- *   2. Command layer builds prompt from context
+ *   2. Command layer builds prompt from context (requires acceptance plus a
+ *      matching work authorization; refuses EXECUTION_NOT_AUTHORIZED)
  *   3. Command layer calls buildWorkCommand({ repoRoot, prompt })
- *   4. Command layer invokes Copilot
+ *   4. Command layer prints the command for the operator; it does not run it
  */
 function runScaffoldWorkCommand(options = {}) {
   console.log("[scaffold-work] Bounded writable execution runner");
   console.log("");
 
-  // 1. Resolve context
+  const commandRepoRoot = options.repoRoot || repoRoot;
+
+  // 1-3. Resolve context, build the prompt (acceptance and work authorization
+  // are verified here) and the command. Any refusal stops before either is
+  // printed.
   let context;
+  let prompt;
+  let command;
   try {
-    context = resolveExecutorContext(repoRoot);
+    context = resolveExecutorContext(commandRepoRoot);
+    prompt = buildWorkPrompt(context);
+    command = buildWorkCommand({ repoRoot: commandRepoRoot, prompt });
   } catch (err) {
+    if (err.code) console.error("[scaffold-work] REFUSED: " + err.code);
     console.error("[scaffold-work] ERROR: " + err.message);
     process.exitCode = 1;
     return;
@@ -80,13 +91,8 @@ function runScaffoldWorkCommand(options = {}) {
   console.log("CAPABILITY:       File writes enabled, shell execution blocked");
   console.log("ACTIVE PACKET:    " + context.activePacket);
   console.log("PACKAGE:          " + context.packageName);
+  console.log("AUTHORIZATION:    Work authorized for this acceptance (checked at generation only)");
   console.log("");
-
-  // 2. Build prompt from context
-  const prompt = buildWorkPrompt(context);
-
-  // 3. Build command
-  const command = buildWorkCommand({ repoRoot, prompt });
 
   // 4. Print invocation surface (operator reviews before running)
   console.log("EXECUTOR COMMAND:");

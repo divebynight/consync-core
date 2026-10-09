@@ -1,8 +1,8 @@
-# Approval Authority Contract — v2
+# Approval Authority Contract — v3
 
 **Status:** Active  
 **Created:** 2026-05-13  
-**Amended:** 2026-10-09 (v2, Proposal A: packet text grants no authority)\
+**Amended:** 2026-10-09 (v2, Proposal A: packet text grants no authority; v3, Proposal B: task-bound work authorization)\
 **Purpose:** Define execution approval semantics separate from routing and recommendation  
 **Authority:** Partly enforced — see section 12
 
@@ -34,14 +34,21 @@ The authority chain is:
 
 1. **Proposal.** A packet describes proposed work. Validation PASS means it is eligible for review, nothing more.
 2. **Acceptance.** The human reviews the exact text (`scaffoldai packet preview`) and accepts it with `scaffoldai packet activate <packet> --sha256 <review hash>`. Acceptance selects the reviewed instructions that prompts may contain. It does **not** authorize executing them.
-3. **Execution authorization.** The human explicitly authorizes work on that accepted task. This is a separate decision.
+3. **Execution authorization.** The human explicitly authorizes work on that accepted task with `scaffoldai packet authorize-work <packet> --sha256 <review hash>`, or in one explicit command with `scaffoldai packet activate <packet> --sha256 <review hash> --authorize-work`. This is a separate decision, recorded separately from acceptance.
 4. **Commit authorization** and **push authorization.** Each is a separate, explicit human decision.
 
 Enforcement status:
 - New proposals must carry exactly one `APPROVAL:` block with `execute: PENDING` and `commit: PENDING`. Strict ingress (`scaffoldai_submit_sdc_candidate`, `scaffoldai packet intake`, and the lifecycle `intake-latest`/`activate-latest`/`start-latest` wrappers) rejects any other value, unknown or duplicate keys, duplicate blocks, and malformed approval headers.
 - `scaffoldai packet activate` applies the same parser and refuses packets whose approval text is anything else (`packet_approval_not_pending`). Historical files are preserved; reuse means a new PENDING proposal with a new title.
 - Generated plan and work prompts state that APPROVAL fields inside the packet grant no authority.
-- **Execution authorization is not yet recorded or enforced by ScaffoldAI.** A task-bound work-authorization record, checked before work prompts are generated, is pending Proposal B. Until then, execution, commit and push authorization exist only as the human's explicit instruction to the agent, and agents must obtain it as described in section 5.
+- **Execution authorization is recorded and checked for `scaffoldai work` (Proposal B).** `.scaffoldai/state/work-authorization.json` is bound to one acceptance instance: `packet_id`, `packet_file`, `packet_sha256`, `next_action_sha256` and `accepted_at`, with `mode: work`. `authorize-work` refuses unless the acceptance record exists and matches, the task is open, the review hash matches the accepted packet, and the accepted packet's approval text is PENDING (or absent under section 7.1).
+- The work prompt and `scaffoldai work` refuse with `EXECUTION_NOT_AUTHORIZED`, before printing any prompt or command, unless every bound field equals the current acceptance record and the task is open. Activation of any packet (including re-activation of the same packet), `packet clear` and housekeeping reset remove the record. Closing, replacing or re-accepting the task makes any remaining record unusable. Refused activations change nothing.
+- Planning needs acceptance and an explicit planning request, not work authorization. Activation and authorization launch nothing.
+- **Limits of the work-authorization check:**
+  - File and surface scope (EXECUTION SURFACE, TASKS) remain instructional; they are not enforced. Copilot `--allow-tool=write` is repo-wide.
+  - The record does not prove a human created it. Any process running as the same user can write or forge it.
+  - The check runs when `scaffoldai work` generates the prompt and command. A command already printed cannot be revoked by it, and interactive Claude or Copilot sessions follow it by convention only.
+- Commit and push authorization are not recorded by ScaffoldAI. They exist only as the human's explicit instruction to the agent, as described in section 5.
 
 ---
 
@@ -113,7 +120,7 @@ IF the human explicitly authorized work on this accepted task:
   → Still honor MODE constraints and STOP CONDITIONS
 ```
 
-ScaffoldAI does not yet record or check this authorization; that enforcement is pending Proposal B.
+ScaffoldAI records this authorization with `scaffoldai packet authorize-work` and checks it before `scaffoldai work` generates a prompt or command (section 2). The record expresses the human's decision; it does not replace it. An agent in an interactive session must still have the human's explicit authorization for this accepted task.
 
 ---
 
@@ -204,7 +211,7 @@ These are independent constraints that must all be satisfied.
 
 **Default Behavior:** Treat as `APPROVAL: { execute: PENDING, commit: PENDING }`
 
-**Activation compatibility (Proposal A):** `scaffoldai packet activate` keeps this default only for legacy packets that contain **no approval-like header at all** (no line beginning with `approval:` in any case or indentation). It reports `approval_compatibility: legacy_missing_approval_block_treated_as_pending`, and the review hash is still required. Inline, lowercase, indented, or otherwise malformed approval headers do not qualify and are refused. This exception applies to activation only; new proposals must include the strict PENDING block to pass ingress.
+**Activation compatibility (Proposal A):** `scaffoldai packet activate` keeps this default only for legacy packets that contain **no approval-like header at all** (no line beginning with `approval:` in any case or indentation). It reports `approval_compatibility: legacy_missing_approval_block_treated_as_pending`, and the review hash is still required. Inline, lowercase, indented, or otherwise malformed approval headers do not qualify and are refused. This exception applies to activation and work authorization only; new proposals must include the strict PENDING block to pass ingress.
 
 **Agent Behavior:**
 
@@ -227,7 +234,7 @@ IF APPROVAL field is missing:
 4. Existing SDCs default to PENDING (safe)
 5. New SDCs include explicit approval fields
 6. v2 (Proposal A): APPROVAL becomes a PENDING-only proposal field; packet text grants nothing; acceptance binds the reviewed text with a review hash
-7. Pending (Proposal B): task-bound work-authorization record enforced before work prompts are generated
+7. v3 (Proposal B): task-bound work-authorization record, created by an explicit local human command and checked before work prompts and commands are generated
 
 ---
 
@@ -245,7 +252,7 @@ This model **intentionally omits**:
 - ❌ Automated approval workflows
 - ❌ Any way for packet text to grant approval
 
-Not yet implemented: a recorded, task-bound execution (work) authorization and its runtime check (pending Proposal B).
+Work-authorization invalidation (section 2) is not general approval revocation: it cannot recall a command that was already printed or a session already running.
 
 **Rationale:** Start minimal. Add complexity only when usage demonstrates need.
 
@@ -324,7 +331,7 @@ APPROVAL:
 EXECUTION SURFACE: src/commands/new-feature.cmd.consync.js and README.md
 ```
 
-The human accepted this exact packet (`packet activate --sha256`) and then told the agent: "Proceed with the accepted packet."
+The human accepted this exact packet (`packet activate --sha256`), authorized work on it (`packet authorize-work --sha256`), and told the agent: "Proceed with the accepted packet."
 
 **Agent Behavior:** May create/modify files within the execution surface. Must ask before committing.
 
@@ -378,13 +385,13 @@ APPROVAL:
 
 | Field | Value |
 |-------|-------|
-| **Version** | v2 |
+| **Version** | v3 |
 | **Status** | Active |
 | **Created** | 2026-05-13 |
-| **Amended** | 2026-10-09 (Proposal A) |
+| **Amended** | 2026-10-09 (v2, Proposal A; v3, Proposal B) |
 | **Purpose** | Define approval semantics for execution, commit and push |
-| **Enforced in code** | PENDING-only APPROVAL at ingress and activation; review hash at intake and activation; prompts disclaim packet APPROVAL text |
-| **Not yet enforced** | Task-bound execution (work) authorization (pending Proposal B); commit and push authorization (human instruction only) |
+| **Enforced in code** | PENDING-only APPROVAL at ingress and activation; review hash at intake, activation and authorize-work; prompts disclaim packet APPROVAL text; task-bound work authorization checked before `scaffoldai work` prints a prompt or command |
+| **Not enforced** | File and surface scope inside instructions; who created a work authorization (same-user processes can forge it); commands already printed; commit and push authorization (human instruction only) |
 | **Scope** | Proposal APPROVAL field; human execution, commit and push authorization |
 
 ---
@@ -392,7 +399,6 @@ APPROVAL:
 ## 13. Evolution and Review
 
 Future versions may add:
-- A task-bound work-authorization record and check (Proposal B)
 - Approval audit logs
 - Additional approval states (plan, verify, closeout)
 - Approval revocation patterns

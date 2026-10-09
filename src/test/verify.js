@@ -478,6 +478,8 @@ function main() {
     path.join(repoRoot, "src", "test", "unit-scaffoldai-housekeeping-deletions.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   runNodeStep("[verify] ScaffoldAI proposal review binding", ["--test",
     path.join(repoRoot, "src", "test", "unit-scaffoldai-review-binding.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
+  runNodeStep("[verify] ScaffoldAI work authorization", ["--test",
+    path.join(repoRoot, "src", "test", "unit-scaffoldai-work-authorization.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);
   console.log("");
 
   runNodeStep("[verify] ScaffoldAI preflight command", [path.join(repoRoot, "src", "test", "unit-scaffoldai-preflight.js")], GROUPS.SYSTEM, SURFACES.SCAFFOLDAI);

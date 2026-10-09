@@ -275,7 +275,11 @@ function resetRuntimeState(repoRoot, options = {}) {
     };
   }
 
-  // Invalidate task acceptance first, so no reset step leaves a runnable task.
+  // Invalidate work authorization and task acceptance first, so no reset step
+  // leaves a runnable or authorized task.
+  if (scaffoldaiState.removeWorkAuthorization(repoRoot)) {
+    touched.push(".scaffoldai/state/work-authorization.json");
+  }
   if (scaffoldaiState.removeAcceptedTask(repoRoot)) {
     touched.push(".scaffoldai/state/accepted-task.json");
   }
