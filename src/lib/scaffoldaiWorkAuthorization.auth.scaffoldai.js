@@ -166,9 +166,11 @@ function notAuthorized(message, extra = {}) {
 }
 
 // Reads each context field exactly once, verifies acceptance and the work
-// authorization against that snapshot, and returns it, so the work prompt
-// embeds precisely the text that was verified.
-function authorizedWorkInput(context) {
+// authorization against that snapshot, and returns the snapshot (input) with
+// the acceptance and authorization records the check read, so the work prompt
+// embeds precisely the text that was verified and any metadata shown with it
+// comes from the same records.
+function verifyWorkAuthorization(context) {
   const source = context || {};
   const snapshot = Object.freeze({
     repoRoot: source.repoRoot,
@@ -192,7 +194,15 @@ function authorizedWorkInput(context) {
   if (!bound) {
     throw notAuthorized("The work authorization does not match the current acceptance.");
   }
-  return snapshot;
+  return Object.freeze({
+    input: snapshot,
+    acceptance: Object.freeze({ ...record }),
+    authorization: Object.freeze({ ...authorization }),
+  });
+}
+
+function authorizedWorkInput(context) {
+  return verifyWorkAuthorization(context).input;
 }
 
 module.exports = {
@@ -200,5 +210,6 @@ module.exports = {
   readWorkAuthorizationRecord,
   clearWorkAuthorization,
   authorizeWork,
+  verifyWorkAuthorization,
   authorizedWorkInput,
 };

@@ -457,6 +457,50 @@ authorized for work:
   cannot be revoked by it, and interactive Claude or Copilot sessions follow
   it by convention only.
 
+### Prompt handoff (--emit-prompt)
+
+`scaffoldai work --emit-prompt` (npm: `npm run scaffoldai:work -- --emit-prompt`)
+prints the generated work prompt directly, for an executor other than
+Copilot, such as an interactive Claude session. It runs the same acceptance
+and work-authorization checks as plain `scaffoldai work`
+(`verifyWorkAuthorization`) and emits the same prompt string Copilot would
+receive as `-p`. It writes nothing, launches nothing and grants no authority.
+
+- **Output.** Metadata first: packet identity (`packet_id`, `packet_file`,
+  `packet_sha256`), acceptance identity (`accepted_at`,
+  `next_action_sha256`), work authorization (`authorized_at`,
+  `authorized_via`) and the prompt's `prompt_sha256`, `prompt_bytes` and
+  `prompt_lines`. Metadata comes from the records the check itself read and
+  is not instructions. Then the prompt, between
+  `----- BEGIN SCAFFOLDAI WORK PROMPT <prompt_sha256> -----` and
+  `----- END SCAFFOLDAI WORK PROMPT <prompt_sha256> -----`.
+- **Framing rule.** The instructions are the bytes after the newline ending
+  the BEGIN line, up to and excluding the newline before the END line with
+  the same hash. Their sha256 must equal `prompt_sha256`. The prompt is
+  printed verbatim, with no quoting or escaping; a marker-like line inside
+  the packet cannot carry the prompt's own hash.
+- **Refusals** exit 1 and print only `[scaffold-work] REFUSED: <code>` and a
+  message on stderr: no marker, hash, prompt, packet text or command. Codes
+  are those of plain `scaffoldai work` (`EXECUTION_NOT_AUTHORIZED`,
+  `ACCEPTANCE_*`, missing packet), plus:
+  - `PROMPT_HIDDEN_CHARACTERS` — the prompt contains a character the preview
+    escapes (C0 controls other than tab and LF, DEL, zero-width, bidi, BOM)
+    or CR, U+0085, U+2028 or U+2029. Only code points and line numbers are
+    shown. Submit a new packet without them.
+  - `WORK_METADATA_INVALID` — a record field to be shown is not single-line
+    text.
+  - `INVALID_ARGUMENTS` — `scaffoldai work` accepts no argument other than
+    `--emit-prompt`. With no arguments it behaves as before.
+- **Delivery to Claude.** The human runs `! npm run scaffoldai:work -- --emit-prompt`
+  at the Claude Code prompt, so the output lands in the session as command
+  output, then tells Claude in their own words to follow the emitted prompt.
+  Raw inbox text, packet files, `next-action.md` and conversation text are
+  not generated instructions.
+- **Limits.** Copilot `--allow-tool`/`--deny-tool` flags do not apply to the
+  receiving executor; its own permissions and the human's `git diff` review
+  are the only boundary. File scope is not enforced. ScaffoldAI does not
+  record who received the prompt, and an emitted prompt cannot be revoked.
+
 ### Local hardening limits
 
 The operator entry point binds only to `127.0.0.1` (default port 3133). A

@@ -1,8 +1,8 @@
-# Approval Authority Contract — v3
+# Approval Authority Contract — v4
 
 **Status:** Active  
 **Created:** 2026-05-13  
-**Amended:** 2026-10-09 (v2, Proposal A: packet text grants no authority; v3, Proposal B: task-bound work authorization)\
+**Amended:** 2026-10-09 (v2, Proposal A: packet text grants no authority; v3, Proposal B: task-bound work authorization; v4, prompt handoff: `scaffoldai work --emit-prompt`)\
 **Purpose:** Define execution approval semantics separate from routing and recommendation  
 **Authority:** Partly enforced — see section 12
 
@@ -43,11 +43,12 @@ Enforcement status:
 - Generated plan and work prompts state that APPROVAL fields inside the packet grant no authority.
 - **Execution authorization is recorded and checked for `scaffoldai work` (Proposal B).** `.scaffoldai/state/work-authorization.json` is bound to one acceptance instance: `packet_id`, `packet_file`, `packet_sha256`, `next_action_sha256` and `accepted_at`, with `mode: work`. `authorize-work` refuses unless the acceptance record exists and matches, the task is open, the review hash matches the accepted packet, and the accepted packet's approval text is PENDING (or absent under section 7.1).
 - The work prompt and `scaffoldai work` refuse with `EXECUTION_NOT_AUTHORIZED`, before printing any prompt or command, unless every bound field equals the current acceptance record and the task is open. Activation of any packet (including re-activation of the same packet), `packet clear` and housekeeping reset remove the record. Closing, replacing or re-accepting the task makes any remaining record unusable. Refused activations change nothing.
+- `scaffoldai work --emit-prompt` emits the same work prompt directly, for executors other than Copilot, after the same check (`verifyWorkAuthorization`). It is a second output of that check: it writes nothing, launches nothing and grants no authority. It refuses prompts with hidden or non-LF line-break characters, and every refusal prints no prompt.
 - Planning needs acceptance and an explicit planning request, not work authorization. Activation and authorization launch nothing.
 - **Limits of the work-authorization check:**
   - File and surface scope (EXECUTION SURFACE, TASKS) remain instructional; they are not enforced. Copilot `--allow-tool=write` is repo-wide.
   - The record does not prove a human created it. Any process running as the same user can write or forge it.
-  - The check runs when `scaffoldai work` generates the prompt and command. A command already printed cannot be revoked by it, and interactive Claude or Copilot sessions follow it by convention only.
+  - The check runs when `scaffoldai work` generates the prompt and command. A command or prompt already printed cannot be revoked by it, and interactive Claude or Copilot sessions follow it by convention only. Copilot tool flags do not bind an executor that receives an emitted prompt, and ScaffoldAI does not record who received it.
 - Commit and push authorization are not recorded by ScaffoldAI. They exist only as the human's explicit instruction to the agent, as described in section 5.
 
 ---
@@ -385,13 +386,13 @@ APPROVAL:
 
 | Field | Value |
 |-------|-------|
-| **Version** | v3 |
+| **Version** | v4 |
 | **Status** | Active |
 | **Created** | 2026-05-13 |
-| **Amended** | 2026-10-09 (v2, Proposal A; v3, Proposal B) |
+| **Amended** | 2026-10-09 (v2, Proposal A; v3, Proposal B; v4, prompt handoff) |
 | **Purpose** | Define approval semantics for execution, commit and push |
-| **Enforced in code** | PENDING-only APPROVAL at ingress and activation; review hash at intake, activation and authorize-work; prompts disclaim packet APPROVAL text; task-bound work authorization checked before `scaffoldai work` prints a prompt or command |
-| **Not enforced** | File and surface scope inside instructions; who created a work authorization (same-user processes can forge it); commands already printed; commit and push authorization (human instruction only) |
+| **Enforced in code** | PENDING-only APPROVAL at ingress and activation; review hash at intake, activation and authorize-work; prompts disclaim packet APPROVAL text; task-bound work authorization checked before `scaffoldai work` prints a prompt or command, including `--emit-prompt` |
+| **Not enforced** | File and surface scope inside instructions; who created a work authorization (same-user processes can forge it); commands and prompts already printed; who received an emitted prompt; commit and push authorization (human instruction only) |
 | **Scope** | Proposal APPROVAL field; human execution, commit and push authorization |
 
 ---
